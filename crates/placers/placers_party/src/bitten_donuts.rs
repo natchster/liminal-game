@@ -59,7 +59,7 @@ pub(crate) fn place_bitten_donuts(g: &mut Game, _dist: &[i32]) {
     // Compute bite gap position.
     let bite_ang = dough.rot().z + bite_arc + PI / 7.0;
     let bite_inner = mesh(pg("BittenDonuts__bite", sphere_geo!(0.014, 6, 4)), &bite_inner_mat);
-    bite_inner.position().set(bite_ang.cos() * 0.045, 0.028, bite_ang.sin() * 0.045);
+    bite_inner.position().set(bite_ang.dcos() * 0.045, 0.028, bite_ang.dsin() * 0.045);
     bitten_donut.add(&bite_inner);
     // Scattered crumbs — 5-8 tiny boxes on napkin.
     let crumb_count = 5 + (rnd() * 4.0).floor() as i32;

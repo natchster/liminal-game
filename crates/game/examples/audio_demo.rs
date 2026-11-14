@@ -10,6 +10,7 @@
 //! against the wall clock at the end (a lagging clock means the render
 //! thread could not keep up).
 
+use engine::dmath::DMath;
 use game::Game;
 use game::audio::soundscape::PHRASES;
 use game::audio::sys::SFX_NAMES;
@@ -170,7 +171,7 @@ fn items() -> Vec<Item> {
             let mut next = 0.0;
             run(g, 6.0, |_, _, t| {
                 s.set_listener(0.0, 1.6, 0.0, 0.0, 0.0, -1.0);
-                slot.at(4.0 * (t * 1.1).sin(), 1.9, -4.0 * (t * 1.1).cos());
+                slot.at(4.0 * (t * 1.1).dsin(), 1.9, -4.0 * (t * 1.1).dcos());
                 slot.occlude(if t > 3.0 { 1.0 } else { 0.0 });
                 if t >= next {
                     next += 2.0;
@@ -202,7 +203,7 @@ fn items() -> Vec<Item> {
                 let mag = if t < 3.4 { 1.0 } else { 0.0 };
                 bg.gain().set_target_at_time(0.09 * mag, now, 0.3);
                 sg.gain().set_target_at_time(0.02 * mag, now, 0.3);
-                pan.pan().set_target_at_time(0.2 * (t * 0.75).sin(), now, 0.3);
+                pan.pan().set_target_at_time(0.2 * (t * 0.75).dsin(), now, 0.3);
             });
             wait(0.4);
         }),

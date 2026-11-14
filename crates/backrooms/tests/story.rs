@@ -6,6 +6,7 @@
 //!   ones not yet read (`Game::fit_lore_notes`).
 //!
 //!   cargo test --release -p backrooms --test story
+use engine::dmath::DMath;
 use game::Game;
 
 fn new_game() -> Game {
@@ -275,7 +276,7 @@ fn check_trail(g: &Game) -> Result<String, String> {
         if !gap && !g.los(w[0].1, w[0].2, w[1].1, w[1].2) {
             return Err(format!("{what}: the {:?} at step {} cannot be seen from the mark at step {}", w[1].3, w[1].0, w[0].0));
         }
-        let d = (w[1].1 - w[0].1).hypot(w[1].2 - w[0].2);
+        let d = (w[1].1 - w[0].1).dhypot(w[1].2 - w[0].2);
         if !gap && w[1].0 != s.camp_step && d > w[1].3.reach() + 1e-6 {
             return Err(format!("{what}: the {:?} at step {} is {d:.1} m from the last, seen only {} m", w[1].3, w[1].0, w[1].3.reach()));
         }

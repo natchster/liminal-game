@@ -244,13 +244,13 @@ fn run(g: &mut Game, minutes: f64, seen: &mut Seen) {
         t += dt;
         let f = t / total;
         g.player.sanity = if f < 0.7 { 100.0 * (1.0 - f / 0.7) } else { 100.0 * ((f - 0.7) / 0.3).min(1.0) };
-        g.player.stamina = 50.0 + 50.0 * (t * 0.05).sin();
-        g.player.battery = 50.0 + 50.0 * (t * 0.01).cos();
+        g.player.stamina = 50.0 + 50.0 * (t * 0.05).dsin();
+        g.player.battery = 50.0 + 50.0 * (t * 0.01).dcos();
         g.cry_dim_lerp = if (t as i64) % 40 < 3 { 0.8 } else { 0.0 };
         g.player.yaw = t * 0.7;
-        g.player.pitch = 0.2 * (t * 0.3).sin();
-        g.player.pos.x = sx + 0.4 * (t * 0.11).cos();
-        g.player.pos.z = sz + 0.4 * (t * 0.11).sin();
+        g.player.pitch = 0.2 * (t * 0.3).dsin();
+        g.player.pos.x = sx + 0.4 * (t * 0.11).dcos();
+        g.player.pos.z = sz + 0.4 * (t * 0.11).dsin();
         g.player.bob_amp = if (t as i64) % 30 < 20 { 0.05 } else { 0.0 };
         let halluc_at = g.halluc_shape.pos();
         g.perf_t += dt;
@@ -579,10 +579,10 @@ fn reality_glitch_and_ghosts_body() {
     let path = g.ghost_walk_path(0.4, 9.0, 4);
     assert_eq!(path.len(), 4);
     let fwd = g.player.fwd();
-    let dist = |q: &Vec3| ((q.x - p.x).powi(2) + (q.z - p.z).powi(2)).sqrt();
+    let dist = |q: &Vec3| ((q.x - p.x).dpowi(2) + (q.z - p.z).dpowi(2)).sqrt();
     for w in path.windows(2) {
         assert!(dist(&w[1]) < dist(&w[0]));
-        assert!((((w[1].x - w[0].x).powi(2) + (w[1].z - w[0].z).powi(2)).sqrt() - 0.55).abs() < 1e-9);
+        assert!((((w[1].x - w[0].x).dpowi(2) + (w[1].z - w[0].z).dpowi(2)).sqrt() - 0.55).abs() < 1e-9);
     }
     for q in &path {
         let (dx, dz) = (q.x - p.x, q.z - p.z);
@@ -693,7 +693,7 @@ fn nearest_prop_level_and_pan() {
     assert!(g.prop_near(&list[2..], 12.0).is_none());
     // the pan follows the direction, not the distance to the side
     let h = g.prop_near(&[v3(px + 1.5, 0.3, pz - 6.0)], 12.0).unwrap();
-    let want = 0.8 * 1.5 / (1.5f64.powi(2) + 36.0).sqrt();
+    let want = 0.8 * 1.5 / (1.5f64.dpowi(2) + 36.0).sqrt();
     assert!((h.pan - want).abs() < 1e-9, "pan {} vs {want}", h.pan);
     // played through `update_ambient`: from the nearest fountain, logged with its distance and side
     g.pp.fountain_positions = list;
@@ -857,11 +857,11 @@ fn signatures_are_stable_per_level() {
             assert!(s.t > 0.0 && s.t <= s.period);
             // anchored to an open spot as far out as the sound carries, apart from the others
             assert!(!a.is_wall_tile(a.tx(s.at.x), a.tz(s.at.z)));
-            let d = ((s.at.x - px).powi(2) + (s.at.z - pz).powi(2)).sqrt();
+            let d = ((s.at.x - px).dpowi(2) + (s.at.z - pz).dpowi(2)).sqrt();
             let c = sig_carry(s.name);
             assert!((c.near..=c.far).contains(&d), "{} anchored {d} m away", s.name);
             for o in &sigs[..i] {
-                assert!(((s.at.x - o.at.x).powi(2) + (s.at.z - o.at.z).powi(2)).sqrt() >= SIG_APART);
+                assert!(((s.at.x - o.at.x).dpowi(2) + (s.at.z - o.at.z).dpowi(2)).sqrt() >= SIG_APART);
             }
         }
         sets.insert(identity(&a));
@@ -883,7 +883,7 @@ fn signatures_play_from_their_anchors() {
     g.update_ambient(1.0 / 60.0);
     let tag = format!("sig-{}", s0.name);
     let e = g.ambient_log.iter().rev().find(|e| e.tag == tag).unwrap();
-    let d = ((s0.at.x - g.player.pos.x).powi(2) + (s0.at.z - g.player.pos.z).powi(2)).sqrt();
+    let d = ((s0.at.x - g.player.pos.x).dpowi(2) + (s0.at.z - g.player.pos.z).dpowi(2)).sqrt();
     assert!((e.dist.unwrap() - d).abs() < 1e-9, "logged {e:?}, anchor {d} m away");
     // its own steady beat: the period ±15 %
     let mul = 1.0 / g.descent_boost_mul(0.15);
@@ -1012,7 +1012,7 @@ fn weather_sounds_come_from_their_places() {
             last = key;
             let Some(src) = source(&e.tag) else { continue };
             let at = if src == "fixture" { g.nearest_fixture() } else { g.bed_anchor(src) }.expect("a source");
-            let d = ((at.x - g.player.pos.x).powi(2) + (at.z - g.player.pos.z).powi(2)).sqrt();
+            let d = ((at.x - g.player.pos.x).dpowi(2) + (at.z - g.player.pos.z).dpowi(2)).sqrt();
             assert!((e.dist.expect("placed") - d).abs() < 1e-6, "{wk}: {} from {src}", e.tag);
             heard += 1;
         }

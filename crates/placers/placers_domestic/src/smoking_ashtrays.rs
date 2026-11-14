@@ -77,14 +77,14 @@ pub(crate) fn place_smoking_ashtrays(g: &mut Game, _dist: &[i32]) {
     let ember_base_intensity = 0.003;
     let ember_phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
-        let f = 0.85 + (t * 3.0 + ember_phase).sin() * 0.12 + (t * 7.0 + ember_phase * 1.7).sin() * 0.06;
+        let f = 0.85 + (t * 3.0 + ember_phase).dsin() * 0.12 + (t * 7.0 + ember_phase * 1.7).dsin() * 0.06;
         ember_light.set_intensity(ember_base_intensity * f);
         let k = (f - 0.67) / 0.36;
         ember_mat.set_color((((0xa0 as f64 + 0x5f as f64 * k) as u32) << 16) | (((0x30 as f64 + 0x30 as f64 * k) as u32) << 8) | 0x14);
         for w in &wisps {
-            w.pivot.rotation().y = w.turn + (t * 0.31 + w.phase).sin() * 0.35;
-            let s = 1.0 + (t * 0.5 + w.phase).sin() * 0.06;
-            w.pivot.scale().set(1.0 + (t * 0.7 + w.phase).cos() * 0.15, s, 1.0);
+            w.pivot.rotation().y = w.turn + (t * 0.31 + w.phase).dsin() * 0.35;
+            let s = 1.0 + (t * 0.5 + w.phase).dsin() * 0.06;
+            w.pivot.scale().set(1.0 + (t * 0.7 + w.phase).dcos() * 0.15, s, 1.0);
         }
     });
     a.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
@@ -106,9 +106,9 @@ const CIG_EMBER_AT: f64 = 0.06065; // the ember ring, along it from the filter's
 
 /// Where the ember burns, in the ashtray's frame
 fn ember_at() -> (f64, f64, f64) {
-    let (c, s) = (CIG_TILT.cos(), CIG_TILT.sin());
+    let (c, s) = (CIG_TILT.dcos(), CIG_TILT.dsin());
     let r = CIG_OUT - CIG_EMBER_AT * c;
-    (r * CIG_AZ.cos(), CIG_Y0 - CIG_EMBER_AT * s, r * CIG_AZ.sin())
+    (r * CIG_AZ.dcos(), CIG_Y0 - CIG_EMBER_AT * s, r * CIG_AZ.dsin())
 }
 
 /// The ash in the bowl, seen from above (u along x, v along -z): pale grey
@@ -168,10 +168,10 @@ fn smoke_tex(salt: u32) -> Tex {
             let n = 48;
             for s in 1..=n {
                 let t = s as f64 / n as f64;
-                let amp = 0.5 + 15.0 * t.powf(1.3);
-                let x = w / 2.0 + amp * (t * fr + ph).sin() + drift * t * t + 3.0 * t * (t * 23.0 + ph * 2.0).sin() * t;
+                let amp = 0.5 + 15.0 * t.dpowf(1.3);
+                let x = w / 2.0 + amp * (t * fr + ph).dsin() + drift * t * t + 3.0 * t * (t * 23.0 + ph * 2.0).dsin() * t;
                 let y = h * (1.0 - t);
-                let a = 0.30 * (1.0 - t).powf(1.7) * (t / 0.05).min(1.0);
+                let a = 0.30 * (1.0 - t).dpowf(1.7) * (t / 0.05).min(1.0);
                 ctx.set_stroke_style(format!("rgba(236,240,246,{a:.3})"));
                 ctx.set_line_width(0.7 + 4.5 * t);
                 ctx.begin_path();

@@ -59,8 +59,8 @@ game::lazy_static_tex!(
             let a = -PI / 2.0 + (i as f64 / 12.0) * PI * 2.0;
             let (r0, r1) = (44.0, 52.0);
             ctx.begin_path();
-            ctx.move_to(w / 2.0 + a.cos() * r0, h / 2.0 + a.sin() * r0);
-            ctx.line_to(w / 2.0 + a.cos() * r1, h / 2.0 + a.sin() * r1);
+            ctx.move_to(w / 2.0 + a.dcos() * r0, h / 2.0 + a.dsin() * r0);
+            ctx.line_to(w / 2.0 + a.dcos() * r1, h / 2.0 + a.dsin() * r1);
             ctx.stroke();
         }
         // Broken hands at 3:33 (unsettling non-round time).
@@ -68,13 +68,13 @@ game::lazy_static_tex!(
         ctx.begin_path();
         ctx.move_to(w / 2.0, h / 2.0);
         let hour_a = -PI / 2.0 + PI / 2.0 * 1.11; // ~3:33
-        ctx.line_to(w / 2.0 + hour_a.cos() * 24.0, h / 2.0 + hour_a.sin() * 24.0);
+        ctx.line_to(w / 2.0 + hour_a.dcos() * 24.0, h / 2.0 + hour_a.dsin() * 24.0);
         ctx.stroke();
         ctx.set_line_width(3);
         ctx.begin_path();
         ctx.move_to(w / 2.0, h / 2.0);
         let min_a = -PI / 2.0 + PI * 1.1; // ~33 min
-        ctx.line_to(w / 2.0 + min_a.cos() * 38.0, h / 2.0 + min_a.sin() * 38.0);
+        ctx.line_to(w / 2.0 + min_a.dcos() * 38.0, h / 2.0 + min_a.dsin() * 38.0);
         ctx.stroke();
         ctx.begin_path();
         ctx.arc(w / 2.0, h / 2.0, 4, 0, PI * 2.0);

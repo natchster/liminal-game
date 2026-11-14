@@ -120,7 +120,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
             flame_light.position().y = root + 0.010;
             c.add(&flame_light);
             g.animate(move |_g, _dt, t| {
-                let flick = 0.85 + (t * 6.0 + phase).sin() * 0.12 + (t * 9.0 + phase * 1.4).sin() * 0.07;
+                let flick = 0.85 + (t * 6.0 + phase).dsin() * 0.12 + (t * 9.0 + phase * 1.4).dsin() * 0.07;
                 flame_light.set_intensity(0.20 * flick);
                 flame.scale().set_scalar(flick);
             });
@@ -170,7 +170,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
         put(&knot, "Real__shrineRibbonBow", &satin);
         if let Some(tail) = put(&knot, "Real__shrineRibbonTail", &satin) {
             g.animate(move |_g, _dt, t| {
-                tail.position().x = (t * sway_freq + sway_phase).sin() * 0.003;
+                tail.position().x = (t * sway_freq + sway_phase).dsin() * 0.003;
             });
         }
     }
@@ -287,9 +287,9 @@ fn board_tex(salt: u32, stain: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let warp = fbm(seed, u * 3.0, v * 2.0, 2) * 0.6;
             let ring =
-                ((v * 26.0 + warp * 6.0 + ((u - kx).powi(2) * 4.0 + (v - ky).powi(2) * 30.0).sqrt() * 8.0).sin() * 0.5 + 0.5).powi(3);
+                ((v * 26.0 + warp * 6.0 + ((u - kx).dpowi(2) * 4.0 + (v - ky).dpowi(2) * 30.0).sqrt() * 8.0).dsin() * 0.5 + 0.5).dpowi(3);
             let mut c = mix(base, [base[0] * 0.62, base[1] * 0.58, base[2] * 0.55], ring * 0.7);
-            let knot = ((u - kx).powi(2) * 16.0 + (v - ky).powi(2) * 60.0).sqrt();
+            let knot = ((u - kx).dpowi(2) * 16.0 + (v - ky).dpowi(2) * 60.0).sqrt();
             c = mix(c, [0.16, 0.10, 0.06], (1.0 - sstep(0.04, 0.12, knot)) * 0.85);
             let worn = (fbm(seed ^ 3, u * 6.0, v * 3.0, 3) - 0.55).max(0.0) * 1.6;
             c = mix(c, [0.58, 0.47, 0.34], worn);
@@ -304,7 +304,7 @@ fn cloth_tex(salt: u32) -> Tex {
     canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         let seed = salt ^ 0xc1f;
         fill(ctx, w, h, |u, v| {
-            let weave = ((u * 180.0).sin() * (v * 180.0).sin()).abs() * 0.15;
+            let weave = ((u * 180.0).dsin() * (v * 180.0).dsin()).abs() * 0.15;
             let n = fbm(seed, u * 6.0, v * 6.0, 3);
             let mut c = mix([0.14, 0.12, 0.11], [0.20, 0.17, 0.15], n + weave);
             let edge = u.min(1.0 - u).min(v).min(1.0 - v);

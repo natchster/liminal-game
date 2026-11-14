@@ -110,8 +110,8 @@ fn conker_geo(name: &'static str) -> Option<Geo> {
     uv_part(name, true, move |p, _| {
         let d = [(p[0] - c[0]) / CK[0], (p[1] - c[1]) / CK[1], (p[2] - c[2]) / CK[2]];
         let l = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt().max(1e-9);
-        let u = (d[2].atan2(d[0]) / (2.0 * PI) + 1.0) % 1.0;
-        let v = (d[1] / l).clamp(-1.0, 1.0).acos() / PI;
+        let u = (d[2].datan2(d[0]) / (2.0 * PI) + 1.0) % 1.0;
+        let v = (d[1] / l).clamp(-1.0, 1.0).dacos() / PI;
         (u, 1.0 - v)
     })
 }
@@ -128,13 +128,13 @@ fn conker_tex(k: usize) -> Tex {
             paint_px(ctx, w, h, |px, py| {
                 let (u, v) = (px / w, 1.0 - py / h);
                 let (phi, th) = (u * 2.0 * PI, (1.0 - v) * PI);
-                let d = [th.sin() * phi.cos(), th.cos(), th.sin() * phi.sin()];
+                let d = [th.dsin() * phi.dcos(), th.dcos(), th.dsin() * phi.dsin()];
                 let hl = ck_hilum();
                 let c0 = d[0] * hl[0] + d[1] * hl[1] + d[2] * hl[2];
-                let ang = c0.clamp(-1.0, 1.0).acos();
+                let ang = c0.clamp(-1.0, 1.0).dacos();
                 // the grain: wavy bands round the scar
                 let wob = fbm(seed, d[0] * 3.0 + 7.0, d[2] * 3.0 + d[1] * 2.0, 3);
-                let band = ((ang * 26.0 + wob * 9.0).sin() * 0.5 + 0.5).powf(3.0);
+                let band = ((ang * 26.0 + wob * 9.0).dsin() * 0.5 + 0.5).dpowf(3.0);
                 let mut c = mix_unclamped(base, mul(base, 1.45), 0.45 * band);
                 c = mix_unclamped(c, mul(base, 0.75), sstep(1.8, 2.8, ang) * 0.5);
                 if k == 2 {
@@ -143,7 +143,7 @@ fn conker_tex(k: usize) -> Tex {
                     c = mix_unclamped(c, mul(c, 0.6), sstep(0.55, 0.62, wr) * (1.0 - sstep(0.62, 0.70, wr)));
                 }
                 // the scar
-                let edge = 0.72f64.acos();
+                let edge = 0.72f64.dacos();
                 let inside = 1.0 - sstep(edge - 0.03, edge, ang);
                 let pit = fbm(seed ^ 0x77, d[0] * 30.0 + 1.0, d[2] * 30.0 + d[1] * 20.0, 3);
                 let scar = mix_unclamped([0.68, 0.60, 0.46], [0.55, 0.47, 0.35], pit);

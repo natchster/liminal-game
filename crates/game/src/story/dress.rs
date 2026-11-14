@@ -27,7 +27,7 @@ impl Game {
         // local frame: +z out from the wall, +x along it
         let camp = group();
         camp.position().copy(&face);
-        camp.rotation().y = normal.x.atan2(normal.z);
+        camp.rotation().y = normal.x.datan2(normal.z);
         let flip = if r.next() < 0.5 { 1.0 } else { -1.0 };
 
         // the bedroll: a thin mattress with a blanket thrown over its foot
@@ -158,7 +158,7 @@ impl Game {
                 let mut x = 22.0;
                 while x < end {
                     x += 3.0;
-                    ctx.line_to(x, y - 2.0 - 1.5 * ((x * 0.9 + row as f64).sin()));
+                    ctx.line_to(x, y - 2.0 - 1.5 * ((x * 0.9 + row as f64).dsin()));
                 }
                 ctx.stroke();
             }
@@ -168,7 +168,7 @@ impl Game {
             ctx.move_to(0, 0);
             let mut x = 0.0;
             while x <= w {
-                ctx.line_to(x, 2.0 + 2.5 * ((x * 1.7).sin() + 0.6 * (x * 0.43).cos()).abs());
+                ctx.line_to(x, 2.0 + 2.5 * ((x * 1.7).dsin() + 0.6 * (x * 0.43).dcos()).abs());
                 x += 4.0;
             }
             ctx.line_to(w, 0);
@@ -183,7 +183,7 @@ impl Game {
         let n = camp.normal;
         let face = v3(camp.at.x - n.x * 0.6, 0, camp.at.z - n.z * 0.6);
         m.position().set(face.x + lx * n.z + lz * n.x, camp.at.y + 0.095, face.z - lx * n.x + lz * n.z);
-        m.rotation().y = n.x.atan2(n.z) + PI + r.range(-0.3, 0.3);
+        m.rotation().y = n.x.datan2(n.z) + PI + r.range(-0.3, 0.3);
         m.user().gameplay = true;
         self.world.add(&m);
         m
@@ -226,16 +226,16 @@ impl Game {
         for i in 0..4 {
             let a = (i as f64 / 4.0) * PI * 2.0 + PI / 4.0;
             let post = mesh(pg("CandleLanterns__post", cyl_geo!(0.003, 0.003, 0.14, 4)), &frame_mat);
-            post.position().set(a.cos() * 0.032, 0.075, a.sin() * 0.032);
+            post.position().set(a.dcos() * 0.032, 0.075, a.dsin() * 0.032);
             lantern.add(&post);
         }
         for i in 0..4 {
             let a = (i as f64 / 4.0) * PI * 2.0;
             let panel = mesh(plane_geo!(0.045, 0.12), &glass_mat);
             panel.position().set(
-                a.cos() * 0.032 * std::f64::consts::FRAC_1_SQRT_2,
+                a.dcos() * 0.032 * std::f64::consts::FRAC_1_SQRT_2,
                 0.075,
-                a.sin() * 0.032 * std::f64::consts::FRAC_1_SQRT_2,
+                a.dsin() * 0.032 * std::f64::consts::FRAC_1_SQRT_2,
             );
             panel.rotation().y = -a + PI / 2.0;
             lantern.add(&panel);
@@ -271,9 +271,9 @@ impl Game {
                 }
                 fade = c.fade;
             }
-            let f = 0.8 + 0.12 * (t * 7.0 + phase).sin() + 0.08 * (t * 11.0 + phase * 1.7).sin();
+            let f = 0.8 + 0.12 * (t * 7.0 + phase).dsin() + 0.08 * (t * 11.0 + phase * 1.7).dsin();
             // guttering, the flame shrinks and stutters
-            let stutter = if fade < 1.0 { 0.55 + 0.45 * ((t * 23.0).sin() * (t * 7.3).cos()).abs() } else { 1.0 };
+            let stutter = if fade < 1.0 { 0.55 + 0.45 * ((t * 23.0).dsin() * (t * 7.3).dcos()).abs() } else { 1.0 };
             f2.scale().set_scalar(f * fade.max(0.05));
             l2.set_intensity(2.2 * f * fade * stutter);
             if fade <= 0.0 {
@@ -375,9 +375,9 @@ impl Game {
                 // which way along the wall she went: her arrow is turned
                 // (never mirrored: her hand stays hers), a lean or an offset
                 // is painted the other way round
-                let face = m.normal.0.atan2(m.normal.1);
-                let (ax, az) = (face.cos(), -face.sin());
-                let to_right = -(m.yaw.sin()) * ax + -(m.yaw.cos()) * az >= 0.0;
+                let face = m.normal.0.datan2(m.normal.1);
+                let (ax, az) = (face.dcos(), -face.dsin());
+                let to_right = -(m.yaw.dsin()) * ax + -(m.yaw.dcos()) * az >= 0.0;
                 let (geo, mat) = match m.kind {
                     MarkKind::Pencil => kit.pencil(),
                     MarkKind::Turn => kit.turn(to_right),
@@ -423,7 +423,7 @@ impl Game {
                     let facing = -(dx * m.normal.0 + dz * m.normal.1) / d;
                     let centred = (dx * f.x + dy * f.y + dz * f.z) / d;
                     if d < 20.0 && facing > 0.2 && centred > 0.96 && g.los(c.x, c.z, p.x + m.normal.0 * 0.2, p.z + m.normal.1 * 0.2) {
-                        k = facing.min(1.0) * ((centred - 0.96) / 0.04).min(1.0) * (1.0 - d / 20.0).max(0.0).powf(0.6);
+                        k = facing.min(1.0) * ((centred - 0.96) / 0.04).min(1.0) * (1.0 - d / 20.0).max(0.0).dpowf(0.6);
                     }
                 }
                 let e = (k * 255.0) as u32;
@@ -487,7 +487,7 @@ fn sheet_geo(w: f64, h: f64, lift: f64) -> Geo {
             let (s, t) = (i as f64 / nu as f64, j as f64 / nv as f64);
             let (x, z) = ((s - 0.5) * w, (t - 0.5) * h);
             // the corner at +x, +z curls up
-            let c = ((s - 0.5).max(0.0) * 2.0 * (t - 0.5).max(0.0) * 2.0).powf(1.5);
+            let c = ((s - 0.5).max(0.0) * 2.0 * (t - 0.5).max(0.0) * 2.0).dpowf(1.5);
             pos.extend_from_slice(&[x as f32, (lift * c) as f32, z as f32]);
             uv.extend_from_slice(&[s as f32, (1.0 - t) as f32]);
         }

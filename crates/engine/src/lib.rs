@@ -14,6 +14,7 @@ pub mod audio;
 pub mod canvas;
 pub mod cg;
 pub mod css;
+pub mod dmath;
 pub mod earcut;
 pub mod geometry;
 pub mod material;
@@ -29,6 +30,7 @@ pub mod wav;
 pub mod prelude {
     pub use crate::audio::{AudioBuffer, AudioContext, AudioListener, AudioNode, AudioParam};
     pub use crate::canvas::{Canvas, Gradient, ImageData, Style, TextMetrics};
+    pub use crate::dmath::DMath;
     pub use crate::geometry::*;
     pub use crate::material::*;
     pub use crate::math::*;

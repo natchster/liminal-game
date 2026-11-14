@@ -59,16 +59,16 @@ pub(crate) fn place_dead_ceiling_lights(g: &mut Game, _dist: &[i32]) {
             let c_tilt = (rnd() - 0.5) * 0.15;
             shaft.rotation().z = c_tilt;
             // tilted about its centre: top end 3 mm into the ceiling
-            shaft.position().y = WALL_H + 0.003 - (cable_len / 2.0) * c_tilt.cos();
+            shaft.position().y = WALL_H + 0.003 - (cable_len / 2.0) * c_tilt.dcos();
             cable_col.add(&shaft);
             let plug = mesh(pg("CeilingCables__plug", box_geo!(0.028, 0.038, 0.024)), &plug_col_mat);
             // on the tilted cable's lower end, the cable entering 4 mm into the plug's top
-            plug.position().set(c_tilt.sin() * cable_len / 2.0, WALL_H + 0.003 - cable_len * c_tilt.cos() - 0.015, 0);
+            plug.position().set(c_tilt.dsin() * cable_len / 2.0, WALL_H + 0.003 - cable_len * c_tilt.dcos() - 0.015, 0);
             cable_col.add(&plug);
             let c_ang = rnd() * PI * 2.0;
             let c_rad = 0.35 + rnd() * 0.25;
             let lp = light.pos();
-            cable_col.position().set(lp.x + c_ang.cos() * c_rad, 0, lp.z + c_ang.sin() * c_rad);
+            cable_col.position().set(lp.x + c_ang.dcos() * c_rad, 0, lp.z + c_ang.dsin() * c_rad);
             g.world.add(&cable_col);
         }
         i += 1;

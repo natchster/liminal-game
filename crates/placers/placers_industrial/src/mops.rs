@@ -68,7 +68,7 @@ pub(crate) fn place_mops(g: &mut Game, _dist: &[i32]) {
         let dist = 0.3 + rnd() * 0.3;
         let ang = rnd() * PI * 2.0;
         let mp = mop.pos();
-        bucket.position().set(mp.x + ang.cos() * dist, 0, mp.z + ang.sin() * dist);
+        bucket.position().set(mp.x + ang.dcos() * dist, 0, mp.z + ang.dsin() * dist);
         g.world.add(&bucket);
     }
 }

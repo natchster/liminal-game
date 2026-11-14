@@ -49,7 +49,7 @@ pub(crate) fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
     }
     // leaning on the wall: its foot out from the wall, its top against it
     let lean_a = SASH_LEAN;
-    let out = SASH_H * lean_a.sin() + SASH_T * lean_a.cos();
+    let out = SASH_H * lean_a.dsin() + SASH_T * lean_a.dcos();
     sash.set_rotation_order(EulerOrder::YXZ);
     sash.rotation().x = -lean_a;
     // (the wall point it was hung at, along the wall by the old draw)
@@ -63,7 +63,7 @@ pub(crate) fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
         (wall_x + (rnd() - 0.5) * 1.0, wall_z)
     };
     let back = out - 0.010;
-    sash.position().set(mx - c.dx as f64 * back, SASH_T * lean_a.sin(), mz - c.dz as f64 * back);
+    sash.position().set(mx - c.dx as f64 * back, SASH_T * lean_a.dsin(), mz - c.dz as f64 * back);
     g.world.add(&sash);
     // 30% chance: a damp streak down the wall behind it, from above
     // to the floor, soft and uneven, a tide line at its foot
@@ -110,7 +110,7 @@ pub(crate) fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
         let sh_ang = (rnd() - 0.5) * PI;
         let sh_rad = 0.12 + rnd() * 0.45;
         let (ox, oz) = (-c.dx as f64, -c.dz as f64);
-        let (ca, sa) = (sh_ang.cos(), sh_ang.sin());
+        let (ca, sa) = (sh_ang.dcos(), sh_ang.dsin());
         wshard.position().set(mx + (ox * ca - oz * sa) * sh_rad, 0.0, mz + (ox * sa + oz * ca) * sh_rad);
         g.world.add(&wshard);
     }
@@ -274,7 +274,7 @@ fn sash_paint_tex() -> Tex {
             for i in 0..10 {
                 let a = i as f64 / 10.0 * PI * 2.0;
                 let k = 0.6 + rnd() * 0.5;
-                pts.push((x + a.cos() * rx * k, y + a.sin() * ry * k));
+                pts.push((x + a.dcos() * rx * k, y + a.dsin() * ry * k));
             }
             for (col, dy) in [("rgba(40,34,28,0.45)", 0.8), ("#c3bba5", 0.0)] {
                 ctx.set_fill_style(col);
@@ -303,7 +303,7 @@ fn sash_paint_tex() -> Tex {
             for i in 0..8 {
                 let a = i as f64 / 8.0 * PI * 2.0;
                 let rr = r * (0.5 + rnd() * 0.7);
-                pts.push((x + a.cos() * rr * ex, y + a.sin() * rr * ey));
+                pts.push((x + a.dcos() * rr * ex, y + a.dsin() * rr * ey));
             }
             for (col, d) in [("rgba(60,52,44,0.35)", 0.8), ("#8f887a", 0.0)] {
                 ctx.set_fill_style(col);

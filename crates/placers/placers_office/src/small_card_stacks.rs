@@ -185,8 +185,8 @@ fn back_tex(salt: u32) -> Tex {
         ctx.begin_path();
         for k in 0..16 {
             let a = k as f64 / 16.0 * PI * 2.0;
-            ctx.move_to(cx + a.cos() * 34.0, cy + a.sin() * 34.0);
-            ctx.ellipse(cx + a.cos() * 18.0, cy + a.sin() * 18.0, 16, 5, a, 0, 7);
+            ctx.move_to(cx + a.dcos() * 34.0, cy + a.dsin() * 34.0);
+            ctx.ellipse(cx + a.dcos() * 18.0, cy + a.dsin() * 18.0, 16, 5, a, 0, 7);
         }
         ctx.stroke();
         ctx.begin_path();

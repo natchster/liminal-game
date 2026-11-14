@@ -64,7 +64,7 @@ const CB_NOTES: [&[&str]; 6] = [
 /// An arc of an ellipse (centre, radii, from a0 to a1 radians, y up)
 fn cb_arc(cx: f64, cy: f64, rx: f64, ry: f64, a0: f64, a1: f64) -> Vec<(f64, f64)> {
     let n = ((a1 - a0).abs() / 0.35).ceil().max(2.0) as usize;
-    (0..=n).map(|k| a0 + (a1 - a0) * k as f64 / n as f64).map(|a| (cx + rx * a.cos(), cy + ry * a.sin())).collect()
+    (0..=n).map(|k| a0 + (a1 - a0) * k as f64 / n as f64).map(|a| (cx + rx * a.dcos(), cy + ry * a.dsin())).collect()
 }
 
 /// A capital as a hand writes it in chalk: its width, and its strokes in the
@@ -254,7 +254,7 @@ fn cb_layout(lines: &[&str], w: f64, cap: f64, x0: f64, y0: f64, pitch: f64, r: 
             let (gw, strokes) = cb_glyph(ch);
             let k = size * r.range(0.93, 1.07);
             let (dy, turn) = (r.range(-0.05, 0.05) * cap + (x - x0) * drift, r.range(-0.05, 0.05));
-            let (sn, cs) = turn.sin_cos();
+            let (sn, cs) = turn.dsin_cos();
             for s in strokes {
                 let mut p: Vec<(f64, f64)> = s
                     .iter()
@@ -296,7 +296,7 @@ fn cb_chalk(lines: &[Vec<(f64, f64)>], n: usize, m: usize, width: f64, seed: u32
             let sharp = k > 0 && k + 1 < l.len() && {
                 let (a, b, c) = (l[k - 1], l[k], l[k + 1]);
                 let (u, v) = ((b.0 - a.0, b.1 - a.1), (c.0 - b.0, c.1 - b.1));
-                let cos = (u.0 * v.0 + u.1 * v.1) / (u.0.hypot(u.1) * v.0.hypot(v.1)).max(1e-9);
+                let cos = (u.0 * v.0 + u.1 * v.1) / (u.0.dhypot(u.1) * v.0.dhypot(v.1)).max(1e-9);
                 cos < 0.45
             };
             if sharp || k + 1 == l.len() {
@@ -323,7 +323,7 @@ fn cb_chalk(lines: &[Vec<(f64, f64)>], n: usize, m: usize, width: f64, seed: u32
         let mut d = vec![];
         for k in 0..p.len().saturating_sub(1) {
             let (a, b) = (p[k], p[k + 1]);
-            let c = ((a.0 - b.0).hypot(a.1 - b.1) / 2.5).ceil().max(1.0) as usize;
+            let c = ((a.0 - b.0).dhypot(a.1 - b.1) / 2.5).ceil().max(1.0) as usize;
             for i in 0..c {
                 let t = i as f64 / c as f64;
                 d.push((a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t));
@@ -339,7 +339,7 @@ fn cb_chalk(lines: &[Vec<(f64, f64)>], n: usize, m: usize, width: f64, seed: u32
         let ls = seed.wrapping_add(li as u32 * 97);
         let press = |k: usize| {
             let t = k as f64 / nd as f64;
-            (0.78 + 0.22 * (t * 5.0 + li as f64).sin()) * (1.0 + 0.25 * (-t * 14.0).exp()) * ((1.0 - t) / 0.1).clamp(0.45, 1.0)
+            (0.78 + 0.22 * (t * 5.0 + li as f64).dsin()) * (1.0 + 0.25 * (-t * 14.0).dexp()) * ((1.0 - t) / 0.1).clamp(0.45, 1.0)
         };
         for k in 0..nd {
             segs.push((d[k], d[k + 1], press(k), press(k + 1), ls));
@@ -373,20 +373,20 @@ fn cb_chalk(lines: &[Vec<(f64, f64)>], n: usize, m: usize, width: f64, seed: u32
                 let (ex, ey) = (b.0 - a.0, b.1 - a.1);
                 let l2 = (ex * ex + ey * ey).max(1e-9);
                 let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
-                let d = (x - a.0 - ex * t).hypot(y - a.1 - ey * t);
+                let d = (x - a.0 - ex * t).dhypot(y - a.1 - ey * t);
                 let rr = r * (0.82 + 0.3 * vn(ls ^ 0x5a, x * 0.3, y * 0.3));
                 let cover = sstep(rr + 0.7, rr - 0.7, d);
                 if cover <= 0.0 {
                     continue;
                 }
                 let skip = sstep(0.18, 0.45, vn(ls ^ 0x77, (a.0 + ex * t) * 0.09, (a.1 + ey * t) * 0.09));
-                let press = (pa + (pb - pa) * t) * (0.45 + 0.55 * skip) * (1.0 - 0.35 * (d / rr).powi(2));
+                let press = (pa + (pb - pa) * t) * (0.45 + 0.55 * skip) * (1.0 - 0.35 * (d / rr).dpowi(2));
                 keep = 1.0 - (1.0 - keep) * (1.0 - cover * press);
             }
             // chalk holds on the board's grain, finer than on a wall
             let grain = hash(seed ^ 0x1d, i as i32, j as i32);
             let tooth = 0.75 * grain + 0.25 * vn(seed ^ 0x2e, x * 0.2, y * 0.2);
-            let a = sstep(tooth - 0.18, tooth + 0.12, keep * 0.9) * keep.min(1.0).powf(0.5) * 0.92;
+            let a = sstep(tooth - 0.18, tooth + 0.12, keep * 0.9) * keep.min(1.0).dpowf(0.5) * 0.92;
             out[i * 4] = (a.clamp(0.0, 1.0) * 255.0).round() as u8;
         }
     });
@@ -430,9 +430,9 @@ fn chalkboard_face_tex(w: f64, h: f64, vary: u32) -> Tex {
                 let mut haze = 0.05 + 0.05 * vn(seed ^ 0x63, x * 0.015, y * 0.03);
                 let mut wiped = 0.0f64;
                 for &(sy, amp, tilt, str_, wd) in &swipes {
-                    let cy = sy + tilt * (x - cw / 2.0) + amp * ((x / cw) * 3.1).sin();
+                    let cy = sy + tilt * (x - cw / 2.0) + amp * ((x / cw) * 3.1).dsin();
                     let d = (y - cy) / wd;
-                    let band = (-d * d).exp() * str_;
+                    let band = (-d * d).dexp() * str_;
                     let streak = 0.6 + 0.4 * vn(seed ^ 0x64, x * 0.01, y * 0.6);
                     haze += band * 0.07 * streak;
                     wiped += band * 0.9;

@@ -33,7 +33,7 @@ pub(crate) fn place_specimen_domes(g: &mut Game, _dist: &[i32]) {
     // Small gold plaque on the plinth's sloping face.
     let plaque_mat = gold_mat.clone();
     let plaque = mesh(pg("SpecimenDomes__plaque", box_geo!(0.036, 0.010, 0.002)), &plaque_mat);
-    let plaque_cant = 0.4f64.atan();
+    let plaque_cant = 0.4f64.datan();
     plaque.position().set(0, 0.008, base_r + 0.0040);
     plaque.rotation().x = -plaque_cant;
     sd.add(&plaque);
@@ -44,8 +44,8 @@ pub(crate) fn place_specimen_domes(g: &mut Game, _dist: &[i32]) {
         let d = (i as f64 - 0.5) * 0.004;
         eng_line.position().set(
             0,
-            0.008 + d * plaque_cant.cos() + 0.0011 * plaque_cant.sin(),
-            base_r + 0.0040 - d * plaque_cant.sin() + 0.0011 * plaque_cant.cos(),
+            0.008 + d * plaque_cant.dcos() + 0.0011 * plaque_cant.dsin(),
+            base_r + 0.0040 - d * plaque_cant.dsin() + 0.0011 * plaque_cant.dcos(),
         );
         eng_line.rotation().x = -plaque_cant;
         sd.add(&eng_line);

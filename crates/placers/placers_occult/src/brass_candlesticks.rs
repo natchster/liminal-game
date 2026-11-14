@@ -62,7 +62,7 @@ pub(crate) fn place_brass_candlesticks(g: &mut Game, _dist: &[i32]) {
         stick.add(&glow);
         g.animate(move |_g, _dt, t| {
             let p = t * flicker_rate + flicker_phase;
-            let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3;
+            let wobble = p.dsin() * 0.5 + (p * 1.7).dsin() * 0.3;
             glow.set_intensity(0.35 + wobble * 0.08);
             flame.scale().y = 1.0 + wobble * 0.12;
         });

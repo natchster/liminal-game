@@ -149,7 +149,7 @@ fn settings_persist_apart_from_the_save() {
 /// the cap that never moved the field of view (74) walks with the new one
 #[test]
 fn a_wide_screen_does_not_stretch_the_walls() {
-    let across = |v: f64, aspect: f64| 2.0 * ((v.to_radians() / 2.0).tan() * aspect).atan().to_degrees();
+    let across = |v: f64, aspect: f64| 2.0 * ((v.to_radians() / 2.0).dtan() * aspect).datan().to_degrees();
     for aspect in [4.0 / 3.0, 1.6, 16.0 / 9.0] {
         assert_eq!(vertical_fov(FOV_DEFAULT, aspect), FOV_DEFAULT, "at {aspect:.2} the setting is the view");
     }

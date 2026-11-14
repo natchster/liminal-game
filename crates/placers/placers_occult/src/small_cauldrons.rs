@@ -70,7 +70,7 @@ pub(crate) fn place_small_cauldrons(g: &mut Game, _dist: &[i32]) {
                     .enumerate()
             {
                 if let Some(w) = put(&cauldron, "Real__cauldronWrapper", &mat) {
-                    w.position().set(r * f64::cos(a), caul_floor(r + 0.01) - 0.0004, r * f64::sin(a));
+                    w.position().set(r * a.dcos(), caul_floor(r + 0.01) - 0.0004, r * a.dsin());
                     w.rotation().y = a * 1.7 + i as f64;
                     w.rotation().z = -0.12;
                 }
@@ -128,7 +128,7 @@ fn pot_tex(salt: u32) -> Tex {
             ctx.set_line_width(0.6 + rnd() * 1.2);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -142,7 +142,7 @@ fn water_tex(kind: usize, salt: u32) -> Tex {
         let seed = salt ^ 0x3a7;
         let tint = [[0.20, 0.22, 0.14], [0.17, 0.13, 0.15], [0.24, 0.15, 0.10]][kind.min(2)];
         fill(ctx, w, h, |u, v| {
-            let d = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt() * 2.0;
+            let d = ((u - 0.5).dpowi(2) + (v - 0.5).dpowi(2)).sqrt() * 2.0;
             let mut c = mix([tint[0] * 0.6, tint[1] * 0.6, tint[2] * 0.6], tint, d);
             let scum = fbm(seed, u * 7.0, v * 7.0, 4);
             c = mix(c, [0.36, 0.34, 0.29], sstep(0.55, 0.75, scum) * 0.6);
@@ -167,7 +167,7 @@ fn pot_dust_tex(salt: u32) -> Tex {
     canvas_tex_opt(256, 256, false, move |ctx, w, h| {
         let seed = salt ^ 0xd57;
         fill(ctx, w, h, |u, v| {
-            let d = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt() * 2.0;
+            let d = ((u - 0.5).dpowi(2) + (v - 0.5).dpowi(2)).sqrt() * 2.0;
             let n = fbm(seed, u * 9.0, v * 9.0, 4);
             let a = (1.0 - sstep(0.4, 1.0, d)) * (0.35 + 0.45 * n);
             let c = mix([0.42, 0.39, 0.34], [0.52, 0.49, 0.43], n);

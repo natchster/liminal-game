@@ -39,9 +39,9 @@ pub(crate) fn place_hanging_bats(g: &mut Game, _dist: &[i32]) {
         let hang2 = hang.clone();
         g.animate(move |_g, _dt, t| {
             let a = t * (PI * 2.0 / sway_period) + sway_phase;
-            hang2.rotation().z = a.sin() * 0.025;
-            hang2.rotation().x = (a * 0.71 + 1.3).sin() * 0.015;
-            hang2.rotation().y = (a * 0.37).sin() * 0.35;
+            hang2.rotation().z = a.dsin() * 0.025;
+            hang2.rotation().x = (a * 0.71 + 1.3).dsin() * 0.015;
+            hang2.rotation().y = (a * 0.37).dsin() * 0.35;
         });
     }
     g.world.add(&bat);

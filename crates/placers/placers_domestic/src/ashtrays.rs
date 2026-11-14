@@ -35,7 +35,7 @@ pub(crate) fn place_ashtrays(g: &mut Game, _dist: &[i32]) {
         let butt = mesh(pg("Ashtrays__butt", cyl_geo!(0.005, 0.005, 0.025, 5)), &butt_mat);
         butt.rotation().z = PI / 2.0 + (rnd() - 0.5) * 0.4;
         butt.rotation().y = rnd() * PI;
-        butt.position().set(b_ang.cos() * b_rad, 0.023, b_ang.sin() * b_rad);
+        butt.position().set(b_ang.dcos() * b_rad, 0.023, b_ang.dsin() * b_rad);
         ashtray.add(&butt);
         // Tiny brown filter cap at one end.
         let filter = mesh(pg("Ashtrays__filter", cyl_geo!(0.005, 0.005, 0.008, 5)), &filter_mat);
@@ -44,7 +44,7 @@ pub(crate) fn place_ashtrays(g: &mut Game, _dist: &[i32]) {
         // On the butt's -Y end (its axis after Rz then Ry), away from the lit end.
         let (tz, ty) = (br.z - PI / 2.0, br.y);
         let bp = butt.pos();
-        filter.position().set(bp.x + tz.cos() * ty.cos() * 0.016, bp.y + tz.sin() * 0.016, bp.z - tz.cos() * ty.sin() * 0.016);
+        filter.position().set(bp.x + tz.dcos() * ty.dcos() * 0.016, bp.y + tz.dsin() * 0.016, bp.z - tz.dcos() * ty.dsin() * 0.016);
         ashtray.add(&filter);
     }
     ashtray.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);

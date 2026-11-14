@@ -22,6 +22,7 @@
 //!
 //!   cargo test --release -p backrooms --test playthrough -- --nocapture
 //!   PLAYTHROUGH_SEEDS=101,202 PLAYTHROUGH_LEVELS=13 cargo test ...
+use engine::dmath::DMath;
 use game::Game;
 use game::base::config::EYE;
 mod rule_follower;
@@ -49,7 +50,7 @@ fn set_look(g: &mut Game, yaw: f64, pitch: f64) {
 /// A wall, or a hole in the floor: a player walks round one as round the
 /// other (stepping in, you fall a level)
 fn blocked(g: &Game, x: f64, z: f64, r: f64) -> bool {
-    g.circle_hits_wall(x, z, r) || g.floor_holes.iter().any(|h| (h.x - x).hypot(h.z - z) < h.r + r)
+    g.circle_hits_wall(x, z, r) || g.floor_holes.iter().any(|h| (h.x - x).dhypot(h.z - z) < h.r + r)
 }
 fn freeze_entities(g: &mut Game) {
     for e in g.entities.iter_mut() {
@@ -285,7 +286,7 @@ impl Bot {
             if g.state == "dead" {
                 return w;
             }
-            if (g.player.pos.x - cx).hypot(g.player.pos.z - cz) < 1.6 {
+            if (g.player.pos.x - cx).dhypot(g.player.pos.z - cz) < 1.6 {
                 g.take_page();
             }
         }
@@ -305,7 +306,7 @@ impl Bot {
         while i < p.len() && frames < max_frames {
             let (wx, wz) = p[i];
             let (dx, dz) = (wx - g.player.pos.x, wz - g.player.pos.z);
-            let d = dx.hypot(dz);
+            let d = dx.dhypot(dz);
             if d < if i == p.len() - 1 { 0.45 } else { 0.4 } {
                 i += 1;
                 best = 1e9;
@@ -328,7 +329,7 @@ impl Bot {
                 let to = match c.away_from {
                     Some((ax, az)) => {
                         let (ux, uz) = (g.player.pos.x - ax, g.player.pos.z - az);
-                        let l = ux.hypot(uz).max(1e-6);
+                        let l = ux.dhypot(uz).max(1e-6);
                         Some((g.player.pos.x + ux / l * 3.0, g.player.pos.z + uz / l * 3.0))
                     }
                     None => Some((wx, wz)),
@@ -347,7 +348,7 @@ impl Bot {
                     continue;
                 }
             } else {
-                set_look(g, (-dx).atan2(-dz), 0.0);
+                set_look(g, (-dx).datan2(-dz), 0.0);
                 let sprint = g.player.stamina > 25.0;
                 key(g, "ShiftLeft", sprint);
                 g.player.sanity = 100.0;
@@ -397,7 +398,7 @@ impl Bot {
             key(g, k, false);
         }
         let (ex, ez) = p[p.len() - 1];
-        Walk { ok: (ex - g.player.pos.x).hypot(ez - g.player.pos.z) < 1.2, frames, stuck }
+        Walk { ok: (ex - g.player.pos.x).dhypot(ez - g.player.pos.z) < 1.2, frames, stuck }
     }
 }
 
@@ -512,10 +513,10 @@ fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<
                 if s.seg > 2 * (s.flights - 1) {
                     let far = (s.flights - 1) % 2 == 0;
                     let tz = if far { fl + 1.4 } else { -1.4 };
-                    set_look(&mut g, (-(0.0 - s.x)).atan2(-(tz - s.z)), 0.0);
+                    set_look(&mut g, (-(0.0 - s.x)).datan2(-(tz - s.z)), 0.0);
                 } else {
                     let (tx, tz) = wp(s.seg);
-                    set_look(&mut g, (-(tx - s.x)).atan2(-(tz - s.z)), -0.25);
+                    set_look(&mut g, (-(tx - s.x)).datan2(-(tz - s.z)), -0.25);
                 }
                 g.player.sanity = 100.0;
                 step(&mut g, 1);
@@ -536,7 +537,7 @@ fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<
                 if s.lap == 0 && s.room == 0 && s.z < p / 2.0 + 1.0 {
                     break;
                 }
-                set_look(&mut g, s.x.atan2(1.0), 0.0);
+                set_look(&mut g, s.x.datan2(1.0), 0.0);
                 g.player.sanity = 100.0;
                 step(&mut g, 1);
                 f += 1;
@@ -547,7 +548,7 @@ fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<
                 if q.near_exit {
                     break;
                 }
-                set_look(&mut g, (-(tx - q.x)).atan2(-(tz - q.z)), 0.0);
+                set_look(&mut g, (-(tx - q.x)).datan2(-(tz - q.z)), 0.0);
                 step(&mut g, 1);
                 f += 1;
             }

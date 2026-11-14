@@ -56,8 +56,8 @@ game::lazy_static_tex!(
             let a = (i as f64 / 4.0) * PI * 2.0 - PI / 2.0;
             ctx.set_line_width(1.5);
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * 20.0, cy + a.sin() * 20.0);
-            ctx.line_to(cx + a.cos() * 24.0, cy + a.sin() * 24.0);
+            ctx.move_to(cx + a.dcos() * 20.0, cy + a.dsin() * 20.0);
+            ctx.line_to(cx + a.dcos() * 24.0, cy + a.dsin() * 24.0);
             ctx.stroke();
         }
         // Frozen at 10:10 for classic watch-face look.
@@ -67,13 +67,13 @@ game::lazy_static_tex!(
         let h_ang = ((10.0f64 % 12.0) / 12.0) * PI * 2.0 - PI / 2.0;
         ctx.begin_path();
         ctx.move_to(cx, cy);
-        ctx.line_to(cx + h_ang.cos() * 12.0, cy + h_ang.sin() * 12.0);
+        ctx.line_to(cx + h_ang.dcos() * 12.0, cy + h_ang.dsin() * 12.0);
         ctx.stroke();
         // Minute hand pointing 2.
         let m_ang = (10.0 / 60.0) * PI * 2.0 - PI / 2.0;
         ctx.begin_path();
         ctx.move_to(cx, cy);
-        ctx.line_to(cx + m_ang.cos() * 18.0, cy + m_ang.sin() * 18.0);
+        ctx.line_to(cx + m_ang.dcos() * 18.0, cy + m_ang.dsin() * 18.0);
         ctx.stroke();
         ctx.set_fill_style("#1a1408");
         ctx.begin_path();

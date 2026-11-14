@@ -5,6 +5,7 @@
 //! Textures: shared pixel images (canvas-drawn or raw data) plus per-texture
 //! sampling state (wrap, filters, mipmaps, uv offset / repeat / rotation, y-flip).
 
+use crate::dmath::DMath;
 use crate::math::*;
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
@@ -119,8 +120,8 @@ impl Texture {
     pub fn uv_transform(&self) -> [f64; 9] {
         let (tx, ty, sx, sy, rot, cx, cy) =
             (self.offset.x, self.offset.y, self.repeat.x, self.repeat.y, self.rotation, self.center.x, self.center.y);
-        let c = rot.cos();
-        let s = rot.sin();
+        let c = rot.dcos();
+        let s = rot.dsin();
         // row-major:
         // [sx*c, sx*s, -sx*(c*cx + s*cy) + cx + tx]
         // [-sy*s, sy*c, -sy*(-s*cx + c*cy) + cy + ty]

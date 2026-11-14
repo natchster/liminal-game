@@ -112,14 +112,14 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
         // the dust and grit under it, in soft patches
         for _ in 0..14 {
             let (a, d) = (r.range(0.0, 2.0 * PI), r.range(0.0, 0.32) * w);
-            let (x, y) = (w / 2.0 + a.cos() * d, h / 2.0 + a.sin() * d);
+            let (x, y) = (w / 2.0 + a.dcos() * d, h / 2.0 + a.dsin() * d);
             blob(ctx, x, y, r.range(0.05, 0.16) * w, r.range(0.5, 1.0), r.range(0.0, PI), [0.30, 0.26, 0.20], r.range(0.10, 0.22));
         }
         // the bits: needles broken short, every way, densest in the middle
         ctx.set_line_cap("round");
         for i in 0..240 {
-            let (a, d) = (r.range(0.0, 2.0 * PI), r.next().powf(0.8) * 0.45 * w);
-            let (x, y) = (w / 2.0 + a.cos() * d, h / 2.0 + a.sin() * d);
+            let (a, d) = (r.range(0.0, 2.0 * PI), r.next().dpowf(0.8) * 0.45 * w);
+            let (x, y) = (w / 2.0 + a.dcos() * d, h / 2.0 + a.dsin() * d);
             // whole needles (a third) and the bits of broken ones
             let len = if i % 3 == 0 { r.range(0.036, 0.055) } else { r.range(0.005, 0.025) } * ppm * (1.0 - 0.4 * d / (0.45 * w));
             let t = r.range(0.0, 2.0 * PI);
@@ -132,10 +132,10 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
             ctx.move_to(x, y);
             let bend = r.range(-0.15, 0.15);
             ctx.quadratic_curve_to(
-                x + (t + bend).cos() * len * 0.5,
-                y + (t + bend).sin() * len * 0.5,
-                x + t.cos() * len,
-                y + t.sin() * len,
+                x + (t + bend).dcos() * len * 0.5,
+                y + (t + bend).dsin() * len * 0.5,
+                x + t.dcos() * len,
+                y + t.dsin() * len,
             );
             ctx.stroke();
         }
@@ -144,8 +144,8 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
             let (a, d) = (r.range(0.0, 2.0 * PI), r.next() * 0.4 * w);
             blob(
                 ctx,
-                w / 2.0 + a.cos() * d,
-                h / 2.0 + a.sin() * d,
+                w / 2.0 + a.dcos() * d,
+                h / 2.0 + a.dsin() * d,
                 r.range(1.0, 2.6),
                 r.range(0.4, 1.0),
                 r.range(0.0, PI),

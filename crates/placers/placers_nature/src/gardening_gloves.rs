@@ -68,7 +68,7 @@ fn glove_tex(base: [f64; 3], w: f64, d: f64, dots: bool, tips_low: bool, salt: u
             let (x, z) = (px / ppm, py / ppm);
             let (u, v) = (px / cw, py / chh);
             // the knit: fine wales along it, a fleck of fibre
-            let wale = 0.5 + 0.5 * (x * 2.0 * PI / 0.0011).sin();
+            let wale = 0.5 + 0.5 * (x * 2.0 * PI / 0.0011).dsin();
             let fib = fbm(salt, x * 900.0, z * 300.0, 2);
             let mut c = mul(base, 0.9 + 0.06 * wale + 0.12 * (fib - 0.5));
             // faded unevenly
@@ -80,7 +80,7 @@ fn glove_tex(base: [f64; 3], w: f64, d: f64, dots: bool, tips_low: bool, salt: u
                 let row = gz.round();
                 let off = if (row as i64) % 2 == 0 { 0.0 } else { 0.5 };
                 let (dx, dz) = ((gx - off - (gx - off).round()) * 0.0055, (gz - row) * 0.0055);
-                let r = dx.hypot(dz);
+                let r = dx.dhypot(dz);
                 let worn = sstep(0.40, 0.62, fbm(salt ^ 0x33, x * 40.0, z * 40.0, 3));
                 let dot = (1.0 - sstep(0.0010, 0.0013, r)) * (1.0 - 0.92 * worn);
                 c = mix_unclamped(c, [0.10, 0.10, 0.09], dot * 0.9);
@@ -107,7 +107,7 @@ fn cuff_tex(base: [f64; 3], w: f64, d: f64, salt: u32) -> Tex {
         paint_px(ctx, cw, chh, |px, py| {
             let (x, z) = (px / ppm, py / ppm);
             // 1x1 rib, 2.4 mm a rib, both ways (the cuff lies every way)
-            let rib = (0.5 + 0.5 * (x * 2.0 * PI / 0.0024).sin()).max(0.5 + 0.5 * (z * 2.0 * PI / 0.0024).sin() * 0.0);
+            let rib = (0.5 + 0.5 * (x * 2.0 * PI / 0.0024).dsin()).max(0.5 + 0.5 * (z * 2.0 * PI / 0.0024).dsin() * 0.0);
             let mut c = mul(base, 0.8 + 0.25 * rib);
             c = mix_unclamped(c, [0.52, 0.50, 0.46], 0.15 * fbm(salt ^ 3, x * 40.0, z * 40.0, 3));
             let soil = sstep(0.62, 0.75, fbm(salt ^ 0x71, x * 50.0, z * 50.0, 4)) * 0.6;

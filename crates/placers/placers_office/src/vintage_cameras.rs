@@ -52,7 +52,7 @@ pub(crate) fn place_vintage_cameras(g: &mut Game, _dist: &[i32]) {
         let c_ang = rnd() * PI * 2.0;
         let c_rad = 0.08 + rnd() * 0.12;
         let cp = cam.pos();
-        canister.position().set(cp.x + c_ang.cos() * c_rad, 0, cp.z + c_ang.sin() * c_rad);
+        canister.position().set(cp.x + c_ang.dcos() * c_rad, 0, cp.z + c_ang.dsin() * c_rad);
         canister.rotation().y = rnd() * PI * 2.0;
         g.world.add(&canister);
     }

@@ -34,7 +34,7 @@ pub(crate) fn place_silhouette_portraits(g: &mut Game, _dist: &[i32]) {
     let frame_colors: [u32; 4] = [0x604020, 0xd0a040, 0x2a1810, 0xc0a060];
     let frame = frame_colors[ri(frame_colors.len())];
     let sp = group();
-    sp.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    sp.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     sp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     let tilt = (rnd() - 0.5) * 0.03;
     let p = sp.pos();

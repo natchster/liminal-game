@@ -35,7 +35,7 @@ pub(crate) fn place_donuts(g: &mut Game, _dist: &[i32]) {
     // with the napkin; the modelled corner curls up by itself (the old 0.4 rad
     // tilt sank one side 7 mm into the floor and it overhung the corner 1 cm).
     let nry = napkin.rot().y;
-    let (nc, ns) = (nry.cos(), nry.sin());
+    let (nc, ns) = (nry.dcos(), nry.dsin());
     fold.position().set(0.07 * (nc + ns), 0.0053, 0.07 * (nc - ns));
     fold.rotation().y = nry;
     donut.add(&fold);
@@ -60,7 +60,7 @@ pub(crate) fn place_donuts(g: &mut Game, _dist: &[i32]) {
             let rr = 0.045 + (rnd() - 0.5) * 0.010;
             // On the glaze's top surface at this radius (at 0.041 they were 8-10 mm
             // inside the icing).
-            s.position().set(ang.cos() * rr, 0.0334 + (0.018 * 0.018 - (rr - 0.045).powi(2)).sqrt(), ang.sin() * rr);
+            s.position().set(ang.dcos() * rr, 0.0334 + (0.018 * 0.018 - (rr - 0.045).dpowi(2)).sqrt(), ang.dsin() * rr);
             s.rotation().y = rnd() * PI * 2.0;
             donut.add(&s);
         }

@@ -49,10 +49,10 @@ pub(crate) fn place_teddy_bears(g: &mut Game, _dist: &[i32]) {
     // Subtle head-turn animator: mostly still; occasionally the head turns 0.3 rad and returns.
     let bear_phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
-        let cycle = (t * 0.15 + bear_phase).sin();
+        let cycle = (t * 0.15 + bear_phase).dsin();
         if cycle > 0.85 {
             let local_phase = (cycle - 0.85) / 0.15; // 0..1
-            let turn_amount = (local_phase * PI).sin() * 0.3;
+            let turn_amount = (local_phase * PI).dsin() * 0.3;
             head_group.rotation().y = turn_amount;
         } else {
             head_group.rotation().y = 0.0;
@@ -95,7 +95,7 @@ fn mohair_tex(salt: u32, base: u32, head: bool) -> Tex {
             c = mix(c, [0.62, 0.58, 0.52], sstep(0.5, 0.8, fade) * 0.25);
             // rubbed to the backing: its weave shows
             let wear = worn(seed, u, v, head);
-            let weave = 0.5 + 0.5 * ((u * 300.0).sin() * (v * 300.0).sin());
+            let weave = 0.5 + 0.5 * ((u * 300.0).dsin() * (v * 300.0).dsin());
             let bare = mix(backing, [backing[0] * 0.8, backing[1] * 0.8, backing[2] * 0.8], weave * 0.4);
             c = mix(c, mix(bare, b, 0.35), wear * 0.85);
             // dust and dirt
@@ -153,7 +153,7 @@ fn felt_tex(salt: u32) -> Tex {
             let pill = vn(seed ^ 1, u * 40.0, v * 40.0);
             c = mix(c, [0.70, 0.64, 0.55], sstep(0.75, 0.9, pill) * 0.4);
             for &(hx, hy, r) in &holes {
-                let d = ((u - hx).powi(2) + (v - hy).powi(2)).sqrt();
+                let d = ((u - hx).dpowi(2) + (v - hy).dpowi(2)).sqrt();
                 if d < r {
                     // the wood wool: pale straw shavings in the dark
                     let straw = fbm(seed ^ 9, u * 60.0, v * 25.0, 2);

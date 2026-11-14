@@ -12,6 +12,7 @@
 //!
 //!   cargo test --release -p backrooms --test listen -- --nocapture
 use engine::audio::AudioContext;
+use engine::dmath::DMath;
 use game::Game;
 
 const SR: f64 = 48000.0;
@@ -58,7 +59,7 @@ fn windows(pcm: &[f32]) -> Vec<f64> {
     pcm.chunks(WIN * 2)
         .map(|c| {
             let n = c.len() / 2;
-            let s: f64 = (0..n).map(|i| ((c[2 * i] + c[2 * i + 1]) as f64 * 0.5).powi(2)).sum();
+            let s: f64 = (0..n).map(|i| ((c[2 * i] + c[2 * i + 1]) as f64 * 0.5).dpowi(2)).sum();
             (s / n.max(1) as f64).sqrt()
         })
         .collect()
@@ -68,11 +69,11 @@ fn windows(pcm: &[f32]) -> Vec<f64> {
 /// is mostly hum and room below it and the grain's hiss above it
 fn windows_band(pcm: &[f32], lo: f64, hi: f64) -> Vec<f64> {
     let n = WIN;
-    let hann: Vec<f64> = (0..n).map(|i| 0.5 - 0.5 * (2.0 * std::f64::consts::PI * i as f64 / n as f64).cos()).collect();
+    let hann: Vec<f64> = (0..n).map(|i| 0.5 - 0.5 * (2.0 * std::f64::consts::PI * i as f64 / n as f64).dcos()).collect();
     let bins: Vec<usize> = (0..n / 2).filter(|&k| (lo..hi).contains(&(k as f64 * SR / n as f64))).collect();
     let tw: Vec<Vec<(f64, f64)>> = bins
         .iter()
-        .map(|&k| (0..n).map(|i| (2.0 * std::f64::consts::PI * (k * i) as f64 / n as f64).sin_cos()).map(|(s, c)| (c, s)).collect())
+        .map(|&k| (0..n).map(|i| (2.0 * std::f64::consts::PI * (k * i) as f64 / n as f64).dsin_cos()).map(|(s, c)| (c, s)).collect())
         .collect();
     pcm.chunks(WIN * 2)
         .filter(|c| c.len() == WIN * 2)
@@ -95,7 +96,7 @@ fn windows_band(pcm: &[f32], lo: f64, hi: f64) -> Vec<f64> {
 /// the lamps lay a line every 47 and every 120 Hz)
 fn band_power(pcm: &[f32], from: usize, to: usize, lo: f64, hi: f64) -> Vec<f64> {
     let n = (SR * 0.5) as usize;
-    let hann: Vec<f64> = (0..n).map(|i| 0.5 - 0.5 * (2.0 * std::f64::consts::PI * i as f64 / n as f64).cos()).collect();
+    let hann: Vec<f64> = (0..n).map(|i| 0.5 - 0.5 * (2.0 * std::f64::consts::PI * i as f64 / n as f64).dcos()).collect();
     let bins: Vec<usize> = (0..n / 2).filter(|&k| (lo..hi).contains(&(k as f64 * SR / n as f64))).collect();
     let mut out = vec![];
     let mut at = from;
@@ -108,7 +109,7 @@ fn band_power(pcm: &[f32], from: usize, to: usize, lo: f64, hi: f64) -> Vec<f64>
                 let (re, im) = x
                     .iter()
                     .enumerate()
-                    .fold((0.0, 0.0), |(re, im), (i, v)| (re + v * (w * i as f64).cos(), im - v * (w * i as f64).sin()));
+                    .fold((0.0, 0.0), |(re, im), (i, v)| (re + v * (w * i as f64).dcos(), im - v * (w * i as f64).dsin()));
                 re * re + im * im
             })
             .sum();
@@ -133,7 +134,7 @@ fn event_energy(w: &[f64], bed: f64) -> f64 {
     w.iter().map(|v| (v - 2.0 * bed).max(0.0)).sum::<f64>() / (w.len() as f64 * 0.05)
 }
 fn db(x: f64) -> f64 {
-    20.0 * x.max(1e-7).log10()
+    20.0 * x.max(1e-7).dlog10()
 }
 /// The WAV and a loudness timeline (dB, -70..0, one column per window; red
 /// marks at `marks` seconds)
@@ -483,7 +484,7 @@ fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>,
     let (x, z) = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| d[(z * g.w + x) as usize] == steps)?;
     g.player.pos.x = g.wx(x);
     g.player.pos.z = g.wz(z);
-    let metres = ((g.player.pos.x - e.x).powi(2) + (g.player.pos.z - e.z).powi(2)).sqrt();
+    let metres = ((g.player.pos.x - e.x).dpowi(2) + (g.player.pos.z - e.z).dpowi(2)).sqrt();
     g.reset_director();
     let mut times = vec![];
     let mut last_call = None;
@@ -546,7 +547,7 @@ fn onsets(pcm: &[f32], from: f64, to: f64, floor: f64) -> Vec<f64> {
         .step_by(win)
         .map(|s| {
             let n = win.min(b - s);
-            ((0..n).map(|i| ((pcm[2 * (s + i)] + pcm[2 * (s + i) + 1]) as f64 * 0.5).powi(2)).sum::<f64>() / n.max(1) as f64).sqrt()
+            ((0..n).map(|i| ((pcm[2 * (s + i)] + pcm[2 * (s + i) + 1]) as f64 * 0.5).dpowi(2)).sum::<f64>() / n.max(1) as f64).sqrt()
         })
         .collect();
     let mut out: Vec<f64> = vec![];
@@ -567,7 +568,7 @@ fn band_passed(pcm: &[f32], lo: f64, hi: f64) -> Vec<f32> {
     // RBJ's biquads, Q 1/sqrt(2)
     let coef = |f: f64, high: bool| {
         let w = 2.0 * std::f64::consts::PI * f / SR;
-        let (sn, cs) = w.sin_cos();
+        let (sn, cs) = w.dsin_cos();
         let a = sn / std::f64::consts::SQRT_2;
         let (b0, b1) = if high { ((1.0 + cs) / 2.0, -(1.0 + cs)) } else { ((1.0 - cs) / 2.0, 1.0 - cs) };
         let a0 = 1.0 + a;
@@ -670,7 +671,7 @@ impl Knocked {
 /// knock at it (`Game::hum_lamp`: the nearest lit lamp of that storey)
 fn door_lamp(g: &Game, d: &game::world::knock::KnockDoor) -> f64 {
     let s = d.stand();
-    g.hum_lamp(s.x, s.z).map_or(f64::MAX, |(l, _)| (g.panels[l].wx - d.foot.x).hypot(g.panels[l].wz - d.foot.z))
+    g.hum_lamp(s.x, s.z).map_or(f64::MAX, |(l, _)| (g.panels[l].wx - d.foot.x).dhypot(g.panels[l].wz - d.foot.z))
 }
 
 /// Knock at an answering door and then at a red one of `seed`'s Well (the
@@ -690,7 +691,7 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
         let d = g.knocks.doors[i].clone();
         let p = d.stand();
         g.player.pos = engine::math::Vec3::new(p.x, g.floor_y_at(p.x, p.z) + game::prelude::EYE, p.z);
-        g.player.yaw = d.normal.0.atan2(d.normal.1);
+        g.player.yaw = d.normal.0.datan2(d.normal.1);
         g.player.pitch = 0.0;
     };
     r.g.assembly.t = 300.0;
@@ -773,7 +774,7 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
 #[test]
 fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
     use game::world::knock::{ANSWER_AFTER, Gift, KnockDoor, Mark, OUT_AFTER};
-    let quiet = |g: &Game, d: &KnockDoor| g.panels.iter().all(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z) >= 8.0);
+    let quiet = |g: &Game, d: &KnockDoor| g.panels.iter().all(|p| (p.wx - d.foot.x).dhypot(p.wz - d.foot.z) >= 8.0);
     let k = knock_and_listen(4242, "knock_4242_L1", |g| {
         let answers = g.knocks.doors.iter().position(|d| d.gift == Some(Gift::Water) && quiet(g, d)).expect("a door that gives water");
         let red = g.knocks.doors.iter().position(|d| d.mark == Mark::Red && quiet(g, d)).expect("a red door");
@@ -1004,11 +1005,11 @@ fn cell_going(how: &str) -> Going {
     let h = r.g.floor_y_of(x, z);
     let door = r.g.cell_doors[ci].at;
     r.g.player.pos = engine::math::Vec3::new(wx, h + game::prelude::EYE, wz);
-    r.g.player.yaw = (-(door.x - wx)).atan2(-(door.z - wz));
+    r.g.player.yaw = (-(door.x - wx)).datan2(-(door.z - wz));
     r.g.player.pitch = 0.0;
     // (the lamp whose hum is heard in the cell: the nearest lit one of its
     // storey, `Game::hum_lamp`; how far it is from the door)
-    let lamp = r.g.hum_lamp(wx, wz).map_or(f64::MAX, |(l, _)| (r.g.panels[l].wx - door.x).hypot(r.g.panels[l].wz - door.z));
+    let lamp = r.g.hum_lamp(wx, wz).map_or(f64::MAX, |(l, _)| (r.g.panels[l].wx - door.x).dhypot(r.g.panels[l].wz - door.z));
     r.g.turn_cell_wheel(ci, true);
     r.g.assembly.t = 1e6;
     // (the wheel's own turn, then the cell's bed; the graph's nodes over its
@@ -1347,7 +1348,7 @@ fn the_one_in_the_corner_hums() {
     // running)
     let humming = quantile(&band_power(&r.pcm, hum_from + SR as usize, hum_to, 150.0, 225.0), 0.9);
     let stopped = quantile(&band_power(&r.pcm, hum_to + SR as usize / 2, r.pcm.len() / 2, 150.0, 225.0), 0.9);
-    let up = 10.0 * (humming / stopped).log10();
+    let up = 10.0 * (humming / stopped).dlog10();
     println!("corner: at 150-225 Hz the room is {up:+.1} dB while it hums, against once it stops");
     save("corner_4242_L6", &r.pcm, &[hum_from as f64 / SR, hum_to as f64 / SR]);
     assert!(up > 3.0, "its hum should stand 3 dB over the room in its band, and be heard to stop");

@@ -297,7 +297,7 @@ impl Game {
         let dist = hypot2(pp.x - pos.x, pp.z - pos.z);
         let line = dist < 40.0 && self.e_los(pos.x, pos.z, pp.x, pp.z);
         let (dx, dz) = if dist > 1e-6 { ((pp.x - pos.x) / dist, (pp.z - pos.z) / dist) } else { (0.0, 1.0) };
-        let in_view = dist < 1.2 || e.yaw.sin() * dx + e.yaw.cos() * dz >= kd.cone;
+        let in_view = dist < 1.2 || e.yaw.dsin() * dx + e.yaw.dcos() * dz >= kd.cone;
         let you_lit = self.e_region_light_at(self.tx(pp.x), self.tz(pp.z));
         let it_lit = self.e_region_light_at(self.tx(pos.x), self.tz(pos.z));
         // your eyes: it is in the middle of your view, and you could see it

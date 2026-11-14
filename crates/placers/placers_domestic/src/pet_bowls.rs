@@ -43,7 +43,7 @@ pub(crate) fn place_pet_bowls(g: &mut Game, _dist: &[i32]) {
             let ang = rnd() * PI * 2.0;
             let rr = rnd() * bowl_r * 0.75;
             let ky = 0.015 + rnd() * 0.010;
-            kibble.position().set(-0.13 + ang.cos() * rr, ky, ang.sin() * rr);
+            kibble.position().set(-0.13 + ang.dcos() * rr, ky, ang.dsin() * rr);
             pb.add(&kibble);
         }
     }
@@ -88,7 +88,7 @@ pub(crate) fn place_pet_bowls(g: &mut Game, _dist: &[i32]) {
         let label = mesh(pg("PetBowls__label", box_geo!(0.04, 0.001, 0.010)), &label_mat);
         // Flat on the food bowl's flared outer wall (slope 0.3), facing out.
         label.position().set(-0.13, 0.032 + mat_lift, 0.0765 + 0.3 * 0.030);
-        label.rotation().x = PI / 2.0 + 0.3f64.atan();
+        label.rotation().x = PI / 2.0 + 0.3f64.datan();
         pb.add(&label);
     }
     let px = g.wx(x) + (rnd() - 0.5) * 1.6;

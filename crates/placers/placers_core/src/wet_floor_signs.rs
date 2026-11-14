@@ -29,8 +29,8 @@ pub(crate) fn place_wet_floor_signs(g: &mut Game, _dist: &[i32]) {
     let worn = ((turn * 4096.0) as u32) & 1;
     let Some(kit) = sign_kit() else { return };
     let sign = group();
-    let splay = (0.15f64 / PANEL_H).asin();
-    let hinge_y = PANEL_H * splay.cos();
+    let splay = (0.15f64 / PANEL_H).dasin();
+    let hinge_y = PANEL_H * splay.dcos();
     for side in [0.0, PI] {
         // each panel hangs from the hinge, its foot out to its own side,
         // and brings its half of the hinge
@@ -153,7 +153,7 @@ fn panel_tex(worn: u32) -> Tex {
             pr.set_global_alpha(0.4 + 0.5 * r.f());
             pr.begin_path();
             pr.move_to(x, y);
-            pr.line_to(x + a.cos() * l, y + a.sin() * l);
+            pr.line_to(x + a.dcos() * l, y + a.dsin() * l);
             pr.stroke();
         }
         // its foot, where the mop and the shoes rub it
@@ -177,7 +177,7 @@ fn panel_tex(worn: u32) -> Tex {
             ctx.set_line_width(1.0 + r.f() * 2.5);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })

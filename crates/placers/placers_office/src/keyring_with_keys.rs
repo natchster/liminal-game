@@ -33,7 +33,7 @@ pub(crate) fn place_keyring_with_keys(g: &mut Game, _dist: &[i32]) {
             key.add(&tooth);
         }
         let angle = (k as f64 / key_count as f64) * PI * 0.6 - PI * 0.3;
-        key.position().set(angle.cos() * (r + 0.010), 0, angle.sin() * (r + 0.010));
+        key.position().set(angle.dcos() * (r + 0.010), 0, angle.dsin() * (r + 0.010));
         key.rotation().y = angle;
         ring.add(&key);
     }

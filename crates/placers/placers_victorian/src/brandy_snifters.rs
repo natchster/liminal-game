@@ -88,9 +88,9 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
     {
         let surface = surface.clone();
         g.animate(move |_g, _dt, t| {
-            surface.rotation().x = -PI / 2.0 + (t * ripple_freq_x + ripple_phase_x).sin() * 0.012;
-            surface.rotation().z = (t * ripple_freq_z + ripple_phase_z).cos() * 0.012;
-            surface.position().y = surf_base_y + (t * ripple_freq_x * 1.3 + ripple_phase_z).sin() * 0.0004;
+            surface.rotation().x = -PI / 2.0 + (t * ripple_freq_x + ripple_phase_x).dsin() * 0.012;
+            surface.rotation().z = (t * ripple_freq_z + ripple_phase_z).dcos() * 0.012;
+            surface.position().y = surf_base_y + (t * ripple_freq_x * 1.3 + ripple_phase_z).dsin() * 0.0004;
         });
     }
     // ash flicked on the coaster's edge
@@ -211,7 +211,7 @@ fn sn_coaster_tex(vary: u32, kind: usize) -> Tex {
             let mut o = match kind {
                 0 | 3 => {
                     // end grain turned flat: rings round the middle, the figure
-                    let ring = ((rr * 160.0 + fbm(seed, u * 6.0, v * 6.0, 3) * 6.0).sin() * 0.5 + 0.5).powf(2.0);
+                    let ring = ((rr * 160.0 + fbm(seed, u * 6.0, v * 6.0, 3) * 6.0).dsin() * 0.5 + 0.5).dpowf(2.0);
                     let base = if kind == 0 { [0.40, 0.25, 0.14] } else { [0.18, 0.11, 0.07] };
                     base.map(|c| c * (0.88 + 0.15 * fbm(seed ^ 3, u * 40.0, v * 3.0, 2) - 0.18 * ring))
                 }
@@ -235,7 +235,7 @@ fn sn_coaster_tex(vary: u32, kind: usize) -> Tex {
             };
             // the rings left by wet glasses: a white bloom on wood, dark on the rest
             for &(cx, cy, cr, white) in &rings {
-                let d = (((u - cx).powi(2) + (v - cy).powi(2)).sqrt() - cr).abs();
+                let d = (((u - cx).dpowi(2) + (v - cy).dpowi(2)).sqrt() - cr).abs();
                 let k = (1.0 - sstep(0.0, 0.012, d)) * 0.6;
                 o = if white && kind != 1 { o.map(|c| c + (0.6 - c) * k * 0.6) } else { o.map(|c| c * (1.0 - 0.4 * k)) };
             }

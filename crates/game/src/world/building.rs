@@ -28,8 +28,8 @@ fn along(a: Vec3, b: Vec3, lift: f64, h: f64, t: f64) -> Mat4 {
     let run = (dx * dx + dz * dz).sqrt().max(1e-9);
     let len = (run * run + dy * dy).sqrt();
     let q = {
-        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), (-dz).atan2(dx));
-        q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), dy.atan2(run)));
+        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), (-dz).datan2(dx));
+        q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), dy.datan2(run)));
         q
     };
     let c = Vec3::new((a.x + b.x) / 2.0, (a.y + b.y) / 2.0 + lift + h / 2.0, (a.z + b.z) / 2.0);
@@ -44,14 +44,14 @@ pub(crate) fn soffit(a: Vec3, b: Vec3, thick: f64, width: f64) -> Mat4 {
     let (dx, dy, dz) = (b.x - a.x, b.y - a.y, b.z - a.z);
     let run = (dx * dx + dz * dz).sqrt().max(1e-9);
     let len = (run * run + dy * dy).sqrt();
-    let roll = dy.atan2(run);
+    let roll = dy.datan2(run);
     let q = {
-        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), (-dz).atan2(dx));
+        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), (-dz).datan2(dx));
         q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), roll));
         q
     };
     // the slab's own up, square to its underside
-    let n = Vec3::new(-roll.sin() * dx / run, roll.cos(), -roll.sin() * dz / run);
+    let n = Vec3::new(-roll.dsin() * dx / run, roll.dcos(), -roll.dsin() * dz / run);
     let c = Vec3::new((a.x + b.x) / 2.0 + n.x * thick / 2.0, (a.y + b.y) / 2.0 + n.y * thick / 2.0, (a.z + b.z) / 2.0 + n.z * thick / 2.0);
     Mat4::compose(&c, &q, &Vec3::new(len, thick, width))
 }
@@ -101,7 +101,7 @@ fn lamp_fixture(style: Style, at: Vec3, wall: Option<(f64, f64)>, out: &mut Vec<
 /// The railing of the place along an edge from `a` to `b` (on the floor)
 fn rail(push: &mut impl FnMut(String, Mat4), style: Style, a: Vec3, b: Vec3, wall: &str) {
     let point = |t: f64| Vec3::new(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
-    let n = |every: f64| (((b.x - a.x).hypot(b.z - a.z)) / every).round().max(1.0) as usize;
+    let n = |every: f64| (((b.x - a.x).dhypot(b.z - a.z)) / every).round().max(1.0) as usize;
     match style {
         // the Well: a parapet poured with the gallery
         Style::Well => push(format!("{wall}:1"), along(a, b, 0.0, PARAPET_H, PARAPET_T)),
@@ -283,7 +283,7 @@ impl Game {
                         let low = |s: f64| h0 + (h1 - h0) * s - rise / n as f64 - SLAB;
                         let a = Vec3::new(cx - fx * CELL / 2.0, low(0.0), cz - fz * CELL / 2.0);
                         let b = Vec3::new(cx + fx * CELL / 2.0, low(1.0), cz + fz * CELL / 2.0);
-                        let thick = (rise / n as f64 + 0.03) * CELL / CELL.hypot(rise);
+                        let thick = (rise / n as f64 + 0.03) * CELL / CELL.dhypot(rise);
                         push(format!("floor:{floor}:1"), soffit(a, b, thick, CELL - 0.02));
                     }
                     _ => {}
@@ -399,7 +399,7 @@ impl Game {
                 let y = foot.h0 as f64 + 2.6;
                 let at = |k: f64| (self.wx(fx) + k * sx * (CELL / 2.0 - 0.35), self.wz(fz) + k * sz * (CELL / 2.0 - 0.35));
                 let by_a_cell = |(px, pz): (f64, f64)| {
-                    spots[..plan.cells.len()].iter().any(|s| (s.0 - px).hypot(s.1 - pz) < 1.0 && (s.2 - y).abs() < 1.0)
+                    spots[..plan.cells.len()].iter().any(|s| (s.0 - px).dhypot(s.1 - pz) < 1.0 && (s.2 - y).abs() < 1.0)
                 };
                 let other = plan.style != Style::Well && by_a_cell(at(1.0)) && !by_a_cell(at(-1.0));
                 let (px, pz) = if other { at(-1.0) } else { at(1.0) };
@@ -512,7 +512,7 @@ impl Game {
         let spot = WallSpot {
             pos: Vec3::new(self.wx(ex) + fx * (CELL / 2.0 - 0.06), self.floor_y_of(ex, ez), self.wz(ez) + fz * (CELL / 2.0 - 0.06)),
             normal: Vec3::new(-fx, 0.0, -fz),
-            yaw: (-fx).atan2(-fz),
+            yaw: (-fx).datan2(-fz),
         };
         self.build_exit_door(&spot);
         // the Works' door, the last of the Building's: small in its wall, and

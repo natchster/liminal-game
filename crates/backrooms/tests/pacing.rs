@@ -16,6 +16,7 @@
 //! logged, with how many sirens a floor meets on the way down.
 //!
 //!   cargo test --release -p backrooms --test pacing -- --nocapture
+use engine::dmath::DMath;
 use game::Game;
 use game::entities::director::Phase;
 use game::world::assembly::{CREST, QUIET, Stage, WARNING};
@@ -54,12 +55,12 @@ fn steer(g: &mut Game, turn_t: &mut f64, frame: usize) {
             .filter(|e| e.state == state && e.kind != "watcher")
             .map(|e| {
                 let q = e.pos();
-                (((q.x - p.x).powi(2) + (q.z - p.z).powi(2)).sqrt(), q)
+                (((q.x - p.x).dpowi(2) + (q.z - p.z).dpowi(2)).sqrt(), q)
             })
             .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
     };
     let free = |g: &Game, yaw: f64, d: f64| {
-        let (fx, fz) = (-yaw.sin(), -yaw.cos());
+        let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
         !g.circle_hits_wall(p.x + fx * d, p.z + fz * d, 0.35) && !g.circle_hits_wall(p.x + fx * d * 0.5, p.z + fz * d * 0.5, 0.35)
     };
     for k in ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "KeyC"] {
@@ -72,13 +73,13 @@ fn steer(g: &mut Game, turn_t: &mut f64, frame: usize) {
         .iter()
         .filter(|e| e.kind == "watcher")
         .map(|e| e.pos())
-        .find(|q| ((q.x - p.x).powi(2) + (q.z - p.z).powi(2)).sqrt() < 12.0 && g.los(p.x, p.z, q.x, q.z));
+        .find(|q| ((q.x - p.x).dpowi(2) + (q.z - p.z).dpowi(2)).sqrt() < 12.0 && g.los(p.x, p.z, q.x, q.z));
     if let Some(q) = watcher {
-        g.player.yaw = (-(q.x - p.x)).atan2(-(q.z - p.z));
+        g.player.yaw = (-(q.x - p.x)).datan2(-(q.z - p.z));
         key(g, "KeyS", true);
     } else if let (true, Some((_, q))) = (smiler_hunts, near("hunt", g).filter(|h| h.0 < 30.0)) {
         // the Smiler: hold its gaze and back away, sidestepping walls
-        let yaw = (-(q.x - p.x)).atan2(-(q.z - p.z));
+        let yaw = (-(q.x - p.x)).datan2(-(q.z - p.z));
         g.player.yaw = yaw;
         key(g, "KeyS", true);
         let back = yaw + std::f64::consts::PI;
@@ -88,11 +89,11 @@ fn steer(g: &mut Game, turn_t: &mut f64, frame: usize) {
         }
     } else if let Some((d, q)) = near("hunt", g).filter(|h| h.0 < 30.0) {
         // run: the open heading that leads furthest from it
-        let away = (-(p.x - q.x)).atan2(-(p.z - q.z));
+        let away = (-(p.x - q.x)).datan2(-(p.z - q.z));
         let mut best = (f64::MIN, g.player.yaw);
         for k in 0..16 {
             let yaw = away + (k as f64 - 7.5) * std::f64::consts::PI / 8.0;
-            let (fx, fz) = (-yaw.sin(), -yaw.cos());
+            let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
             let score = if free(g, yaw, 2.5) { 1.0 } else { -2.0 } + (fx * (p.x - q.x) + fz * (p.z - q.z)) / d.max(0.1);
             if score > best.0 {
                 best = (score, yaw);
@@ -184,7 +185,7 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
                     "{} {} {:.0}m",
                     g.entities[i].kind,
                     g.entities[i].state,
-                    ((q.x - g.player.pos.x).powi(2) + (q.z - g.player.pos.z).powi(2)).sqrt()
+                    ((q.x - g.player.pos.x).dpowi(2) + (q.z - g.player.pos.z).dpowi(2)).sqrt()
                 )
             });
             let ents: Vec<String> = g
@@ -192,7 +193,7 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
                 .iter()
                 .map(|e| {
                     let q = e.pos();
-                    format!("{}:{}:{:.0}", e.kind, e.state, ((q.x - g.player.pos.x).powi(2) + (q.z - g.player.pos.z).powi(2)).sqrt())
+                    format!("{}:{}:{:.0}", e.kind, e.state, ((q.x - g.player.pos.x).dpowi(2) + (q.z - g.player.pos.z).dpowi(2)).sqrt())
                 })
                 .collect();
             println!("    t={t:.0} {} -> {} stalker {st:?} push {} ents {ents:?}", phase.name(), now.name(), g.director.final_push);
@@ -345,10 +346,10 @@ fn tile_way(g: &Game, from: (i32, i32), to: (i32, i32)) -> Option<Vec<(i32, i32)
 fn walk_toward(g: &mut Game, t: (i32, i32)) -> bool {
     let (tx, tz) = (g.wx(t.0), g.wz(t.1));
     let (dx, dz) = (tx - g.player.pos.x, tz - g.player.pos.z);
-    if dx.hypot(dz) < 0.4 {
+    if dx.dhypot(dz) < 0.4 {
         return true;
     }
-    g.player.yaw = (-dx).atan2(-dz);
+    g.player.yaw = (-dx).datan2(-dz);
     g.player.pitch = 0.0;
     key(g, "KeyW", true);
     // (as the playthrough's bot: a sprint while there is the breath for it)

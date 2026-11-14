@@ -38,7 +38,7 @@ pub(crate) fn place_gum_ball_dispensers(g: &mut Game, _dist: &[i32]) {
         let r = rnd() * 0.065;
         let theta = rnd() * PI * 2.0;
         let phi = PI * 0.5 + rnd() * PI * 0.4; // biased lower hemisphere
-        ball.position().set(phi.sin() * theta.cos() * r, mount_y + 0.20 + phi.cos() * r, phi.sin() * theta.sin() * r);
+        ball.position().set(phi.dsin() * theta.dcos() * r, mount_y + 0.20 + phi.dcos() * r, phi.dsin() * theta.dsin() * r);
         dispenser.add(&ball);
     }
     // Coin slot (small dark rectangle on base).

@@ -67,14 +67,14 @@ pub(crate) fn place_baby_rattles(g: &mut Game, _dist: &[i32]) {
 fn star(x: f64, y: f64, r: f64, turn: f64) -> f64 {
     let sector = PI * 2.0 / 5.0;
     let d = (x * x + y * y).sqrt();
-    let mut phi = (y.atan2(x) + turn).rem_euclid(sector);
+    let mut phi = (y.datan2(x) + turn).rem_euclid(sector);
     if phi > sector / 2.0 {
         phi = sector - phi;
     }
     // the edge from a point (r, 0) to the notch beside it (0.4 r at 36 degrees)
     let (p0x, p0y) = (r, 0.0);
-    let (p1x, p1y) = (0.4 * r * (PI / 5.0).cos(), 0.4 * r * (PI / 5.0).sin());
-    let (px, py) = (d * phi.cos(), d * phi.sin());
+    let (p1x, p1y) = (0.4 * r * (PI / 5.0).dcos(), 0.4 * r * (PI / 5.0).dsin());
+    let (px, py) = (d * phi.dcos(), d * phi.dsin());
     let (ex, ey) = (p1x - p0x, p1y - p0y);
     let side = (ex * (py - p0y) - ey * (px - p0x)) / (ex * ex + ey * ey).sqrt();
     sstep(-0.004, 0.004, side)

@@ -231,8 +231,8 @@ pub fn pattern_hex(ctx: &mut Canvas, w: f64, h: f64, m: &str, _m2: &str) {
             ctx.begin_path();
             for i in 0..=6 {
                 let a = i as f64 * PI / 3.0;
-                let px = x + ox + a.cos() * r;
-                let py = y + a.sin() * r;
+                let px = x + ox + a.dcos() * r;
+                let py = y + a.dsin() * r;
                 if i == 0 {
                     ctx.move_to(px, py);
                 } else {
@@ -257,7 +257,7 @@ pub fn pattern_art_deco(ctx: &mut Canvas, w: f64, h: f64, m: &str, _m2: &str) {
             while a <= PI / 2.0 {
                 ctx.begin_path();
                 ctx.move_to(cx, cy);
-                ctx.line_to(cx + a.cos() * 55.0, cy + a.sin() * 55.0);
+                ctx.line_to(cx + a.dcos() * 55.0, cy + a.dsin() * 55.0);
                 ctx.stroke();
                 a += PI / 12.0;
             }
@@ -298,7 +298,7 @@ pub fn pattern_wave(ctx: &mut Canvas, w: f64, h: f64, m: &str, _m2: &str) {
         ctx.begin_path();
         let mut x = 0.0;
         while x <= w {
-            let yy = y + (x * 0.08).sin() * 6.0;
+            let yy = y + (x * 0.08).dsin() * 6.0;
             if x == 0.0 {
                 ctx.move_to(x, yy);
             } else {
@@ -397,8 +397,8 @@ pub fn pattern_stars(ctx: &mut Canvas, w: f64, h: f64, m: &str, _m2: &str) {
         for s in 0..10 {
             let rr = if s % 2 == 0 { r } else { r * 0.45 };
             let a = (s as f64 / 10.0) * PI * 2.0 - PI / 2.0;
-            let px = cx + a.cos() * rr;
-            let py = cy + a.sin() * rr;
+            let px = cx + a.dcos() * rr;
+            let py = cy + a.dsin() * rr;
             if s == 0 {
                 ctx.move_to(px, py);
             } else {
@@ -463,7 +463,7 @@ pub fn pattern_vines(ctx: &mut Canvas, w: f64, h: f64, m: &str, _m2: &str) {
         ctx.begin_path();
         let mut y = 0.0;
         while y <= h {
-            let xx = x + (y * 0.06).sin() * 22.0;
+            let xx = x + (y * 0.06).dsin() * 22.0;
             if y == 0.0 {
                 ctx.move_to(xx, y);
             } else {
@@ -476,7 +476,7 @@ pub fn pattern_vines(ctx: &mut Canvas, w: f64, h: f64, m: &str, _m2: &str) {
         ctx.set_fill_style(m);
         let mut y = 40.0;
         while y < h {
-            let xx = x + (y * 0.06).sin() * 22.0;
+            let xx = x + (y * 0.06).dsin() * 22.0;
             ctx.begin_path();
             ctx.ellipse(xx + 10.0, y, 6, 3, 0.6, 0, 7);
             ctx.fill();
@@ -850,7 +850,7 @@ pub fn make_wallpaper(palette: &WallPalette, pattern_kind: &str, grime_lvl: i64)
                 for p in 0..pts {
                     let a = (p as f64 / pts as f64) * PI * 2.0 + rand2(-0.4, 0.4);
                     let r = rr * rand2(0.55, 1.2);
-                    outline.push((cx + a.cos() * r, cy + a.sin() * r * 0.7));
+                    outline.push((cx + a.dcos() * r, cy + a.dsin() * r * 0.7));
                 }
                 let torn = torn_edge(&outline, cx);
                 let trace = |ctx: &mut Canvas, dy: f64| {
@@ -928,7 +928,7 @@ fn torn_edge(outline: &[(f64, f64)], key: f64) -> Vec<(f64, f64)> {
     for k in 0..n {
         let (a, b) = (outline[k], outline[(k + 1) % n]);
         let (ex, ey) = (b.0 - a.0, b.1 - a.1);
-        let l = ex.hypot(ey).max(1e-6);
+        let l = ex.dhypot(ey).max(1e-6);
         let (nx, ny) = (-ey / l, ex / l);
         let steps = ((l / 3.0).ceil() as usize).clamp(3, 16);
         for j in 0..steps {
@@ -1155,10 +1155,10 @@ pub fn draw_hand_stroke(ctx: &mut Canvas, points: &[[f64; 2]], opts: &StrokeOpts
             }
             let t0 = s as f64 / subs as f64;
             let t1 = (s + 1) as f64 / subs as f64;
-            let px0 = x0 + (x1 - x0) * t0 + rand2(-jitter, jitter) + (t0 * 9.0).sin() * wobble;
-            let py0 = y0 + (y1 - y0) * t0 + rand2(-jitter, jitter) + (t0 * 7.0).cos() * wobble;
-            let px1 = x0 + (x1 - x0) * t1 + rand2(-jitter, jitter) + (t1 * 9.0).sin() * wobble;
-            let py1 = y0 + (y1 - y0) * t1 + rand2(-jitter, jitter) + (t1 * 7.0).cos() * wobble;
+            let px0 = x0 + (x1 - x0) * t0 + rand2(-jitter, jitter) + (t0 * 9.0).dsin() * wobble;
+            let py0 = y0 + (y1 - y0) * t0 + rand2(-jitter, jitter) + (t0 * 7.0).dcos() * wobble;
+            let px1 = x0 + (x1 - x0) * t1 + rand2(-jitter, jitter) + (t1 * 9.0).dsin() * wobble;
+            let py1 = y0 + (y1 - y0) * t1 + rand2(-jitter, jitter) + (t1 * 7.0).dcos() * wobble;
             ctx.set_line_width(thickness * (0.6 + rnd() * 0.7));
             ctx.begin_path();
             ctx.move_to(px0, py0);
@@ -1375,7 +1375,7 @@ pub fn make_carpet(grime_lvl: i64) -> Tex {
                 for p in 0..8 {
                     let a = (p as f64 / 8.0) * PI * 2.0 + rand2(-0.4, 0.4);
                     let r = rand2(6.0, 18.0);
-                    ctx.line_to(cx + a.cos() * r, cy + a.sin() * r);
+                    ctx.line_to(cx + a.dcos() * r, cy + a.dsin() * r);
                 }
                 ctx.close_path();
                 ctx.fill();
@@ -1835,7 +1835,7 @@ fn core_text_layer(w: f64, h: f64, text: &str, face: &str, font_css: &str, color
         }
         // translate(w / 2, h / 2), rotate(rot), text align centre, baseline middle
         CGContextTranslateCTM(c, w / 2.0, h / 2.0);
-        let (sn, cn) = rot.sin_cos();
+        let (sn, cn) = rot.dsin_cos();
         CGContextConcatCTM(c, CGAffineTransform { a: cn, b: sn, c: -sn, d: cn, tx: 0.0, ty: 0.0 });
         CGContextTranslateCTM(c, -tw / 2.0, (ascent - descent) / 2.0);
         CGContextScaleCTM(c, 1.0, -1.0);

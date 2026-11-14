@@ -88,7 +88,7 @@ impl Game {
                 let k = objs
                     .iter()
                     .map(|(k, o)| (*k, o.pos()))
-                    .min_by(|a, c| (a.1.x - cx).hypot(a.1.z - cz).total_cmp(&(c.1.x - cx).hypot(c.1.z - cz)))
+                    .min_by(|a, c| (a.1.x - cx).dhypot(a.1.z - cz).total_cmp(&(c.1.x - cx).dhypot(c.1.z - cz)))
                     .map_or(0, |a| a.0);
                 for side in [1.0, -1.0] {
                     let (x, z) = if b.along_x { (cx + side * 3.2, cz) } else { (cx, cz + side * 3.2) };
@@ -99,8 +99,8 @@ impl Game {
                         continue;
                     }
                     let y = self.floor_y_at(x, z) + crate::prelude::EYE;
-                    let yaw = (-(cx - x)).atan2(-(cz - z));
-                    let pitch = (1.1 - crate::prelude::EYE).atan2(3.2);
+                    let yaw = (-(cx - x)).datan2(-(cz - z));
+                    let pitch = (1.1 - crate::prelude::EYE).datan2(3.2);
                     let _ = i;
                     // (each side its own shot: the object's index, then 1 or 2)
                     out.push(("core_barricades".to_string(), k * 10 + if side > 0.0 { 1 } else { 2 }, x, y, z, yaw, pitch));
@@ -122,8 +122,8 @@ impl Game {
                 let s = (bb.max.x - bb.min.x).max(bb.max.y - bb.min.y).max(bb.max.z - bb.min.z).max(0.05);
                 let floor = self.floor_y_at(c.x, c.z);
                 let ry = o.rot().y;
-                let face = (ry.sin(), ry.cos());
-                let mut dirs: Vec<(f64, f64)> = (0..16).map(|j| j as f64 * PI / 8.0).map(|a| (a.sin(), a.cos())).collect();
+                let face = (ry.dsin(), ry.dcos());
+                let mut dirs: Vec<(f64, f64)> = (0..16).map(|j| j as f64 * PI / 8.0).map(|a| (a.dsin(), a.dcos())).collect();
                 dirs.sort_by(|a, b| (b.0 * face.0 + b.1 * face.1).total_cmp(&(a.0 * face.0 + a.1 * face.1)));
                 let mut pose = None;
                 'find: for scale in [1.0, 0.75, 0.55] {
@@ -139,8 +139,8 @@ impl Game {
                 }
                 let Some((x, z, d)) = pose else { continue };
                 let y = (c.y + 0.25 + 0.35 * d).clamp(floor + 0.45, floor + crate::prelude::EYE);
-                let yaw = (-(c.x - x)).atan2(-(c.z - z));
-                let pitch = (c.y - y).atan2(d).clamp(-1.3, 1.0);
+                let yaw = (-(c.x - x)).datan2(-(c.z - z));
+                let pitch = (c.y - y).datan2(d).clamp(-1.3, 1.0);
                 out.push((label.clone(), *k, x, y, z, yaw, pitch));
             }
         }
@@ -164,14 +164,14 @@ impl Game {
                     continue;
                 }
                 let (wx, wz) = (self.wx(x), self.wz(z));
-                let far = (wx - dx).hypot(wz - dz);
+                let far = (wx - dx).dhypot(wz - dz);
                 let front = ((wx - dx) * e.normal.x + (wz - dz) * e.normal.z) / far.max(1e-6);
                 if front > 0.5 && self.los(wx, wz, e.pos.x, e.pos.z) && best.is_none_or(|b| far > b.2) {
                     best = Some((wx, wz, far));
                 }
             }
         }
-        best.map(|(x, z, _)| (x, z, (-(dx - x)).atan2(-(dz - z))))
+        best.map(|(x, z, _)| (x, z, (-(dx - x)).datan2(-(dz - z))))
     }
 
     /// Camera poses on her story: looking at her camp from a few tiles back
@@ -181,7 +181,7 @@ impl Game {
     pub fn story_views(&self) -> Vec<(&'static str, f64, f64, f64, f64)> {
         let s = &self.story;
         let mut out = vec![];
-        let face = |x: f64, z: f64, tx: f64, tz: f64| (-(tx - x)).atan2(-(tz - z));
+        let face = |x: f64, z: f64, tx: f64, tz: f64| (-(tx - x)).datan2(-(tz - z));
         if let Some(c) = &s.camp {
             // out from her wall, as far as still sees her things, looking down
             let back = [2.4, 1.8, 1.2].into_iter().find(|d| {
@@ -198,11 +198,11 @@ impl Game {
             // a step behind the sheet, so it is at your feet in the frame
             let yaw = face(a.x, a.z, b.x, b.z);
             let back = [2.2, 1.6, 1.0].into_iter().find(|d| {
-                let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
+                let (x, z) = (a.x + yaw.dsin() * d, a.z + yaw.dcos() * d);
                 !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, a.x, a.z)
             });
             let d = back.unwrap_or(0.6);
-            let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
+            let (x, z) = (a.x + yaw.dsin() * d, a.z + yaw.dcos() * d);
             out.push(("trail", x, z, yaw, -0.42));
         }
         // the first of each kind of her marks, from a few steps short of it,
@@ -214,7 +214,7 @@ impl Game {
             }
             seen.push(m.kind);
             let (sx, sz) = m.seen_at();
-            let (fx, fz) = (-m.yaw.sin(), -m.yaw.cos());
+            let (fx, fz) = (-m.yaw.dsin(), -m.yaw.dcos());
             // a mark on a wall from out in the room, a little short of it;
             // one on the floor from a few steps short of it
             let at = |d: f64| {
@@ -230,7 +230,7 @@ impl Game {
             });
             let (x, z) = at(back.unwrap_or(0.6));
             let (dx, dz) = (m.x - x, m.z - z);
-            let pitch = ((m.y + 0.02) - crate::prelude::EYE).atan2(dx.hypot(dz).max(0.3)).clamp(-1.2, 0.3);
+            let pitch = ((m.y + 0.02) - crate::prelude::EYE).datan2(dx.dhypot(dz).max(0.3)).clamp(-1.2, 0.3);
             out.push((m.kind.view_name(), x, z, face(x, z, m.x, m.z), pitch));
         }
         // each hiding place (`secrets`): a place on a wall from out in the
@@ -256,7 +256,7 @@ impl Game {
                 p.normal
             } else {
                 let (dx, dz) = (tx - p.x, tz - p.z);
-                let l = dx.hypot(dz).max(1e-6);
+                let l = dx.dhypot(dz).max(1e-6);
                 (dx / l, dz / l)
             };
             let at = [2.2, 1.7, 1.2]
@@ -269,8 +269,8 @@ impl Game {
                 crate::secrets::PlaceKind::Drawer => 0.6,
                 _ => p.y.max(0.05),
             };
-            let d = (p.x - x).hypot(p.z - z).max(0.3);
-            let pitch = (y - crate::prelude::EYE).atan2(d).clamp(-1.2, 1.0);
+            let d = (p.x - x).dhypot(p.z - z).max(0.3);
+            let pitch = (y - crate::prelude::EYE).datan2(d).clamp(-1.2, 1.0);
             out.push((name, x, z, face(x, z, p.x, p.z), pitch));
         }
         // and down a trail that is not hers, from her walk
@@ -278,11 +278,11 @@ impl Game {
             let (a, b) = (&f.trail[0], &f.trail[1]);
             let yaw = face(a.x, a.z, b.x, b.z);
             let back = [2.2, 1.6, 1.0].into_iter().find(|d| {
-                let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
+                let (x, z) = (a.x + yaw.dsin() * d, a.z + yaw.dcos() * d);
                 !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, a.x, a.z)
             });
             let d = back.unwrap_or(0.6);
-            out.push(("false", a.x + yaw.sin() * d, a.z + yaw.cos() * d, yaw, -0.42));
+            out.push(("false", a.x + yaw.dsin() * d, a.z + yaw.dcos() * d, yaw, -0.42));
         }
         // the rooms off the walks (G4): from the walk outside the doorway,
         // looking in
@@ -309,7 +309,7 @@ impl Game {
             .map(|k| {
                 let (a, b) = (w[k], w[k + 2]);
                 let (x, z) = (self.wx(a.0), self.wz(a.1));
-                (x, z, (-(self.wx(b.0) - x)).atan2(-(self.wz(b.1) - z)))
+                (x, z, (-(self.wx(b.0) - x)).datan2(-(self.wz(b.1) - z)))
             })
             .collect()
     }
@@ -325,7 +325,7 @@ impl Game {
                 p.normal
             } else {
                 let (dx, dz) = (tx - p.x, tz - p.z);
-                let l = dx.hypot(dz).max(1e-6);
+                let l = dx.dhypot(dz).max(1e-6);
                 (dx / l, dz / l)
             };
             let at = [3.0, 2.4, 1.8]
@@ -333,7 +333,7 @@ impl Game {
                 .map(|d| (p.x + ox * d, p.z + oz * d))
                 .find(|&(x, z)| !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, p.x + ox * 0.3, p.z + oz * 0.3));
             if let Some((x, z)) = at {
-                out.push((x, z, (-(p.x - x)).atan2(-(p.z - z))));
+                out.push((x, z, (-(p.x - x)).datan2(-(p.z - z))));
             }
         }
         out
@@ -363,7 +363,7 @@ impl Game {
                 if self.circle_hits_wall(x, z, 0.4) || !self.los(x, z, tx, tz) {
                     continue;
                 }
-                out.push((x, z, (-(tx - x)).atan2(-(tz - z))));
+                out.push((x, z, (-(tx - x)).datan2(-(tz - z))));
                 break;
             }
             if out.len() >= n {
@@ -398,7 +398,7 @@ impl Game {
                 if self.circle_hits_wall(p.x, p.z, 0.3) || !self.los(p.x, p.z, face.x, face.z) {
                     continue;
                 }
-                out.push((p.x, p.z, (-(target.x - p.x)).atan2(-(target.z - p.z))));
+                out.push((p.x, p.z, (-(target.x - p.x)).datan2(-(target.z - p.z))));
             }
         }
         out
@@ -414,7 +414,7 @@ impl Game {
                 if self.circle_hits_wall(p.x, p.z, 0.3) || !self.los(p.x, p.z, face.x, face.z) {
                     continue;
                 }
-                out.push((p.x, p.z, (-(target.x - p.x)).atan2(-(target.z - p.z))));
+                out.push((p.x, p.z, (-(target.x - p.x)).datan2(-(target.z - p.z))));
             }
         }
         out
@@ -528,7 +528,7 @@ impl Game {
             }
             if let Some((_, x, z, dx, dz)) = best {
                 let (px, pz) = (self.wx(x) - dx as f64 * 1.5, self.wz(z) - dz as f64 * 1.5);
-                out.push((zi, px, pz, (-(dx as f64)).atan2(-(dz as f64))));
+                out.push((zi, px, pz, (-(dx as f64)).datan2(-(dz as f64))));
             }
         }
         out
@@ -798,7 +798,7 @@ impl Game {
             spots.clear();
             for z in 1..self.h - 1 {
                 for x in 1..self.w - 1 {
-                    let d = ((self.wx(x) - px).powi(2) + (self.wz(z) - pz).powi(2)).sqrt();
+                    let d = ((self.wx(x) - px).dpowi(2) + (self.wz(z) - pz).dpowi(2)).sqrt();
                     if !self.is_wall_tile(x, z) && (6.0..far).contains(&d) {
                         spots.push((x, z));
                     }
@@ -850,7 +850,7 @@ impl Game {
             }
         };
         let yaw = self.player.yaw;
-        let (fx, fz) = (-yaw.sin(), -yaw.cos());
+        let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
         // the Watcher among its furniture: a wingback and a chair under the
         // same old sheets, beside it and a little behind (as you see it)
         if kind == "watcher" && !self.showcase_company {
@@ -888,7 +888,7 @@ impl Game {
         // key pressed and the skip key held half its time (the way out)
         if name == "cutscene" || name == "cutscene-skip" {
             let p = self.player.pos;
-            let (s, c) = self.player.yaw.sin_cos();
+            let (s, c) = self.player.yaw.dsin_cos();
             let at = [p.x - s * 2.0, self.floor_y_at(p.x, p.z), p.z - c * 2.0];
             let thing = crate::cutscene::play::Frame::thing(at, self.player.yaw);
             let anchors = crate::cutscene::play::Anchors { thing: Some(thing), killer: None, seen_as: None };
@@ -931,7 +931,7 @@ impl Game {
             let path = self.way_to_the_door();
             if let Some(&t) = path.get(3).or(path.last()) {
                 let (dx, dz) = (self.wx(t.0) - self.player.pos.x, self.wz(t.1) - self.player.pos.z);
-                self.player.yaw = (-dx).atan2(-dz);
+                self.player.yaw = (-dx).datan2(-dz);
                 self.player.pitch = -0.38;
             }
             self.state = "playing".into();
@@ -980,7 +980,7 @@ impl Game {
                     let dd = crate::level::archgen::DIRS[d];
                     let (wx, wz) = (self.wx(x) + dd[0] as f64 * 1.2, self.wz(z) + dd[1] as f64 * 1.2);
                     self.player.pos = Vec3::new(wx, self.floor_y_at(wx, wz) + EYE, wz);
-                    self.player.yaw = (-(dd[0] as f64)).atan2(-(dd[1] as f64));
+                    self.player.yaw = (-(dd[0] as f64)).datan2(-(dd[1] as f64));
                     self.player.pitch = -0.4;
                     let f = self.floor_y_at(wx, wz);
                     self.assembly.y = f - 7.0;
@@ -1002,10 +1002,10 @@ impl Game {
             let h = self.floor_y_of(tx, tz);
             // a step behind the cell's middle, looking at the door
             let (dx, dz) = (d.at.x - cx, d.at.z - cz);
-            let l = dx.hypot(dz).max(1e-6);
+            let l = dx.dhypot(dz).max(1e-6);
             let (px, pz) = (cx - dx / l * 0.6, cz - dz / l * 0.6);
             self.player.pos = Vec3::new(px, h + EYE, pz);
-            self.player.yaw = (-dx).atan2(-dz) + 0.08;
+            self.player.yaw = (-dx).datan2(-dz) + 0.08;
             self.player.pitch = -0.2;
             // (the cell is dark inside: its lamp hangs outside, over the door)
             self.player.flashlight_on = true;
@@ -1069,8 +1069,8 @@ impl Game {
                 self.player.pos = eye;
                 let (dx, dy, dz) = (at.x - eye.x, at.y + 1.3 - eye.y, at.z - eye.z);
                 // a little to its side, clear of the crosshair and a prompt
-                self.player.yaw = (-dx).atan2(-dz) - 0.12;
-                self.player.pitch = dy.atan2((dx * dx + dz * dz).sqrt());
+                self.player.yaw = (-dx).datan2(-dz) - 0.12;
+                self.player.pitch = dy.datan2((dx * dx + dz * dz).sqrt());
             }
             return;
         }

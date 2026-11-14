@@ -55,7 +55,7 @@ pub(crate) fn place_small_pinwheels(g: &mut Game, _dist: &[i32]) {
         let wg = wheel.clone();
         let base = wheel.rotation().y;
         g.animate(move |_g, _dt, t| {
-            wg.rotation().y = base + spin_dir * 0.07 * (t * PI * 2.0 / spin_period).sin();
+            wg.rotation().y = base + spin_dir * 0.07 * (t * PI * 2.0 / spin_period).dsin();
         });
     }
 }

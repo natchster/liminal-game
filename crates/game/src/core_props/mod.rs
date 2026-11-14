@@ -290,7 +290,7 @@ fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: 
             let step = opts.spacing * ((r.k + 1) / 2) as f64 * if r.k % 2 == 1 { 1.0 } else { -1.0 };
             let (tx, tz) = match fnormal {
                 Some(nv) => (-nv.z, nv.x),
-                None => (fyaw.cos(), -fyaw.sin()),
+                None => (fyaw.dcos(), -fyaw.dsin()),
             };
             px = fx + tx * step;
             pz = fz + tz * step;
@@ -336,11 +336,11 @@ fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo, bat_tip_
     let SpotInfo { px, pz, yaw, normal } = *si;
     let fwd_x = match normal {
         Some(n) => n.x,
-        None => yaw.sin(),
+        None => yaw.dsin(),
     };
     let fwd_z = match normal {
         Some(n) => n.z,
-        None => yaw.cos(),
+        None => yaw.dcos(),
     };
     for (idx, d) in built.drawers.iter().enumerate() {
         let drawer_center_y = 0.28 + idx as f64 * 0.45;
@@ -860,8 +860,8 @@ impl Game {
         g.world.add(&bg);
         let (cxf, czf) = (c.x as f64, c.z as f64);
         g.animate(move |_g, _dt, t| {
-            bal.position().y = 2.35 + (t * 0.9 + cxf).sin() * 0.07;
-            bal.position().x = (t * 0.5 + czf).sin() * 0.05;
+            bal.position().y = 2.35 + (t * 0.9 + cxf).dsin() * 0.07;
+            bal.position().x = (t * 0.5 + czf).dsin() * 0.05;
         });
     }
 
@@ -976,7 +976,7 @@ impl Game {
         for r in 0..6 {
             let dot = mesh(circle_geo!(0.004, 6), &dots_mat);
             let a = (r as f64 / 6.0) * PI * 2.0;
-            dot.position().set(-0.18 + a.cos() * 0.02, 0.121 + a.sin() * 0.013, 0.151);
+            dot.position().set(-0.18 + a.dcos() * 0.02, 0.121 + a.dsin() * 0.013, 0.151);
             pgp.add(&dot);
         }
         // coiled handset cord — a series of small torus rings
@@ -985,7 +985,7 @@ impl Game {
             let ring = mesh(pg("Props__payphone_cordCoil", torus_geo!(0.018, 0.005, 5, 10)), &cord_mat);
             ring.rotation().x = PI / 2.0; // coil turns stacked along the hanging cord (a Z turn left them facing out)
             let fi = i as f64;
-            ring.position().set(-0.18, -0.22 - fi * 0.02, 0.16 + (fi * 0.8).sin() * 0.008);
+            ring.position().set(-0.18, -0.22 - fi * 0.02, 0.16 + (fi * 0.8).dsin() * 0.008);
             pgp.add(&ring);
         }
         // small info sticker
@@ -1030,8 +1030,8 @@ impl Game {
         let hs = handset.clone();
         g.animate(move |g, _dt, t| {
             if g.phone_data.as_ref().is_some_and(|p| p.ringing) {
-                hs.position().x = -0.18 + (t * 40.0).sin() * 0.008;
-                hs.position().y = -0.02 + (t * 40.0).cos() * 0.006;
+                hs.position().x = -0.18 + (t * 40.0).dsin() * 0.008;
+                hs.position().y = -0.02 + (t * 40.0).dcos() * 0.006;
             } else {
                 hs.position().x = -0.18;
                 hs.position().y = -0.02;
@@ -1150,7 +1150,7 @@ impl Game {
             if timer.get() <= 0.0 {
                 timer.set(rand2(2.5, 6.0));
                 if !seen {
-                    man_g.rotation().y = (pp.x - mp.x).atan2(pp.z - mp.z);
+                    man_g.rotation().y = (pp.x - mp.x).datan2(pp.z - mp.z);
                     if d2 > 20.0 && rnd() < 0.45 {
                         // a step closer while unwatched
                         let mut dir = pp;
@@ -1297,8 +1297,8 @@ fn clock_dial_tex() -> Tex {
             let (r0, r1) = if five { (0.835, 0.955) } else { (0.895, 0.955) };
             ctx.set_line_width(if five { 13.0 } else { 4.5 });
             ctx.begin_path();
-            ctx.move_to(cx + a.sin() * r * r0, cy - a.cos() * r * r0);
-            ctx.line_to(cx + a.sin() * r * r1, cy - a.cos() * r * r1);
+            ctx.move_to(cx + a.dsin() * r * r0, cy - a.dcos() * r * r0);
+            ctx.line_to(cx + a.dsin() * r * r1, cy - a.dcos() * r * r1);
             ctx.stroke();
         }
         ctx.set_line_width(3);
@@ -1312,14 +1312,14 @@ fn clock_dial_tex() -> Tex {
         ctx.set_font("bold 128px Helvetica Neue");
         for k in 1..=12 {
             let a = k as f64 / 12.0 * PI * 2.0;
-            ctx.fill_text(&k.to_string(), cx + a.sin() * r * 0.66, cy - a.cos() * r * 0.66 + 4.0);
+            ctx.fill_text(&k.to_string(), cx + a.dsin() * r * 0.66, cy - a.dcos() * r * 0.66 + 4.0);
         }
         // the 24-hour numerals, in red
         ctx.set_fill_style("rgba(150,40,30,0.88)");
         ctx.set_font("bold 40px Helvetica Neue");
         for k in 13..=24 {
             let a = (k - 12) as f64 / 12.0 * PI * 2.0;
-            ctx.fill_text(&k.to_string(), cx + a.sin() * r * 0.45, cy - a.cos() * r * 0.45 + 2.0);
+            ctx.fill_text(&k.to_string(), cx + a.dsin() * r * 0.45, cy - a.dcos() * r * 0.45 + 2.0);
         }
         ctx.set_fill_style("rgba(22,20,18,0.85)");
         ctx.set_font("30px Helvetica Neue");
@@ -1338,7 +1338,7 @@ fn clock_dial_tex() -> Tex {
         let mut first = true;
         for k in 0..=40 {
             let x = cx - tr + 2.0 * tr * k as f64 / 40.0;
-            let y = ty + (rnd() - 0.5) * 6.0 + ((x - cx) / tr).powi(2) * tr * 0.18;
+            let y = ty + (rnd() - 0.5) * 6.0 + ((x - cx) / tr).dpowi(2) * tr * 0.18;
             if first {
                 ctx.move_to(x, y);
                 first = false;

@@ -43,10 +43,10 @@ fn stand(g: &mut Game, back: f64, look: bool) {
     g.player.pos = Vec3::new(eye.x, floor + 1.6, eye.z);
     g.camera.set_pos(eye.x, eye.y, eye.z);
     if look {
-        g.player.yaw = (-dx).atan2(-dz);
-        g.player.pitch = dy.atan2(dx.hypot(dz));
+        g.player.yaw = (-dx).datan2(-dz);
+        g.player.pitch = dy.datan2(dx.dhypot(dz));
     } else {
-        g.player.yaw = (-dx).atan2(-dz) + PI;
+        g.player.yaw = (-dx).datan2(-dz) + PI;
         g.player.pitch = 0.0;
     }
 }
@@ -292,7 +292,7 @@ fn inside_it_is_only_where_its_light_falls_and_takes_you_only_in_it() {
     let mut spot = None;
     for s in 2..30 {
         let p = w.world(b.x, 0.0, w.depth + s as f64 * 0.2);
-        if !w.lit_at(p.x, p.z) && !g.circle_hits_wall(p.x, p.z, 0.3) && cells.iter().any(|c| (c.0 - p.x).hypot(c.1 - p.z) < 1.4) {
+        if !w.lit_at(p.x, p.z) && !g.circle_hits_wall(p.x, p.z, 0.3) && cells.iter().any(|c| (c.0 - p.x).dhypot(c.1 - p.z) < 1.4) {
             spot = Some(p);
             break;
         }
@@ -332,7 +332,7 @@ fn out_of_its_sight_it_goes_back_out_and_stands_close() {
     let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
         let (wx, wz) = (g.wx(x), g.wz(z));
         let p = g.entities[ei].pos();
-        !g.is_wall_tile(x, z) && (wx - p.x).hypot(wz - p.z) > 20.0 && !g.los(wx, wz, p.x, p.z)
+        !g.is_wall_tile(x, z) && (wx - p.x).dhypot(wz - p.z) > 20.0 && !g.los(wx, wz, p.x, p.z)
     });
     let (x, z) = far.expect("no place out of its sight");
     g.player.pos = Vec3::new(g.wx(x), g.player.pos.y, g.wz(z));
@@ -447,7 +447,7 @@ fn trial(g: &mut Game, seed: u32, level: i32, way: Way, learned: bool) -> (bool,
             let p = g.entities[ei].pos();
             let pp = g.player.pos;
             let (dx, dz) = (p.x - pp.x, p.z - pp.z);
-            let d = dx.hypot(dz).max(1e-6);
+            let d = dx.dhypot(dz).max(1e-6);
             if way != Way::Eyes && d > 0.4 {
                 // to it, at a walk
                 g.player.pos.x += dx / d * 1.4 * DT;
@@ -667,7 +667,7 @@ fn a_blind_rattles_and_what_hears_comes_to_look() {
     g.blind_use(b.win, h, true);
     let heard = g.creature(hound).unwrap().brain.mem.heard.expect("the Hound did not hear the blind");
     let (gx, gz) = (heard.0, heard.1);
-    assert!((gx - f.x).hypot(gz - f.z) < 3.0, "it heard it somewhere else ({gx:.1}, {gz:.1})");
+    assert!((gx - f.x).dhypot(gz - f.z) < 3.0, "it heard it somewhere else ({gx:.1}, {gz:.1})");
 }
 
 #[test]
@@ -693,7 +693,7 @@ fn got_away_from_twice_its_lamp_hangs_lower_and_its_light_lies_further_in() {
     let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
         let w = &g.windows[b.win];
         let c = w.world(b.x, 0.0, w.depth + 0.1);
-        !g.is_wall_tile(x, z) && (g.wx(x) - c.x).hypot(g.wz(z) - c.z) > 20.0
+        !g.is_wall_tile(x, z) && (g.wx(x) - c.x).dhypot(g.wz(z) - c.z) > 20.0
     });
     let (fx, fz) = far.expect("no place far from its window");
     g.player.pos = Vec3::new(g.wx(fx), g.player.pos.y, g.wz(fz));
@@ -744,7 +744,7 @@ fn gone_back_out_it_needs_a_long_look_again() {
     // out of its sight: back out, close
     let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
         let p = g.entities[ei].pos();
-        !g.is_wall_tile(x, z) && (g.wx(x) - p.x).hypot(g.wz(z) - p.z) > 20.0 && !g.los(g.wx(x), g.wz(z), p.x, p.z)
+        !g.is_wall_tile(x, z) && (g.wx(x) - p.x).dhypot(g.wz(z) - p.z) > 20.0 && !g.los(g.wx(x), g.wz(z), p.x, p.z)
     });
     let (x, z) = far.unwrap();
     g.player.pos = Vec3::new(g.wx(x), g.player.pos.y, g.wz(z));
@@ -782,7 +782,7 @@ fn inside_it_backs_off_when_the_place_lies_quiet_or_you_keep_out_of_its_light() 
     let spot = (2..40)
         .map(|s| w.world(b.x, 0.0, w.depth + s as f64 * 0.2))
         .find(|q| {
-            !w.lit_at(q.x, q.z) && !g.circle_hits_wall(q.x, q.z, 0.3) && g.los(q.x, q.z, p.x, p.z) && (q.x - p.x).hypot(q.z - p.z) > 1.5
+            !w.lit_at(q.x, q.z) && !g.circle_hits_wall(q.x, q.z, 0.3) && g.los(q.x, q.z, p.x, p.z) && (q.x - p.x).dhypot(q.z - p.z) > 1.5
         })
         .expect("no place out of its light in its sight");
     g.player.pos = Vec3::new(spot.x, g.player.pos.y, spot.z);
@@ -795,7 +795,7 @@ fn inside_it_backs_off_when_the_place_lies_quiet_or_you_keep_out_of_its_light() 
     inside(&mut g, ei);
     let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
         let p = g.entities[ei].pos();
-        !g.is_wall_tile(x, z) && (g.wx(x) - p.x).hypot(g.wz(z) - p.z) > 20.0 && !g.los(g.wx(x), g.wz(z), p.x, p.z)
+        !g.is_wall_tile(x, z) && (g.wx(x) - p.x).dhypot(g.wz(z) - p.z) > 20.0 && !g.los(g.wx(x), g.wz(z), p.x, p.z)
     });
     let (x, z) = far.unwrap();
     g.creature_mut(ei).unwrap().ease.insert("saw_you", 0.0);

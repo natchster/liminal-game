@@ -117,3 +117,4 @@ fifth commit and at the end, a code review and what it finds fixed.
 
 | # | Commit | What was done |
 |---|---|---|
+| R1 | (this commit) | The math is ours: `engine::dmath` (CORE-MATH, correctly rounded) for all 3,277 transcendental calls of the engine, the game, the placers and the tests, `dpowi` as products and `dhypot` as √(x² + y²); clippy refuses std's (the sound's synthesis and xtask excepted, saying why). 220 placers' fingerprints moved in their last bits and were re-recorded; the reference levels, goldens and range held. Builds +6.3%, update p50 +0.01 ms, within budget (`PERF.md`) |

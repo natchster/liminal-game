@@ -194,7 +194,7 @@ pub fn step_facing(g: &mut Game, dt: f64, toward: Option<(f64, f64)>, gait: Gait
             let mut p = g.player.pos;
             nav.collide_move(g, &mut p, dx / d * s, dz / d * s, PLAYER_R);
             g.player.pos = p;
-            g.player.yaw = (-dx).atan2(-dz);
+            g.player.yaw = (-dx).datan2(-dz);
         }
     }
     if let Some((x, z)) = face {
@@ -207,7 +207,7 @@ pub fn step_facing(g: &mut Game, dt: f64, toward: Option<(f64, f64)>, gait: Gait
 
 /// You look at (x, z) (the yaw that faces it).
 pub fn look_at(g: &mut Game, x: f64, z: f64) {
-    g.player.yaw = (-(x - g.player.pos.x)).atan2(-(z - g.player.pos.z));
+    g.player.yaw = (-(x - g.player.pos.x)).datan2(-(z - g.player.pos.z));
 }
 
 /// The mode of creature `ei`.

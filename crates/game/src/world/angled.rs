@@ -18,6 +18,7 @@
 //! so no draw of the build moves.
 use crate::base::rng::SplitMix64;
 use crate::level::archgen::{BOX_ANGLED, BOX_JAMB, BOX_LINTEL, BOX_WALL, LayoutView, Solids, make_solids};
+use engine::dmath::DMath;
 use std::collections::HashSet;
 
 pub const LEAN_SALT: u64 = 0x1EA2_0FF5_90A2_E004;
@@ -70,7 +71,7 @@ impl Wall {
     /// Where a point of the run as it stood on the grid stands now
     pub fn turn(&self, u: f64, v: f64) -> (f64, f64) {
         let (al, ac) = self.al_ac(u, v);
-        let (s, c) = self.theta.sin_cos();
+        let (s, c) = self.theta.dsin_cos();
         let (da, dc) = (al - self.pivot, ac - self.line);
         self.uv(self.pivot + da * c - dc * s, self.line + da * s + dc * c)
     }
@@ -81,7 +82,7 @@ impl Wall {
     /// Its face on side `side` (+1: the + across side) at `al` along: the
     /// face's across coordinate
     pub fn face(&self, al: f64, side: f64) -> f64 {
-        self.line + (al - self.pivot) * self.theta.tan() + side * self.half / self.theta.cos()
+        self.line + (al - self.pivot) * self.theta.dtan() + side * self.half / self.theta.dcos()
     }
     /// The coordinate along it of a point (u, v)
     pub fn along(&self, u: f64, v: f64) -> f64 {
@@ -96,7 +97,7 @@ impl Wall {
     /// across (a step is at most half the wall's half thickness), so no look
     /// passes between them
     pub fn steps(&self, out: &mut Vec<f32>) {
-        let (sn, cs) = self.theta.sin_cos();
+        let (sn, cs) = self.theta.dsin_cos();
         let tn = sn / cs;
         let seg = STEP.min(0.5 * self.half / tn.abs().max(1e-9));
         let hc = self.half / cs;
@@ -251,7 +252,7 @@ pub fn lean(view: &LayoutView, s: Solids, seed: u32) -> (Solids, Vec<Wall>) {
                 let (go, steep, sign) = (r.next(), r.next() < STEEP_CHANCE, r.next());
                 let (range, dev) = if steep { (LEAN_STEEP, DEV_MAX) } else { (LEAN, DEV) };
                 let reach = if e0 == End::Free { pivot - s0 } else { s1 - pivot } * view.cell;
-                let mag = r.range(range[0], range[1]).min((dev / reach).clamp(-1.0, 1.0).asin().to_degrees());
+                let mag = r.range(range[0], range[1]).min((dev / reach).clamp(-1.0, 1.0).dasin().to_degrees());
                 if go >= CHANCE || mag < LEAN_MIN {
                     continue;
                 }
@@ -273,7 +274,7 @@ pub fn lean(view: &LayoutView, s: Solids, seed: u32) -> (Solids, Vec<Wall>) {
                 }
                 // against a wall that fills its tile: the end goes on into it,
                 // so no sliver opens where it turns away
-                let into = half * theta.tan().abs() + 0.003;
+                let into = half * theta.dtan().abs() + 0.003;
                 for (i, &(t, k)) in run.iter().enumerate() {
                     let v = bx(k);
                     let (mut al0, mut al1) = (s0 + i as f64, s0 + i as f64 + 1.0);

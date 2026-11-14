@@ -7,6 +7,7 @@
 //! arrival and her camp); and where the one in the corner stands
 //! (`corner::place`: in an inside corner off the main way, far from the
 //! arrival, the door and her camp). Each level is built once for all three.
+use engine::dmath::DMath;
 use game::Game;
 
 #[test]
@@ -152,7 +153,7 @@ fn who_lives_where() {
             }
             // in an inside corner, its face to the angle of the walls
             let yaw = g.entities[ei].yaw;
-            let (cx, cz) = (yaw.sin().signum() as i32, yaw.cos().signum() as i32);
+            let (cx, cz) = (yaw.dsin().signum() as i32, yaw.dcos().signum() as i32);
             assert!(g.is_wall_tile(x + cx, z) && g.is_wall_tile(x, z + cz), "seed {seed} L{level}: not in a corner");
         }
     }

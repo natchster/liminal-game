@@ -154,8 +154,8 @@ fn pipe_paint_tex(paint: usize, fitting: bool) -> Tex {
             let seed = 0x9e3 + paint as u32 * 31 + u32::from(fitting) * 7;
             // round the pipe: x 0-0.19 (a run's underside at 0.1425, its
             // top at 0.0475), along it: y
-            let under = (-((x - 0.1425) / 0.03).powi(2)).exp();
-            let top = (-((x - 0.0475) / 0.03).powi(2)).exp();
+            let under = (-((x - 0.1425) / 0.03).dpowi(2)).dexp();
+            let top = (-((x - 0.0475) / 0.03).dpowi(2)).dexp();
             let fl = fbm(seed, x * 70.0, y * 70.0, 4);
             let bare = sstep(rusty, rusty + 0.03, fl + 0.12 * under);
             let bloom = sstep(rusty - 0.12, rusty, fl + 0.12 * under) * (1.0 - bare);
@@ -208,7 +208,7 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
         for &(c, half, depth) in &lobes {
             let u = (x - c) / half;
             if u.abs() < 1.0 {
-                let tongue = depth * rims[k] * (1.0 - u.abs().powf(2.2)).powf(0.55);
+                let tongue = depth * rims[k] * (1.0 - u.abs().dpowf(2.2)).dpowf(0.55);
                 let kk = 0.012;
                 let hh = (0.5 + 0.5 * (tongue - l) / kk).clamp(0.0, 1.0);
                 l = l + (tongue - l) * hh + kk * hh * (1.0 - hh);
@@ -223,7 +223,7 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
                 .map(|i| {
                     let x = (i as f64 + 0.5) * sx;
                     let (l0, l1, l) = (reach_at(x - sx, k), reach_at(x + sx, k), reach_at(x, k));
-                    (l, (1.0 + ((l1 - l0) / (2.0 * sx)).powi(2)).sqrt())
+                    (l, (1.0 + ((l1 - l0) / (2.0 * sx)).dpowi(2)).sqrt())
                 })
                 .collect()
         })
@@ -232,7 +232,7 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
         let mut px = [STAIN[0], STAIN[1], STAIN[2], 0.0];
         let i = ((x / sx) as usize).min(tw - 1);
         // the damp round the hole behind the collar, seen past its rim
-        let hole = (x - pw / 2.0).hypot(y - (from - 0.0575)) / 0.06;
+        let hole = (x - pw / 2.0).dhypot(y - (from - 0.0575)) / 0.06;
         lay(&mut px, WET, 0.22 * sstep(1.25, 0.92, hole) * sstep(0.01, 0.03, y) * (0.6 + 0.4 * fbm(s ^ 0x1, x * 80.0, y * 80.0, 2)));
         let dy = y - from;
         // the wetted patch hanging from the collar's foot, and its rims:
@@ -242,9 +242,9 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
         let top = (-dy - 0.006).max(0.0);
         let d0 = (dy - l) / slope + fine + top * 4.0 * sstep(0.012, 0.02, (x - mid).abs());
         let inside = (0.5 - d0 / aa).clamp(0.0, 1.0);
-        let pale = 0.55 + 0.45 * (d0 / 0.012).exp();
+        let pale = 0.55 + 0.45 * (d0 / 0.012).dexp();
         lay(&mut px, STAIN, inside * 0.45 * pale * (0.65 + 0.35 * fbm(s ^ 0x52, x * 50.0, y * 50.0, 2)));
-        let tide = |d: f64| (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / 0.0018).exp();
+        let tide = |d: f64| (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / 0.0018).dexp();
         let along = |k: u32| 0.5 + 0.5 * fbm(s ^ (0x60 + k), x * 30.0, y * 12.0, 2);
         let mut lines = tide(d0) * along(0);
         for k in 1..rims.len() {

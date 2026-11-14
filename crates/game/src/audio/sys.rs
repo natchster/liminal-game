@@ -629,7 +629,7 @@ impl Game {
     /// says (two a breath, the visit's own stream)
     pub fn sfx_going(&self, lead: f64, pace: f64, from: &[f64]) {
         for k in 0..crate::world::cell_knock::GOING_BREATHS {
-            let (t, fall, kf) = (lead + k as f64 * pace, 0.72f64.powi(k as i32), k as f64);
+            let (t, fall, kf) = (lead + k as f64 * pace, 0.72f64.dpowi(k as i32), k as f64);
             let at = |i: usize| from.get(2 * k + i).copied().unwrap_or(0.0);
             let (f0, dur) = (2400.0 - 300.0 * kf, 1.0 + 0.2 * kf);
             // the wet air drawn off, sliding down

@@ -214,7 +214,7 @@ fn paint_wp_plastic(ctx: &mut Canvas, w: f64, h: f64) {
         ctx.set_stroke_style(format!("rgba(70,60,50,{})", 0.10 + rnd() * 0.22));
         ctx.begin_path();
         ctx.move_to(x, y);
-        ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+        ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
         ctx.stroke();
     }
     for _ in 0..8 {
@@ -249,7 +249,7 @@ fn wp_broken_tex(cracks: [(f64, f64, f64, f64); 3]) -> Tex {
             // onto the flat of the face, right of the keys, where a blow lands
             let (px, py) = to(0.034 + x * 0.3, y * 1.7 + 0.02);
             let len = (0.040 + (cw - 0.001) / 0.002 * 0.035) / 0.123 * w;
-            let (dx, dy) = (turn.cos(), turn.sin());
+            let (dx, dy) = (turn.dcos(), turn.dsin());
             let mut pts = vec![];
             let n = 9;
             for k in 0..=n {
@@ -275,7 +275,7 @@ fn wp_broken_tex(cracks: [(f64, f64, f64, f64); 3]) -> Tex {
             ctx.set_line_width(0.8);
             ctx.begin_path();
             ctx.move_to(bx, by);
-            ctx.line_to(bx + bt.cos() * len * 0.3, by + bt.sin() * len * 0.3);
+            ctx.line_to(bx + bt.dcos() * len * 0.3, by + bt.dsin() * len * 0.3);
             ctx.stroke();
         }
     })
@@ -307,7 +307,7 @@ fn wp_handset_tex() -> Tex {
                     ctx.set_stroke_style(format!("rgba(60,50,40,{})", 0.15 + rnd() * 0.2));
                     ctx.begin_path();
                     ctx.move_to(x, y);
-                    ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                    ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                     ctx.stroke();
                 }
             })
@@ -400,10 +400,10 @@ fn wp_smoke_tex() -> Tex {
                 ctx.clear_rect(0, 0, w, h);
                 for k in 0..40 {
                     let t = k as f64 / 39.0; // 0 at the foot, 1 at the top
-                    let x = w / 2.0 + (t * 6.0 + rnd() * 0.8).sin() * w * 0.16 * t;
+                    let x = w / 2.0 + (t * 6.0 + rnd() * 0.8).dsin() * w * 0.16 * t;
                     let y = h * (0.97 - t * 0.85);
                     let r = w * (0.14 + t * 0.26);
-                    let a = 0.32 * (1.0 - t).powf(0.6);
+                    let a = 0.32 * (1.0 - t).dpowf(0.6);
                     ctx.save();
                     ctx.translate(x, y);
                     ctx.scale(1.0, 1.4);

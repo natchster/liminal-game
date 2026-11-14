@@ -31,7 +31,7 @@ pub fn scratches(ctx: &mut Canvas, w: f64, h: f64, n: usize, rgb: (u8, u8, u8), 
         ctx.set_stroke_style(format!("rgba({},{},{},{})", rgb.0, rgb.1, rgb.2, a0 + rnd() * a0));
         ctx.begin_path();
         ctx.move_to(x, y);
-        ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+        ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
         ctx.stroke();
     }
 }

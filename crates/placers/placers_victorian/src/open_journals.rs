@@ -39,7 +39,7 @@ pub(crate) fn place_open_journals(g: &mut Game, _dist: &[i32]) {
         let feather = mesh(plane_geo!(0.014, 0.08), &quill_mat);
         feather.rotation().x = -PI / 2.0;
         feather.rotation().z = PI / 3.0;
-        feather.position().set(0.02 + 0.04 * (PI / 6.0).cos(), 0.006, -0.01 + 0.04 * (PI / 6.0).sin());
+        feather.position().set(0.02 + 0.04 * (PI / 6.0).dcos(), 0.006, -0.01 + 0.04 * (PI / 6.0).dsin());
         journal.add(&feather);
     }
     journal.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

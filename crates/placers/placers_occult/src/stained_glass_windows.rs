@@ -146,7 +146,7 @@ fn glass_tex(salt: u32, lead: usize) -> Tex {
             // cathedral glass: ripples along the sheet's roll; the rolled
             // field glass: seeds (small bubbles)
             let ang = hash(seed, id, 2) * PI;
-            let (sa, ca) = ang.sin_cos();
+            let (sa, ca) = ang.dsin_cos();
             let (ru, rv) = (x * ca + y * sa, -x * sa + y * ca);
             let rip = fbm(seed ^ id as u32, ru * 30.0, rv * 140.0, 3);
             c = c.map(|k| k * (0.84 + 0.30 * rip));
@@ -215,7 +215,7 @@ fn frame_tex(salt: u32) -> Tex {
             // along the member: a rail's grain runs across, a stile's up
             let (along, across, member) = if dy < dx { (x, y, 1 + i32::from(y > 0.0)) } else { (y, x, 3 + i32::from(x > 0.0)) };
             let fig = fbm(seed ^ member as u32, along * 6.0, across * 90.0, 3);
-            let ring = ((across * 260.0 + fig * 9.0).sin() * 0.5 + 0.5).powf(3.0);
+            let ring = ((across * 260.0 + fig * 9.0).dsin() * 0.5 + 0.5).dpowf(3.0);
             let mut c = mix([0.30, 0.20, 0.12], [0.20, 0.13, 0.08], ring * 0.7 + fig * 0.3);
             // the stain rubbed off the arrises (the frame's outer and sight
             // edges)

@@ -60,7 +60,7 @@ pub(crate) fn put_split(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
                 let (u, v, key) = if tri_cap {
                     (f[2] * 0.5, 0.5 + if up { f[0] } else { 1.0 - f[0] } * 0.5, u8::from(up))
                 } else {
-                    let mut u = ((f[0] * 2.0 - 1.0).atan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
+                    let mut u = ((f[0] * 2.0 - 1.0).datan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
                     let mut key = 2;
                     if let Some(m) = side_u.map(f64::from) {
                         if u - m > 0.5 {

@@ -19,6 +19,7 @@
 //! cargo xtask cutscene check|write|list   the cutscene pipeline (docs/design/CUTSCENES.md)
 //! cargo xtask playtest visual   the visual playtest, by hand (docs/engineering/VISUAL_PLAYTEST.md)
 //! ```
+#![expect(clippy::disallowed_methods, reason = "tools that build and measure, not the game: their numbers decide no level or frame")]
 mod ab;
 mod assets;
 mod bench;

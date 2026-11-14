@@ -66,7 +66,7 @@ pub(crate) fn place_ornate_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
         let swing_phase = rnd() * PI * 2.0;
         let pg2 = pendulum_group.clone();
         g.animate(move |_g, _dt, t| {
-            pg2.rotation().z = (t * PI * 1.4 + swing_phase).sin() * 0.20;
+            pg2.rotation().z = (t * PI * 1.4 + swing_phase).dsin() * 0.20;
         });
     }
     g.world.add(&cc);
@@ -129,7 +129,7 @@ fn ck_dial_tex(vary: u32) -> Tex {
         for (k, n) in NUM.iter().enumerate() {
             let a = k as f64 * PI / 6.0;
             ctx.save();
-            ctx.translate(cx + a.sin() * 86.0, cy - a.cos() * 86.0);
+            ctx.translate(cx + a.dsin() * 86.0, cy - a.dcos() * 86.0);
             ctx.rotate(a);
             ctx.scale(0.8, 1.0);
             ctx.fill_text(n, 0, 0);
@@ -141,7 +141,7 @@ fn ck_dial_tex(vary: u32) -> Tex {
             }
             let a = k as f64 * PI / 30.0;
             ctx.begin_path();
-            ctx.arc(cx + a.sin() * 112.0, cy - a.cos() * 112.0, 1.4, 0, 7);
+            ctx.arc(cx + a.dsin() * 112.0, cy - a.dcos() * 112.0, 1.4, 0, 7);
             ctx.fill();
         }
         // the bone yellowed and grimed, unevenly

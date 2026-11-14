@@ -64,7 +64,7 @@ fn rec_wall_adj_spot(g: &Game, x: i32, z: i32) -> Option<WallSpot> {
     Some(WallSpot {
         pos: Vec3::new(g.wx(x) + dx * (CELL / 2.0 - 0.06), 0.0, g.wz(z) + dz * (CELL / 2.0 - 0.06)),
         normal: Vec3::new(-dx, 0.0, -dz),
-        yaw: (-dx).atan2(-dz),
+        yaw: (-dx).datan2(-dz),
     })
 }
 /// `circle_hits_wall` without solids
@@ -78,7 +78,7 @@ fn rec_circle_hits_wall(g: &Game, px: f64, pz: f64, r: f64) -> bool {
             }
             let cx = clamp(px, g.wx(x) - CELL / 2.0, g.wx(x) + CELL / 2.0);
             let cz = clamp(pz, g.wz(z) - CELL / 2.0, g.wz(z) + CELL / 2.0);
-            if (px - cx).powi(2) + (pz - cz).powi(2) < r * r {
+            if (px - cx).dpowi(2) + (pz - cz).dpowi(2) < r * r {
                 return true;
             }
         }
@@ -470,7 +470,7 @@ fn place_props_head_runtime_matches_reference() {
                     let a = k as f64 * 0.03;
                     let rr = 3.0 + (k % 90) as f64 / 10.0;
                     let mp = m.pos();
-                    g.player.pos = Vec3::new(mp.x + a.cos() * rr, 1.62, mp.z + a.sin() * rr);
+                    g.player.pos = Vec3::new(mp.x + a.dcos() * rr, 1.62, mp.z + a.dsin() * rr);
                     g.player.yaw = if (k / 40) % 2 == 1 { a } else { a + PI };
                 } else if let Some(pw) = phone_world {
                     g.player.pos = Vec3::new(pw.x + 1.0, 1.62, pw.z + 1.0);
@@ -617,7 +617,7 @@ fn place_props_smoke() {
         for k in 0..200 {
             let t = k as f64 * 0.1;
             g.perf_t = t;
-            g.player.pos = Vec3::new((t * 0.7).sin() * 20.0, 1.62, (t * 0.3).cos() * 20.0);
+            g.player.pos = Vec3::new((t * 0.7).dsin() * 20.0, 1.62, (t * 0.3).dcos() * 20.0);
             g.player.yaw = t;
             g.run_animators(0.1, t);
         }
@@ -894,7 +894,7 @@ fn record_runtime(c: &mut Value) {
                 let a = k as f64 * 0.03;
                 let rr = 3.0 + (k % 90) as f64 / 10.0;
                 let mp = m.pos();
-                g.player.pos = Vec3::new(mp.x + a.cos() * rr, 1.62, mp.z + a.sin() * rr);
+                g.player.pos = Vec3::new(mp.x + a.dcos() * rr, 1.62, mp.z + a.dsin() * rr);
                 g.player.yaw = if (k / 40) % 2 == 1 { a } else { a + PI };
             } else if let Some(pw) = phone_world {
                 g.player.pos = Vec3::new(pw.x + 1.0, 1.62, pw.z + 1.0);

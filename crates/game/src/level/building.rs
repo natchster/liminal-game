@@ -28,6 +28,7 @@ use crate::level::archgen::{
     Archetype, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID, Ground, Layout, Room, Zone, build_ground_solids, ground_breaks,
     segment_clear_3d,
 };
+use engine::dmath::DMath;
 
 /// One storey, metres: a flight of one tile (4 m) rises one storey
 pub const STOREY: f64 = 3.0;
@@ -503,7 +504,7 @@ fn lattice(style: Style, p: &Params, rng: &mut dyn FnMut() -> f64) -> Lattice {
         // (the floor falls fastest near the arrival: you arrive high over
         // the rest of it, and the line from there to the door stays above
         // the floors between)
-        let fall = (dist[a] as f64 / de).min(1.0).powf(FALL);
+        let fall = (dist[a] as f64 / de).min(1.0).dpowf(FALL);
         let s = p.top - (fall * p.range as f64).round() as i32 + if a == spawn_node || a == exit_node { 0 } else { jitter };
         storey[a] = s.clamp(p.top - p.range, p.top + 1);
     }
@@ -594,7 +595,7 @@ fn lattice_ok(l: &Lattice, n: i32) -> bool {
         return false;
     }
     let (ie, je) = ((ex as i32) % n, (ex as i32) / n);
-    let straight = ((ie * PITCH) as f64).hypot((je * PITCH) as f64).max(1.0);
+    let straight = ((ie * PITCH) as f64).dhypot((je * PITCH) as f64).max(1.0);
     // back down the way from the door: its platforms and its flights
     let (mut cur, mut decisions, mut flights) = (ex, 0, 0);
     while cur != 0 {

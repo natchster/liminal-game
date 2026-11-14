@@ -35,19 +35,19 @@ pub(crate) fn place_dead_flower_vases(g: &mut Game, _dist: &[i32]) {
         let stem = mesh(pg("DeadFlowerVases__stem", cyl_geo!(0.0015, 0.0015, stem_len, 4)), &stem_mat);
         // Foot 1 cm down inside the neck (mouth at 0.090).
         stem.position().set(
-            a.cos() * 0.010 + a.cos() * stem_len / 2.0 * tilt.sin(),
-            0.080 + stem_len / 2.0 * tilt.cos(),
-            a.sin() * 0.010 + a.sin() * stem_len / 2.0 * tilt.sin(),
+            a.dcos() * 0.010 + a.dcos() * stem_len / 2.0 * tilt.dsin(),
+            0.080 + stem_len / 2.0 * tilt.dcos(),
+            a.dsin() * 0.010 + a.dsin() * stem_len / 2.0 * tilt.dsin(),
         );
-        stem.rotation().z = -a.cos() * tilt;
-        stem.rotation().x = a.sin() * tilt;
+        stem.rotation().z = -a.dcos() * tilt;
+        stem.rotation().x = a.dsin() * tilt;
         vase.add(&stem);
         // Drooping tip petal.
         let petal = mesh(circle_geo!(0.006, 5), &petal_mat);
         petal.position().set(
-            a.cos() * 0.010 + a.cos() * stem_len * tilt.sin(),
-            0.080 + stem_len * tilt.cos() - 0.005,
-            a.sin() * 0.010 + a.sin() * stem_len * tilt.sin(),
+            a.dcos() * 0.010 + a.dcos() * stem_len * tilt.dsin(),
+            0.080 + stem_len * tilt.dcos() - 0.005,
+            a.dsin() * 0.010 + a.dsin() * stem_len * tilt.dsin(),
         );
         petal.rotation().x = -PI / 3.0;
         vase.add(&petal);

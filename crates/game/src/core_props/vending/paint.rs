@@ -141,8 +141,8 @@ fn foil(ctx: &mut Canvas, x: f64, y: f64, w: f64, h: f64, creases: usize) {
         let light = rnd() < 0.5;
         ctx.set_stroke_style(if light { "rgba(255,255,255,0.16)" } else { "rgba(0,0,0,0.16)" });
         ctx.begin_path();
-        ctx.move_to(cx - a.cos() * l / 2.0, cy - a.sin() * l / 2.0);
-        ctx.line_to(cx + a.cos() * l / 2.0, cy + a.sin() * l / 2.0);
+        ctx.move_to(cx - a.dcos() * l / 2.0, cy - a.dsin() * l / 2.0);
+        ctx.line_to(cx + a.dcos() * l / 2.0, cy + a.dsin() * l / 2.0);
         ctx.stroke();
     }
 }
@@ -183,7 +183,7 @@ fn heap(ctx: &mut Canvas, cx: f64, cy: f64, r: f64, what: &str) {
         let t = i as f64 / 26.0;
         let a = rnd() * PI * 2.0;
         let d = r * (1.0 - t) * rand2(0.2, 0.9);
-        let (x, y) = (cx + a.cos() * d * 1.2, cy + a.sin() * d * 0.6 - t * r * 0.3);
+        let (x, y) = (cx + a.dcos() * d * 1.2, cy + a.dsin() * d * 0.6 - t * r * 0.3);
         let (rx, ry) = (r * rand2(0.22, 0.36), r * rand2(0.14, 0.24));
         let rot = rnd() * PI;
         let g = ctx.create_linear_gradient(x - rx, y - ry, x + rx, y + ry);
@@ -516,7 +516,7 @@ pub fn glass_tex() -> Tex {
             ctx.set_stroke_style(format!("rgba(255,255,255,{:.3})", rand2(0.08, 0.22)));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })

@@ -85,8 +85,8 @@ const PRINT_V: f64 = 0.92;
 /// the dent's crease; above `PRINT_V` the plain card of its inside
 fn hat_print_tex(design: usize, salt: u32) -> Tex {
     canvas_tex_opt(512, 512, false, move |ctx, w, h| {
-        let a = HAT_R.atan2(HAT_H);
-        let slant = HAT_R.hypot(HAT_H);
+        let a = HAT_R.datan2(HAT_H);
+        let slant = HAT_R.dhypot(HAT_H);
         let card = [0.86, 0.84, 0.78];
         // the print: the ground colour and what is printed on it
         let (ground, ink, ink2): ([f64; 3], [f64; 3], [f64; 3]) = match design {
@@ -103,14 +103,14 @@ fn hat_print_tex(design: usize, salt: u32) -> Tex {
             let rho = (1.0 - s) * slant;
             // round from the flap's edge: the sector's own angle
             let d = (phi - HAT_SEAM1).rem_euclid(PI * 2.0);
-            let psi = d * a.sin();
-            let (sx, sy) = (rho * psi.cos(), rho * psi.sin());
+            let psi = d * a.dsin();
+            let (sx, sy) = (rho * psi.dcos(), rho * psi.dsin());
             let dots = |sp: f64, r: f64, stagger: bool| -> f64 {
                 let j = (sy / sp).floor();
                 let off = if stagger && (j as i64) % 2 != 0 { 0.5 } else { 0.0 };
                 let i = (sx / sp - off).floor();
                 let (cx, cy) = ((i + 0.5 + off) * sp, (j + 0.5) * sp);
-                let dd = (sx - cx).hypot(sy - cy);
+                let dd = (sx - cx).dhypot(sy - cy);
                 1.0 - sstep(r - 0.0005, r + 0.0005, dd)
             };
             match design {
@@ -137,7 +137,7 @@ fn hat_print_tex(design: usize, salt: u32) -> Tex {
                     let hh = hash(97, i as i32, j as i32);
                     let (ox, oy) = (hash(98, i as i32, j as i32), hash(99, i as i32, j as i32));
                     let (cx, cy) = ((i + 0.25 + 0.5 * ox) * sp, (j + 0.25 + 0.5 * oy) * sp);
-                    let dd = (sx - cx).hypot(sy - cy);
+                    let dd = (sx - cx).dhypot(sy - cy);
                     let m = 1.0 - sstep(0.0026, 0.0034, dd);
                     mix(ground, if hh < 0.5 { ink } else { ink2 }, m)
                 }
@@ -225,7 +225,7 @@ fn hat_print_tex(design: usize, salt: u32) -> Tex {
 /// normal) the band above, by how deep in. Triangles across u's wrap
 /// get their low corners again at u + 1.
 fn cone_uv(gg: &mut Geometry, beta: f64, lift: f64, ymax: f64, print_v: f64) {
-    let (c, s) = (beta.cos(), beta.sin());
+    let (c, s) = (beta.dcos(), beta.dsin());
     let n = gg.position.len() / 3;
     let mut uv = vec![0f32; n * 2];
     for i in 0..n {
@@ -233,9 +233,9 @@ fn cone_uv(gg: &mut Geometry, beta: f64, lift: f64, ymax: f64, print_v: f64) {
         let (px, py) = (x * c + y * s, -x * s + y * c);
         let (nx0, ny0, nz) = (f64::from(gg.normal[i * 3]), f64::from(gg.normal[i * 3 + 1]), f64::from(gg.normal[i * 3 + 2]));
         let nx = nx0 * c + ny0 * s;
-        let l = px.hypot(z).max(1e-6);
+        let l = px.dhypot(z).max(1e-6);
         let inside = (nx * px + nz * z) / l < -0.3;
-        let u = px.atan2(z).rem_euclid(2.0 * PI) / (2.0 * PI);
+        let u = px.datan2(z).rem_euclid(2.0 * PI) / (2.0 * PI);
         let f = (py / ymax).clamp(0.0, 1.0);
         uv[i * 2] = u as f32;
         uv[i * 2 + 1] = if inside { print_v + 0.02 + 0.06 * f } else { (f * print_v).min(print_v - 0.002) } as f32;

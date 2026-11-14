@@ -40,7 +40,7 @@ pub(crate) fn place_trash_cans(g: &mut Game, _dist: &[i32]) {
                 ctx.set_stroke_style(format!("rgba(150,148,140,{:.2})", 0.15 + rnd() * 0.3));
                 ctx.begin_path();
                 ctx.move_to(x, y);
-                ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                 ctx.stroke();
             }
             // rust: at the chime and the rim where the paint chipped, down from the seam
@@ -98,7 +98,7 @@ pub(crate) fn place_trash_cans(g: &mut Game, _dist: &[i32]) {
                 ctx.set_stroke_style(format!("rgba(70,62,50,{:.2})", 0.12 + rnd() * 0.2));
                 ctx.begin_path();
                 ctx.move_to(x, y);
-                ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                 ctx.stroke();
             }
         })
@@ -191,7 +191,7 @@ pub(crate) fn place_trash_cans(g: &mut Game, _dist: &[i32]) {
         let b_ang = rnd() * PI * 2.0;
         let b_dist = 0.30 + rnd() * 0.40;
         let cp = can_group.pos();
-        bag.position().set(cp.x + b_ang.cos() * b_dist, 0, cp.z + b_ang.sin() * b_dist);
+        bag.position().set(cp.x + b_ang.dcos() * b_dist, 0, cp.z + b_ang.dsin() * b_dist);
         bag.rotation().y = rnd() * PI * 2.0;
         g.world.add(&bag);
     }

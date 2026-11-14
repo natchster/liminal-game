@@ -41,18 +41,18 @@ pub(crate) fn place_fire_tool_sets(g: &mut Game, _dist: &[i32]) {
         let arm_angle = (i as f64 / num_tools as f64) * PI * 2.0;
         let arm = mesh(pg("FireToolSets__arm", cyl_geo!(0.0025, 0.0025, 0.030, 4)), &iron_mat);
         arm.rotation().z = PI / 2.0;
-        arm.position().set(arm_angle.cos() * 0.015, arm_y, arm_angle.sin() * 0.015);
+        arm.position().set(arm_angle.dcos() * 0.015, arm_y, arm_angle.dsin() * 0.015);
         arm.rotation().y = -arm_angle;
         fts.add(&arm);
         // Small hook cap on arm end.
         let hook = mesh(pg("FireToolSets__hook", torus_geo!(0.004, 0.001, 4, 6, PI)), &iron_mat);
         hook.rotation().x = PI / 2.0;
         hook.rotation().z = -arm_angle;
-        hook.position().set(arm_angle.cos() * 0.030, arm_y - 0.002, arm_angle.sin() * 0.030);
+        hook.position().set(arm_angle.dcos() * 0.030, arm_y - 0.002, arm_angle.dsin() * 0.030);
         fts.add(&hook);
         // Tool hanging from hook.
-        let tool_cx = arm_angle.cos() * 0.030;
-        let tool_cz = arm_angle.sin() * 0.030;
+        let tool_cx = arm_angle.dcos() * 0.030;
+        let tool_cz = arm_angle.dsin() * 0.030;
         let tool_types = ["poker", "tongs", "shovel", "brush"];
         let tool_type = tool_types[(i % 4) as usize];
         if tool_type == "poker" {
@@ -96,7 +96,7 @@ pub(crate) fn place_fire_tool_sets(g: &mut Game, _dist: &[i32]) {
                 r.set(PI / 2.0, PI / 2.0 - arm_angle, 0);
                 r.order = EulerOrder::YXZ;
             }
-            scoop.position().set(arm_angle.cos() * 0.022, arm_y - shaft_len - 0.0195, arm_angle.sin() * 0.022);
+            scoop.position().set(arm_angle.dcos() * 0.022, arm_y - shaft_len - 0.0195, arm_angle.dsin() * 0.022);
             fts.add(&scoop);
             // Scoop back wall (raised).
             let scoop_back = mesh(pg("FireToolSets__scoopBack", box_geo!(0.035, 0.020, 0.003)), &iron_mat);

@@ -44,8 +44,8 @@ pub(crate) fn place_small_skulls(g: &mut Game, _dist: &[i32]) {
     for i in 0..5 {
         let tooth = mesh(pg("SmallSkulls__tooth", box_geo!(0.005, 0.006, 0.002)), &bone_mat);
         let tx = -0.014 + i as f64 * 0.007;
-        tooth.position().set(tx, 0.0225, 0.0242 - 0.00545 * (tx / 0.0148).powi(2));
-        tooth.rotation().y = (2.0 * 0.00545 * tx / (0.0148 * 0.0148)).atan();
+        tooth.position().set(tx, 0.0225, 0.0242 - 0.00545 * (tx / 0.0148).dpowi(2));
+        tooth.rotation().y = (2.0 * 0.00545 * tx / (0.0148 * 0.0148)).datan();
         skull.add(&tooth);
     }
     skull.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

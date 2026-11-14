@@ -96,7 +96,7 @@ fn pan_iron_tex(salt: u32) -> Tex {
                 // rust where the water stood when it lay flat: a ragged pool,
                 // uneven inside (orange powder, dark crust), blooms round it
                 let (pxc, pyc, pr) = pool;
-                let dpool = (((px - pxc) / 1.2).powi(2) + (py - pyc).powi(2)).sqrt() / pr;
+                let dpool = (((px - pxc) / 1.2).dpowi(2) + (py - pyc).dpowi(2)).sqrt() / pr;
                 let ragged = dpool + 0.55 * (fbm(seed ^ 9, px * 22.0, py * 22.0) - 0.5);
                 let in_pool = ((1.0 - ragged) * 4.0).clamp(0.0, 1.0) * (0.55 + 0.45 * fbm(seed ^ 17, px * 70.0, py * 70.0));
                 let bloom = ((fbm(seed ^ 11, px * 34.0, py * 34.0) - 0.6).max(0.0) * 4.0).min(1.0);
@@ -112,7 +112,7 @@ fn pan_iron_tex(salt: u32) -> Tex {
                 mix(&mut c, rc, rust * (0.8 + 0.2 * grain));
                 // the handle, polished dark by hands, the hole rusted
                 if py > 0.14 {
-                    let dh = ((py - PAN_HOLE_Y).powi(2) + px * px).sqrt();
+                    let dh = ((py - PAN_HOLE_Y).dpowi(2) + px * px).sqrt();
                     let hole = (1.0 - (dh - 0.008) / 0.005).clamp(0.0, 1.0);
                     let polish = ((0.23 - py) / 0.06).clamp(0.0, 1.0) * 0.3;
                     mix(&mut c, [19.0, 18.0, 18.0], polish);

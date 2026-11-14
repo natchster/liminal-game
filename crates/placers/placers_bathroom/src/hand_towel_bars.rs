@@ -84,15 +84,15 @@ fn tb_terry_tex(vary: u32, kind: usize) -> Tex {
             let border = 1.0 - sstep(0.016, 0.018, bd);
             if border > 0.0 {
                 // flat, its weft ribbed across, a corded line at each edge
-                let rib = 0.5 + 0.5 * (y * 2.0 * PI * 420.0).sin();
-                let cord = (-((bd - 0.0155) / 0.0012).powi(2)).exp();
+                let rib = 0.5 + 0.5 * (y * 2.0 * PI * 420.0).dsin();
+                let cord = (-((bd - 0.0155) / 0.0012).dpowi(2)).dexp();
                 let flat = 1.04 + 0.08 * rib - 0.22 * cord;
                 shade = shade * (1.0 - border) + flat * border;
             }
             // the hem: the end turned under and stitched
             if y < 0.020 {
-                let rib = 0.5 + 0.5 * (y * 2.0 * PI * 380.0).sin();
-                shade = 0.88 + 0.06 * rib - 0.12 * (1.0 - sstep(0.0, 0.004, y)) - 0.10 * (-((y - 0.012) / 0.0008).powi(2)).exp();
+                let rib = 0.5 + 0.5 * (y * 2.0 * PI * 380.0).dsin();
+                shade = 0.88 + 0.06 * rib - 0.12 * (1.0 - sstep(0.0, 0.004, y)) - 0.10 * (-((y - 0.012) / 0.0008).dpowi(2)).dexp();
             }
             // the years: grey through, dingier and darker low down where
             // hands were dried on it, blotched
@@ -107,7 +107,7 @@ fn tb_terry_tex(vary: u32, kind: usize) -> Tex {
             }
             // a tide line where it dried after a wetting
             let tide = fbm(seed ^ 0x61, x * 9.0, y * 9.0, 3);
-            let ring = (-((tide - 0.62) / 0.012).powi(2)).exp() * (1.0 - sstep(0.1, 0.25, y)) * 0.25;
+            let ring = (-((tide - 0.62) / 0.012).dpowi(2)).dexp() * (1.0 - sstep(0.1, 0.25, y)) * 0.25;
             for (k, t) in c.iter_mut().zip([0.45, 0.38, 0.28]) {
                 *k = *k * (1.0 - ring) + t * ring * 0.8;
             }

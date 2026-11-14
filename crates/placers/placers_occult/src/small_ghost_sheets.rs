@@ -58,9 +58,9 @@ fn cheesecloth_tex(salt: u32) -> Tex {
             let n = fbm(seed, u * 6.0, v * 6.0, 4);
             let mut c = mix([0.80, 0.77, 0.69], [0.70, 0.67, 0.58], n);
             // the weave: threads across and along, a little uneven
-            let wu = ((u * 210.0 + 0.4 * vn(seed ^ 3, v * 30.0, u * 4.0)) * PI).sin().abs();
-            let wv = ((v * 170.0 + 0.4 * vn(seed ^ 5, u * 30.0, v * 4.0)) * PI).sin().abs();
-            c = mix(c, [0.60, 0.57, 0.49], (1.0 - wu.min(wv)).powi(6) * 0.25);
+            let wu = ((u * 210.0 + 0.4 * vn(seed ^ 3, v * 30.0, u * 4.0)) * PI).dsin().abs();
+            let wv = ((v * 170.0 + 0.4 * vn(seed ^ 5, u * 30.0, v * 4.0)) * PI).dsin().abs();
+            c = mix(c, [0.60, 0.57, 0.49], (1.0 - wu.min(wv)).dpowi(6) * 0.25);
             // the stiffener's runs, dried yellow
             let run = sstep(0.62, 0.78, fbm(seed ^ 7, u * 3.0, v * 9.0, 4));
             c = mix(c, [0.72, 0.64, 0.44], run * 0.55);

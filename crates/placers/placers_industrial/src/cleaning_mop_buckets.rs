@@ -68,8 +68,8 @@ pub(crate) fn place_cleaning_mop_buckets(g: &mut Game, _dist: &[i32]) {
     mop_handle.rotation().z = lean_angle;
     let mop_bottom_x = 0.0;
     let mop_bottom_y = bucket_h * 0.6;
-    let mop_top_x = mop_bottom_x - lean_angle.sin() * mop_handle_len;
-    let mop_top_y = mop_bottom_y + lean_angle.cos() * mop_handle_len;
+    let mop_top_x = mop_bottom_x - lean_angle.dsin() * mop_handle_len;
+    let mop_top_y = mop_bottom_y + lean_angle.dcos() * mop_handle_len;
     mop_handle.position().set((mop_bottom_x + mop_top_x) / 2.0, (mop_bottom_y + mop_top_y) / 2.0, 0);
     mb.add(&mop_handle);
     // Grip band at top of handle (small colored torus), ring axis along the stick.
@@ -77,7 +77,7 @@ pub(crate) fn place_cleaning_mop_buckets(g: &mut Game, _dist: &[i32]) {
     let grip = mesh(pg("CleaningMopBuckets__grip", torus_geo!(0.011, 0.003, 3, 8)), &grip_mat);
     grip.rotation().y = -lean_angle;
     grip.rotation().x = -PI / 2.0;
-    grip.position().set(mop_top_x + lean_angle.sin() * 0.05, mop_top_y - lean_angle.cos() * 0.05, 0);
+    grip.position().set(mop_top_x + lean_angle.dsin() * 0.05, mop_top_y - lean_angle.dcos() * 0.05, 0);
     mb.add(&grip);
     // Mop head — bunch of thin strands radiating from bottom (inside bucket); the
     // clamp (centre mop_head_y + 0.02) takes the stick's foot.
@@ -91,13 +91,13 @@ pub(crate) fn place_cleaning_mop_buckets(g: &mut Game, _dist: &[i32]) {
         let strand_len = 0.06 + rnd() * 0.04;
         let strand = mesh(pg("CleaningMopBuckets__strand", cyl_geo!(0.002, 0.001, strand_len, 3)), &mop_head_mat);
         // Angle downward + outward.
-        strand.rotation().x = ang.sin() * 0.6;
-        strand.rotation().z = ang.cos() * 0.6;
+        strand.rotation().x = ang.dsin() * 0.6;
+        strand.rotation().z = ang.dcos() * 0.6;
         // Position at mop head center.
         strand.position().set(mop_head_x, mop_head_y, mop_head_z);
         // Offset along direction.
-        let dx = ang.cos() * strand_len * 0.35;
-        let dz = ang.sin() * strand_len * 0.35;
+        let dx = ang.dcos() * strand_len * 0.35;
+        let dz = ang.dsin() * strand_len * 0.35;
         strand.position().set(mop_head_x + dx, mop_head_y - strand_len * 0.35, mop_head_z + dz);
         mb.add(&strand);
     }

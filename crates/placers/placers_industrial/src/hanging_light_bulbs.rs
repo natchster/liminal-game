@@ -40,7 +40,7 @@ pub(crate) fn place_hanging_light_bulbs(g: &mut Game, _dist: &[i32]) {
         // Subtle flicker.
         let flicker_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
-            glow.set_intensity(0.4 + (t * 4.0 + flicker_phase).sin() * 0.06);
+            glow.set_intensity(0.4 + (t * 4.0 + flicker_phase).dsin() * 0.06);
         });
     }
     let px = g.wx(x) + (rnd() - 0.5) * 2.0;
@@ -52,7 +52,7 @@ pub(crate) fn place_hanging_light_bulbs(g: &mut Game, _dist: &[i32]) {
         let sway_period = 10.0 + rnd() * 6.0;
         let b = bulb.clone();
         g.animate(move |_g, _dt, t| {
-            b.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.015;
+            b.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.015;
         });
     }
     g.world.add(&bulb);

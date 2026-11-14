@@ -49,7 +49,7 @@ pub(crate) fn place_spider_webs(g: &mut Game, _dist: &[i32]) {
     // little under it where it sags (the old second sheet down the wall's
     // face read as a hairball on the wall, M8)
     let (down, out) = (0.20, 0.125);
-    let (len, tilt) = (f64::hypot(down, out), out.atan2(down));
+    let (len, tilt) = (down.dhypot(out), out.datan2(down));
     // out of the angle, into the room: (y, z) = (-out, down) / len
     let sag = |d: f64| (-out / len * d, down / len * d);
     let veil = lambert!({ map: &web_veil_tex(salt), transparent: true, depthWrite: false, side: DoubleSide });
@@ -89,20 +89,20 @@ fn web_veil_tex(salt: u32) -> Tex {
         let dust = [0.66, 0.65, 0.62];
         paint_px(ctx, w, h, |x, y| {
             let (u, v) = (x / w, y / h);
-            let q = ((x - bx) / brx).hypot((y - by) / bry);
-            let dens = (-q * q * 0.9).exp();
+            let q = ((x - bx) / brx).dhypot((y - by) / bry);
+            let dens = (-q * q * 0.9).dexp();
             let rag = fbm(salt ^ 0x99, u * 7.0, v * 3.0, 3) - 0.5;
             let ends = sstep(0.0, 0.18, u.min(1.0 - u) + rag * 0.12) * sstep(0.0, 0.2, v.min(1.0 - v) + rag * 0.2);
-            let (u1, u2) = (u * wa.cos() + v * wa.sin(), -u * wa.sin() + v * wa.cos());
-            let (v1, v2) = (u * wb.cos() + v * wb.sin(), -u * wb.sin() + v * wb.cos());
+            let (u1, u2) = (u * wa.dcos() + v * wa.dsin(), -u * wa.dsin() + v * wa.dcos());
+            let (v1, v2) = (u * wb.dcos() + v * wb.dsin(), -u * wb.dsin() + v * wb.dcos());
             let wisp = 0.5 * vn(salt ^ 0x5e, u1 * 3.0, u2 * 45.0) + 0.5 * vn(salt ^ 0x6f, v1 * 3.0, v2 * 45.0);
             let torn = sstep(0.3, 0.45, fbm(salt ^ 0x7a, u * 4.0, v * 3.0, 4) + 0.2 * dens);
             [dust[0], dust[1], dust[2], ((0.03 + 0.5 * dens) * ends * (0.15 + 1.6 * wisp * wisp * wisp) * torn).min(0.5)]
         });
         ctx.set_line_cap("round");
         let in_blob = |r: &mut SplitMix64, k: f64| {
-            let (a, d) = (r.next() * PI * 2.0, r.next().powf(0.6) * k);
-            (bx + a.cos() * d * brx, by + a.sin() * d * bry)
+            let (a, d) = (r.next() * PI * 2.0, r.next().dpowf(0.6) * k);
+            (bx + a.dcos() * d * brx, by + a.dsin() * d * bry)
         };
         // strands along the two ways it was spun, many over each other, each
         // sagging a little between where it is held
@@ -110,7 +110,7 @@ fn web_veil_tex(salt: u32) -> Tex {
             let c = in_blob(&mut r, 1.2);
             let a = if k % 2 == 0 { wa } else { wb } + (r.next() - 0.5) * 1.2;
             let l = w * (0.1 + 0.4 * r.next());
-            let (dx, dy) = (a.cos() * l / 2.0, a.sin() * l / 2.0);
+            let (dx, dy) = (a.dcos() * l / 2.0, a.dsin() * l / 2.0);
             let tone = if k % 7 == 0 { [0.56, 0.55, 0.52] } else { [0.88, 0.88, 0.86] };
             ctx.set_stroke_style(css(tone, 0.2 + 0.3 * r.next()));
             ctx.set_line_width(0.6 + 0.6 * r.next());

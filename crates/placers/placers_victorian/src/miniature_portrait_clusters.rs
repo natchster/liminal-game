@@ -139,8 +139,8 @@ pub(crate) fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {
         let tilt_freq = (PI * 2.0) / (20.0 + rnd() * 20.0); // 20-40 s cycle
         let tilt_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
-            let raw = (t * tilt_freq + tilt_phase).sin();
-            let envelope = sign_of(raw) * raw.abs().powf(2.5);
+            let raw = (t * tilt_freq + tilt_phase).dsin();
+            let envelope = sign_of(raw) * raw.abs().dpowf(2.5);
             target.rotation().z = base_rot_z + envelope * 0.05; // ±3 deg peak
         });
     }

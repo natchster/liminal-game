@@ -50,7 +50,7 @@ pub(crate) fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
     for i in 0..5 {
         let fi = i as f64;
         let curl = mesh(pg("BrokenWholeDolls__curl", sphere_geo!(0.010, 6, 5)), &hair_mat);
-        curl.position().set(0.080 + (fi * 1.2).cos() * 0.020, 0.070 + (fi * 0.7).sin() * 0.008, (fi * 1.2).sin() * 0.020);
+        curl.position().set(0.080 + (fi * 1.2).dcos() * 0.020, 0.070 + (fi * 0.7).dsin() * 0.008, (fi * 1.2).dsin() * 0.020);
         bd.add(&curl);
     }
     // 2 painted eye dots, in the eye sockets of the face (+X).
@@ -67,7 +67,7 @@ pub(crate) fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
     // Rosy cheek dots, on the cheeks and facing out of them.
     for side in [-1.0, 1.0] {
         let cheek = mesh(circle_geo!(0.005, 6), lambert!({ color: 0xd08080 }));
-        set_rot_order(&cheek, 0.3026, 0.844f64.atan2(side * 0.447), 0.0, EulerOrder::YXZ);
+        set_rot_order(&cheek, 0.3026, 0.844f64.datan2(side * 0.447), 0.0, EulerOrder::YXZ);
         cheek.position().set(0.1110, 0.0271, side * 0.0164);
         bd.add(&cheek);
     }
@@ -92,7 +92,7 @@ pub(crate) fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
     // the hand on the floor.
     let arm_dir = |i: i32| -> Vec3 {
         let a = if i == 0 { 0.25f64 } else { 0.6f64 };
-        let mut v = v3(-0.912 * a.cos(), -0.411, (if i == 0 { -1.0 } else { 1.0 }) * 0.912 * a.sin());
+        let mut v = v3(-0.912 * a.dcos(), -0.411, (if i == 0 { -1.0 } else { 1.0 }) * 0.912 * a.dsin());
         v.normalize();
         v
     };
@@ -120,8 +120,8 @@ pub(crate) fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
         };
         let detached = mesh(detached_geo, &porcelain_mat);
         let det_angle = rnd() * PI * 2.0;
-        let dx = det_angle.cos() * (0.15 + rnd() * 0.10);
-        let dz = det_angle.sin() * (0.15 + rnd() * 0.10);
+        let dx = det_angle.dcos() * (0.15 + rnd() * 0.10);
+        let dz = det_angle.dsin() * (0.15 + rnd() * 0.10);
         detached.position().set(dx, if is_leg { 0.014 } else { 0.010 }, dz);
         // Lying flat on the floor; the old tilt draw now only adds to its heading.
         let det_turn = rnd() * 0.8;
@@ -139,7 +139,7 @@ pub(crate) fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
             let ai = missing_limb - 2;
             let u = arm_dir(ai);
             place_along(&socket, &arm_shoulder(ai), &u, if ai == 0 { 0.036 } else { 0.022 });
-            set_rot_order(&socket, -u.y.asin(), u.x.atan2(u.z), 0.0, EulerOrder::YXZ);
+            set_rot_order(&socket, -u.y.dasin(), u.x.datan2(u.z), 0.0, EulerOrder::YXZ);
         }
         bd.add(&socket);
     }

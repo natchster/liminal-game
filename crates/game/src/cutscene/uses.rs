@@ -117,7 +117,7 @@ impl Game {
         let be = self.broken_elevator.as_ref()?;
         let (l, n) = (be.light.world_position(), be.normal);
         let (x, z) = (l.x - n.x * SHAFT_LAMP_OUT, l.z - n.z * SHAFT_LAMP_OUT);
-        Some(Frame::thing([x, self.floor_y_at(x, z), z], n.x.atan2(n.z)))
+        Some(Frame::thing([x, self.floor_y_at(x, z), z], n.x.datan2(n.z)))
     }
 
     /// Two small points low in the black between the doors, giving your

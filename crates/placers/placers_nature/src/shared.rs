@@ -87,7 +87,7 @@ pub(crate) fn bark_tex() -> Tex {
             let hh = hash(0x1e7, cx as i32, cy as i32);
             if hh > 0.72 {
                 let (fx, fy) = (u * 70.0 - cx - 0.5, v * 9.0 - cy - 0.5);
-                let d = (fx / 0.18).hypot(fy / 0.42);
+                let d = (fx / 0.18).dhypot(fy / 0.42);
                 c = mix_unclamped(c, [0.66, 0.60, 0.50], 0.8 * (1.0 - sstep(0.6, 1.0, d)));
             }
             // algae and lichen, grey-green, dry
@@ -167,7 +167,7 @@ pub(crate) fn clear_of(at: (f64, f64), r: f64, down: &[(f64, f64, f64)]) -> (f64
         let mut moved = false;
         for &(ox, oz, or) in down {
             let (dx, dz) = (x - ox, z - oz);
-            let d = dx.hypot(dz);
+            let d = dx.dhypot(dz);
             let need = (r + or) * 0.92;
             if d < need {
                 let (ux, uz) = if d > 1e-6 { (dx / d, dz / d) } else { (0.6, 0.8) };

@@ -12,6 +12,7 @@
 //! pull, the door to open once its going, heard, is over.
 mod common;
 
+use engine::dmath::DMath;
 use game::Game;
 use game::base::config::{CELL, EYE, SAN_REGEN, WALK};
 use game::entities::director::Phase;
@@ -258,7 +259,7 @@ fn into_a_cell(g: &mut Game) -> usize {
     stand(g, c.0, c.1);
     let d = g.cell_doors[ci].clone();
     let (dx, dz) = (d.at.x - g.player.pos.x, d.at.z - g.player.pos.z);
-    g.player.yaw = (-dx).atan2(-dz);
+    g.player.yaw = (-dx).datan2(-dz);
     g.player.pitch = 0.0;
     ci
 }

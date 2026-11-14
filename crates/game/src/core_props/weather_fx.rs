@@ -228,7 +228,7 @@ impl Game {
             {
                 let (sx, sz) = corners[missing];
                 // its length across the quarter's diagonal (x along (-sz, sx)), a little off it
-                let yaw = (-sx).atan2(-sz) + (spin - 3.5) * 0.05 + if side < 0.0 { PI } else { 0.0 };
+                let yaw = (-sx).datan2(-sz) + (spin - 3.5) * 0.05 + if side < 0.0 { PI } else { 0.0 };
                 // out along the diagonal until it is clear of the pieces
                 let bb = steel.bounding_box();
                 let (hx, hz) = ((bb.max.x - bb.min.x) / 2.0, (bb.max.z - bb.min.z) / 2.0);
@@ -300,7 +300,7 @@ impl Game {
                         // left (+x out of it); turned so both are the corner's walls
                         let (ax, az) = (-dx as f64, -dz as f64); // out of this wall
                         let (bx, bz) = (-px as f64, -pz as f64); // out of the side wall
-                        let yaw = if (az - bx).abs() + (-ax - bz).abs() < 1e-6 { ax.atan2(az) } else { bx.atan2(bz) };
+                        let yaw = if (az - bx).abs() + (-ax - bz).abs() < 1e-6 { ax.datan2(az) } else { bx.datan2(bz) };
                         // the corner at the tile's corner; the group stands in the middle of the
                         // web, so settling finds both walls' faces beside it (its probes either
                         // side of the group stay on the web's own stretch of each wall)
@@ -601,7 +601,7 @@ fn spark_flare(g: &mut Game, sg: &Obj, dp: f64) {
             let r = rand2(18.0, 30.0);
             ctx.begin_path();
             ctx.move_to(w / 2.0, h / 2.0);
-            ctx.line_to(w / 2.0 + a.cos() * r, h / 2.0 + a.sin() * r);
+            ctx.line_to(w / 2.0 + a.dcos() * r, h / 2.0 + a.dsin() * r);
             ctx.stroke();
         }
     });
@@ -634,7 +634,7 @@ fn spark_flare(g: &mut Game, sg: &Obj, dp: f64) {
                 return;
             }
             ps_smoke.position().y = 0.30 + p * 0.55;
-            ps_smoke.position().x = sg1.pos().x + (ps_t * 3.8).sin() * 0.04;
+            ps_smoke.position().x = sg1.pos().x + (ps_t * 3.8).dsin() * 0.04;
             ps_smoke.scale().set(1.0 + p * 1.4, 1.0 + p * 1.6, 1.0);
             ps_smoke.mat().set_opacity(0.42 * (1.0 - p) * (1.0 - p * 0.4));
             look_at_level(&ps_smoke, &g.camera);
@@ -679,7 +679,7 @@ fn spark_flare(g: &mut Game, sg: &Obj, dp: f64) {
             let dist_norm = (dist - 0.35) / 0.20;
             let size_scale = 1.0 - dist_norm * 0.35;
             frag.scale().set(size_scale, size_scale, 1.0);
-            frag.set_pos(gp.x + angle.cos() * dist, 0.007, gp.z + angle.sin() * dist);
+            frag.set_pos(gp.x + angle.dcos() * dist, 0.007, gp.z + angle.dsin() * dist);
             g.world.add(&frag);
         }
     } else {
@@ -725,17 +725,17 @@ fn candle_frame(g: &mut Game, ci: usize, off: f64, glow: &Obj, flame: &Obj, flam
     let lfo_hz = g.audio.safe_room_lfo.as_ref().map(|o| o.frequency().value()).filter(|v| *v != 0.0 && !v.is_nan()).unwrap_or(0.35);
     let flame_amp =
         flame_breath_amp_by_weather(g.weather_key()).or(flame_breath_amp_by_weather("normal")).unwrap() * g.descent_boost_mul(0.4);
-    let room_breath = 1.0 + (t * lfo_hz * PI * 2.0 * g.descent_freq_boost() + off * 0.6).sin() * flame_amp;
-    let fk = (0.85 + (t * 12.0 + off).sin() * 0.12 + (t * 21.3 + off).sin() * 0.05) * room_breath;
+    let room_breath = 1.0 + (t * lfo_hz * PI * 2.0 * g.descent_freq_boost() + off * 0.6).dsin() * flame_amp;
+    let fk = (0.85 + (t * 12.0 + off).dsin() * 0.12 + (t * 21.3 + off).dsin() * 0.05) * room_breath;
     // Candles brighten a little as the flashlight dies
     let candle_boost = if g.player.flashlight_on { 1.0 + 0.15 * (1.0 - g.beam_battery_scale(0.0)) } else { 1.0 };
     // Descent dim
     glow.set_intensity(1.4 * fk * candle_boost * (0.65 + 0.35 * g.level_depth_mul()));
-    flame.scale().y = 1.0 + (t * 10.0 + off).sin() * 0.18;
+    flame.scale().y = 1.0 + (t * 10.0 + off).dsin() * 0.18;
     look_at_level(flame, &g.camera);
     // Inner core: faster, different-phase wobble
-    flame_core.scale().y = 1.0 + (t * 13.0 + off * 1.7).sin() * 0.24;
-    flame_core.scale().x = 1.0 + (t * 17.0 + off * 2.1).sin() * 0.06;
+    flame_core.scale().y = 1.0 + (t * 13.0 + off * 1.7).dsin() * 0.24;
+    flame_core.scale().x = 1.0 + (t * 17.0 + off * 2.1).dsin() * 0.06;
     look_at_level(flame_core, &g.camera);
     if flame_core.visible() != flame.visible() {
         flame_core.set_visible(flame.visible());
@@ -814,7 +814,7 @@ fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
                 1.0
             };
             let wobble_amp = 0.03 * wobble_weather_mul * (1.0 + droop_p * 1.5);
-            smoke.position().x = gp.x + layer.xoff + (smoke_t * layer.wobble * wobble_freq_mul + layer.phase).sin() * wobble_amp;
+            smoke.position().x = gp.x + layer.xoff + (smoke_t * layer.wobble * wobble_freq_mul + layer.phase).dsin() * wobble_amp;
             smoke.scale().set(1.0 + p * layer.scale_xk, 1.0 + p * layer.scale_yk, 1.0);
             smoke.mat().set_opacity(0.35 * (1.0 - p) * (1.0 - p * 0.5));
             look_at_level(&smoke, &g.camera);
@@ -840,8 +840,8 @@ fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
 /// A deterministic lumpiness in [-1, 1] at a point (a few crossed waves; no
 /// random draws), so the silk thins unevenly
 fn cobweb_lumps(x: f64, y: f64, z: f64) -> f64 {
-    let a = (x * 23.0 + y * 7.0).sin() * (z * 19.0 - x * 5.0).cos();
-    let b = (y * 31.0 + z * 11.0 + 1.3).sin() * (x * 13.0 + 0.7).sin();
+    let a = (x * 23.0 + y * 7.0).dsin() * (z * 19.0 - x * 5.0).dcos();
+    let b = (y * 31.0 + z * 11.0 + 1.3).dsin() * (x * 13.0 + 0.7).dsin();
     (0.6 * a + 0.4 * b).clamp(-1.0, 1.0)
 }
 
@@ -912,11 +912,11 @@ fn cobweb_sheet_geo(geo: &Geo, corner: bool) -> Geo {
             // breadth), and the veils that sag from it (thin, thinning outward)
             let a = if corner {
                 let r = (x * x + y * y + z * z).sqrt();
-                1.2 - (r / 0.52).powf(1.8) * (0.9 + 0.25 * lump)
+                1.2 - (r / 0.52).dpowf(1.8) * (0.9 + 0.25 * lump)
             } else {
                 let r = (y * y + z * z).sqrt();
                 let ends = (x.abs() / 0.3).min(1.0);
-                (1.2 - (r / 0.38).powf(1.8) * (0.9 + 0.25 * lump)) * (1.0 - 0.8 * ends.powi(3))
+                (1.2 - (r / 0.38).dpowf(1.8) * (0.9 + 0.25 * lump)) * (1.0 - 0.8 * ends.dpowi(3))
             };
             col.extend_from_slice(&[1.0, 1.0, 1.0, (a.clamp(0.0, 1.0) * fray) as f32]);
             let (u, v) = if ny >= nx && ny >= nz {
@@ -999,9 +999,9 @@ fn cobweb_silk_tex() -> Tex {
             let a = if i % 4 == 3 { rnd() * 6.3 } else { runs[i % 3] + (rnd() - 0.5) * 0.6 };
             let (x, y) = (rnd() * w, rnd() * h);
             let l = 10.0 + rnd() * rnd() * 150.0;
-            let (x1, y1) = (x + a.cos() * l, y + a.sin() * l);
+            let (x1, y1) = (x + a.dcos() * l, y + a.dsin() * l);
             let bend = (rnd() - 0.5) * l * 0.3;
-            let (mx, my) = ((x + x1) / 2.0 - a.sin() * bend, (y + y1) / 2.0 + a.cos() * bend);
+            let (mx, my) = ((x + x1) / 2.0 - a.dsin() * bend, (y + y1) / 2.0 + a.dcos() * bend);
             let light = rnd() < 0.7;
             let (c, al) = if light { (206, 0.3 + 0.45 * rnd()) } else { (120, 0.35 + 0.4 * rnd()) };
             let lw = 0.5 + 0.9 * rnd() * rnd();
@@ -1081,7 +1081,7 @@ struct Rect2 {
 }
 impl Rect2 {
     fn new(x: f64, z: f64, turn: f64, hx: f64, hz: f64) -> Rect2 {
-        Rect2 { c: (x, z), u: (turn.cos(), -turn.sin()), h: (hx, hz) }
+        Rect2 { c: (x, z), u: (turn.dcos(), -turn.dsin()), h: (hx, hz) }
     }
     /// Whether two rectangles overlap (no axis of either separates them)
     fn overlaps(&self, o: &Rect2) -> bool {
@@ -1168,8 +1168,9 @@ crate::lazy_static_tex!(
             (0..=96)
                 .map(|k| {
                     let a = k as f64 / 96.0 * PI * 2.0;
-                    let r = r0 * (1.0 + 0.13 * (3.0 * a + ph[0]).sin() + 0.07 * (5.0 * a + ph[1]).sin() + 0.035 * (11.0 * a + ph[2]).sin());
-                    (sx + a.cos() * r, sy + a.sin() * r)
+                    let r =
+                        r0 * (1.0 + 0.13 * (3.0 * a + ph[0]).dsin() + 0.07 * (5.0 * a + ph[1]).dsin() + 0.035 * (11.0 * a + ph[2]).dsin());
+                    (sx + a.dcos() * r, sy + a.dsin() * r)
                 })
                 .collect()
         };
@@ -1201,8 +1202,8 @@ crate::lazy_static_tex!(
             let a = rnd() * 6.3;
             let l = 1.5 + rnd() * rnd() * 6.5;
             let bend = (rnd() - 0.5) * l * 0.8;
-            let (x1, y1) = (x + a.cos() * l, y + a.sin() * l);
-            let (mx, my) = ((x + x1) / 2.0 - a.sin() * bend, (y + y1) / 2.0 + a.cos() * bend);
+            let (x1, y1) = (x + a.dcos() * l, y + a.dsin() * l);
+            let (mx, my) = ((x + x1) / 2.0 - a.dsin() * bend, (y + y1) / 2.0 + a.dcos() * bend);
             ctx.set_stroke_style(format!("rgba(112,104,88,{:.2})", 0.22 + 0.3 * rnd()));
             ctx.set_line_width(0.6 + rnd() * 0.7);
             ctx.begin_path();
@@ -1254,7 +1255,7 @@ crate::lazy_static_tex!(
             ctx.set_stroke_style(format!("rgba(214,208,190,{:.2})", 0.2 + 0.3 * rnd()));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -1279,19 +1280,19 @@ crate::lazy_static_tex!(
                 (0.6, format!("rgba(206,201,189,{:.3})", al * 0.4)),
                 (1.0, "rgba(206,201,189,0)".into()),
             ];
-            soft_blob(ctx, cx + a.cos() * d, cy + a.sin() * d, r, k, turn, &stops);
+            soft_blob(ctx, cx + a.dcos() * d, cy + a.dsin() * d, r, k, turn, &stops);
         }
         for _ in 0..30 {
             let a = rnd() * PI * 2.0;
             let (d0, l) = (w * (0.06 + 0.1 * rnd()), w * (0.08 + 0.16 * rnd()));
             let k = 0.12 + 0.1 * rnd();
             let stops = [(0.0, "rgba(200,195,183,0.15)".to_string()), (1.0, "rgba(200,195,183,0)".into())];
-            soft_blob(ctx, cx + a.cos() * (d0 + l / 2.0), cy + a.sin() * (d0 + l / 2.0), l / 2.0, k, a, &stops);
+            soft_blob(ctx, cx + a.dcos() * (d0 + l / 2.0), cy + a.dsin() * (d0 + l / 2.0), l / 2.0, k, a, &stops);
         }
         for _ in 0..700 {
-            let (a, d) = (rnd() * PI * 2.0, w * 0.42 * rnd().powf(1.6));
+            let (a, d) = (rnd() * PI * 2.0, w * 0.42 * rnd().dpowf(1.6));
             // a crumb: a few specks, not a disc
-            let (x, y) = (cx + a.cos() * d, cy + a.sin() * d);
+            let (x, y) = (cx + a.dcos() * d, cy + a.dsin() * d);
             let v = if rnd() < 0.8 { [214, 208, 194] } else { [150, 141, 122] };
             ctx.set_fill_style(format!("rgba({},{},{},{:.2})", v[0], v[1], v[2], 0.35 + 0.45 * rnd()));
             for _ in 0..1 + (rnd() * 3.0) as usize {
@@ -1316,14 +1317,14 @@ fn wax_spill_mat() -> Mat {
             let (k, turn) = (0.6 + 0.4 * rnd(), rnd() * 3.0);
             let stops =
                 [(0.0, "rgba(210,200,174,0.3)".to_string()), (0.55, "rgba(210,200,174,0.2)".into()), (1.0, "rgba(210,200,174,0)".into())];
-            soft_blob(ctx, cx + a.cos() * d, cy + a.sin() * d, r, k, turn, &stops);
+            soft_blob(ctx, cx + a.dcos() * d, cy + a.dsin() * d, r, k, turn, &stops);
         }
         for _ in 0..4 {
             let (a, d) = (a0 + (rnd() - 0.5) * 2.4, w * (0.26 + 0.14 * rnd()));
             let r = 1.2 + rnd() * 1.8;
             let stops =
                 [(0.0, "rgba(212,202,176,0.45)".to_string()), (0.6, "rgba(212,202,176,0.3)".into()), (1.0, "rgba(212,202,176,0)".into())];
-            soft_blob(ctx, cx + a.cos() * d, cy + a.sin() * d, r, 0.7 + 0.3 * rnd(), rnd() * 3.0, &stops);
+            soft_blob(ctx, cx + a.dcos() * d, cy + a.dsin() * d, r, 0.7 + 0.3 * rnd(), rnd() * 3.0, &stops);
         }
     });
     mark_mat(&tex)
@@ -1347,7 +1348,7 @@ fn flame_tex(core: bool) -> Tex {
             } else if t < 0.3 {
                 half * (t / 0.3).sqrt()
             } else {
-                half * ((1.0 - t) / 0.7).powf(1.2)
+                half * ((1.0 - t) / 0.7).dpowf(1.2)
             };
             let q = if hw > 1e-6 { u.abs() / hw } else { 9.0 };
             let body = 1.0 - sstep(0.55, 1.05, q);
@@ -1362,7 +1363,7 @@ fn flame_tex(core: bool) -> Tex {
             let a = body * (1.0 - dark) * (1.0 - 0.45 * foot);
             // the glow round it, fading out well inside the plane's edges
             let d = (q - 1.0).max(0.0) * hw.max(0.2) + (v0 - v).max(0.0) * 1.5 + (v - v1).max(0.0) * 1.2;
-            let halo = 0.14 * (-(d / 0.22).powi(2)).exp();
+            let halo = 0.14 * (-(d / 0.22).dpowi(2)).dexp();
             [r, g, b, a + halo * (1.0 - a)]
         });
     })
@@ -1433,7 +1434,7 @@ fn smin(a: f64, b: f64, k: f64) -> f64 {
 /// rim: the rim sharp on its outside (over `aa`, about a texel), fading
 /// inward over `ew`
 fn tide(d: f64, aa: f64, ew: f64) -> f64 {
-    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
+    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).dexp()
 }
 
 /// A pixel's straight sRGB colour and alpha, built up by laying marks over it
@@ -1537,7 +1538,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> Mat {
             (0..(rnd() * 3.5) as usize)
                 .map(|_| {
                     let (a, rr) = (rnd() * PI * 2.0, 0.65 + 0.25 * rnd());
-                    (a.cos() * rx * rr, a.sin() * rz * rr, r0 * (0.1 + 0.15 * rnd()))
+                    (a.dcos() * rx * rr, a.dsin() * rz * rr, r0 * (0.1 + 0.15 * rnd()))
                 })
                 .collect()
         } else {
@@ -1546,7 +1547,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> Mat {
         paint_px_rows(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
-            let rho = u.hypot(v);
+            let rho = u.dhypot(v);
             let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
             let lobe = 1.0
                 + 0.5 * (fbm(seed, cu * 1.2 + 4.0, cv * 1.2 + 4.0, 3) - 0.5)
@@ -1554,14 +1555,14 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> Mat {
                 + 0.07 * (vnoise(seed ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
             let mut d = (rho - 0.88 * lobe) * r0;
             for &(qx, qz, qr) in &sats {
-                d = smin(d, (x - qx).hypot(y - qz) - qr, 0.012);
+                d = smin(d, (x - qx).dhypot(y - qz) - qr, 0.012);
             }
             let mut px = Px::CLEAR;
             if hard {
                 d += (vnoise(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.004;
                 // the damp margin outside it, the film, and the dark line of its edge
                 if d > 0.0 {
-                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).exp() * (0.6 + 0.4 * vnoise(seed ^ 0x5e, x * 50.0, y * 50.0)));
+                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).dexp() * (0.6 + 0.4 * vnoise(seed ^ 0x5e, x * 50.0, y * 50.0)));
                 }
                 px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.4 + 0.08 * vnoise(seed ^ 0x3c, x * 25.0, y * 25.0)));
                 px.lay([0.035, 0.035, 0.04], tide(d, aa, 0.0015) * 0.35);
@@ -1569,7 +1570,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> Mat {
                 // soaked in: the edge ragged and soft, a darker rim at it
                 let dd = d + (fbm(seed ^ 0x77, x * 14.0, y * 14.0, 3) - 0.5) * 0.035;
                 px.lay(wet, sstep(0.012, -0.025, dd) * (0.55 + 0.15 * vnoise(seed ^ 0x3c, x * 30.0, y * 30.0)));
-                px.lay([0.09, 0.07, 0.05], 0.22 * (-(dd + 0.004).abs() / 0.008).exp());
+                px.lay([0.09, 0.07, 0.05], 0.22 * (-(dd + 0.004).abs() / 0.008).dexp());
             }
             px.rgba()
         });

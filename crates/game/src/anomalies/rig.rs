@@ -124,7 +124,7 @@ pub fn human_finger_pts(r: &HumanRig, s: f64) -> Vec<Vec<[f64; 3]>> {
         let mut pts = vec![p];
         for j in 0..3 {
             ang += r.curl[j];
-            let d = [-s * f64::sin(ang), -f64::cos(ang), r.spread[k] * 0.6];
+            let d = [-s * ang.dsin(), -ang.dcos(), r.spread[k] * 0.6];
             let ll = hypot3(d[0], d[1], d[2]);
             p = [p[0] + d[0] / ll * l[j], p[1] + d[1] / ll * l[j], p[2] + d[2] / ll * l[j]];
             pts.push(p);
@@ -415,7 +415,7 @@ pub struct GaitStyle {
 
 /// Smooth noise (a sum of sines)
 pub fn gait_noise(x: f64) -> f64 {
-    x.sin() * 0.6 + (x * 2.13 + 1.3).sin() * 0.3 + (x * 4.37 + 2.6).sin() * 0.1
+    x.dsin() * 0.6 + (x * 2.13 + 1.3).dsin() * 0.3 + (x * 4.37 + 2.6).dsin() * 0.1
 }
 
 /// Two-bone IK in a limb's plane: hip (hy, hz) and target (ty, tz), bone
@@ -432,9 +432,9 @@ pub fn solve_limb_ik(hy: f64, hz: f64, ty: f64, tz: f64, a: f64, b: f64, fwd: bo
         d = d_max;
     }
     d = d.max((a - b).abs() + 1e-3);
-    let aa = clamp((a * a + d * d - b * b) / (2.0 * a * d), -1.0, 1.0).acos();
-    let t1 = dz.atan2(-dy) + if fwd { aa } else { -aa };
-    let t2 = (dz - t1.sin() * a).atan2(-(dy + t1.cos() * a));
+    let aa = clamp((a * a + d * d - b * b) / (2.0 * a * d), -1.0, 1.0).dacos();
+    let t1 = dz.datan2(-dy) + if fwd { aa } else { -aa };
+    let t2 = (dz - t1.dsin() * a).datan2(-(dy + t1.dcos() * a));
     (t1, t2)
 }
 
@@ -462,7 +462,7 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     if moved > 0.6 {
         moved = 0.0;
     } // a relocation, not a stride
-    let k_s = 1.0 - (-dt * 6.0).exp();
+    let k_s = 1.0 - (-dt * 6.0).dexp();
     let g_spd = or0(e.n("gSpd")) + (moved / dt - or0(e.n("gSpd"))) * k_s;
     e.set_n("gSpd", g_spd);
     let g_turn = or0(e.n("gTurn")) + ((turned / dt).min(6.0) - or0(e.n("gTurn"))) * k_s;
@@ -491,9 +491,9 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     let lift = (0.06 + 0.035 * hunt - 0.04 * glide) * step_k;
     let ph_h = (0.24 + 0.08 * hunt) * (1.0 - 0.6 * glide) * walk_k; // toes up at heel strike
     let ph_t = (0.42 + 0.04 * spd.min(3.0)) * (1.0 - 0.6 * glide) * walk_k; // heel up at toe-off
-    let foot_x = r.hip_x + (r.thigh + r.shin) * r.hip_out.sin() - 0.03 * hunt; // at night, feet nearly in a line
-    let land_y = ank_y * ph_h.cos() + r.heel * ph_h.sin();
-    let land_z = s_cyc / 2.0 + off - r.heel - ank_y * ph_h.sin() + r.heel * ph_h.cos();
+    let foot_x = r.hip_x + (r.thigh + r.shin) * r.hip_out.dsin() - 0.03 * hunt; // at night, feet nearly in a line
+    let land_y = ank_y * ph_h.dcos() + r.heel * ph_h.dsin();
+    let land_z = s_cyc / 2.0 + off - r.heel - ank_y * ph_h.dsin() + r.heel * ph_h.dcos();
     let rest = 1.0 - step_k;
     for (li, lg) in p.legs.iter().enumerate() {
         let s = lg.side;
@@ -512,11 +512,11 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
             let v = u / d;
             ph = ph_h * (1.0 - ent_smooth(0.0, 0.2, v)) - ph_t * ent_smooth(0.45, 1.0, v);
             if ph >= 0.0 {
-                ay = ank_y * ph.cos() + r.heel * ph.sin();
-                az = fz - r.heel - ank_y * ph.sin() + r.heel * ph.cos();
+                ay = ank_y * ph.dcos() + r.heel * ph.dsin();
+                az = fz - r.heel - ank_y * ph.dsin() + r.heel * ph.dcos();
             } else {
-                ay = ank_y * ph.cos() - bz * ph.sin();
-                az = fz + bz - ank_y * ph.sin() - bz * ph.cos();
+                ay = ank_y * ph.dcos() - bz * ph.dsin();
+                az = fz + bz - ank_y * ph.dsin() - bz * ph.dcos();
             }
             toe = 0f64.min(ph);
             e.set_n(&lk(li, "ay"), ay);
@@ -540,8 +540,8 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
             let w2 = w * w;
             let w3 = w2 * w;
             az = (2.0 * w3 - 3.0 * w2 + 1.0) * z0 + (w3 - 2.0 * w2 + w) * m + (3.0 * w2 - 2.0 * w3) * land_z + (w3 - w2) * m;
-            ay = lerp(y0, land_y, ent_smooth(0.0, 1.0, w)) + lift * (PI * w).sin() * (1.15 - 0.3 * w);
-            ph = lerp(p0, ph_h, ent_smooth(0.1, 0.85, w)) - 0.12 * walk_k * (PI * w).sin() * (1.0 - w);
+            ay = lerp(y0, land_y, ent_smooth(0.0, 1.0, w)) + lift * (PI * w).dsin() * (1.15 - 0.3 * w);
+            ph = lerp(p0, ph_h, ent_smooth(0.1, 0.85, w)) - 0.12 * walk_k * (PI * w).dsin() * (1.0 - w);
             toe = 0f64.min(p0) * (1.0 - ent_smooth(0.0, 0.35, w));
         }
         // stopping (or never started): the foot settles flat where it is
@@ -553,10 +553,10 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     // the pelvis: as high as the planted legs let it ride (knees a little
     // soft), swaying onto the stance foot, dropping on the swing side, turning
     // with the forward leg. Standing, a slow shift of weight from foot to foot.
-    let mid_l = (tau * (u_l - d / 2.0)).cos(); // +1 at the left foot's mid-stance, -1 at the right's
+    let mid_l = (tau * (u_l - d / 2.0)).dcos(); // +1 at the left foot's mid-stance, -1 at the right's
     let shift = gait_noise(t * 0.31 + seed) * idle * (1.0 - hunt);
     let sway = 0.022 * (1.0 - 0.5 * hunt) * (1.0 - 0.3 * glide) * walk_k * mid_l + 0.028 * shift;
-    let psi = -(0.045 + 0.025 * spd.min(2.0) + 0.03 * hunt) * walk_k * (tau * u_l).cos();
+    let psi = -(0.045 + 0.025 * spd.min(2.0) + 0.03 * hunt) * walk_k * (tau * u_l).dcos();
     let roll = 0.032 * (1.0 - 0.5 * glide) * walk_k * mid_l + 0.035 * shift;
     let pitch = 0.02 + (0.0125 * spd.min(2.0) + 0.09 * hunt) * walk_k + 0.03 * hunt + 0.08 * reach_k;
     let l_sum = r.thigh + r.shin;
@@ -580,9 +580,9 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
             }
             let s = lg.side;
             let (ty, tz) = (e.n(&lk(li, "ty")), e.n(&lk(li, "tz")));
-            let dz = tz + s * r.hip_x * psi.sin();
-            let dx = s * foot_x - (sway + s * r.hip_x * psi.cos());
-            let lift0 = s * r.hip_x * roll.sin();
+            let dz = tz + s * r.hip_x * psi.dsin();
+            let dx = s * foot_x - (sway + s * r.hip_x * psi.dcos());
+            let lift0 = s * r.hip_x * roll.dsin();
             let hi = ty - lift0 + (l_soft * l_soft - dz * dz - dx * dx).max(0.0).sqrt();
             h_soft = lerp(h_soft, h_soft.min(hi), hold);
             if down {
@@ -595,7 +595,7 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     let h_want = lerp(h_soft - 0.02 * hunt, h_soft.min(h_low), clamp(0.85 * glide + 0.35 * hunt, 0.0, 1.0));
     // it settles at once and rises eased
     let g_hip = match e.num.get("gHip").copied() {
-        Some(gh) if !(h_want < gh) => gh + (h_want - gh) * (1.0 - (-dt * 12.0).exp()),
+        Some(gh) if !(h_want < gh) => gh + (h_want - gh) * (1.0 - (-dt * 12.0).dexp()),
         _ => h_want,
     };
     e.set_n("gHip", g_hip);
@@ -610,7 +610,7 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
         let mut v = v3(s * foot_x, e.n(&lk(li, "ty")), e.n(&lk(li, "tz")));
         v.apply_matrix4(&gait_m); // the ankle's target, in the pelvis frame
         let (dx, dy, dz) = (v.x - s * r.hip_x, v.y, v.z);
-        let rho = dx.atan2(-dy);
+        let rho = dx.datan2(-dy);
         let (t1, t2) = solve_limb_ik(0.0, 0.0, -hypot2(dx, dy), dz, r.thigh, r.shin, true);
         lg.hip.rotation().set(-t1, 0, rho);
         lg.knee.rotation().x = t1 - t2;
@@ -619,17 +619,17 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     }
     // the head: eased round to you, and down (or up) to your eyes
     let d_p = hypot2(player.x - pos.x, player.z - pos.z);
-    let want = clamp(wrap_pi((player.x - pos.x).atan2(player.z - pos.z) - e.yaw), -1.3, 1.3) * st.look;
+    let want = clamp(wrap_pi((player.x - pos.x).datan2(player.z - pos.z) - e.yaw), -1.3, 1.3) * st.look;
     let eye_y = hip_y + r.abdomen[1] + r.chest[1] + r.neck[1] + r.head[1] + 0.08;
-    let want_p = clamp((eye_y - player.y).atan2(0.6f64.max(d_p)), -0.4, 0.6) * st.look;
-    let k_l = 1.0 - (-dt * 3.5).exp();
+    let want_p = clamp((eye_y - player.y).datan2(0.6f64.max(d_p)), -0.4, 0.6) * st.look;
+    let k_l = 1.0 - (-dt * 3.5).dexp();
     let g_look = or0(e.n("gLook")) + (want - or0(e.n("gLook"))) * k_l;
     e.set_n("gLook", g_look);
     let g_look_p = or0(e.n("gLookP")) + (want_p - or0(e.n("gLookP"))) * k_l;
     e.set_n("gLookP", g_look_p);
     e.set_n("headYaw", g_look);
     // the spine: against the pelvis, leaning into a hunt, breathing
-    let breath = (t * tau / 4.4 + seed).sin() * st.breath;
+    let breath = (t * tau / 4.4 + seed).dsin() * st.breath;
     let lean = (0.03 + 0.05 * hunt) * walk_k + 0.02 * hunt + 0.12 * reach_k;
     let drift = 0.035 * glide;
     let ab = [lean * 0.5 - 0.006 * breath, -0.6 * psi * (1.0 - 0.4 * hunt), -0.55 * roll + drift * gait_noise(t * 0.7 + seed)];
@@ -656,7 +656,7 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     for a in &p.arms {
         let s = a.side;
         let u = (u_l + if s > 0.0 { 0.0 } else { 0.5 }) % 1.0;
-        let fwd = -(tau * (u - 0.05 - 0.12 * hunt)).cos(); // +1: this arm forward (its leg back)
+        let fwd = -(tau * (u - 0.05 - 0.12 * hunt)).dcos(); // +1: this arm forward (its leg back)
         let sw = arm_a * fwd + 0.03 * walk_k + 0.03 * hunt * walk_k * gait_noise(t * 1.1 + seed + s);
         a.clav.rotation().set(0, -s * 0.12 * sw - s * 0.08 * reach_k, s * (0.012 * breath - 0.035 * hunt + 0.06 * reach_k));
         // reaching, the arms come up nearly level, one a little ahead of the other
@@ -819,7 +819,7 @@ impl Game {
                 let e = &self.entities[ei];
                 let _speed = hypot2(or0(e.vx), or0(e.vz));
                 let ep = e.pos();
-                self.entity_turn(ei, (pp.x - ep.x).atan2(pp.z - ep.z), dt, Some(1.6));
+                self.entity_turn(ei, (pp.x - ep.x).datan2(pp.z - ep.z), dt, Some(1.6));
             }
         } else {
             // by night: the lamp gives you away from across the floor, footsteps from
@@ -892,10 +892,10 @@ impl Game {
         // turns to you when it looks, with a slow, curious tilt.
         let night_k = if night { if e.state == "hunt" { 1.0 } else { 0.55 } } else { 0.0 };
         let hk = or0(e.n("huntK"));
-        e.set_n("huntK", hk + (night_k - hk) * (1.0 - (-dt * 2.5).exp()));
+        e.set_n("huntK", hk + (night_k - hk) * (1.0 - (-dt * 2.5).dexp()));
         let look = e.n("lookK");
         let st =
-            GaitStyle { hunt: e.n("huntK"), glide: 0.0, reach: 0.0, look, shiver: 0.0, tilt: (t * 0.7).sin() * 0.12 * look, breath: 1.0 };
+            GaitStyle { hunt: e.n("huntK"), glide: 0.0, reach: 0.0, look, shiver: 0.0, tilt: (t * 0.7).dsin() * 0.12 * look, breath: 1.0 };
         self.human_gait(ei, dt, t, &HUMAN_RIG_STAFF, &st);
         false
     }

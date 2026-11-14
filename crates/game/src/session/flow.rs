@@ -518,7 +518,7 @@ impl Game {
             let f = self.player.fwd();
             let (px, pz) = (self.player.pos.x, self.player.pos.z);
             let e = &mut self.entities[ki];
-            e.yaw = (-f.x).atan2(-f.z);
+            e.yaw = (-f.x).datan2(-f.z);
             if e.kind == "hound" {
                 // mid-leap, reared up into your face
                 e.g.position().set(px + f.x * 0.7, 0.75, pz + f.z * 0.7);

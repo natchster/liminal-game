@@ -61,7 +61,7 @@ pub(crate) fn place_junction_boxes(g: &mut Game, _dist: &[i32]) {
             // Slight tilt so wire hangs "naturally".
             let tilt_z = (rnd() - 0.5) * 0.25;
             wire.rotation().z = tilt_z;
-            let wire_drop_x = tilt_z.sin() * (wire_len / 2.0);
+            let wire_drop_x = tilt_z.dsin() * (wire_len / 2.0);
             let wpx = (rnd() - 0.5) * 0.08 - wire_drop_x;
             wire.position().set(wpx, -0.10 - wire_len / 2.0, 0.015);
             jbox.add(&wire);
@@ -69,7 +69,7 @@ pub(crate) fn place_junction_boxes(g: &mut Game, _dist: &[i32]) {
             let tip = mesh(pg("JunctionBoxes__tip", cyl_geo!(0.005, 0.005, 0.02, 5)), &copper_mat);
             tip.rotation().z = tilt_z;
             let wp = wire.pos();
-            tip.position().set(wp.x + tilt_z.sin() * (wire_len / 2.0 + 0.01), wp.y - tilt_z.cos() * (wire_len / 2.0 + 0.01), 0.015);
+            tip.position().set(wp.x + tilt_z.dsin() * (wire_len / 2.0 + 0.01), wp.y - tilt_z.dcos() * (wire_len / 2.0 + 0.01), 0.015);
             jbox.add(&tip);
         }
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.035);

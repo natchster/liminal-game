@@ -143,7 +143,9 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
    (`with_own_stream`). No clock, no other RNG, no
    `HashMap` iteration order, nothing left over from the previous level, and
    nothing from the save (the build runs with nothing read; what depends on
-   the run's progress is fitted afterwards, like `fit_lore_notes`). A new
+   the run's progress is fitted afterwards, like `fit_lore_notes`). Its math
+   is `engine::dmath`'s (`x.dsin()`, `datan2`, `dpowi`…: correctly rounded,
+   the same on every Mac); clippy refuses std's `sin` and kin, which differ. A new
    random draw in a placer shifts every later placer: re-record and say so.
    Likewise a native draw added or removed at a level's start shifts every
    frame after it (grain, animation, every golden): reuse an existing draw.

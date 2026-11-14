@@ -187,8 +187,8 @@ impl Game {
         let (dx, dy, dz) = (p.x - c.x, p.y + 1.4 - c.y, p.z - c.z);
         let d = (dx * dx + dy * dy + dz * dz).sqrt().max(1e-6);
         let f = self.player.fwd();
-        let pc = self.player.pitch.cos();
-        (dx * f.x * pc + dy * self.player.pitch.sin() + dz * f.z * pc) / d
+        let pc = self.player.pitch.dcos();
+        (dx * f.x * pc + dy * self.player.pitch.dsin() + dz * f.z * pc) / d
     }
 
     /// Whether nothing stands between the eye at `c` and a figure at `p`,
@@ -243,7 +243,7 @@ impl Game {
     pub(crate) fn decks_clear(&self, a: Vec3, b: Vec3) -> bool {
         let well = self.building.as_ref().is_some_and(|p| p.style == Style::Well);
         let end = (self.to_u(b.x).floor() as i32, self.to_v(b.z).floor() as i32);
-        let len = ((b.x - a.x).powi(2) + (b.z - a.z).powi(2)).sqrt();
+        let len = ((b.x - a.x).dpowi(2) + (b.z - a.z).dpowi(2)).sqrt();
         let n = (len / 0.25).ceil().max(1.0) as usize;
         let mut prev = a.y;
         for i in 1..=n {
@@ -376,7 +376,7 @@ impl Game {
             }
             FigureState::Standing => {
                 // turned toward you
-                f.yaw = (pp.x - f.at.x).atan2(pp.z - f.at.z);
+                f.yaw = (pp.x - f.at.x).datan2(pp.z - f.at.z);
                 f.body.rotation().y = f.yaw;
                 let looked = self.look_dot(f.at) >= LOOKED && self.sight_from(pp, f.at);
                 // (a time under 0 holds it: the debug screen's)
@@ -443,13 +443,13 @@ impl Game {
         self.player.pos = eye;
         let (dx, dy, dz) = (p.x - eye.x, p.y + 1.2 - eye.y, p.z - eye.z);
         // a little to its side, so the crosshair and a prompt leave it clear
-        self.player.yaw = (-dx).atan2(-dz) - 0.1;
-        self.player.pitch = dy.atan2((dx * dx + dz * dz).sqrt());
+        self.player.yaw = (-dx).datan2(-dz) - 0.1;
+        self.player.pitch = dy.datan2((dx * dx + dz * dz).sqrt());
         if let Some(f) = self.far_figure.as_mut() {
             f.at = p;
             f.state = FigureState::Standing;
             f.t = -1e6;
-            f.yaw = (eye.x - p.x).atan2(eye.z - p.z);
+            f.yaw = (eye.x - p.x).datan2(eye.z - p.z);
             f.body.position().copy(&p);
             f.body.rotation().y = f.yaw;
             f.body.set_visible(true);
@@ -471,7 +471,7 @@ impl Game {
                 let k = d / far;
                 let c = Vec3::new(chest.x + (eye.x - chest.x) * k, chest.y + (eye.y - chest.y) * k, chest.z + (eye.z - chest.z) * k);
                 let (dx, dy, dz) = (p.x - c.x, p.y + 1.0 - c.y, p.z - c.z);
-                (d, [c.x, c.y, c.z, (-dx).atan2(-dz) - 0.1, dy.atan2((dx * dx + dz * dz).sqrt())])
+                (d, [c.x, c.y, c.z, (-dx).datan2(-dz) - 0.1, dy.datan2((dx * dx + dz * dz).sqrt())])
             })
             .collect()
     }
@@ -483,7 +483,7 @@ impl Game {
         if let Some(f) = self.far_figure.as_mut() {
             f.state = FigureState::Standing;
             f.t = -1e6;
-            f.yaw = (eye.x - f.at.x).atan2(eye.z - f.at.z);
+            f.yaw = (eye.x - f.at.x).datan2(eye.z - f.at.z);
             f.body.position().copy(&f.at);
             f.body.rotation().y = f.yaw + if back { PI } else { 0.0 };
             f.body.set_visible(true);

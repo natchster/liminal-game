@@ -25,7 +25,7 @@ pub(crate) fn place_vintage_postcards(g: &mut Game, _dist: &[i32]) {
     let card = mesh(plane_geo!(frame_w - 0.018, frame_h - 0.018), &card_mat);
     card.position().set(0, mount_y, 0.017);
     vp.add(&card);
-    vp.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    vp.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     vp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     vp.rotation().z = (rnd() - 0.5) * 0.04;
     g.world.add(&vp);

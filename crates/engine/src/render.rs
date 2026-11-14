@@ -4,6 +4,7 @@
 //! and exponential-squared fog), then composites the HUD and the CSS-style
 //! overlay layers.
 
+use crate::dmath::DMath;
 use crate::geometry::Geometry;
 use crate::material::*;
 use crate::math::*;
@@ -892,8 +893,8 @@ impl Renderer {
                     let mut dir = wp;
                     dir.sub(&tw);
                     dir.transform_direction(&view);
-                    let cone = l.angle.cos();
-                    let pen = (l.angle * (1.0 - l.penumbra)).cos();
+                    let cone = l.angle.dcos();
+                    let pen = (l.angle * (1.0 - l.penumbra)).dcos();
                     spots.push(SpotU {
                         pos: [vp.x as f32, vp.y as f32, vp.z as f32, l.distance as f32],
                         dir: [dir.x as f32, dir.y as f32, dir.z as f32, l.decay as f32],

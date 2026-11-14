@@ -161,8 +161,8 @@ impl Game {
                         // the floor where it stands (on a flight, not the
                         // flight's foot: the stairs are toured too)
                         let floor = self.floor_y_at(x, z);
-                        let yaw = (-dx).atan2(-dz);
-                        if out.iter().any(|o| !o.corner && (o.yaw - yaw).abs() < 1e-9 && (o.x - x).hypot(o.z - z) < SAME_STAND) {
+                        let yaw = (-dx).datan2(-dz);
+                        if out.iter().any(|o| !o.corner && (o.yaw - yaw).abs() < 1e-9 && (o.x - x).dhypot(o.z - z) < SAME_STAND) {
                             continue;
                         }
                         let edge = self.edge_kind((tx, tz), d, floor);
@@ -176,8 +176,8 @@ impl Game {
                             }
                             let (qx, qz) = (x + sx * r, z + sz * r);
                             if r < CORNER_REACH && inside(qx, qz) {
-                                let cy = (-(dx + sx)).atan2(-(dz + sz));
-                                if !out.iter().any(|o| o.corner && (o.x - qx).hypot(o.z - qz) < SAME_STAND) {
+                                let cy = (-(dx + sx)).datan2(-(dz + sz));
+                                if !out.iter().any(|o| o.corner && (o.x - qx).dhypot(o.z - qz) < SAME_STAND) {
                                     out.push(Stand {
                                         x: qx,
                                         z: qz,
@@ -281,7 +281,7 @@ impl Game {
                 added = true;
                 let c = &stands[k];
                 for (i, s) in stands.iter().enumerate() {
-                    let d = ((s.x - c.x).powi(2) + (s.z - c.z).powi(2) + (s.floor - c.floor).powi(2)).sqrt();
+                    let d = ((s.x - c.x).dpowi(2) + (s.z - c.z).dpowi(2) + (s.floor - c.floor).dpowi(2)).sqrt();
                     nearest[i] = nearest[i].min(d);
                 }
             }

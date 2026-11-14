@@ -12,6 +12,7 @@
 //! Nothing here is shown to the player: names in this file are internal.
 //! The plan draws from its own mulberry32 stream, never from `rnd()`.
 
+use engine::dmath::DMath;
 use std::cell::RefCell;
 
 /// One roster entry. `from` is the first level it may appear on; `weight`
@@ -114,7 +115,7 @@ pub fn scp_plan(run_seed: u32, roster: &[ScpEntry], horizon: i32) -> ScpPlan {
             // earlier levels are a little more likely, scaled by weight
             // (`pow`: exact for the roster's weight 1)
             let fl = free.len();
-            let w: Vec<f64> = (0..fl).map(|i| (1.0 - i as f64 / (fl + 1) as f64).powf(s.weight)).collect();
+            let w: Vec<f64> = (0..fl).map(|i| (1.0 - i as f64 / (fl + 1) as f64).dpowf(s.weight)).collect();
             let total = w.iter().fold(0.0, |a, b| a + b);
             let mut r = rng.next() * total;
             let mut pick = free[fl - 1];

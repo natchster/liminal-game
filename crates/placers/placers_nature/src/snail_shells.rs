@@ -111,16 +111,16 @@ fn sh_t_end() -> f64 {
 /// The shell's surface at turn t and section angle phi (`nature/bits_of_the_outside_indoors.py` sh_point)
 fn sh_point(t: f64, phi: f64) -> [f64; 3] {
     let tt = sh_t_end();
-    let s = (SH_W.ln() / (PI * 2.0) * (t - tt)).exp();
+    let s = (SH_W.dln() / (PI * 2.0) * (t - tt)).dexp();
     let drop = SH_H * s * (1.0 + 0.10 * sstep(tt - 1.4, tt, t));
     let rho = SH_RHO * s * (1.0 + 0.07 * sstep(tt - 0.3, tt, t));
-    let (c, sn) = (t.cos(), t.sin());
-    [SH_RC * s * c + c * rho * phi.cos(), -drop + rho * SH_B * phi.sin(), -SH_RC * s * sn - sn * rho * phi.cos()]
+    let (c, sn) = (t.dcos(), t.dsin());
+    [SH_RC * s * c + c * rho * phi.dcos(), -drop + rho * SH_B * phi.dsin(), -SH_RC * s * sn - sn * rho * phi.dcos()]
 }
 
 /// How much further round the last whorl goes at section angle phi
 fn sh_obl(phi: f64) -> f64 {
-    SH_OBL * (0.5 - 0.5 * phi.sin())
+    SH_OBL * (0.5 - 0.5 * phi.dsin())
 }
 
 /// The four shells the old colour chose: (ground, bands, how strong the
@@ -148,9 +148,9 @@ fn shell_tex(k: usize) -> Tex {
             // where a point of the shell lands in the texture (`uv_for`'s sphere)
             let uv = |p: [f64; 3]| {
                 let c: Vec<f64> = (0..3).map(|i| (p[i] - lo[i]) / (hi[i] - lo[i]) * 2.0 - 1.0).collect();
-                let u = (c[2].atan2(-c[0]) / (PI * 2.0) + 1.0) % 1.0;
+                let u = (c[2].datan2(-c[0]) / (PI * 2.0) + 1.0) % 1.0;
                 let r = (c[0] * c[0] + c[1] * c[1] + c[2] * c[2]).sqrt().max(1e-9);
-                let v = 1.0 - (c[1] / r).clamp(-1.0, 1.0).acos() / PI;
+                let v = 1.0 - (c[1] / r).clamp(-1.0, 1.0).dacos() / PI;
                 (u * w, (1.0 - v) * h)
             };
             paint_px(ctx, w, h, |x, y| {

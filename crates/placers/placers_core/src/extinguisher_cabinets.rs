@@ -281,7 +281,7 @@ fn ex_gauge_tex() -> Tex {
         let a = PI * 0.95;
         ctx.begin_path();
         ctx.move_to(cx, cy);
-        ctx.line_to(cx + a.cos() * 22.0, cy + a.sin() * 22.0);
+        ctx.line_to(cx + a.dcos() * 22.0, cy + a.dsin() * 22.0);
         ctx.stroke();
         blob(ctx, cx, cy, 34.0, 1.0, (160, 150, 130, 0.35));
     })

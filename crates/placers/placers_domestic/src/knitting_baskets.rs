@@ -45,9 +45,9 @@ pub(crate) fn place_knitting_baskets(g: &mut Game, _dist: &[i32]) {
         let yarn2 = yarn.clone();
         g.animate(move |_g, _dt, t| {
             // Slow gentle rocking; keeps yarn ball visually alive.
-            yarn2.rotation().z = (t * 0.6 + roll_phase).sin() * 0.10;
-            yarn2.rotation().x = (t * 0.5 + roll_phase2).sin() * 0.08;
-            yarn2.position().x = yarn_base_x + (t * 0.7 + roll_phase).sin() * 0.001;
+            yarn2.rotation().z = (t * 0.6 + roll_phase).dsin() * 0.10;
+            yarn2.rotation().x = (t * 0.5 + roll_phase2).dsin() * 0.08;
+            yarn2.position().x = yarn_base_x + (t * 0.7 + roll_phase).dsin() * 0.001;
         });
     }
     // Wound-thread cross-lines on the yarn ball (2 thin torus rings).

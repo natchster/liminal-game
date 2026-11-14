@@ -44,7 +44,7 @@ pub(crate) fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.25 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
         let sib_ang = rnd() * PI * 2.0;
-        let (cos_a, sin_a) = (sib_ang.cos(), sib_ang.sin());
+        let (cos_a, sin_a) = (sib_ang.dcos(), sib_ang.dsin());
         let mut sib_positions = vec![cone.pos()];
         for s in 1..=sib_count {
             let sib_cone = clone_obj(&cone);

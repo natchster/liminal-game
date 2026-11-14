@@ -213,6 +213,7 @@ pub fn parse_css_font(s: &str) -> FontSpec {
 
 /// CSS filter functions as `RenderGlobals::scene_filter` matrices (Filter Effects 1).
 pub mod filter {
+    use crate::dmath::DMath;
     fn m3(a: [f64; 9], off: [f64; 3]) -> [f32; 12] {
         [
             a[0] as f32,
@@ -247,7 +248,7 @@ pub mod filter {
     }
     /// `hue-rotate(deg)`
     pub fn hue_rotate(deg: f64) -> [f32; 12] {
-        let (s, c) = deg.to_radians().sin_cos();
+        let (s, c) = deg.to_radians().dsin_cos();
         m3(
             [
                 0.213 + c * 0.787 - s * 0.213,

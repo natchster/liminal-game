@@ -64,7 +64,7 @@ pub(crate) fn place_paper_garlands(g: &mut Game, _dist: &[i32]) {
             continue; // fallen off the twine long ago
         }
         let tx = ((i as f64 + 0.5) / n as f64 - 0.5) * span;
-        let ty = a * ((tx / a).cosh() - (span / (2.0 * a)).cosh()) - GT_DROP;
+        let ty = a * ((tx / a).dcosh() - (span / (2.0 * a)).dcosh()) - GT_DROP;
         let tg = group();
         tg.position().set(tx, ty, 0);
         tg.rotation().y = (hash(salt, i as i32, 8) - 0.5) * 0.6 + if h > 0.55 { PI } else { 0.0 };

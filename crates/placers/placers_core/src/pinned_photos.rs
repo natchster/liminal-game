@@ -63,7 +63,7 @@ pub(crate) fn place_pinned_photos(g: &mut Game, _dist: &[i32]) {
             shard.rotation().z = rnd() * PI * 2.0;
             let sh_ang = rnd() * PI * 2.0;
             let sh_rad = 0.06 + rnd() * 0.20;
-            shard.position().set(pp.x + sh_ang.cos() * sh_rad, 0.003, pp.z + sh_ang.sin() * sh_rad);
+            shard.position().set(pp.x + sh_ang.dcos() * sh_rad, 0.003, pp.z + sh_ang.dsin() * sh_rad);
             g.world.add(&shard);
         }
     }
@@ -227,8 +227,8 @@ fn photo_textures() -> Vec<Tex> {
                                 for i in 0..12 {
                                     let a = (i as f64 / 12.0) * PI * 2.0 - PI / 2.0;
                                     ctx.begin_path();
-                                    ctx.move_to(cx + a.cos() * 28.0, cy + a.sin() * 28.0);
-                                    ctx.line_to(cx + a.cos() * 33.0, cy + a.sin() * 33.0);
+                                    ctx.move_to(cx + a.dcos() * 28.0, cy + a.dsin() * 28.0);
+                                    ctx.line_to(cx + a.dcos() * 33.0, cy + a.dsin() * 33.0);
                                     ctx.stroke();
                                 }
                                 ctx.set_stroke_style("#0a0805");
@@ -236,13 +236,13 @@ fn photo_textures() -> Vec<Tex> {
                                 let hour_ang = ((3.0 / 12.0) + 3.0 / 720.0) * PI * 2.0 - PI / 2.0;
                                 ctx.begin_path();
                                 ctx.move_to(cx, cy);
-                                ctx.line_to(cx + hour_ang.cos() * 16.0, cy + hour_ang.sin() * 16.0);
+                                ctx.line_to(cx + hour_ang.dcos() * 16.0, cy + hour_ang.dsin() * 16.0);
                                 ctx.stroke();
                                 ctx.set_line_width(2);
                                 let min_ang = (3.0 / 60.0) * PI * 2.0 - PI / 2.0;
                                 ctx.begin_path();
                                 ctx.move_to(cx, cy);
-                                ctx.line_to(cx + min_ang.cos() * 24.0, cy + min_ang.sin() * 24.0);
+                                ctx.line_to(cx + min_ang.dcos() * 24.0, cy + min_ang.dsin() * 24.0);
                                 ctx.stroke();
                                 ctx.set_fill_style("#0a0805");
                                 ctx.begin_path();

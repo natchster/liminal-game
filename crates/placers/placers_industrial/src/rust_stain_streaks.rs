@@ -110,8 +110,8 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
             let xc = sx + (fbm(s, 0.5, y * 7.0, 2) - 0.5) * 0.02 * t;
             let hw = w0 * 1.5 + 0.042 * t.sqrt() + 0.008 * (fbm(s ^ 0x3, 1.5, y * 11.0, 2) - 0.5);
             let streak = 0.5 + 0.5 * vn(s ^ 0x9, x * 650.0, y * 7.0);
-            let a = (0.6 * (1.0 - t).powf(0.7) + 0.25 * (-dy / 0.03).exp())
-                * (-((x - xc) / hw).powi(2) * 1.1).exp()
+            let a = (0.6 * (1.0 - t).dpowf(0.7) + 0.25 * (-dy / 0.03).dexp())
+                * (-((x - xc) / hw).dpowi(2) * 1.1).dexp()
                 * streak
                 * sstep(-0.004, 0.006, dy);
             lay(&mut px, shade(t), a);
@@ -126,7 +126,7 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
             let wk = w * (1.0 + 0.6 * tk) * (0.6 + 0.8 * fbm(rs ^ 0x5, 2.5, y * 30.0, 2));
             let along = (x - xk).abs() - wk;
             // the drop it ended in
-            let end = (((x - xk) / (wk * 1.7)).hypot((dy - reach) / (wk * 2.2)) - 1.0) * wk * 1.7;
+            let end = (((x - xk) / (wk * 1.7)).dhypot((dy - reach) / (wk * 2.2)) - 1.0) * wk * 1.7;
             let d = if dy < reach { along.min(end) } else { end };
             if d > aa * 2.0 {
                 continue;
@@ -137,10 +137,10 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
         }
         // dark round the fixing, where the rust began, and the ring it dried to
         let n = fbm(s ^ 0x11, x * 90.0, y * 90.0, 3);
-        let rr = (x - sx).hypot((y - sy) * if dy < 0.0 { 1.6 } else { 0.7 }) * (0.75 + 0.5 * n);
+        let rr = (x - sx).dhypot((y - sy) * if dy < 0.0 { 1.6 } else { 0.7 }) * (0.75 + 0.5 * n);
         let ring = w0 + 0.01;
-        lay(&mut px, DARK, 0.7 * (-(rr / ring).powi(2) * 1.8).exp() * (0.7 + 0.6 * n));
-        lay(&mut px, mix(DARK, RUST, 0.4), 0.22 * (-((rr - ring) / 0.004).powi(2)).exp() * sstep(0.35, 0.65, n));
+        lay(&mut px, DARK, 0.7 * (-(rr / ring).dpowi(2) * 1.8).dexp() * (0.7 + 0.6 * n));
+        lay(&mut px, mix(DARK, RUST, 0.4), 0.22 * (-((rr - ring) / 0.004).dpowi(2)).dexp() * sstep(0.35, 0.65, n));
         // nothing at the plane's edges
         px[3] *= sstep(0.0, 0.015, x.min(pw - x).min(y).min(ph - y));
         px

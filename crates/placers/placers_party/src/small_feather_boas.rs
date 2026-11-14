@@ -40,7 +40,7 @@ pub(crate) fn place_small_feather_boas(g: &mut Game, _dist: &[i32]) {
     let total_len = 0.7 + rnd() * 0.4;
     let curve_amp = 0.20;
     let curve_phase = rnd() * PI * 2.0;
-    let curve = |t: f64| -> (f64, f64) { ((t - 0.5) * total_len, (t * PI + curve_phase).sin() * curve_amp) };
+    let curve = |t: f64| -> (f64, f64) { ((t - 0.5) * total_len, (t * PI + curve_phase).dsin() * curve_amp) };
     let mut arc: Vec<f64> = vec![0.0];
     for k in 1..=64usize {
         let (ax, az) = curve((k - 1) as f64 / 64.0);
@@ -58,7 +58,7 @@ pub(crate) fn place_small_feather_boas(g: &mut Game, _dist: &[i32]) {
         let p = ((k - 1) as f64 + (t * arc[64] - arc[k - 1]) / (arc[k] - arc[k - 1])) / 64.0;
         let (ca, cp) = curve(p);
         // the way the curve runs there
-        let (da, dp) = (total_len, (p * PI + curve_phase).cos() * curve_amp * PI);
+        let (da, dp) = (total_len, (p * PI + curve_phase).dcos() * curve_amp * PI);
         // the old puff's draws: its size (a length a little fuller or
         // thinner), how far along it sits, one kept; its turn (a little
         // askew). The lengths take turns (four of each, so each is drawn
@@ -79,7 +79,7 @@ pub(crate) fn place_small_feather_boas(g: &mut Game, _dist: &[i32]) {
         let nudge = (slide - 0.5) * 0.008;
         let (ux, uz) = (da / hypot2(da, dp), dp / hypot2(da, dp));
         len.position().set(ca * shrink + ux * nudge, 0.0, cp * shrink + uz * nudge);
-        len.rotation().y = (-dp).atan2(da) + (askew - 0.5) * 0.3;
+        len.rotation().y = (-dp).datan2(da) + (askew - 0.5) * 0.3;
         boa.add(&len);
     }
     boa.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

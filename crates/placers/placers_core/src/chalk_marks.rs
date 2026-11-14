@@ -49,7 +49,7 @@ pub(crate) fn place_chalk_marks(g: &mut Game, _dist: &[i32]) {
         };
         // where the wall's face steps (a jamb, a pillar, a corner) within its
         // width, a smaller one, so none of it hangs off an edge
-        let (ax, az) = (turn.cos(), -turn.sin());
+        let (ax, az) = (turn.dcos(), -turn.dsin());
         let (px, pz) = (mx - c.dx as f64 * 0.01, mz - c.dz as f64 * 0.01);
         let inside = |off: f64| g.circle_hits_wall(px + ax * off, pz + az * off, 0.01);
         let mid = inside(0.0);
@@ -153,8 +153,8 @@ fn chalk_scrawl_tex(kind: usize, code: u64) -> Tex {
                 for k in 0..=220 {
                     let t = k as f64 / 220.0;
                     let a = t * loops * PI * 2.0;
-                    let r = 24.0 + 9.0 * (t * 7.0 + code as f64 * 0.1).sin();
-                    pts.push((x0 + (x1 - x0) * t + r * 0.55 * a.cos(), cy - r * 0.8 * a.sin() + 10.0 * (t * 3.0).sin()));
+                    let r = 24.0 + 9.0 * (t * 7.0 + code as f64 * 0.1).dsin();
+                    pts.push((x0 + (x1 - x0) * t + r * 0.55 * a.dcos(), cy - r * 0.8 * a.dsin() + 10.0 * (t * 3.0).dsin()));
                 }
                 strokes.push(pts);
             }
@@ -215,7 +215,7 @@ fn chalk_soft(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, alpha: f64) {
 /// draws it.
 fn chalk_digit(d: u32) -> Vec<Vec<(f64, f64)>> {
     let arc = |cx: f64, cy: f64, rx: f64, ry: f64, a0: f64, a1: f64| -> Vec<(f64, f64)> {
-        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.cos(), cy + ry * a.sin())).collect()
+        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.dcos(), cy + ry * a.dsin())).collect()
     };
     match d {
         0 => vec![arc(0.5, 0.5, 0.48, 0.5, -1.4, 4.95)],
@@ -288,13 +288,13 @@ fn chalk_tooth(x: f64, y: f64) -> f64 {
 fn chalk_stroke(ctx: &mut Canvas, pts: &[(f64, f64)], width: f64) {
     let mut len = 0.0;
     for k in 1..pts.len() {
-        len += ((pts[k].0 - pts[k - 1].0).powi(2) + (pts[k].1 - pts[k - 1].1).powi(2)).sqrt();
+        len += ((pts[k].0 - pts[k - 1].0).dpowi(2) + (pts[k].1 - pts[k - 1].1).dpowi(2)).sqrt();
     }
     let mut s = 0.0;
     let wob = rnd() * 6.0;
     for k in 1..pts.len() {
         let (a, b) = (pts[k - 1], pts[k]);
-        let seg = ((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2)).sqrt();
+        let seg = ((b.0 - a.0).dpowi(2) + (b.1 - a.1).dpowi(2)).sqrt();
         if seg < 1e-6 {
             continue;
         }
@@ -306,7 +306,7 @@ fn chalk_stroke(ctx: &mut Canvas, pts: &[(f64, f64)], width: f64) {
             let (cx, cy) = (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
             let at = (s + seg * t) / len.max(1e-6);
             let ends = (at / 0.06).min(1.0) * ((1.0 - at) / 0.1).min(1.0);
-            let press = (0.62 + 0.25 * (at * 9.0 + wob).sin() + 0.13 * (at * 23.0 + wob).sin()) * (0.4 + 0.6 * ends);
+            let press = (0.62 + 0.25 * (at * 9.0 + wob).dsin() + 0.13 * (at * 23.0 + wob).dsin()) * (0.4 + 0.6 * ends);
             for _ in 0..6 {
                 let off = (rnd() - 0.5) * width * (0.7 + 0.3 * ends);
                 let (x, y) = (cx + nx * off, cy + ny * off);

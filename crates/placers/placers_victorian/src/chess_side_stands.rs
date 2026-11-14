@@ -203,7 +203,7 @@ fn ch_top_tex(vary: u32, stain: [f64; 3]) -> Tex {
         fill(ctx, w, h, |u, v| {
             let mut o = wood(seed, u, v, stain, 10.0, 34.0);
             for &(cx, cy, cr) in &rings {
-                let d = (((u - cx).powi(2) + (v - cy).powi(2)).sqrt() - cr).abs();
+                let d = (((u - cx).dpowi(2) + (v - cy).dpowi(2)).sqrt() - cr).abs();
                 o = mix(o, [0.50, 0.45, 0.38], (1.0 - sstep(0.0, 0.006, d)) * 0.18);
             }
             let scratch = sstep(0.93, 0.97, vn(seed ^ 3, u * 3.0 + v * 40.0, v * 3.0 - u * 2.0));
@@ -255,7 +255,7 @@ fn ch_leaf_tex(vary: u32) -> Tex {
     canvas_tex_opt(64, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x1ea;
         fill(ctx, w, h, |u, v| {
-            let vein = sstep(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).sin() * 0.5 + 0.5) * 0.25;
+            let vein = sstep(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).dsin() * 0.5 + 0.5) * 0.25;
             let n = fbm(seed ^ 3, u * 8.0, v * 24.0, 3);
             let mut o = [0.30, 0.19, 0.11].map(|c| c * (0.8 + 0.35 * n) * (1.0 - vein));
             o = o.map(|c| c * (1.0 - 0.3 * sstep(0.85, 0.98, v)));
@@ -319,7 +319,7 @@ fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
 /// the figure, `base` its colour (sRGB)
 fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [f64; 3] {
     let warp = fbm(seed ^ 0x1d, u * along * 0.15, v * across * 0.05, 3);
-    let ring = ((v * across + warp * 6.0).sin() * 0.5 + 0.5).powf(3.0);
+    let ring = ((v * across + warp * 6.0).dsin() * 0.5 + 0.5).dpowf(3.0);
     let streak = fbm(seed, u * along * 0.2, v * across, 3);
     let fine = vn(seed ^ 3, u * along * 3.0, v * across * 6.0);
     base.map(|c| c * (0.82 + 0.28 * streak + 0.06 * fine - 0.14 * ring))

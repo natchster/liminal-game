@@ -384,7 +384,7 @@ impl Game {
         if !(d > 1e-6) {
             return (0.0, 0.0);
         }
-        let side = dx * yaw.cos() - dz * yaw.sin();
+        let side = dx * yaw.dcos() - dz * yaw.dsin();
         (d, clamp(side / d.max(0.5), -1.0, 1.0) * 0.8)
     }
 
@@ -394,7 +394,7 @@ impl Game {
         let (px, pz) = (self.player.pos.x, self.player.pos.z);
         let mut best: Option<(usize, f64)> = None;
         for (i, p) in list.iter().enumerate() {
-            let d2 = (p.x - px).powi(2) + (p.z - pz).powi(2);
+            let d2 = (p.x - px).dpowi(2) + (p.z - pz).dpowi(2);
             if d2 < radius * radius && best.is_none_or(|(_, b)| d2 < b) {
                 best = Some((i, d2));
             }
@@ -550,8 +550,8 @@ impl Game {
             .iter()
             .filter(|q| !q.dead)
             .min_by(|a, b| {
-                let da = (a.wx - p.x).powi(2) + (a.wz - p.z).powi(2);
-                let db = (b.wx - p.x).powi(2) + (b.wz - p.z).powi(2);
+                let da = (a.wx - p.x).dpowi(2) + (a.wz - p.z).dpowi(2);
+                let db = (b.wx - p.x).dpowi(2) + (b.wz - p.z).dpowi(2);
                 da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
             })
             .map(|q| v3(q.wx, if q.y != 0.0 { q.y } else { WALL_H } - 0.1, q.wz))
@@ -629,7 +629,7 @@ impl Game {
             for x in 0..self.w {
                 if reach.get(self.t_idx(x, z)).is_some_and(|&d| d >= 0) {
                     let (wx, wz) = (self.wx(x), self.wz(z));
-                    open.push((wx, wz, hypot2(wx - px, wz - pz), (wz - pz).atan2(wx - px)));
+                    open.push((wx, wz, hypot2(wx - px, wz - pz), (wz - pz).datan2(wx - px)));
                 }
             }
         }
@@ -723,7 +723,7 @@ impl Game {
             .filter(|(_, p)| p.bright >= 0.3)
             .map(|(i, p)| {
                 let rise = self.floor_y_at(p.wx, p.wz) - floor;
-                (rise.abs() >= half, (p.wx - x).powi(2) + (p.wz - z).powi(2) + rise * rise, i)
+                (rise.abs() >= half, (p.wx - x).dpowi(2) + (p.wz - z).dpowi(2) + rise * rise, i)
             })
             .min_by(|a, b| a.0.cmp(&b.0).then(a.1.total_cmp(&b.1)))
             .map(|(_, d2, i)| (i, d2.sqrt()))
@@ -747,10 +747,10 @@ impl Game {
         let (fx, fy, fz) = if self.hands_taken() {
             let r = self.camera.rot();
             let (ry, rx) = (r.y, r.x);
-            (-ry.sin() * rx.cos(), rx.sin(), -ry.cos() * rx.cos())
+            (-ry.dsin() * rx.dcos(), rx.dsin(), -ry.dcos() * rx.dcos())
         } else {
             let fwd = self.player.fwd();
-            (fwd.x, self.player.pitch.sin(), fwd.z)
+            (fwd.x, self.player.pitch.dsin(), fwd.z)
         };
         let cp = self.camera.pos();
         ss.set_listener(cp.x, cp.y, cp.z, fx, fy, fz);
@@ -841,7 +841,7 @@ impl Game {
         let rain_target = if wk == "wet" { 0.55 } else { 0.0 };
         let mut rain_score: f64 = 0.0; // max over all rain windows
         let yaw = self.yaw0();
-        let (cam_fx, cam_fz) = (-yaw.sin(), -yaw.cos());
+        let (cam_fx, cam_fz) = (-yaw.dsin(), -yaw.dcos());
         let windows = self.rain_windows.clone();
         for w in &windows {
             let Some(mat) = w.try_mat() else { continue };
@@ -1164,9 +1164,9 @@ impl Game {
         // ~55% chance of an actual visible silhouette, ahead-and-off-axis
         if rnd() < 0.55 {
             let yaw = self.player.yaw;
-            let (fx, fz) = (-yaw.sin(), -yaw.cos());
+            let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
             let side = if rnd() < 0.5 { 1.0 } else { -1.0 };
-            let (rx, rz) = (yaw.cos() * side, -yaw.sin() * side);
+            let (rx, rz) = (yaw.dcos() * side, -yaw.dsin() * side);
             let mut placed = false;
             let mut tries = 0;
             while tries < 10 && !placed {
@@ -1376,8 +1376,8 @@ impl Game {
     /// if it can (never nearer than 6 m).
     pub fn ghost_walk_path(&self, off: f64, dist: f64, n: usize) -> Vec<Vec3> {
         let yaw = self.yaw0();
-        let (bx, bz) = (yaw.sin(), yaw.cos()); // behind: −forward
-        let (c, s) = (off.cos(), off.sin());
+        let (bx, bz) = (yaw.dsin(), yaw.dcos()); // behind: −forward
+        let (c, s) = (off.dcos(), off.dsin());
         let (ux, uz) = (bx * c - bz * s, bx * s + bz * c);
         let (px, pz) = (self.player.pos.x, self.player.pos.z);
         let open = |d: f64| !self.is_wall_tile(self.tx(px + ux * d), self.tz(pz + uz * d));

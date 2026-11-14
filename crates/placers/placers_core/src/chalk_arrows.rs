@@ -74,7 +74,7 @@ fn chalk_arrow_tex(left: bool, vary: u32) -> Tex {
             (0..n)
                 .map(|k| {
                     let t = k as f64 / (n.max(2) - 1) as f64;
-                    base * (0.75 + 0.2 * (t * 7.0 + wob).sin()) * (t / 0.08).min(1.0).max(0.35) * ((1.0 - t) / 0.12).min(1.0).max(0.25)
+                    base * (0.75 + 0.2 * (t * 7.0 + wob).dsin()) * (t / 0.08).min(1.0).max(0.35) * ((1.0 - t) / 0.12).min(1.0).max(0.25)
                 })
                 .collect()
         };
@@ -172,7 +172,7 @@ fn chalk_letter_w(c: char) -> f64 {
 /// hand draws it
 fn chalk_letter(c: char) -> Vec<Vec<(f64, f64)>> {
     let arc = |cx: f64, cy: f64, rx: f64, ry: f64, a0: f64, a1: f64| -> Vec<(f64, f64)> {
-        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.cos(), cy + ry * a.sin())).collect()
+        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.dcos(), cy + ry * a.dsin())).collect()
     };
     match c {
         'A' => vec![vec![(0.0, 1.0), (0.5, 0.0), (1.0, 1.0)], vec![(0.22, 0.62), (0.8, 0.6)]],
@@ -263,7 +263,7 @@ fn chalk_dense(p: &[(f64, f64)], step: f64) -> Vec<(f64, f64)> {
     let mut out = vec![];
     for k in 0..p.len().saturating_sub(1) {
         let (a, b) = (p[k], p[k + 1]);
-        let n = ((a.0 - b.0).hypot(a.1 - b.1) / step).ceil().max(1.0) as usize;
+        let n = ((a.0 - b.0).dhypot(a.1 - b.1) / step).ceil().max(1.0) as usize;
         for i in 0..n {
             let t = i as f64 / n as f64;
             out.push((a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t));
@@ -307,7 +307,7 @@ fn chalk_raster(lines: &[ChalkLine], w: f64, h: f64, width: f64, seed: u32) -> V
                 let (ex, ey) = (b.0 - a.0, b.1 - a.1);
                 let l2 = (ex * ex + ey * ey).max(1e-9);
                 let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
-                let d = (x - a.0 - ex * t).hypot(y - a.1 - ey * t);
+                let d = (x - a.0 - ex * t).dhypot(y - a.1 - ey * t);
                 // the stick's edge is uneven; it skips along the stroke
                 let rr = r * (0.85 + 0.3 * vn(ls ^ 0x5a, x * 0.35, y * 0.35));
                 let cover = sstep(rr + 0.8, rr - 0.8, d);
@@ -315,7 +315,7 @@ fn chalk_raster(lines: &[ChalkLine], w: f64, h: f64, width: f64, seed: u32) -> V
                     continue;
                 }
                 let skip = sstep(0.2, 0.5, vn(ls ^ 0x77, (a.0 + ex * t) * 0.11, (a.1 + ey * t) * 0.11));
-                let press = (pa + (pb - pa) * t) * (0.3 + 0.7 * skip) * (1.0 - 0.45 * (d / rr).powi(2));
+                let press = (pa + (pb - pa) * t) * (0.3 + 0.7 * skip) * (1.0 - 0.45 * (d / rr).dpowi(2));
                 keep = 1.0 - (1.0 - keep) * (1.0 - cover * press);
             }
             // the wall's tooth: grains ~1.3 px, and coarser patches of it

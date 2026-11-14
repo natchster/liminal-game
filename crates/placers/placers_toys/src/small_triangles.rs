@@ -33,7 +33,7 @@ pub(crate) fn place_small_triangles(g: &mut Game, _dist: &[i32]) {
         let seg = mesh(pg("SmallTriangles__rod", cyl_geo!(0.003, 0.003, seg_len, 5)), &metal_mat);
         seg.position().set((x0 + x1) / 2.0, 0.003, (z0 + z1) / 2.0);
         seg.rotation().x = PI / 2.0;
-        seg.rotation().z = (-(x1 - x0)).atan2(z1 - z0); // rod axis along (dx, 0, dz)
+        seg.rotation().z = (-(x1 - x0)).datan2(z1 - z0); // rod axis along (dx, 0, dz)
         tri.add(&seg);
     }
     // Third side with a small gap
@@ -44,7 +44,7 @@ pub(crate) fn place_small_triangles(g: &mut Game, _dist: &[i32]) {
     let seg3 = mesh(pg("SmallTriangles__rod", cyl_geo!(0.003, 0.003, seg_len, 5)), &metal_mat);
     seg3.position().set(x2a + dx * 0.45, 0.003, z2a + dz * 0.45);
     seg3.rotation().x = PI / 2.0;
-    seg3.rotation().z = (-dx).atan2(dz); // rod axis along (dx, 0, dz)
+    seg3.rotation().z = (-dx).datan2(dz); // rod axis along (dx, 0, dz)
     tri.add(&seg3);
     // Beater rod: thin wood cylinder laid nearby.
     let beater = mesh(pg("SmallTriangles__beater", cyl_geo!(0.003, 0.003, 0.08, 5)), &wood_mat);

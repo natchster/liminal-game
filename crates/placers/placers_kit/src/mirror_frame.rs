@@ -72,7 +72,7 @@ pub fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, 
                     let n = (len / 8.0) as usize + 2;
                     for k in 0..=n {
                         let t = k as f64 / n as f64 * len;
-                        let a = across + amp * (t / len * fr * 6.28 + ph).sin();
+                        let a = across + amp * (t / len * fr * 6.28 + ph).dsin();
                         let (x, y) = if *along_x { (t, a) } else { (a, t) };
                         if k == 0 {
                             ctx.move_to(x, y);
@@ -147,7 +147,7 @@ pub fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, 
                     ctx.set_line_width(0.5);
                     ctx.begin_path();
                     ctx.move_to(x, y);
-                    ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                    ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                     ctx.stroke();
                 }
             }

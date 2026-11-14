@@ -498,7 +498,7 @@ fn fit_to_frame(p: &Plan, f: &Fit) -> Frame {
         origin: Vec3::new(f.face.x + fx * f.depth, 0.0, f.face.z + fz * f.depth),
         normal,
         right,
-        yaw: normal.x.atan2(normal.z),
+        yaw: normal.x.datan2(normal.z),
         depth: f.depth,
         sill: f.sill,
         head: f.head,

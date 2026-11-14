@@ -122,7 +122,7 @@ fn sew_japan_tex() -> Tex {
                     ctx.set_stroke_style("rgba(74,72,68,0.35)");
                     ctx.begin_path();
                     ctx.move_to(x, y);
-                    ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                    ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                     ctx.stroke();
                 }
                 for _ in 0..10 {
@@ -209,7 +209,7 @@ fn sew_name_tex() -> Tex {
                     ctx.stroke();
                     for k in 0..4 {
                         let t = 0.2 + k as f64 * 0.2;
-                        let (lx, ly) = (x0 + side * 92.0 * t, h * (0.5 + 0.18 * (t * 9.0).sin()));
+                        let (lx, ly) = (x0 + side * 92.0 * t, h * (0.5 + 0.18 * (t * 9.0).dsin()));
                         ctx.begin_path();
                         ctx.ellipse(lx, ly, 9.0, 3.5, side * 0.7 + t, 0, PI * 2.0);
                         ctx.fill();
@@ -311,7 +311,7 @@ fn sew_thread_tex() -> Tex {
                 let mut img = ctx.create_image_data(w, h);
                 par_rows(&mut img.data, n * 4, |j, out| {
                     for i in 0..n {
-                        let t = ((j as f64 * 1.7 + i as f64 * 0.05).sin() * 0.5 + 0.5) * 0.25 + 0.75;
+                        let t = ((j as f64 * 1.7 + i as f64 * 0.05).dsin() * 0.5 + 0.5) * 0.25 + 0.75;
                         let v = (255.0 * t) as u8;
                         out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, v, 255]);
                     }

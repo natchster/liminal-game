@@ -30,7 +30,7 @@ pub(crate) fn place_sprinkler_heads(g: &mut Game, _dist: &[i32]) {
     for i in 0..4 {
         let a = (i as f64 / 4.0) * PI * 2.0;
         let arm = mesh(pg("SprinklerHeads__arm", box_geo!(0.014, 0.002, 0.004)), &brass_mat);
-        arm.position().set(a.cos() * 0.010, spr_y - 0.035, a.sin() * 0.010);
+        arm.position().set(a.dcos() * 0.010, spr_y - 0.035, a.dsin() * 0.010);
         arm.rotation().y = -a;
         spr.add(&arm);
     }

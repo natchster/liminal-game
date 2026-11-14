@@ -40,8 +40,8 @@ pub(crate) fn place_leaning_frames(g: &mut Game, _dist: &[i32]) {
     // bottom-back edge: that edge rests on the floor and the top-back edge
     // (half height fh/2, half depth 0.015) touches the wall.
     frame.set_rotation_order(EulerOrder::YXZ);
-    let lean_y = (fh / 2.0) * lean_angle.cos() + 0.015 * lean_angle.sin();
-    let lean_off = (fh / 2.0) * lean_angle.sin() + 0.015 * lean_angle.cos();
+    let lean_y = (fh / 2.0) * lean_angle.dcos() + 0.015 * lean_angle.dsin();
+    let lean_off = (fh / 2.0) * lean_angle.dsin() + 0.015 * lean_angle.dcos();
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - lean_off);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - lean_off);
     if c.dx.abs() == 1 {

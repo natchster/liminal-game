@@ -25,11 +25,11 @@ pub(crate) fn place_ceiling_cables(g: &mut Game, _dist: &[i32]) {
     let tilt = (rnd() - 0.5) * 0.2;
     shaft.rotation().z = tilt;
     // tilted about its centre: top end 3 mm into the ceiling
-    shaft.position().y = WALL_H + 0.003 - (cable_len / 2.0) * tilt.cos();
+    shaft.position().y = WALL_H + 0.003 - (cable_len / 2.0) * tilt.dcos();
     cable.add(&shaft);
     // Plug at bottom (small dark box), the cable entering 4 mm into its top.
     let plug = mesh(pg("CeilingCables__plug", box_geo!(0.035, 0.045, 0.028)), &plug_mat);
-    plug.position().set(tilt.sin() * cable_len / 2.0, WALL_H + 0.003 - cable_len * tilt.cos() - 0.0185, 0);
+    plug.position().set(tilt.dsin() * cable_len / 2.0, WALL_H + 0.003 - cable_len * tilt.dcos() - 0.0185, 0);
     cable.add(&plug);
     cable.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     cable.rotation().y = rnd() * PI * 2.0;
@@ -45,7 +45,7 @@ pub(crate) fn place_ceiling_cables(g: &mut Game, _dist: &[i32]) {
         let base_rot_z = cable.rot().z;
         let c2 = cable.clone();
         g.animate(move |_g, _dt, t| {
-            c2.rotation().z = base_rot_z + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.03;
+            c2.rotation().z = base_rot_z + (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.03;
         });
     }
 }

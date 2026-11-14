@@ -107,7 +107,7 @@ fn paper_tex(look: usize, salt: u32) -> Tex {
             ctx.set_stroke_style(format!("rgba(80,72,58,{:.2})", 0.08 + r.next() * 0.1));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         for _ in 0..20 {

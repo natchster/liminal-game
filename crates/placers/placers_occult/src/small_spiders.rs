@@ -42,12 +42,12 @@ pub(crate) fn place_small_spiders(g: &mut Game, _dist: &[i32]) {
         let side = if i < 4 { -1.0 } else { 1.0 };
         let leg_i = i % 4;
         let a = -PI / 3.0 + (leg_i as f64 / 3.0) * (PI * 2.0 / 3.0);
-        let h = v3(-a.sin(), 0, side * a.cos());
+        let h = v3(-a.dsin(), 0, side * a.dcos());
         let hip = v3(0.010 + h.x * 0.008, 0.006, h.z * 0.008);
         let mut knee = hip;
-        knee.add_scaled_vector(&h, 0.022 * 0.35f64.cos()).set_y(0.006 + 0.022 * 0.35f64.sin());
+        knee.add_scaled_vector(&h, 0.022 * 0.35f64.dcos()).set_y(0.006 + 0.022 * 0.35f64.dsin());
         let mut foot = knee;
-        foot.add_scaled_vector(&h, (0.014f64.powi(2) - (knee.y - 0.001).powi(2)).sqrt()).set_y(0.001);
+        foot.add_scaled_vector(&h, (0.014f64.dpowi(2) - (knee.y - 0.001).dpowi(2)).sqrt()).set_y(0.001);
         // First segment (out from body).
         let seg1 = mesh(pg("SmallSpiders__leg", cyl_geo!(0.001, 0.001, 0.022, 3)), &spider_mat);
         leg_span(&seg1, hip, knee);

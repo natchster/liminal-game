@@ -80,7 +80,7 @@ pub(crate) fn place_wide_bookshelves(g: &mut Game, _dist: &[i32]) {
                 let spine2 = spine_line_ref.clone();
                 g.animate(move |_g, _dt, t| {
                     // Sinusoidal drift ±0.015 rad, 0.4 Hz — very slow settling.
-                    let off = (t * 0.8 + tilt_phase).sin() * 0.015;
+                    let off = (t * 0.8 + tilt_phase).dsin() * 0.015;
                     book2.rotation().z = base_z_rot + off;
                     if let Some(s) = &spine2 {
                         s.rotation().z = base_z_rot + off;

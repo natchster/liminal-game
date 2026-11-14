@@ -55,7 +55,7 @@ pub(crate) fn place_dropped_shoes(g: &mut Game, _dist: &[i32]) {
     } else if variant == "pair" {
         // Two shoes side-by-side, both facing same direction.
         let rot = rnd() * PI * 2.0;
-        let (cx, cz) = ((rot + PI / 2.0).cos(), (rot + PI / 2.0).sin());
+        let (cx, cz) = ((rot + PI / 2.0).dcos(), (rot + PI / 2.0).dsin());
         let cx2 = base_x + (rnd() - 0.5) * 1.6;
         let cz2 = base_z + (rnd() - 0.5) * 1.6;
         for s in 0..2 {
@@ -69,7 +69,7 @@ pub(crate) fn place_dropped_shoes(g: &mut Game, _dist: &[i32]) {
         // Trail: 2-3 shoes in line pointing same direction — "ran".
         let trail_count = 2 + (rnd() * 2.0).floor() as i32;
         let dir = rnd() * PI * 2.0;
-        let (dx, dz) = (dir.cos(), dir.sin());
+        let (dx, dz) = (dir.dcos(), dir.dsin());
         let spacing = 0.55 + rnd() * 0.25;
         for s in 0..trail_count {
             let shoe = make_shoe();

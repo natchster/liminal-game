@@ -49,7 +49,7 @@ pub(crate) fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
     let cap_tilt = (rnd() - 0.5) * 0.3;
     let cap_g = group();
     cap_g.rotation().z = PI / 2.0 + cap_tilt;
-    cap_g.position().set(0.048, (bottle_r + 0.001) * cap_tilt.cos() + 0.005 * cap_tilt.sin().abs(), 0.02);
+    cap_g.position().set(0.048, (bottle_r + 0.001) * cap_tilt.dcos() + 0.005 * cap_tilt.dsin().abs(), 0.02);
     cap_g.add(&cap);
     pb.add(&cap_g);
     // Cap top (child-proof push tabs).
@@ -58,7 +58,7 @@ pub(crate) fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
         let tab = mesh(pg("PillBottles__tab", box_geo!(0.002, 0.008, 0.004)), &cap_mat);
         // Radial ribs on the cap's skirt, 45 deg off so no rib is under the tipped cap.
         let t_ang = ang + PI / 4.0;
-        tab.position().set(t_ang.cos() * (bottle_r + 0.0015), 0, t_ang.sin() * (bottle_r + 0.0015));
+        tab.position().set(t_ang.dcos() * (bottle_r + 0.0015), 0, t_ang.dsin() * (bottle_r + 0.0015));
         tab.rotation().y = -t_ang;
         // The old per-tab tilt draw is kept (unused) so the later random draws stay the same.
         let _ = rnd();
@@ -97,7 +97,7 @@ pub(crate) fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
         // Random scatter position.
         let ang = rnd() * PI * 2.0;
         let rr = 0.02 + rnd() * 0.09;
-        pill.position().set(ang.cos() * rr, 0.002, ang.sin() * rr);
+        pill.position().set(ang.dcos() * rr, 0.002, ang.dsin() * rr);
         pill.rotation().y = rnd() * PI * 2.0;
         pill.rotation().z = (rnd() - 0.5) * 0.5;
         pb.add(&pill);
@@ -108,8 +108,8 @@ pub(crate) fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
             let base_rot_y = pill.rot().y;
             let pill2 = pill.clone();
             g.animate(move |_g, _dt, t| {
-                pill2.rotation().z = base_rot_z + (t * 1.6 + wobble_phase).sin() * 0.03;
-                pill2.rotation().y = base_rot_y + (t * 1.2 + wobble_phase * 1.3).sin() * 0.02;
+                pill2.rotation().z = base_rot_z + (t * 1.6 + wobble_phase).dsin() * 0.03;
+                pill2.rotation().y = base_rot_y + (t * 1.2 + wobble_phase * 1.3).dsin() * 0.02;
             });
         }
     }

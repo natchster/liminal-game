@@ -37,7 +37,7 @@ pub(crate) fn place_cookie_tins(g: &mut Game, _dist: &[i32]) {
         let lid2 = lid.clone();
         g.animate(move |_g, _dt, t| {
             // Multi-freq combined sine, very small amplitude (~0.6 mm).
-            lid2.position().y = lid_base_y + (t * 2.7 + jitter_phase).sin() * 0.0006 + (t * 4.3 + jitter_phase2).sin() * 0.0004;
+            lid2.position().y = lid_base_y + (t * 2.7 + jitter_phase).dsin() * 0.0006 + (t * 4.3 + jitter_phase2).dsin() * 0.0004;
         });
     }
     tin.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
@@ -63,7 +63,7 @@ game::lazy_static_tex!(
         for i in 0..8 {
             let a = (i as f64 / 8.0) * PI * 2.0;
             ctx.begin_path();
-            ctx.arc(cx + a.cos() * w * 0.36, cy + a.sin() * w * 0.36, 6, 0, PI * 2.0);
+            ctx.arc(cx + a.dcos() * w * 0.36, cy + a.dsin() * w * 0.36, 6, 0, PI * 2.0);
             ctx.fill();
         }
         ctx.set_fill_style("#804020");
@@ -75,8 +75,8 @@ game::lazy_static_tex!(
         for i in 0..10 {
             let a = (i as f64 / 10.0) * PI * 2.0 - PI / 2.0;
             let r = if i % 2 == 0 { 14.0 } else { 6.0 };
-            let px = cx + a.cos() * r;
-            let py = cy + a.sin() * r;
+            let px = cx + a.dcos() * r;
+            let py = cy + a.dsin() * r;
             if i == 0 {
                 ctx.move_to(px, py);
             } else {

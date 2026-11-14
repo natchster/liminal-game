@@ -94,7 +94,7 @@ fn limb_axis(x: f64, z: f64, a: f64, arm: bool) -> [(f64, f64); 4] {
     } else {
         (0.056, [(0.004, 0.0), (0.054, 0.008), (0.094, -0.010), (0.112, 0.026)])
     };
-    let (s, c) = a.sin_cos();
+    let (s, c) = a.dsin_cos();
     pts.map(|(px, pz)| {
         let px = px - half;
         (x + px * c + pz * s, z - px * s + pz * c)
@@ -108,7 +108,7 @@ fn closest_between(p: &[(f64, f64); 4], q: &[(f64, f64); 4]) -> ((f64, f64), (f6
         let t = (((c.0 - a.0) * ex + (c.1 - a.1) * ez) / (ex * ex + ez * ez).max(1e-12)).clamp(0.0, 1.0);
         (a.0 + ex * t, a.1 + ez * t)
     };
-    let d2 = |a: (f64, f64), b: (f64, f64)| (a.0 - b.0).powi(2) + (a.1 - b.1).powi(2);
+    let d2 = |a: (f64, f64), b: (f64, f64)| (a.0 - b.0).dpowi(2) + (a.1 - b.1).dpowi(2);
     // two segments that cross meet at the crossing
     let cross = |a: (f64, f64), b: (f64, f64), c: (f64, f64), d: (f64, f64)| {
         let den = (b.0 - a.0) * (d.1 - c.1) - (b.1 - a.1) * (d.0 - c.0);

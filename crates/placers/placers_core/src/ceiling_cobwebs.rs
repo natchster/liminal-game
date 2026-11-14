@@ -71,7 +71,7 @@ pub(crate) fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
             let base_rot_y = web.rot().y;
             let w2 = web.clone();
             g.animate(move |_g, _dt, t| {
-                w2.rotation().y = base_rot_y + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.012;
+                w2.rotation().y = base_rot_y + (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.012;
             });
         }
         for (sib_size, sib_off, drop) in sibs {
@@ -106,12 +106,12 @@ fn web_geo(len: f64, down: f64, out: f64, gap: f64, low: f64) -> Geo {
     for j in 0..=nv {
         for i in 0..=nu {
             let (u, v) = (i as f64 / nu as f64, j as f64 / nv as f64);
-            let env = 0.4 + 0.6 * (PI * u).sin().powf(0.45);
+            let env = 0.4 + 0.6 * (PI * u).dsin().dpowf(0.45);
             let (dn, ot) = (down * env, out * env);
             // straight from the wall (2 mm off it) to the ceiling (2 mm under it)
             let (wy, wz) = (-dn, -gap + 0.002);
             let (cy, cz) = (gap - 0.002, ot);
-            let sag = 0.2 * dn.hypot(ot) * 4.0 * v * (1.0 - v);
+            let sag = 0.2 * dn.dhypot(ot) * 4.0 * v * (1.0 - v);
             let y = wy + (cy - wy) * v - sag * std::f64::consts::FRAC_1_SQRT_2;
             let z = wz + (cz - wz) * v + sag * std::f64::consts::FRAC_1_SQRT_2;
             pos.push([u * len, y, z]);
@@ -146,7 +146,7 @@ fn web_geo(len: f64, down: f64, out: f64, gap: f64, low: f64) -> Geo {
 /// texture's width (px).
 fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[f64], insect: Option<(f64, f64, f64)>, tw: f64) -> Obj {
     let geo = web_geo(len, down, out, 0.02, low);
-    let th = (tw * down.hypot(out) * 1.2 / len).round().clamp(64.0, 256.0);
+    let th = (tw * down.dhypot(out) * 1.2 / len).round().clamp(64.0, 256.0);
     let anchors = anchors.to_vec();
     let tex = mark_tex(tw, th, col, move |ctx, cw, ch| {
         let seed = (rnd() * 4.0e9) as u32;
@@ -161,8 +161,8 @@ fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[
         let (bx, by) = (cw * (0.42 + 0.16 * rnd()), ch * (0.35 + 0.3 * rnd()));
         let (brx, bry) = (cw * (0.44 + 0.12 * rnd()), ch * (0.4 + 0.14 * rnd()));
         let in_blob = |k: f64| {
-            let (a, r) = (rnd() * PI * 2.0, rnd().powf(0.6) * k);
-            ((bx + a.cos() * r * brx).clamp(0.0, cw), (by + a.sin() * r * bry).clamp(0.0, ch))
+            let (a, r) = (rnd() * PI * 2.0, rnd().dpowf(0.6) * k);
+            ((bx + a.dcos() * r * brx).clamp(0.0, cw), (by + a.dsin() * r * bry).clamp(0.0, ch))
         };
         // 1. the veil: silk too fine to see thread by thread, thickest in the
         // tangle, thin out to the ends, wispy along the way it was spun
@@ -170,21 +170,21 @@ fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[
         let (wa, wb) = (rnd() * PI, rnd() * PI);
         paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) / cw, (j as f64 + 0.5) / ch);
-            let q = ((x * cw - bx) / brx).hypot((y * ch - by) / bry);
-            let dens = (-q * q * 0.8).exp();
+            let q = ((x * cw - bx) / brx).dhypot((y * ch - by) / bry);
+            let dens = (-q * q * 0.8).dexp();
             // its edges ragged: torn short of the wall (the bottom) and of its ends
             let rag = fbm(seed ^ 0x99, x * 7.0, y * 2.0, 3) - 0.5;
             let ends = sstep(0.0, 0.16, x.min(1.0 - x) + rag * 0.12) * sstep(0.0, 0.3, 1.0 - y + rag * 0.45);
             // wisps: noise stretched along two ways it was spun
-            let (u1, u2) = (x * wa.cos() + y * wa.sin(), -x * wa.sin() + y * wa.cos());
-            let (v1, v2) = (x * wb.cos() + y * wb.sin(), -x * wb.sin() + y * wb.cos());
+            let (u1, u2) = (x * wa.dcos() + y * wa.dsin(), -x * wa.dsin() + y * wa.dcos());
+            let (v1, v2) = (x * wb.dcos() + y * wb.dsin(), -x * wb.dsin() + y * wb.dcos());
             let wisp = 0.5 * vn(seed ^ 0x5e, u1 * 3.0, u2 * 50.0) + 0.5 * vn(seed ^ 0x6f, v1 * 3.0, v2 * 50.0);
             [veil[0], veil[1], veil[2], ((0.06 + 0.62 * dens) * ends * (0.35 + 1.1 * wisp * wisp)).min(0.72)]
         });
         ctx.set_line_cap("round");
         let thread = |ctx: &mut Canvas, a: (f64, f64), b: (f64, f64), sag: f64, style: &str, w: f64| {
             let (mx, my) = ((a.0 + b.0) / 2.0, (a.1 + b.1) / 2.0);
-            let l = (b.0 - a.0).hypot(b.1 - a.1).max(1e-6);
+            let l = (b.0 - a.0).dhypot(b.1 - a.1).max(1e-6);
             let (nx, ny) = (-(b.1 - a.1) / l, (b.0 - a.0) / l);
             ctx.set_stroke_style(style);
             ctx.set_line_width(w);
@@ -202,7 +202,7 @@ fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[
             let c = in_blob(1.1);
             let a = if k % 2 == 0 { wa } else { wb } + (rnd() - 0.5) * 0.9;
             let l = span * (0.15 + 0.5 * rnd());
-            let (dx, dy) = (a.cos() * l / 2.0, a.sin() * l / 2.0);
+            let (dx, dy) = (a.dcos() * l / 2.0, a.dsin() * l / 2.0);
             thread(
                 ctx,
                 (c.0 - dx, c.1 - dy),
@@ -254,8 +254,8 @@ fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[
         for j in 0..ih {
             for i in 0..iw {
                 let (x, y) = ((i as f64 + 0.5) / cw, (j as f64 + 0.5) / ch);
-                let q = ((x * cw - bx) / brx).hypot((y * ch - by) / bry);
-                let keep = sstep(0.3, 0.46, fbm(seed ^ 0x7a, x * 4.0, y * 2.5, 4) + 0.18 * (-q * q).exp());
+                let q = ((x * cw - bx) / brx).dhypot((y * ch - by) / bry);
+                let keep = sstep(0.3, 0.46, fbm(seed ^ 0x7a, x * 4.0, y * 2.5, 4) + 0.18 * (-q * q).dexp());
                 let k = (j * iw + i) * 4 + 3;
                 img.data[k] = (f64::from(img.data[k]) * keep).round() as u8;
             }

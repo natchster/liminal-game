@@ -12,6 +12,7 @@
 //! (a core prop by its kind) and its mesh. Pure: the scene in, findings out.
 use crate::base::game::Game;
 use crate::debug::sight::Eye;
+use engine::dmath::DMath;
 use engine::material::MatKind;
 use engine::math::{Box3, Mat4, Vec3};
 use engine::scene::Obj;
@@ -145,7 +146,7 @@ pub fn parts(g: &Game) -> Vec<Part> {
                     let (mut a, mut b) = (Vec3::new(0.0, 0.0, 0.0), Vec3::new(x, y, z));
                     a.apply_matrix4(&world);
                     b.apply_matrix4(&world);
-                    ((b.x - a.x).powi(2) + (b.y - a.y).powi(2) + (b.z - a.z).powi(2)).sqrt()
+                    ((b.x - a.x).dpowi(2) + (b.y - a.y).dpowi(2) + (b.z - a.z).dpowi(2)).sqrt()
                 };
                 let scale = [axis(1.0, 0.0, 0.0), axis(0.0, 1.0, 0.0), axis(0.0, 0.0, 1.0)];
                 out.push(Part {
@@ -221,11 +222,11 @@ fn inside(p: &Part, w: Vec3) -> Option<f64> {
 
 /// The eye and the four corners of its near plane's face (padded), world
 pub fn near_face(eye: &Eye) -> [Vec3; 5] {
-    let t = (eye.fov / 2.0).tan();
+    let t = (eye.fov / 2.0).dtan();
     let a = eye.w as f64 / eye.h as f64;
     let (hh, hw) = (NEAR * t * NEAR_PAD, NEAR * t * a * NEAR_PAD);
-    let (sp, cp) = eye.pitch.sin_cos();
-    let (sy, cy) = eye.yaw.sin_cos();
+    let (sp, cp) = eye.pitch.dsin_cos();
+    let (sy, cy) = eye.yaw.dsin_cos();
     // the camera's axes in the world (YXZ: yaw, then pitch)
     let fwd = Vec3::new(-sy * cp, sp, -cy * cp);
     let right = Vec3::new(cy, 0.0, -sy);
@@ -278,7 +279,7 @@ pub fn clip(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
         // closed shape (an odd number of faces crossed on a ray out)
         let tris = world_tris(p);
         let mid = Vec3::new((face[1].x + face[4].x) / 2.0, (face[1].y + face[4].y) / 2.0, (face[1].z + face[4].z) / 2.0);
-        let reach = ((face[1].x - mid.x).powi(2) + (face[1].y - mid.y).powi(2) + (face[1].z - mid.z).powi(2)).sqrt();
+        let reach = ((face[1].x - mid.x).dpowi(2) + (face[1].y - mid.y).dpowi(2) + (face[1].z - mid.z).dpowi(2)).sqrt();
         let near = tris.iter().map(|t| tri_dist(mid, t)).fold(f64::MAX, f64::min);
         if near < reach {
             out.push(found("clip", reach - near));
@@ -300,10 +301,10 @@ pub fn screen_share(eye: &Eye, b: &Box3) -> Option<f64> {
 /// Where a box is in the frame: (left, bottom, right, top) from -1 to 1,
 /// clipped to the frame (None when it is not in view)
 pub fn screen_rect(eye: &Eye, b: &Box3) -> Option<(f64, f64, f64, f64)> {
-    let t = (eye.fov / 2.0).tan();
+    let t = (eye.fov / 2.0).dtan();
     let a = eye.w as f64 / eye.h as f64;
-    let (sp, cp) = eye.pitch.sin_cos();
-    let (sy, cy) = eye.yaw.sin_cos();
+    let (sp, cp) = eye.pitch.dsin_cos();
+    let (sy, cy) = eye.yaw.dsin_cos();
     let fwd = (-sy * cp, sp, -cy * cp);
     let right = (cy, 0.0, -sy);
     let up = (sy * sp, cp, cy * sp);
@@ -810,7 +811,7 @@ pub const PLAIN_VIEWS: usize = 2;
 
 /// The squared distance between two points
 pub fn d2(a: (f64, f64, f64), b: (f64, f64, f64)) -> f64 {
-    (a.0 - b.0).powi(2) + (a.1 - b.1).powi(2) + (a.2 - b.2).powi(2)
+    (a.0 - b.0).dpowi(2) + (a.1 - b.1).dpowi(2) + (a.2 - b.2).dpowi(2)
 }
 
 /// Whether a world point is in the eye's frame and within 8 m
@@ -918,7 +919,7 @@ mod tests {
         let eye = Eye { x: 1.0, y: 1.6, z: -2.0, yaw: 0.9, pitch: -0.4, fov: 0.8, w: 640, h: 400 };
         let f = near_face(&eye);
         assert_eq!((f[0].x, f[0].y, f[0].z), (1.0, 1.6, -2.0));
-        let fwd = (-(0.9f64).sin() * (0.4f64).cos(), -(0.4f64).sin(), -(0.9f64).cos() * (0.4f64).cos());
+        let fwd = (-(0.9f64).dsin() * (0.4f64).dcos(), -(0.4f64).dsin(), -(0.9f64).dcos() * (0.4f64).dcos());
         for c in &f[1..] {
             let d = (c.x - 1.0, c.y - 1.6, c.z + 2.0);
             // every corner NEAR ahead along the view, and a few centimetres off it
@@ -964,7 +965,7 @@ mod tests {
         // seen of it runs to the near plane, wider than its ahead corners say
         let eye = Eye { x: 0.0, y: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0, fov: 1.0, w: 640, h: 400 };
         let post = Box3::new(Vec3::new(-0.02, -0.02, -0.06), Vec3::new(0.02, 0.02, 1.0));
-        let (t, a) = ((0.5f64).tan(), 1.6);
+        let (t, a) = ((0.5f64).dtan(), 1.6);
         let corners_only = (0.04 / (0.06 * t * a)) * (0.04 / (0.06 * t)) / 4.0;
         let to_near = (0.04 / (NEAR * t * a)) * (0.04 / (NEAR * t)) / 4.0;
         let s = screen_share(&eye, &post).unwrap();

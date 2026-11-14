@@ -98,7 +98,7 @@ pub(crate) fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
         let (glow, flame) = (glow.clone(), flame.clone());
         g.animate(move |_g, _dt, t| {
             let p = t * flicker_rate + flicker_phase;
-            let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3;
+            let wobble = p.dsin() * 0.5 + (p * 1.7).dsin() * 0.3;
             glow.set_intensity(0.7 + wobble * 0.15);
             flame.scale().y = 1.0 + wobble * 0.10;
         });
@@ -109,7 +109,7 @@ pub(crate) fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
     if let Some((sway_phase, sway_period)) = sway {
         let pivot2 = pivot.clone();
         g.animate(move |_g, _dt, t| {
-            pivot2.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.03;
+            pivot2.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.03;
         });
     }
     g.world.add(&lantern);

@@ -76,7 +76,7 @@ pub(crate) fn place_briefcases(g: &mut Game, _dist: &[i32]) {
             scrap.rotation().z = rnd() * PI * 2.0;
             let sc_ang = rnd() * PI * 2.0;
             let sc_rad = 0.15 + rnd() * 0.25;
-            scrap.position().set(bp.x + sc_ang.cos() * sc_rad, 0.003, bp.z + sc_ang.sin() * sc_rad);
+            scrap.position().set(bp.x + sc_ang.dcos() * sc_rad, 0.003, bp.z + sc_ang.dsin() * sc_rad);
             g.world.add(&scrap);
         }
     }

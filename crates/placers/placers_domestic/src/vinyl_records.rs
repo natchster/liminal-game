@@ -51,7 +51,7 @@ pub(crate) fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
         let s_ang = rnd() * PI * 2.0;
         let s_rad = 0.15 + rnd() * 0.15;
         let rp = record.pos();
-        sleeve.position().set(rp.x + s_ang.cos() * s_rad, 0.0025, rp.z + s_ang.sin() * s_rad);
+        sleeve.position().set(rp.x + s_ang.dcos() * s_rad, 0.0025, rp.z + s_ang.dsin() * s_rad);
         sleeve.rotation().y = rnd() * PI * 2.0;
         sleeve.rotation().x = (rnd() - 0.5) * 0.08;
         g.world.add(&sleeve);

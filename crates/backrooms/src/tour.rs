@@ -31,6 +31,7 @@
 //! its eye, each cut differently (they fight for the same depth).
 use crate::sheet::{self, Tile};
 use crate::{Options, draw_with, make_game};
+use engine::dmath::DMath;
 use engine::math::{Box3, Vec3};
 use engine::render::Renderer;
 use game::Game;
@@ -448,7 +449,7 @@ fn render_view(
 
 /// A known fault at the tour's first stand (`--tour-plant`)
 fn plant(g: &mut Game, what: &str, v: &View) {
-    let (fx, fz) = (-v.yaw.sin(), -v.yaw.cos());
+    let (fx, fz) = (-v.yaw.dsin(), -v.yaw.dcos());
     match what {
         // the smallest thing whose bounds hold a point just behind the face
         // the stand looks at, hidden: a hole where it was
@@ -515,8 +516,8 @@ fn plant(g: &mut Game, what: &str, v: &View) {
         // stand), in the left look: no picture, no wear
         "flat" => {
             let (lx, lz) = (
-                -(v.yaw + std::f64::consts::FRAC_PI_2).sin() * 0.9 - fx * 0.05,
-                -(v.yaw + std::f64::consts::FRAC_PI_2).cos() * 0.9 - fz * 0.05,
+                -(v.yaw + std::f64::consts::FRAC_PI_2).dsin() * 0.9 - fx * 0.05,
+                -(v.yaw + std::f64::consts::FRAC_PI_2).dcos() * 0.9 - fz * 0.05,
             );
             let m = engine::material::Mat::lambert();
             m.color(0x3060c0u32);

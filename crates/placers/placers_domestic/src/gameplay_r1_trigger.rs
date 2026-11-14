@@ -72,7 +72,7 @@ pub(crate) fn place_gameplay_r1_trigger(g: &mut Game, dist: &[i32]) {
     let label = mesh(pg("GameplayR1Trigger__label", box_geo!(0.080, 0.014, 0.003)), lambert!({ color: 0xf0f0d0 }));
     label.position().set(0, mount_y - 0.048, 0.007);
     sw_group.add(&label);
-    sw_group.rotation().y = (-(ndx as f64)).atan2(-(ndz as f64));
+    sw_group.rotation().y = (-(ndx as f64)).datan2(-(ndz as f64));
     let sx = g.wx(swi.0) + ndx as f64 * (CELL * 0.5 - 0.006);
     let sz = g.wz(swi.1) + ndz as f64 * (CELL * 0.5 - 0.006);
     sw_group.position().set(sx, 0, sz);

@@ -53,7 +53,7 @@ fn wall_adj_spot_rec(g: &Game, x: i32, z: i32) -> Option<WallSpot> {
     Some(WallSpot {
         pos: Vec3::new(g.wx(x) + dxf * (CELL / 2.0 - 0.06), 0.0, g.wz(z) + dzf * (CELL / 2.0 - 0.06)),
         normal: Vec3::new(-dxf, 0.0, -dzf),
-        yaw: (-dxf).atan2(-dzf),
+        yaw: (-dxf).datan2(-dzf),
     })
 }
 const CELL: f64 = 4.0;
@@ -794,7 +794,7 @@ fn run_case(case: &Json, builders: Builders) -> Option<serde_json::Map<String, V
             t += dt;
             g.now_ms += dt * 1000.0;
             let k = f as f64 / frames as f64;
-            g.player.pos = Vec3::new(x1 + (k * 6.283).sin() * w * 1.2, 0.0, z1 + (1.0 - (k * 6.283).cos()) * hh * 0.9);
+            g.player.pos = Vec3::new(x1 + (k * 6.283).dsin() * w * 1.2, 0.0, z1 + (1.0 - (k * 6.283).dcos()) * hh * 0.9);
             if !stick.is_null() && !stick_pos.is_null() && f >= stick.at(0).i() && f < stick.at(1).i() {
                 g.player.pos = Vec3::new(stick_pos.at(0).f() + 0.3, 0.0, stick_pos.at(2).f() + 0.2);
             }

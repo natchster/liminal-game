@@ -8,6 +8,7 @@
 //!   cargo test --release -p backrooms --test building_floors -- --nocapture   # the audit's table
 mod common;
 
+use engine::dmath::DMath;
 use game::Game;
 use game::level::building::{Navigation, PLAT, navigation};
 
@@ -326,7 +327,7 @@ fn lamps_and_rooms(seed: u32, level: i32) -> (usize, Vec<String>) {
     if p.style != Style::Well {
         for (i, a) in g.panels.iter().enumerate() {
             for b in &g.panels[i + 1..] {
-                let d = ((a.wx - b.wx).powi(2) + (a.wz - b.wz).powi(2) + (a.y - b.y).powi(2)).sqrt();
+                let d = ((a.wx - b.wx).dpowi(2) + (a.wz - b.wz).dpowi(2) + (a.y - b.y).dpowi(2)).sqrt();
                 if d < 0.6 {
                     wrong.push(format!("seed {seed} L{level}: two lamps {d:.2} m apart at ({:.2}, {:.2}, {:.2})", a.wx, a.y, a.wz));
                 }
@@ -405,7 +406,7 @@ fn the_hum_sits_at_a_lamp_of_your_storey() {
         for level in [1, 2, 3, 5] {
             let g = floor(seed, level);
             let lit: Vec<usize> = (0..g.panels.len()).filter(|&i| g.panels[i].bright >= 0.3).collect();
-            let plan = |i: usize, x: f64, z: f64| (g.panels[i].wx - x).hypot(g.panels[i].wz - z);
+            let plan = |i: usize, x: f64, z: f64| (g.panels[i].wx - x).dhypot(g.panels[i].wz - z);
             for tz in 0..g.h {
                 for tx in 0..g.w {
                     let i = (tz * g.w + tx) as usize;

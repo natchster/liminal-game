@@ -351,7 +351,7 @@ impl Game {
         self.cell_doors.iter().filter(|d| d.target < 0.5).any(|d| {
             let [x0, z0, x1, z1] = d.span;
             let (cx, cz) = (px.clamp(x0, x1), pz.clamp(z0, z1));
-            (px - cx).powi(2) + (pz - cz).powi(2) < r * r
+            (px - cx).dpowi(2) + (pz - cz).dpowi(2) < r * r
         })
     }
 
@@ -392,7 +392,7 @@ impl Game {
             }
             let jolt = if shaking {
                 d.shake += dt;
-                d.strain * ((d.shake * 31.0).sin() * 0.6 + (d.shake * 53.0).sin() * 0.4)
+                d.strain * ((d.shake * 31.0).dsin() * 0.6 + (d.shake * 53.0).dsin() * 0.4)
             } else {
                 d.shake = 0.0;
                 0.0

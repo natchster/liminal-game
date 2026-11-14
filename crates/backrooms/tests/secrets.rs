@@ -2,6 +2,7 @@
 //! taking them does.
 //!
 //!   cargo test --release -p backrooms --test secrets -- --nocapture
+use engine::dmath::DMath;
 use game::Game;
 use game::secrets::{RUN_FLOORS, SPECIAL, Thing, run_things};
 
@@ -97,7 +98,7 @@ fn secrets_lie_off_the_way() {
             }
             if let Some((x, z, _, n)) = p.sign {
                 let (cx, cz) = (g.wx(t.0), g.wz(t.1));
-                assert!((x - cx).hypot(z - cz) < 2.5 * game::prelude::CELL, "seed {seed} L{l}: a sign far from its place");
+                assert!((x - cx).dhypot(z - cz) < 2.5 * game::prelude::CELL, "seed {seed} L{l}: a sign far from its place");
                 assert!(g.los(cx, cz, x + n.0 * 0.3, z + n.1 * 0.3), "seed {seed} L{l}: a sign its place cannot see");
             }
             *kinds.entry(p.kind.name()).or_insert(0) += 1;

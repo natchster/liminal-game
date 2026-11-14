@@ -60,10 +60,10 @@ pub fn vertical_fov(fov: f64, aspect: f64) -> f64 {
     if aspect <= WIDE {
         return fov;
     }
-    let t = (fov.to_radians() / 2.0).tan();
-    let cap = (H_FOV_MAX.to_radians() / 2.0).tan().max(t * WIDE);
+    let t = (fov.to_radians() / 2.0).dtan();
+    let cap = (H_FOV_MAX.to_radians() / 2.0).dtan().max(t * WIDE);
     let h = (t * aspect).min(cap);
-    2.0 * (h / aspect).atan().to_degrees()
+    2.0 * (h / aspect).datan().to_degrees()
 }
 
 impl Default for Settings {

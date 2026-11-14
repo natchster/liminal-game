@@ -120,10 +120,10 @@ fn glass_tex(salt: u32, tide: f64) -> Tex {
         fill(ctx, w, h, |u, v| {
             let d = fbm(seed, u * 6.0, v * 9.0, 3);
             let mut g = 0.12 + 0.24 * d + 0.25 * sstep(0.75, 1.0, v);
-            g += 0.5 * line(v - tide - 0.01 * (u * 18.0).sin(), 0.018);
+            g += 0.5 * line(v - tide - 0.01 * (u * 18.0).dsin(), 0.018);
             let (fx, fy) = (u - 0.62, v - 0.45);
             let fr = (fx * fx / 0.012 + fy * fy / 0.02).sqrt();
-            g += 0.25 * sstep(1.0, 0.6, fr) * (0.5 + 0.5 * (fr * 60.0 + fy * 20.0).sin());
+            g += 0.25 * sstep(1.0, 0.6, fr) * (0.5 + 0.5 * (fr * 60.0 + fy * 20.0).dsin());
             let g = g.clamp(0.0, 1.0);
             [g, g, g, 1.0]
         });

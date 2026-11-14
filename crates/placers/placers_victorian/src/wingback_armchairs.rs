@@ -85,7 +85,7 @@ pub(crate) fn place_wingback_armchairs(g: &mut Game, _dist: &[i32]) {
         let sway_freq = 0.35 + rnd() * 0.25;
         let sway_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
-            hang_group.rotation().z = (t * sway_freq + sway_phase).sin() * 0.028;
+            hang_group.rotation().z = (t * sway_freq + sway_phase).dsin() * 0.028;
         });
     }
     // 40% chance: small pillow on seat.

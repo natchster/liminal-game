@@ -45,7 +45,7 @@ pub(crate) fn place_laundry_baskets(g: &mut Game, _dist: &[i32]) {
     for i in 0..8 {
         let ang = (i as f64 / 8.0) * PI * 2.0;
         let slat = mesh(box_geo!(0.006, b_h * 0.85, 0.001), &slat_mat);
-        slat.position().set(ang.cos() * b_r * 0.95, b_h / 2.0 + 0.002, ang.sin() * b_r * 0.95);
+        slat.position().set(ang.dcos() * b_r * 0.95, b_h / 2.0 + 0.002, ang.dsin() * b_r * 0.95);
         slat.rotation().y = ang + PI / 2.0;
         lb.add(&slat);
     }

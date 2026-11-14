@@ -59,18 +59,18 @@ fn bh_vary(x: f64, z: f64) -> u32 {
 /// lobe's end; and the ring (radius 100 to 135) where it crosses the inner
 /// circles, 10 short of their edges
 fn bh_trefoil(x: f64, y: f64) -> bool {
-    let r = x.hypot(y);
+    let r = x.dhypot(y);
     let mut outer = false;
     let mut inner = false;
     let mut ring = false;
     let mut cut = r < 30.0;
     for k in 0..3 {
         let a = PI / 2.0 + k as f64 * PI * 2.0 / 3.0;
-        let (ux, uy) = (a.cos(), a.sin());
-        if (x - ux * 110.0).hypot(y - uy * 110.0) < 150.0 {
+        let (ux, uy) = (a.dcos(), a.dsin());
+        if (x - ux * 110.0).dhypot(y - uy * 110.0) < 150.0 {
             outer = true;
         }
-        let di = (x - ux * 150.0).hypot(y - uy * 150.0);
+        let di = (x - ux * 150.0).dhypot(y - uy * 150.0);
         if di < 105.0 {
             inner = true;
         }
@@ -174,7 +174,7 @@ fn biohazard_sign_tex(vary: u32) -> Tex {
             ctx.fill_rect(0, 0, w, h);
             // grime: a film, heavier low down and round the edges, in patches
             for _ in 0..18 {
-                let (x, y, r) = (rnd() * w, h * rnd().powf(0.6), 40.0 + rnd() * 120.0);
+                let (x, y, r) = (rnd() * w, h * rnd().dpowf(0.6), 40.0 + rnd() * 120.0);
                 let g = ctx.create_radial_gradient(x, y, 0, x, y, r);
                 g.add_color_stop(0, &format!("rgba(70,60,44,{:.3})", 0.04 + 0.07 * rnd()));
                 g.add_color_stop(1, "rgba(70,60,44,0)");
@@ -190,7 +190,7 @@ fn biohazard_sign_tex(vary: u32) -> Tex {
             // most on its lower half where things brushed past
             ctx.set_line_cap("round");
             for _ in 0..140 {
-                let (x, y) = (rnd() * w, h * (1.0 - rnd().powf(1.6)));
+                let (x, y) = (rnd() * w, h * (1.0 - rnd().dpowf(1.6)));
                 let a = (rnd() - 0.5) * 1.2 + if rnd() < 0.5 { 0.0 } else { PI / 2.0 };
                 let l = 3.0 + rnd() * rnd() * 40.0;
                 ctx.set_stroke_style(format!("rgba(232,228,214,{:.2})", 0.25 + 0.45 * rnd()));
@@ -198,10 +198,10 @@ fn biohazard_sign_tex(vary: u32) -> Tex {
                 ctx.begin_path();
                 ctx.move_to(x, y);
                 ctx.quadratic_curve_to(
-                    x + a.cos() * l * 0.5 + (rnd() - 0.5) * 3.0,
-                    y + a.sin() * l * 0.5,
-                    x + a.cos() * l,
-                    y + a.sin() * l,
+                    x + a.dcos() * l * 0.5 + (rnd() - 0.5) * 3.0,
+                    y + a.dsin() * l * 0.5,
+                    x + a.dcos() * l,
+                    y + a.dsin() * l,
                 );
                 ctx.stroke();
             }

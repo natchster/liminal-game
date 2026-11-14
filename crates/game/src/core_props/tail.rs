@@ -271,7 +271,7 @@ impl Game {
         // the page in the note's frame: turned so the dog-ear's fold runs
         // along x, the page's middle at the origin
         let th = 1.25 * PI;
-        let (s, c) = th.sin_cos();
+        let (s, c) = th.dsin_cos();
         let turn = |x: f64, z: f64| (x * c + z * s, -x * s + z * c);
         let (mx, mz) = (NOTE_W - NOTE_A / 2.0, NOTE_A / 2.0); // the fold's middle on the page
         let (dx, dz) = turn(NOTE_W / 2.0 - mx, NOTE_MID - mz);
@@ -299,7 +299,7 @@ impl Game {
             corner.set_pos(ox, oy, oz);
             pivot.add(&corner);
             let a = PI - NOTE_CURL;
-            let (sa, ca) = a.sin_cos();
+            let (sa, ca) = a.dsin_cos();
             pivot.set_pos(fx - ox, NOTE_BASE - (oy * ca - oz * sa), fz - (oy * sa + oz * ca));
             pivot.rotation().x = a;
         }
@@ -557,7 +557,7 @@ impl Game {
             // 4 cm-tall curb, 20 cm wide
             let strip = mesh(pg("Props__pool_curb", box_geo!(len, 0.06, trim_w)), mat);
             strip.set_pos((x0 + x1) / 2.0, 0.03, (z0 + z1) / 2.0);
-            strip.rotation().y = (z1 - z0).atan2(x1 - x0);
+            strip.rotation().y = (z1 - z0).datan2(x1 - x0);
             world.add(&strip);
         };
         // top/bottom curbs
@@ -599,7 +599,7 @@ impl Game {
                 gg.position[i * 3 + 2] = bz as f32;
                 // two crossing wave patterns (written into the plane's local y)
                 gg.position[i * 3 + 1] =
-                    ((t * 1.8 + bx * 2.2 + bz * 1.3).sin() * 0.025 + (t * 1.1 + bx * 0.9 - bz * 1.7).sin() * 0.020) as f32;
+                    ((t * 1.8 + bx * 2.2 + bz * 1.3).dsin() * 0.025 + (t * 1.1 + bx * 0.9 - bz * 1.7).dsin() * 0.020) as f32;
             }
             gg.touch();
         });
@@ -616,12 +616,12 @@ impl Game {
         self.world.add(&sheen_b);
         // slow shimmer: position drift + opacity pulse
         self.animate(move |_g, _dt, t| {
-            sheen_a.position().x = pcx - pool_width * 0.05 + (t * 0.4).sin() * 0.30;
-            sheen_a.position().z = pcz + pool_depth * 0.08 + (t * 0.35).cos() * 0.25;
-            sheen_mat_a.set_opacity(0.10 + (t * 0.6).sin() * 0.05);
-            sheen_b.position().x = pcx + pool_width * 0.15 + (t * 0.45).cos() * 0.25;
-            sheen_b.position().z = pcz - pool_depth * 0.12 + (t * 0.38).sin() * 0.20;
-            sheen_mat_b.set_opacity(0.07 + (t * 0.55).cos() * 0.05);
+            sheen_a.position().x = pcx - pool_width * 0.05 + (t * 0.4).dsin() * 0.30;
+            sheen_a.position().z = pcz + pool_depth * 0.08 + (t * 0.35).dcos() * 0.25;
+            sheen_mat_a.set_opacity(0.10 + (t * 0.6).dsin() * 0.05);
+            sheen_b.position().x = pcx + pool_width * 0.15 + (t * 0.45).dcos() * 0.25;
+            sheen_b.position().z = pcz - pool_depth * 0.12 + (t * 0.38).dsin() * 0.20;
+            sheen_mat_b.set_opacity(0.07 + (t * 0.55).dcos() * 0.05);
         });
         // ---- floating beach balls ----
         struct Ball {
@@ -679,7 +679,7 @@ impl Game {
                 }
                 b.mesh.position().x = b.bx;
                 b.mesh.position().z = b.bz;
-                b.mesh.position().y = water_y + b.radius * 0.5 + (t * 2.1 + b.phase).sin() * 0.04;
+                b.mesh.position().y = water_y + b.radius * 0.5 + (t * 2.1 + b.phase).dsin() * 0.04;
                 b.mesh.rotation().x += dt * 0.6;
                 b.mesh.rotation().z += dt * 0.4;
             }
@@ -778,7 +778,7 @@ impl Game {
             for b in 0..5 {
                 let bristle = mesh(box_geo!(0.002, 0.002, 0.06), &brist_mat);
                 let a = (b as f64 / 5.0) * PI * 2.0;
-                bristle.set_pos(s * 0.14 + a.cos() * 0.02, 0.015, 0.11 + a.sin() * 0.02);
+                bristle.set_pos(s * 0.14 + a.dcos() * 0.02, 0.015, 0.11 + a.dsin() * 0.02);
                 bristle.rotation().y = a;
                 g.add(&bristle);
             }
@@ -993,17 +993,17 @@ impl Game {
                 .or(crate::base::tables::flame_breath_amp_by_weather("normal"))
                 .unwrap()
                 * gm.descent_boost_mul(0.4);
-            let room_breath = 1.0 + (t * lfo_hz * PI * 2.0 * gm.descent_freq_boost()).sin() * flame_amp;
-            let flicker = (0.85 + (t * 14.0).sin() * 0.10 + (t * 23.7).sin() * 0.05) * room_breath;
+            let room_breath = 1.0 + (t * lfo_hz * PI * 2.0 * gm.descent_freq_boost()).dsin() * flame_amp;
+            let flicker = (0.85 + (t * 14.0).dsin() * 0.10 + (t * 23.7).dsin() * 0.05) * room_breath;
             let candle_boost = if gm.player.flashlight_on { 1.0 + 0.15 * (1.0 - gm.beam_battery_scale(0.0)) } else { 1.0 };
             warm_light.set_intensity(3.0 * flicker * candle_boost * (0.65 + 0.35 * gm.level_depth_mul()));
             let cam = gm.camera.pos();
             for i in 0..flames.len() {
                 let fi = i as f64;
-                flames[i].scale().y = 1.0 + (t * 12.0 + fi * 1.7).sin() * 0.15;
+                flames[i].scale().y = 1.0 + (t * 12.0 + fi * 1.7).dsin() * 0.15;
                 flames[i].look_at_v(&cam);
-                cores[i].scale().y = 1.0 + (t * 15.0 + fi * 2.3).sin() * 0.22;
-                cores[i].scale().x = 1.0 + (t * 19.0 + fi * 3.1).sin() * 0.06;
+                cores[i].scale().y = 1.0 + (t * 15.0 + fi * 2.3).dsin() * 0.22;
+                cores[i].scale().x = 1.0 + (t * 19.0 + fi * 3.1).dsin() * 0.06;
                 cores[i].look_at_v(&cam);
             }
         });
@@ -1019,7 +1019,7 @@ impl Game {
         for i in 0..5 {
             let a = (i as f64 / 5.0) * PI * 2.0;
             let p = s_build(self, cx, TailBuild::PottedPlant);
-            p.g.set_pos(self.wx(c.x) + a.cos() * 1.2, 0, self.wz(c.z) + a.sin() * 1.2);
+            p.g.set_pos(self.wx(c.x) + a.dcos() * 1.2, 0, self.wz(c.z) + a.dsin() * 1.2);
             p.g.rotation().y = rand1(PI * 2.0);
             self.world.add(&p.g);
         }
@@ -1475,7 +1475,7 @@ impl Game {
         }
         if let Some(c) = s_take(self, cx, false) {
             let base_yaw = rand1(PI * 2.0);
-            let (dir_x, dir_z) = (base_yaw.cos(), base_yaw.sin());
+            let (dir_x, dir_z) = (base_yaw.dcos(), base_yaw.dsin());
             for i in 0..4 {
                 let fi = i as f64;
                 let cone = s_build(self, cx, TailBuild::TrafficCone);
@@ -1524,14 +1524,14 @@ impl Game {
                 if a.taken {
                     continue;
                 }
-                a.g.position().y = a.base + (t * 2.0 + a.phase).sin() * 0.05;
+                a.g.position().y = a.base + (t * 2.0 + a.phase).dsin() * 0.05;
                 a.g.rotation().y = t * 1.2 + a.phase;
             }
             for b in &g.battery_items {
                 if b.taken {
                     continue;
                 }
-                b.g.position().y = b.base + (t * 2.4 + b.phase).sin() * 0.04;
+                b.g.position().y = b.base + (t * 2.4 + b.phase).dsin() * 0.04;
                 b.g.rotation().y = t * 1.4 + b.phase;
                 b.g.rotation().z = PI / 2.0;
             }
@@ -1637,8 +1637,8 @@ fn note_paper_tex(b: (f64, f64, f64, f64)) -> Tex {
             ctx.begin_path();
             for k in 0..=36 {
                 let a = k as f64 / 36.0 * PI * 2.0;
-                let rr = r * (1.0 + 0.16 * (a * 3.0 + k0).sin() + 0.08 * (a * 7.0 + k0 * 2.0).sin());
-                let (x, y) = (cx + a.cos() * rr, cy + a.sin() * rr * 0.8);
+                let rr = r * (1.0 + 0.16 * (a * 3.0 + k0).dsin() + 0.08 * (a * 7.0 + k0 * 2.0).dsin());
+                let (x, y) = (cx + a.dcos() * rr, cy + a.dsin() * rr * 0.8);
                 if k == 0 {
                     ctx.move_to(x, y);
                 } else {
@@ -1661,8 +1661,8 @@ fn note_paper_tex(b: (f64, f64, f64, f64)) -> Tex {
                 ctx.set_stroke_style(format!("rgba(74,64,50,{})", 0.06 + 0.10 * rnd()));
                 ctx.set_line_width(2.0 + rnd() * 4.0);
                 ctx.begin_path();
-                ctx.move_to(cx + a.cos() * -70.0 - a.sin() * o, cy + a.sin() * -70.0 + a.cos() * o);
-                ctx.line_to(cx + a.cos() * 70.0 - a.sin() * o, cy + a.sin() * 70.0 + a.cos() * o);
+                ctx.move_to(cx + a.dcos() * -70.0 - a.dsin() * o, cy + a.dsin() * -70.0 + a.dcos() * o);
+                ctx.line_to(cx + a.dcos() * 70.0 - a.dsin() * o, cy + a.dsin() * 70.0 + a.dcos() * o);
                 ctx.stroke();
             }
         }

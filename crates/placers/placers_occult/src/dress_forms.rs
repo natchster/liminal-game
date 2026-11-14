@@ -25,18 +25,18 @@ pub(crate) fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
         let leg = mesh(pg("DressForms__leg", cyl_geo!(0.014, 0.020, leg_h, 6)), &wood_mat);
         // Splay: foot on its pad at r 0.19, the top leaning 0.548 rad inward
         // into the hub (stretched 10% to reach it).
-        let leg_dir = v3(-angle.cos() * 0.548f64.sin(), 0.548f64.cos(), -angle.sin() * 0.548f64.sin());
+        let leg_dir = v3(-angle.dcos() * 0.548f64.dsin(), 0.548f64.dcos(), -angle.dsin() * 0.548f64.dsin());
         leg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &leg_dir);
         leg.scale().y = 1.1;
         leg.position().set(
-            angle.cos() * 0.19 + leg_dir.x * leg_h * 0.55,
+            angle.dcos() * 0.19 + leg_dir.x * leg_h * 0.55,
             0.008 + leg_dir.y * leg_h * 0.55,
-            angle.sin() * 0.19 + leg_dir.z * leg_h * 0.55,
+            angle.dsin() * 0.19 + leg_dir.z * leg_h * 0.55,
         );
         df.add(&leg);
         // Foot pad at base.
         let foot = mesh(pg("DressForms__foot", cyl_geo!(0.020, 0.024, 0.008, 8)), &wood_mat);
-        foot.position().set(angle.cos() * 0.19, 0.004, angle.sin() * 0.19);
+        foot.position().set(angle.dcos() * 0.19, 0.004, angle.dsin() * 0.19);
         df.add(&foot);
     }
     // Central tripod hub cap.
@@ -87,7 +87,7 @@ pub(crate) fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
     let seam_mat = lambert!({ color: 0x6a5a48 });
     for seam_angle in [0.0, PI] {
         let seam = mesh(box_geo!(0.002, 0.44, 0.001), &seam_mat);
-        seam.position().set(seam_angle.cos() * 0.115, torso_base_y + 0.22, seam_angle.sin() * 0.115);
+        seam.position().set(seam_angle.dcos() * 0.115, torso_base_y + 0.22, seam_angle.dsin() * 0.115);
         df.add(&seam);
     }
     // 40%: pincushion on hip area.
@@ -104,13 +104,13 @@ pub(crate) fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
             let pin_shaft = mesh(cyl_geo!(0.0006, 0.0006, 0.015, 3), lambert!({ color: 0xa0a0a8 }));
             let pin_angle_z = pin_angle - PI / 2.0;
             pin_shaft.rotation().z = pin_angle_z;
-            pin_shaft.position().set(0.10 + pin_angle.cos() * 0.020, torso_base_y + 0.06 + pin_angle.sin() * 0.015, 0.08);
+            pin_shaft.position().set(0.10 + pin_angle.dcos() * 0.020, torso_base_y + 0.06 + pin_angle.dsin() * 0.015, 0.08);
             df.add(&pin_shaft);
             // Head — coloured bead.
             let bead_colors = [0xf0d040, 0xa02040, 0x2060a0, 0x408060];
             let bead_mat = lambert!({ color: choice(&bead_colors) });
             let bead = mesh(sphere_geo!(0.0018, 5, 4), &bead_mat);
-            bead.position().set(0.10 + pin_angle.cos() * 0.028, torso_base_y + 0.06 + pin_angle.sin() * 0.023, 0.08);
+            bead.position().set(0.10 + pin_angle.dcos() * 0.028, torso_base_y + 0.06 + pin_angle.dsin() * 0.023, 0.08);
             df.add(&bead);
         }
     }
@@ -145,7 +145,7 @@ pub(crate) fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
         let sway_phase = rnd() * PI * 2.0;
         let flow_base_rot_z = flow.rot().z;
         g.animate(move |_g, _dt, t| {
-            flow.rotation().z = flow_base_rot_z + (t * sway_freq + sway_phase).sin() * 0.028;
+            flow.rotation().z = flow_base_rot_z + (t * sway_freq + sway_phase).dsin() * 0.028;
         });
     }
     let px = g.wx(x) + (rnd() - 0.5) * 1.0;

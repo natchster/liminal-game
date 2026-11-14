@@ -94,11 +94,11 @@ pub(crate) fn place_silver_trays(g: &mut Game, _dist: &[i32]) {
                     for w in &tea_wisps {
                         {
                             let mut p = w.mesh.position();
-                            p.y = w.base_y + (t * 0.7 + w.phase).sin() * 0.010;
-                            p.x = w.cup_cx + (t * 0.5 + w.phase).sin() * 0.010;
-                            p.z = -0.03 + (t * 0.6 + w.phase * 1.3).cos() * 0.010;
+                            p.y = w.base_y + (t * 0.7 + w.phase).dsin() * 0.010;
+                            p.x = w.cup_cx + (t * 0.5 + w.phase).dsin() * 0.010;
+                            p.z = -0.03 + (t * 0.6 + w.phase * 1.3).dcos() * 0.010;
                         }
-                        let s = 0.85 + (t * 0.9 + w.phase).sin() * 0.18;
+                        let s = 0.85 + (t * 0.9 + w.phase).dsin() * 0.18;
                         w.mesh.scale().set(s, 2.0 * s, s);
                     }
                 });

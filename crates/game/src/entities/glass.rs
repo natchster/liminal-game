@@ -176,7 +176,7 @@ pub fn legacy_state(mode: Mode, moving: bool) -> &'static str {
 /// Your view's way (with its pitch)
 fn view_dir(g: &Game) -> Vec3 {
     let f = g.player.fwd();
-    let (pc, ps) = (g.player.pitch.cos(), g.player.pitch.sin());
+    let (pc, ps) = (g.player.pitch.dcos(), g.player.pitch.dsin());
     Vec3::new(f.x * pc, ps, f.z * pc)
 }
 
@@ -249,7 +249,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         // (a showcase's: nothing to be behind; it stands and faces you)
         let pp = g.player.pos;
         let pos = g.entities[ei].pos();
-        g.entities[ei].yaw = (pp.x - pos.x).atan2(pp.z - pos.z);
+        g.entities[ei].yaw = (pp.x - pos.x).datan2(pp.z - pos.z);
         return;
     };
     let Some(c) = g.creature(ei) else { return };
@@ -401,11 +401,11 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     // always facing you (at the glass, never more than its face allows)
     let pos = g.entities[ei].pos();
     let pp = g.player.pos;
-    let mut yaw = (pp.x - pos.x).atan2(pp.z - pos.z);
+    let mut yaw = (pp.x - pos.x).datan2(pp.z - pos.z);
     let at_glass = !inside && get(g, ei, "out") <= AT_GLASS + 0.3;
     if at_glass || get(g, ei, "pass") > 0.0 {
         let n = g.windows[b.win].normal;
-        let inward = n.x.atan2(n.z);
+        let inward = n.x.datan2(n.z);
         let d = crate::entities::wrap_pi(yaw - inward);
         yaw = inward + d.clamp(-0.6, 0.6);
     }
@@ -629,7 +629,7 @@ fn glass_frame(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
     // the breath: in and out on the pane while its face is to it, fading after
     let mist = {
         let m = get(g, ei, "mist");
-        let want = if pressing { 0.45 + 0.35 * (0.5 + 0.5 * (t * 1.7).sin()) } else { 0.0 };
+        let want = if pressing { 0.45 + 0.35 * (0.5 + 0.5 * (t * 1.7).dsin()) } else { 0.0 };
         let m = if want > m { m + (want - m) * (dt * 2.0).min(1.0) } else { (m - 0.12 * dt).max(want) };
         put(g, ei, "mist", m);
         m
@@ -638,10 +638,10 @@ fn glass_frame(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
     // comes through, the film closing behind it
     let going_back = g.creature(ei).is_some_and(|c| c.brain.mode == Mode::Withdraw);
     let (depth, radius) = if pressing {
-        (0.012 + 0.006 * (t * 1.7).sin(), 0.16)
+        (0.012 + 0.006 * (t * 1.7).dsin(), 0.16)
     } else if pass > 0.0 && pass < 1.0 {
         let k = if pass < 0.55 { smoothstep(0.0, 0.55, pass) } else { 1.0 - smoothstep(0.55, 0.85, pass) };
-        let wobble = if pass > 0.55 { 0.03 * ((pass - 0.55) * 40.0).sin() * (1.0 - smoothstep(0.55, 1.0, pass)) } else { 0.0 };
+        let wobble = if pass > 0.55 { 0.03 * ((pass - 0.55) * 40.0).dsin() * (1.0 - smoothstep(0.55, 1.0, pass)) } else { 0.0 };
         ((0.02 + 0.30 * k + wobble) * if going_back { -1.0 } else { 1.0 }, 0.18 + 0.30 * k)
     } else {
         (0.0, 0.16)
@@ -679,9 +679,9 @@ fn glass_frame(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
             let (dx, dy) = (v[0] as f64 + cx - face.0, v[1] as f64 + cy - face.1);
             let r2 = (dx * dx + dy * dy) / (radius * radius);
             // pinned at the frame
-            let ex = 1.0 - ((v[0] as f64).abs() / (pw / 2.0)).powi(6);
-            let ey = 1.0 - ((v[1] as f64).abs() / (ph / 2.0)).powi(6);
-            v[2] += (depth * (-r2).exp() * ex.max(0.0) * ey.max(0.0)) as f32;
+            let ex = 1.0 - ((v[0] as f64).abs() / (pw / 2.0)).dpowi(6);
+            let ey = 1.0 - ((v[1] as f64).abs() / (ph / 2.0)).dpowi(6);
+            v[2] += (depth * (-r2).dexp() * ex.max(0.0) * ey.max(0.0)) as f32;
         }
         geo.set_position(p);
     }
@@ -825,11 +825,11 @@ pub fn showcase(g: &mut Game, out: f64) -> Option<usize> {
         let eye = w.world(b.x + 0.2, 0.0, w.depth + back);
         g.player.pos.x = eye.x;
         g.player.pos.z = eye.z;
-        g.player.yaw = w.normal.x.atan2(w.normal.z);
+        g.player.yaw = w.normal.x.datan2(w.normal.z);
         g.player.pitch = if out < 0.0 {
             -0.12
         } else if pressed {
-            -(1.62 - (GROUND + FACE_H)).atan2(back + w.depth + AT_GLASS)
+            -(1.62 - (GROUND + FACE_H)).datan2(back + w.depth + AT_GLASS)
         } else {
             -0.03
         };
@@ -848,7 +848,7 @@ pub fn showcase(g: &mut Game, out: f64) -> Option<usize> {
     let p = if out < 0.0 { entry(g, &b) } else { place_now(g, ei, &b) };
     g.entities[ei].g.set_pos(p.x, p.y, p.z);
     let pp = g.player.pos;
-    g.entities[ei].yaw = (pp.x - p.x).atan2(pp.z - p.z);
+    g.entities[ei].yaw = (pp.x - p.x).datan2(pp.z - p.z);
     g.entities[ei].freeze = 1.0;
     glass_frame(g, ei, &b, 1.0 / 60.0);
     for (k, e) in g.entities.iter_mut().enumerate() {
@@ -867,7 +867,7 @@ fn world_to_body(g: &Game, ei: usize, p: Vec3) -> Vec3 {
     let o = g.entities[ei].pos();
     let yaw = g.entities[ei].yaw;
     let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
 }
 
@@ -908,7 +908,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     }
     let crouch = c.eased("crouch", if pass > 0.0 && pass < 1.0 { 1.0 } else { 0.0 }, 5.0, dt);
     let reach = c.eased("reach", if inside { 1.0 } else { 0.0 }, 3.0, dt);
-    let breath = (t * 0.8).sin() * 0.008;
+    let breath = (t * 0.8).dsin() * 0.008;
     if let Some(ch) = rig.ix("chest") {
         rig.turn(ch, &Quat::from_euler(&Euler::new(0.35 * crouch + 0.12 * press + breath, 0.0, 0.0)));
     }
@@ -965,7 +965,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         let rest_end = v(rig.def.bones[ifo].head);
         let lp = (phase + k as f64 * 0.5).fract() * std::f64::consts::TAU;
         // a step's swing and lift, toward you (it faces you)
-        let (fwd, lift) = if moving { (lp.sin() * 0.26, lp.cos().max(0.0) * 0.08) } else { (0.0, 0.0) };
+        let (fwd, lift) = if moving { (lp.dsin() * 0.26, lp.dcos().max(0.0) * 0.08) } else { (0.0, 0.0) };
         let target = v3(rest_end.x, rest_end.y + lift + crouch * 0.42, rest_end.z + fwd + crouch * 0.25);
         let base = rig.head(it);
         let pole = v3(base.x, base.y, base.z + 1.0);

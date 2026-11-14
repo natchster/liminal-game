@@ -664,7 +664,7 @@ impl Game {
             self.pool_t = 0.3;
             let (px, pz) = (self.player.pos.x, self.player.pos.z);
             let mut sorted: Vec<(usize, f64)> =
-                self.panels.iter().enumerate().map(|(i, p)| (i, (p.wx - px).powi(2) + (p.wz - pz).powi(2))).collect();
+                self.panels.iter().enumerate().map(|(i, p)| (i, (p.wx - px).dpowi(2) + (p.wz - pz).dpowi(2))).collect();
             sorted.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
             self.pool_edge = if sorted.len() > POOL_WANT { sorted[POOL_WANT].1.sqrt() } else { f64::INFINITY };
             sorted.truncate(POOL_WANT);
@@ -698,7 +698,7 @@ impl Game {
             let mut want = 0.0;
             if self.pool_wanted.contains(&pi) {
                 let p = &self.panels[pi];
-                let d = (p.wx - self.player.pos.x).hypot(p.wz - self.player.pos.z);
+                let d = (p.wx - self.player.pos.x).dhypot(p.wz - self.player.pos.z);
                 want = 1.0 - smoothstep(d, self.pool_edge * 0.8, self.pool_edge);
             }
             self.pooled_w[li] += (want - self.pooled_w[li]) * k_fade;
@@ -718,7 +718,7 @@ impl Game {
             self.door_dim_pulse_t -= dt;
             if self.door_dim_pulse_t > 0.0 {
                 let door_dim = door_dim_by_weather(wk).unwrap_or(door_dim_by_weather("normal").unwrap_or(0.0));
-                let env = (PI * self.door_dim_pulse_t / 0.5).sin();
+                let env = (PI * self.door_dim_pulse_t / 0.5).dsin();
                 dim_scale *= 1.0 - door_dim * env;
             }
         }
@@ -726,14 +726,14 @@ impl Game {
             self.ding_bright_pulse_t -= dt;
             if self.ding_bright_pulse_t > 0.0 {
                 let ding = ding_bright_by_weather(wk).unwrap_or(ding_bright_by_weather("normal").unwrap_or(0.0));
-                let env = (PI * self.ding_bright_pulse_t / 0.4).sin();
+                let env = (PI * self.ding_bright_pulse_t / 0.4).dsin();
                 dim_scale *= 1.0 + ding * env;
             }
         }
         if self.settle_visual_t > 0.0 {
             self.settle_visual_t -= dt;
             if self.settle_visual_t > 0.0 {
-                let env = (PI * (2.0 - self.settle_visual_t) / 2.0).sin();
+                let env = (PI * (2.0 - self.settle_visual_t) / 2.0).dsin();
                 dim_scale *= 1.0 + 0.05 * env;
             }
         }
@@ -758,7 +758,7 @@ impl Game {
             let mut mul = 1.0;
             if p.bright > 0.85 && self.clock_skip_t <= 0.0 {
                 mul = 1.0
-                    + (now * p.lfo_freq * self.panel_lfo_freq_mul_current * PI * 2.0 + p.lfo_phase + p.lfo_phase_offset).sin()
+                    + (now * p.lfo_freq * self.panel_lfo_freq_mul_current * PI * 2.0 + p.lfo_phase + p.lfo_phase_offset).dsin()
                         * self.panel_lfo_amp_current;
             }
             let mut b_dim = 1.0;
@@ -768,7 +768,7 @@ impl Game {
                 let d2 = dx * dx + dz * dz;
                 if d2 < dim_r2 {
                     let near = clamp(1.0 - d2.sqrt() / dim_radius, 0.0, 1.0);
-                    b_dim = 1.0 - (1.0 - battery_dim) * near.powf(dim_falloff);
+                    b_dim = 1.0 - (1.0 - battery_dim) * near.dpowf(dim_falloff);
                 }
             }
             let h_boost = if p.h_boost != 0.0 { p.h_boost } else { 1.0 };
@@ -776,7 +776,7 @@ impl Game {
             if self.knock_tint_t > 0.0 {
                 let env = self.knock_tint_t / 0.7;
                 let yaw = self.player.yaw;
-                let (rx, rz) = (yaw.cos(), -yaw.sin());
+                let (rx, rz) = (yaw.dcos(), -yaw.dsin());
                 let (dxp, dzp) = (lp.x - self.player.pos.x, lp.z - self.player.pos.z);
                 let side = dxp * rx + dzp * rz;
                 let mtch = if side * self.knock_tint_pan > 0.0 { 1.0 } else { 0.0 };
@@ -813,19 +813,19 @@ impl Game {
             let (cx, cz, r) = (cp.x, cp.z, CELL * 0.71);
             let (ratio, scale) = (self.ll_fog_ratio, self.ll_scale);
             let yaw = self.camera.rot().y;
-            let (fx, fz) = (-yaw.sin(), -yaw.cos());
+            let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
             let (fov, aspect) = {
                 let c = self.camera.camera();
                 (c.fov, c.aspect)
             };
-            let half = (deg_to_rad(fov / 2.0).tan() * aspect).atan() + 0.2;
+            let half = (deg_to_rad(fov / 2.0).dtan() * aspect).datan() + 0.2;
             let mut wv: f64 = 0.0;
             for z in 0..h {
                 let dz = self.wz(z) - cz;
                 for x in 0..w {
                     let dx = self.wx(x) - cx;
                     let d = (dx * dx + dz * dz).sqrt();
-                    if d > r && clamp((dx * fx + dz * fz) / d, -1.0, 1.0).acos() > half + (r / d).min(1.0).asin() {
+                    if d > r && clamp((dx * fx + dz * fz) / d, -1.0, 1.0).dacos() > half + (r / d).min(1.0).dasin() {
                         continue;
                     }
                     let reach = 2.2 / (self.fog_density * (1.0 + (ratio - 1.0) * self.light_map_cpu[z * w + x] * scale));
@@ -929,7 +929,7 @@ impl Game {
             l.distance += (dist_target - l.distance) * k;
         }
         let yaw = self.player.yaw;
-        let (fx, fz) = (-yaw.sin(), -yaw.cos());
+        let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
         let (ppx, ppz) = (self.player.pos.x, self.player.pos.z);
         {
             let arr = &mut self.dust_positions;

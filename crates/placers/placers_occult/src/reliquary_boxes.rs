@@ -83,7 +83,7 @@ fn paste(old: u32) -> Mat {
 /// A stone stood in its collet on the lid's slope (front `side` 1, back -1)
 fn stone(grp: &Obj, name: &str, mat: Mat, x: f64, side: f64) {
     if let Some(m) = put(grp, name, &mat) {
-        m.position().set(x, STONE_Y + 0.0011 * STONE_TILT.cos(), side * (STONE_Z + 0.0011 * STONE_TILT.sin()));
+        m.position().set(x, STONE_Y + 0.0011 * STONE_TILT.dcos(), side * (STONE_Z + 0.0011 * STONE_TILT.dsin()));
         m.rotation().x = side * STONE_TILT;
     }
 }
@@ -108,7 +108,7 @@ fn gilt_tex(salt: u32) -> Tex {
             let (fa, fb) = (a - a.floor() - 0.5, b - b.floor() - 0.5);
             let lattice = (0.5 - fa.abs()).min(0.5 - fb.abs());
             let rr = (fa * fa + fb * fb).sqrt();
-            let foil = ((fa.atan2(fb) * 2.0).cos() * 0.05 + 0.20 - rr).abs();
+            let foil = ((fa.datan2(fb) * 2.0).dcos() * 0.05 + 0.20 - rr).abs();
             let groove = (1.0 - sstep(0.02, 0.07, lattice)) + (1.0 - sstep(0.015, 0.045, foil));
             c = mix(c, [0.09, 0.07, 0.04], groove.min(1.0) * 0.7);
             let d = vn(seed ^ 9, u * 60.0, v * 60.0);

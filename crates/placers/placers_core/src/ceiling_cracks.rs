@@ -32,7 +32,7 @@ pub(crate) fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
         for _s in 0..3 {
             let seg_len = 0.35 + rnd() * 0.25;
             let (px, pz) = *path.last().unwrap();
-            path.push((px + ang.cos() * seg_len, pz + ang.sin() * seg_len));
+            path.push((px + ang.dcos() * seg_len, pz + ang.dsin() * seg_len));
             let turn = (rnd() - 0.5) * 1.0;
             turns.push(turn);
             ang += turn;
@@ -47,7 +47,7 @@ pub(crate) fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
             // one along, off a fitting); edge to edge at the old heading
             let (cx, cz) = ceiling_cell(g, cp.x, cp.z);
             let side = CELL / 6.0;
-            let plane = mesh(plane_geo!(side, side), tile_crack_mat(yaw, &turns, path[1].0.hypot(path[1].1)));
+            let plane = mesh(plane_geo!(side, side), tile_crack_mat(yaw, &turns, path[1].0.dhypot(path[1].1)));
             plane.rotation().x = PI / 2.0;
             plane.position().set(cx - cp.x, 0, cz - cp.z);
             crack_group.add(&plane);
@@ -96,7 +96,7 @@ pub(crate) fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
                 let ch_ang = rnd() * PI * 2.0;
                 let ch_rad = 0.08 + rnd() * (if is_major { 0.55 } else { 0.25 });
                 let ch_sink = ((rnd() - 0.5) * 0.005).abs();
-                chunk.position().set(cp.x + ch_ang.cos() * ch_rad, 0, cp.z + ch_ang.sin() * ch_rad);
+                chunk.position().set(cp.x + ch_ang.dcos() * ch_rad, 0, cp.z + ch_ang.dsin() * ch_rad);
                 chunk.rotation().set((rnd() - 0.5) * 0.6, rnd() * PI * 2.0, (rnd() - 0.5) * 0.6);
                 // rest the tilted chunk's lowest corner on the floor (settled in ≤ 2.5 mm)
                 chunk.update_matrix_world(true);
@@ -206,8 +206,8 @@ fn stroke_path(ctx: &mut Canvas, pts: &[(f64, f64)], style: &str, width: f64) {
 /// heading there, `len` long (in `pts`' units), jagged
 fn crack_branch(pts: &[(f64, f64)], k: usize, turn: f64, len: f64) -> Vec<(f64, f64)> {
     let (p, q) = (pts[k], pts[(k + 1).min(pts.len() - 1)]);
-    let a = (q.1 - p.1).atan2(q.0 - p.0) + turn;
-    jagged(p, (p.0 + a.cos() * len, p.1 + a.sin() * len), 4, 0.2)
+    let a = (q.1 - p.1).datan2(q.0 - p.0) + turn;
+    jagged(p, (p.0 + a.dcos() * len, p.1 + a.dsin() * len), 4, 0.2)
 }
 
 /// A crack across one mineral-fibre ceiling tile: its plane is the tile
@@ -227,7 +227,7 @@ fn tile_crack_mat(yaw: f64, turns: &[f64], span: f64) -> Mat {
         ctx.rect(inset, inset, cw - 2.0 * inset, cw - 2.0 * inset);
         ctx.clip();
         // the line it breaks along: through a point near the middle, at yaw
-        let (dx, dz) = (yaw.cos(), yaw.sin());
+        let (dx, dz) = (yaw.dcos(), yaw.dsin());
         let off = (rnd() - 0.5) * 0.3 * hs;
         let c0 = (-dz * off, dx * off);
         // where that line meets the tile's edges either way
@@ -246,7 +246,7 @@ fn tile_crack_mat(yaw: f64, turns: &[f64], span: f64) -> Mat {
             b = (a.0 + (b.0 - a.0) * k, a.1 + (b.1 - a.1) * k);
         }
         // kinked where the old crack turned
-        let len = (b.0 - a.0).hypot(b.1 - a.1);
+        let len = (b.0 - a.0).dhypot(b.1 - a.1);
         let (nx, nz) = (-(b.1 - a.1) / len, (b.0 - a.0) / len);
         let at = |t: f64, kink: f64| (a.0 + (b.0 - a.0) * t + nx * kink * len * 0.12, a.1 + (b.1 - a.1) * t + nz * kink * len * 0.12);
         let macro_pts = [a, at(1.0 / 3.0, turns[0]), at(2.0 / 3.0, turns[1]), b];
@@ -263,7 +263,7 @@ fn tile_crack_mat(yaw: f64, turns: &[f64], span: f64) -> Mat {
         // how wide it is open: most at the edge it started from, thinning
         // to nothing where it stops inside
         let wmax = (0.0045 + 0.002 * (span - 0.35) / 0.25) / s;
-        let width = |t: f64| wmax * if open_end { (1.0 - t).powf(0.7) } else { 0.75 + 0.25 * (PI * t).sin() };
+        let width = |t: f64| wmax * if open_end { (1.0 - t).dpowf(0.7) } else { 0.75 + 0.25 * (PI * t).dsin() };
         // the edge of the half that dropped, lit; the shadow it casts
         let lit: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 + nx * 1.6, p.1 - nz * 1.6)).collect();
         let shade: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 - nx * 4.0, p.1 + nz * 4.0)).collect();
@@ -282,7 +282,7 @@ fn tile_crack_mat(yaw: f64, turns: &[f64], span: f64) -> Mat {
                 .map(|p| (p.0.clamp(0.0125 / s, cw - 0.0125 / s), p.1.clamp(0.0125 / s, cw - 0.0125 / s)))
                 .collect();
             let w0 = width(k as f64 / pts.len() as f64) * 0.6;
-            stroke_tapered(ctx, &br, "rgb(30,26,22)", |t| w0 * (1.0 - t).powf(0.8));
+            stroke_tapered(ctx, &br, "rgb(30,26,22)", |t| w0 * (1.0 - t).dpowf(0.8));
         }
         // crumbs of the broken face along it
         ctx.set_fill_style("rgba(40,35,30,0.6)");
@@ -317,7 +317,7 @@ fn slab_crack_mat(pw: f64, ph: f64, path: &[(f64, f64)], slab: bool) -> Mat {
         }
         let seed = (rnd() * 4.0e9) as u32;
         let wmax = (0.003 + 0.0015 * rnd()) / s;
-        let width = |t: f64| wmax * (PI * t).sin().powf(0.6) * (0.7 + 0.6 * vn(seed, t * 9.0, 0.5));
+        let width = |t: f64| wmax * (PI * t).dsin().dpowf(0.6) * (0.7 + 0.6 * vn(seed, t * 9.0, 0.5));
         let mut branches = vec![];
         for _ in 0..2 + (rnd() * 3.0) as usize {
             let t = 0.1 + 0.8 * rnd();
@@ -370,7 +370,7 @@ fn slab_crack_mat(pw: f64, ph: f64, path: &[(f64, f64)], slab: bool) -> Mat {
         let core = if slab { "rgb(26,24,22)" } else { "rgb(34,30,26)" };
         stroke_tapered(ctx, &pts, core, width);
         for (br, w0) in &branches {
-            stroke_tapered(ctx, br, core, |t| w0 * (1.0 - t).powf(0.8));
+            stroke_tapered(ctx, br, core, |t| w0 * (1.0 - t).dpowf(0.8));
             // and now and then a finer one off the branch
             if rnd() < 0.4 && br.len() > 4 {
                 let k = br.len() / 2;

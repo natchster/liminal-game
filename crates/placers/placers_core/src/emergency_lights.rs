@@ -68,7 +68,7 @@ pub(crate) fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
         let point_l = point_light!(0xf5e090, base_int, 3.0, 2);
         // 0.15 m forward of housing (in front of bulbs; local +Z).
         let ly = light.rot().y;
-        let (fx, fz) = (ly.sin(), ly.cos());
+        let (fx, fz) = (ly.dsin(), ly.dcos());
         let lp = light.pos();
         point_l.position().set(lp.x + fx * 0.15, lp.y - 0.02, lp.z + fz * 0.15);
         g.world.add(&point_l);
@@ -77,7 +77,7 @@ pub(crate) fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
         let flicker_phase = rnd() * PI * 2.0;
         let pl = point_l.clone();
         g.animate(move |_g, _dt, t| {
-            pl.set_intensity(base_int * (0.90 + 0.10 * (t * 1.4 * PI + flicker_phase).sin()));
+            pl.set_intensity(base_int * (0.90 + 0.10 * (t * 1.4 * PI + flicker_phase).dsin()));
         });
         // Track for spatial hum audio events.
         let pp = point_l.pos();

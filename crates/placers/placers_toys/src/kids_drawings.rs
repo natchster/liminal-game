@@ -58,8 +58,8 @@ game::lazy_static_tex!(
         for i in 0..8 {
             let a = (i as f64 / 8.0) * PI * 2.0;
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * 32.0, cy + a.sin() * 32.0);
-            ctx.line_to(cx + a.cos() * 55.0, cy + a.sin() * 55.0);
+            ctx.move_to(cx + a.dcos() * 32.0, cy + a.dsin() * 32.0);
+            ctx.line_to(cx + a.dcos() * 55.0, cy + a.dsin() * 55.0);
             ctx.stroke();
         }
     })

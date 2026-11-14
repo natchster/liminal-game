@@ -4,6 +4,7 @@
 //! `tests/beatable.rs` (level by level) and `tests/playthrough.rs` (the whole
 //! run, live).
 #![allow(dead_code, reason = "helpers shared by several test binaries; each uses a part")]
+use engine::dmath::DMath;
 use game::Game;
 use game::entities::brain::Mode;
 
@@ -42,7 +43,7 @@ pub fn counter(g: &Game, last_drop: f64, t: f64) -> Counter {
         let Some(cr) = g.creature(i) else { continue };
         let m = cr.brain.mode;
         let p = e.pos();
-        let d = ((p.x - pp.x).powi(2) + (p.z - pp.z).powi(2)).sqrt();
+        let d = ((p.x - pp.x).dpowi(2) + (p.z - pp.z).dpowi(2)).sqrt();
         // the one behind the glass: never stare out of its window (it is
         // far out on the track while its glass is beside you); in the room,
         // keep out of its light
@@ -138,7 +139,7 @@ pub fn counter(g: &Game, last_drop: f64, t: f64) -> Counter {
 pub fn drive(g: &mut Game, to: Option<(f64, f64)>, face: Option<(f64, f64)>, gait: Gait) {
     let pp = g.player.pos;
     if let Some((fx, fz)) = face {
-        g.player.yaw = (-(fx - pp.x)).atan2(-(fz - pp.z));
+        g.player.yaw = (-(fx - pp.x)).datan2(-(fz - pp.z));
     }
     let (mut w, mut s, mut a, mut dkey) = (false, false, false, false);
     if let (Some((tx, tz)), true) = (to, gait != Gait::Still) {
@@ -147,11 +148,11 @@ pub fn drive(g: &mut Game, to: Option<(f64, f64)>, face: Option<(f64, f64)>, gai
         if l > 1e-6 {
             let (ux, uz) = (ux / l, uz / l);
             if face.is_none() {
-                g.player.yaw = (-ux).atan2(-uz);
+                g.player.yaw = (-ux).datan2(-uz);
             }
             let yaw = g.player.yaw;
-            let (fx, fz) = (-yaw.sin(), -yaw.cos());
-            let (rx, rz) = (yaw.cos(), -yaw.sin());
+            let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
+            let (rx, rz) = (yaw.dcos(), -yaw.dsin());
             let (mz, mx) = (ux * fx + uz * fz, ux * rx + uz * rz);
             w = mz > 0.38;
             s = mz < -0.38;

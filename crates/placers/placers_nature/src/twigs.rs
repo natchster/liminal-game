@@ -41,7 +41,7 @@ pub(crate) fn place_twigs(g: &mut Game, _dist: &[i32]) {
         let Some(geo) = part(name) else { continue };
         let s = (len / plen).clamp(0.88, 1.12);
         let (lo, hi) = frame(name);
-        let me = Laid { c: (tx, tz), d: (yaw.cos(), -yaw.sin()), hl: (hi[0] - lo[0]) / 2.0 * s, top: hi[1] * s, tilt: None };
+        let me = Laid { c: (tx, tz), d: (yaw.dcos(), -yaw.dsin()), hl: (hi[0] - lo[0]) / 2.0 * s, top: hi[1] * s, tilt: None };
         // across one already down: it rests on it, its far end on the floor
         let mut tilt: Option<(f64, f64)> = None;
         for o in &laid {
@@ -49,10 +49,10 @@ pub(crate) fn place_twigs(g: &mut Game, _dist: &[i32]) {
                 let h = o.height_at(p);
                 let (dm, dp) = {
                     let (a, b) = (me.end(-1.0), me.end(1.0));
-                    ((p.0 - a.0).hypot(p.1 - a.1), (p.0 - b.0).hypot(p.1 - b.1))
+                    ((p.0 - a.0).dhypot(p.1 - a.1), (p.0 - b.0).dhypot(p.1 - b.1))
                 };
                 let (sign, d) = if dp > dm { (1.0, dp) } else { (-1.0, dm) };
-                let th = (h / d.max(0.01)).atan().min(0.5);
+                let th = (h / d.max(0.01)).datan().min(0.5);
                 if tilt.is_none_or(|(_, t)| th > t) {
                     tilt = Some((sign, th));
                 }
@@ -126,7 +126,7 @@ impl Laid {
             None => self.top,
             Some((sign, th)) => {
                 let e = self.end(sign);
-                self.top + (p.0 - e.0).hypot(p.1 - e.1) * th.tan()
+                self.top + (p.0 - e.0).dhypot(p.1 - e.1) * th.dtan()
             }
         }
     }

@@ -100,7 +100,7 @@ fn ghost_tex(salt: u32, pw: f64, ph: f64) -> Tex {
             } else {
                 (0.26, 0.007)
             };
-            let ghost = line * (-d / 0.0045).exp() + 0.16 * (-d / wide).exp();
+            let ghost = line * (-d / 0.0045).dexp() + 0.16 * (-d / wide).dexp();
             let al = ghost * (0.55 + 0.7 * mottle) * fade;
             [0.22, 0.19, 0.15, al.min(0.6)]
         });
@@ -114,13 +114,13 @@ fn scrape_tex(salt: u32) -> Tex {
         let seed = salt ^ 0xb5;
         fill(ctx, w, h, |u, v| {
             let mid = 0.5 + 0.12 * (fbm(seed, v * 3.0, 0.5, 2) - 0.5);
-            let width = 0.10 * (v * PI).sin().max(0.0).powf(0.7);
+            let width = 0.10 * (v * PI).dsin().max(0.0).dpowf(0.7);
             let d = (u - mid).abs();
             if d < width * 0.55 {
                 return [0.84, 0.81, 0.74, 0.75 * sstep(0.0, 0.15, v.min(1.0 - v))];
             }
             let lip = 1.0 - sstep(width * 0.55, width * 1.4, d);
-            [0.24, 0.20, 0.16, 0.4 * lip * (v * PI).sin()]
+            [0.24, 0.20, 0.16, 0.4 * lip * (v * PI).dsin()]
         });
     })
 }

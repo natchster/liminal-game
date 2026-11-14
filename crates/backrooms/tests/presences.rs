@@ -6,6 +6,7 @@
 //! opening on the Lobby.
 mod common;
 
+use engine::dmath::DMath;
 use engine::math::Vec3;
 use game::Game;
 use game::level::archgen::{GROUND_VOID, segment_clear_3d};
@@ -43,8 +44,8 @@ fn face(g: &mut Game, p: Vec3, toward: bool) {
     let c = g.player.pos;
     let (dx, dy, dz) = (p.x - c.x, p.y + 1.4 - c.y, p.z - c.z);
     let s = if toward { 1.0 } else { -1.0 };
-    g.player.yaw = (-dx * s).atan2(-dz * s);
-    g.player.pitch = if toward { dy.atan2((dx * dx + dz * dz).sqrt()) } else { 0.0 };
+    g.player.yaw = (-dx * s).datan2(-dz * s);
+    g.player.pitch = if toward { dy.datan2((dx * dx + dz * dz).sqrt()) } else { 0.0 };
 }
 
 /// Stand where a figure could be seen (the debug screen's viewpoint), the
@@ -63,7 +64,7 @@ fn stand_where_it_is_seen(g: &mut Game) {
 }
 
 fn level_dist(a: Vec3, b: Vec3) -> f64 {
-    ((a.x - b.x).powi(2) + (a.z - b.z).powi(2)).sqrt()
+    ((a.x - b.x).dpowi(2) + (a.z - b.z).dpowi(2)).sqrt()
 }
 
 #[test]
@@ -84,7 +85,7 @@ fn the_figure_stands_only_where_no_walk_reaches() {
                         }
                         let (wx, wz) = (g.wx(x), g.wz(z));
                         let dy = (g.floor_y_of(x, z) - p.y).abs();
-                        let dh = ((wx - p.x).powi(2) + (wz - p.z).powi(2)).sqrt();
+                        let dh = ((wx - p.x).dpowi(2) + (wz - p.z).dpowi(2)).sqrt();
                         assert!(
                             dy >= STOREY - 0.25 || dh > 6.0,
                             "seed {seed} L{level}: a walk at ({x},{z}) {dh:.1} m from a perch at {p:?}, {dy:.1} m under it"
@@ -118,7 +119,7 @@ fn the_figure_keeps_far_and_turns_its_back_when_looked_at() {
         let k = "uncanny:figure";
         assert!(g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k), "L{level}: {:?}", g.asides.memory);
         assert!(f2.body.visible(), "L{level}: watched, it does not vanish");
-        let toward = (g.player.pos.x - f.at.x).atan2(g.player.pos.z - f.at.z);
+        let toward = (g.player.pos.x - f.at.x).datan2(g.player.pos.z - f.at.z);
         let off = ((f2.body.rotation().y - toward).rem_euclid(std::f64::consts::TAU) - std::f64::consts::PI).abs();
         assert!(off < 0.2, "L{level}: its back to you ({off:.2} rad off)");
         // you look away: it is gone, for a long while

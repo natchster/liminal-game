@@ -65,8 +65,8 @@ game::lazy_static_tex!(
         for i in 0..16 {
             let a = -PI / 2.0 + (i as f64 / 16.0) * PI * 2.0;
             ctx.begin_path();
-            ctx.move_to(w / 2.0 + a.cos() * 40.0, h / 2.0 + a.sin() * 40.0);
-            ctx.line_to(w / 2.0 + a.cos() * 48.0, h / 2.0 + a.sin() * 48.0);
+            ctx.move_to(w / 2.0 + a.dcos() * 40.0, h / 2.0 + a.dsin() * 40.0);
+            ctx.line_to(w / 2.0 + a.dcos() * 48.0, h / 2.0 + a.dsin() * 48.0);
             ctx.stroke();
         }
         // Needle (red-tip pointing north).

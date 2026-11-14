@@ -123,7 +123,7 @@ impl KnockDoor {
     }
     /// The turn that faces its own +z out of the face
     pub fn yaw(&self) -> f64 {
-        self.normal.0.atan2(self.normal.1)
+        self.normal.0.datan2(self.normal.1)
     }
     /// Its key in the run's record of what was taken
     pub fn key(level: i32, i: usize) -> String {
@@ -704,7 +704,7 @@ impl Game {
             let d = &self.knocks.doors[i];
             let eye = d.point(1.75, -0.35, EYE);
             // facing the door: the look's forward is (−sin yaw, −cos yaw)
-            let yaw = d.normal.0.atan2(d.normal.1);
+            let yaw = d.normal.0.datan2(d.normal.1);
             out.push((name.to_string(), i, [eye.x, eye.y, eye.z, yaw, -0.62]));
         }
         out

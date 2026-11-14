@@ -75,7 +75,7 @@ pub(crate) fn place_moss_patches(g: &mut Game, _dist: &[i32]) {
             first = false;
         }
         cushion.scale().set_scalar((bump_r / nominal).clamp(0.85, 1.15));
-        cushion.position().set(a.cos() * r, 0, a.sin() * r);
+        cushion.position().set(a.dcos() * r, 0, a.dsin() * r);
         cushion.rotation().y = a * 3.0;
         patch.add(&cushion);
     }
@@ -114,9 +114,9 @@ fn moss_mat_tex(base: [f64; 3], salt: u32) -> Tex {
     canvas_tex_opt(256, 256, false, move |ctx, w, h| {
         paint_px(ctx, w, h, |x, y| {
             let (u, v) = (x / w - 0.5, y / h - 0.5);
-            let r = u.hypot(v) * 2.0;
-            let a = v.atan2(u);
-            let edge = 0.62 + 0.22 * (fbm(salt, a.cos() * 2.0 + 5.0, a.sin() * 2.0 + 5.0, 3) - 0.5) * 2.0;
+            let r = u.dhypot(v) * 2.0;
+            let a = v.datan2(u);
+            let edge = 0.62 + 0.22 * (fbm(salt, a.dcos() * 2.0 + 5.0, a.dsin() * 2.0 + 5.0, 3) - 0.5) * 2.0;
             let rr = r + 0.35 * (fbm(salt ^ 0x5, u * 7.0, v * 7.0, 4) - 0.5);
             // out at its edge it breaks into small colonies, then single tufts
             let tufts = sstep(0.62, 0.7, vn(salt ^ 0x15, x / 4.0, y / 4.0)) * (1.0 - sstep(edge + 0.02, edge + 0.16, rr));

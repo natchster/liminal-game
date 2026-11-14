@@ -56,7 +56,7 @@ pub(crate) fn place_bulletin_boards(g: &mut Game, _dist: &[i32]) {
             let flutter_phase = rnd() * PI * 2.0;
             let note2 = note.clone();
             g.animate(move |_g, _dt, t| {
-                note2.rotation().z = base_note_rot_z + (t * 0.7 * PI + flutter_phase).sin() * 0.03;
+                note2.rotation().z = base_note_rot_z + (t * 0.7 * PI + flutter_phase).dsin() * 0.03;
             });
         }
     }

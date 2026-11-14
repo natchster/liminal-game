@@ -77,7 +77,7 @@ pub(crate) fn place_brooms_and_dustpans(g: &mut Game, _dist: &[i32]) {
     // Handle from back edge angling up: its foot is in the back wall's boss,
     // the hook loop hangs off its top end.
     let pan_handle_len = 0.10;
-    let pan_handle_dir = v3(0, 0.5f64.cos(), -0.5f64.sin());
+    let pan_handle_dir = v3(0, 0.5f64.dcos(), -0.5f64.dsin());
     let pan_handle_foot = v3(0, 0.020, -0.053);
     let pan_handle = mesh(pg("BroomsAndDustpans__panHandle", cyl_geo!(0.006, 0.006, pan_handle_len, 5)), &pan_mat);
     pan_handle.rotation().x = -0.5;

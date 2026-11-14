@@ -117,8 +117,8 @@ game::lazy_static_tex!(
             for _ in 0..5 {
                 let seg_len = 25.0 + rnd() * 30.0;
                 ang += (rnd() - 0.5) * 0.6;
-                cx += ang.cos() * seg_len;
-                cy += ang.sin() * seg_len;
+                cx += ang.dcos() * seg_len;
+                cy += ang.dsin() * seg_len;
                 ctx.line_to(cx, cy);
                 if cx < 0.0 || cx > w || cy < 0.0 || cy > h {
                     break;
@@ -130,10 +130,10 @@ game::lazy_static_tex!(
                 ctx.set_stroke_style("rgba(20,20,30,0.5)");
                 ctx.set_line_width(0.7);
                 ctx.begin_path();
-                let mid_x = ox + angle.cos() * 40.0;
-                let mid_y = oy + angle.sin() * 40.0;
+                let mid_x = ox + angle.dcos() * 40.0;
+                let mid_y = oy + angle.dsin() * 40.0;
                 ctx.move_to(mid_x, mid_y);
-                ctx.line_to(mid_x + (angle + 0.8).cos() * 30.0, mid_y + (angle + 0.8).sin() * 30.0);
+                ctx.line_to(mid_x + (angle + 0.8).dcos() * 30.0, mid_y + (angle + 0.8).dsin() * 30.0);
                 ctx.stroke();
                 ctx.set_stroke_style("rgba(15,15,20,0.85)");
                 ctx.set_line_width(1.5);

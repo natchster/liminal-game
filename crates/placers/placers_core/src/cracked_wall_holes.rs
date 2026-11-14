@@ -245,8 +245,8 @@ fn hole_decal_tex(k: usize) -> Tex {
                         let n = 4 + ki * 2;
                         for j in 0..n {
                             let a0 = j as f64 / n as f64 * std::f64::consts::TAU + rnd() * 0.6;
-                            let mut x = cx + a0.cos() * ex * 0.95;
-                            let mut y = cy + a0.sin() * ey * 0.95;
+                            let mut x = cx + a0.dcos() * ex * 0.95;
+                            let mut y = cy + a0.dsin() * ey * 0.95;
                             let mut a = a0;
                             let len = (0.35 + rnd() * 0.9) * ex;
                             let steps = 14;
@@ -254,8 +254,8 @@ fn hole_decal_tex(k: usize) -> Tex {
                             for _ in 0..steps {
                                 a += (rnd() - 0.5) * 0.9;
                                 let l = len / steps as f64;
-                                x += a.cos() * l;
-                                y += a.sin() * l * 0.9 + l * 0.08; // they run a little downward
+                                x += a.dcos() * l;
+                                y += a.dsin() * l * 0.9 + l * 0.08; // they run a little downward
                                 pts.push((x, y));
                             }
                             // its lit lip, then the crack itself
@@ -283,8 +283,8 @@ fn hole_decal_tex(k: usize) -> Tex {
                                 let (mut x2, mut y2, mut a2) = (bx, by, b);
                                 for _ in 0..6 {
                                     a2 += (rnd() - 0.5) * 1.0;
-                                    x2 += a2.cos() * len / 22.0;
-                                    y2 += a2.sin() * len / 22.0;
+                                    x2 += a2.dcos() * len / 22.0;
+                                    y2 += a2.dsin() * len / 22.0;
                                     ctx.line_to(x2, y2);
                                 }
                                 ctx.stroke();
@@ -294,7 +294,7 @@ fn hole_decal_tex(k: usize) -> Tex {
                         for _ in 0..5 {
                             let a = rnd() * 6.3;
                             let r = (1.3 + rnd() * 1.4) * ex;
-                            let (x, y) = (cx + a.cos() * r, cy + a.sin() * r * 0.9);
+                            let (x, y) = (cx + a.dcos() * r, cy + a.dsin() * r * 0.9);
                             let s = ctx.create_radial_gradient(x, y, 0, x, y, 10.0 + rnd() * 16.0);
                             s.add_color_stop(0, "rgba(50,44,38,0.16)");
                             s.add_color_stop(1, "rgba(50,44,38,0)");

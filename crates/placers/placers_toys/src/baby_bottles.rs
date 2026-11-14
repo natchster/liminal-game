@@ -49,8 +49,8 @@ pub(crate) fn place_baby_bottles(g: &mut Game, _dist: &[i32]) {
     let amp = if is_tipped { 0.06 } else { 0.02 }; // tipped bottles slosh visibly more
     g.animate(move |_g, _dt, t| {
         // Wobble the milk cylinder scale x/z slightly, and tilt scale y a bit.
-        let s = 1.0 + (t * 1.8 + slphase).sin() * amp * 0.5;
-        let sy = 1.0 + (t * 1.8 + slphase + PI).sin() * amp * 0.3;
+        let s = 1.0 + (t * 1.8 + slphase).dsin() * amp * 0.5;
+        let sy = 1.0 + (t * 1.8 + slphase + PI).dsin() * amp * 0.3;
         content.scale().set(s, sy, s);
     });
 }

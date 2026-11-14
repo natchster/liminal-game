@@ -64,8 +64,8 @@ pub(crate) fn place_umbrellas(g: &mut Game, _dist: &[i32]) {
         stain.rotation().x = -PI / 2.0;
         stain.rotation().z = rnd() * PI * 2.0;
         let uy = umbrella.rot().y;
-        let fx = -uy.sin();
-        let fz = -uy.cos();
+        let fx = -uy.dsin();
+        let fz = -uy.dcos();
         let up = umbrella.pos();
         stain.position().set(up.x + fx * 0.03, 0.003, up.z + fz * 0.03);
         g.world.add(&stain);

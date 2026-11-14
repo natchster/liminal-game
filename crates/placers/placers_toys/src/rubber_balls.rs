@@ -73,7 +73,7 @@ fn rubber_ball_tex() -> Tex {
             ctx.set_stroke_style(if rnd() < 0.6 { "rgba(250,246,236,0.35)" } else { "rgba(40,34,28,0.35)" });
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         for _ in 0..90 {

@@ -38,7 +38,7 @@ pub(crate) fn place_fire_alarms(g: &mut Game, _dist: &[i32]) {
     // 15% chance: it was pulled; the glass rod's pieces on the floor below.
     let pulled = rnd() < 0.15;
     let th = alarm.rot().y;
-    let (along, out) = ((th.cos(), -th.sin()), (th.sin(), th.cos()));
+    let (along, out) = ((th.dcos(), -th.dsin()), (th.dsin(), th.dcos()));
     if pulled {
         let glass = lambert!({ color: 0xc4d2cc, transparent: true, opacity: 0.55 });
         let shard_count = 3 + (rnd() * 4.0).floor() as i32;
@@ -55,7 +55,7 @@ pub(crate) fn place_fire_alarms(g: &mut Game, _dist: &[i32]) {
             shard.scale().set(k, k, k);
             shard.rotation().set(tip * 0.2, turn, 0);
             // in front of the wall, not in it
-            let (a, n) = (ang.cos() * rad, 0.03 + ang.sin().abs() * rad);
+            let (a, n) = (ang.dcos() * rad, 0.03 + ang.dsin().abs() * rad);
             shard.position().set(ap.x + along.0 * a + out.0 * n, 0.0, ap.z + along.1 * a + out.1 * n);
             g.world.add(&shard);
         }
@@ -175,7 +175,7 @@ fn alarm_paint_tex() -> Tex {
                     ctx.set_stroke_style(format!("rgba(170,140,130,{})", 0.2 + rnd() * 0.3));
                     ctx.begin_path();
                     ctx.move_to(x, y);
-                    ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                    ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                     ctx.stroke();
                 }
             })

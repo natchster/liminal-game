@@ -67,11 +67,11 @@ pub(crate) fn place_broken_bottles(g: &mut Game, _dist: &[i32]) {
             sx *= k;
             sz *= k;
             if d < 1e-3 {
-                sx = 0.055 * (s[2] * 7.0).cos();
-                sz = 0.055 * (s[2] * 7.0).sin();
+                sx = 0.055 * (s[2] * 7.0).dcos();
+                sz = 0.055 * (s[2] * 7.0).dsin();
             }
         }
-        if ((sx - 0.085).powi(2) + (sz - 0.055).powi(2)).sqrt() < 0.06 {
+        if ((sx - 0.085).dpowi(2) + (sz - 0.055).dpowi(2)).sqrt() < 0.06 {
             sx -= 0.05;
             sz -= 0.10;
         }

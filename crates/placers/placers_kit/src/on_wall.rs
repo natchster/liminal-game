@@ -16,6 +16,6 @@ pub fn wall_face(g: &Game, c: &Cand) -> (f64, f64) {
 /// A cheap hash of a few floats already drawn, for a choice that must not
 /// draw (in 0..1).
 pub fn mix01(a: f64, b: f64) -> f64 {
-    let v = (a * 12.9898 + b * 78.233).sin() * 43758.5453;
+    let v = (a * 12.9898 + b * 78.233).dsin() * 43758.5453;
     v - v.floor()
 }

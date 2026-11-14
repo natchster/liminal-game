@@ -59,7 +59,7 @@ pub(crate) fn place_hall_side_tables(g: &mut Game, _dist: &[i32]) {
         hst.add(&key_body);
         let key_head = mesh(pg("HallSideTables__keyBow", cyl_geo!(0.006, 0.006, 0.001, 6)), &key_mat);
         // Bow lying flat on the blade's axis, just past its back end.
-        key_head.position().set(-table_w * 0.25 + 0.008 - 0.015 * 0.3f64.cos(), table_y + table_t / 2.0 + 0.0055, 0.015 * 0.3f64.sin());
+        key_head.position().set(-table_w * 0.25 + 0.008 - 0.015 * 0.3f64.dcos(), table_y + table_t / 2.0 + 0.0055, 0.015 * 0.3f64.dsin());
         key_head.rotation().y = 0.3;
         hst.add(&key_head);
     }

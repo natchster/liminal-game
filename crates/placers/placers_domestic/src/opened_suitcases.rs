@@ -129,7 +129,7 @@ fn lining_tex(salt: u32) -> Tex {
             let mut c = mix([0.54, 0.49, 0.44], [0.44, 0.39, 0.34], n);
             c = [c[0] * stripe, c[1] * stripe, c[2] * stripe];
             for (cu, cv, r) in [(0.3, 0.6, 0.18), (0.72, 0.35, 0.12)] {
-                let d = (u - cu).hypot(v - cv) / r + (fbm(seed ^ 3, u * 9.0, v * 9.0, 3) - 0.5) * 0.4;
+                let d = (u - cu).dhypot(v - cv) / r + (fbm(seed ^ 3, u * 9.0, v * 9.0, 3) - 0.5) * 0.4;
                 c = mix(c, [0.40, 0.33, 0.26], (1.0 - ((d - 1.0).abs() / 0.05)).max(0.0) * 0.5);
             }
             let edge = sstep(0.12, 0.0, u.min(1.0 - u).min(v.min(1.0 - v)));

@@ -33,7 +33,7 @@ pub(crate) fn place_ottomans(g: &mut Game, _dist: &[i32]) {
             let rr = if i == 0 { 0.0 } else { ot_r * 0.55 };
             let btn = mesh(circle_geo!(button_r, 5), &button_mat);
             btn.rotation().x = -PI / 2.0;
-            btn.position().set(ang.cos() * rr, 0.16 + 0.18 - (if i == 0 { 0.011 } else { 0.020 }), ang.sin() * rr);
+            btn.position().set(ang.dcos() * rr, 0.16 + 0.18 - (if i == 0 { 0.011 } else { 0.020 }), ang.dsin() * rr);
             ot.add(&btn);
         }
         // Skirt below cushion.
@@ -44,7 +44,7 @@ pub(crate) fn place_ottomans(g: &mut Game, _dist: &[i32]) {
         for i in 0..4 {
             let ang = (i as f64 / 4.0) * PI * 2.0 + PI / 4.0;
             let foot = mesh(pg("Ottomans__bunFoot", cyl_geo!(0.014, 0.020, 0.020, 5)), &wood_mat);
-            foot.position().set(ang.cos() * (ot_r - 0.020), 0.010, ang.sin() * (ot_r - 0.020));
+            foot.position().set(ang.dcos() * (ot_r - 0.020), 0.010, ang.dsin() * (ot_r - 0.020));
             ot.add(&foot);
         }
     } else {

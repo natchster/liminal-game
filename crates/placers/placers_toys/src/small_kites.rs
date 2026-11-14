@@ -85,8 +85,8 @@ fn sail_tex(paper: [f64; 3], ink: [f64; 3], salt: u32) -> Tex {
         // the print: a border line 24 mm in, a five pointed star over the middle
         let band = sstep(0.020, 0.022, edge) * (1.0 - sstep(0.030, 0.032, edge));
         let (sx, sz) = (x, z - 0.04);
-        let r = sx.hypot(sz);
-        let star = 1.0 - sstep(-0.002, 0.002, r - star_edge(sz.atan2(sx), 0.115, 0.045));
+        let r = sx.dhypot(sz);
+        let star = 1.0 - sstep(-0.002, 0.002, r - star_edge(sz.datan2(sx), 0.115, 0.045));
         let ring = sstep(0.150, 0.152, r) * (1.0 - sstep(0.158, 0.160, r));
         let printed = band.max(star).max(ring);
         // the print rubbed and faded unevenly
@@ -101,7 +101,7 @@ fn sail_tex(paper: [f64; 3], ink: [f64; 3], salt: u32) -> Tex {
         for k in 0..10 {
             let a = hash(salt ^ 0x91, k, 0) * PI;
             let (x0, z0) = (-0.2 + 0.4 * hash(salt ^ 0x92, k, 1), -0.25 + 0.5 * hash(salt ^ 0x93, k, 2));
-            let (nx, nz) = (a.cos(), a.sin());
+            let (nx, nz) = (a.dcos(), a.dsin());
             let d = (x - x0) * nx + (z - z0) * nz;
             let along = (z - z0) * nx - (x - x0) * nz;
             let len = 0.06 + 0.18 * hash(salt ^ 0x94, k, 3);
@@ -122,10 +122,10 @@ fn sail_tex(paper: [f64; 3], ink: [f64; 3], salt: u32) -> Tex {
         c = mix(c, [0.36, 0.28, 0.20], 0.55 * tide);
         // a shoe's tread across it: a sole's outline of grime, its bars
         let (tx, tz) = (x - 0.06, z + 0.13);
-        let (ca, sa) = (0.6f64.cos(), 0.6f64.sin());
+        let (ca, sa) = (0.6f64.dcos(), 0.6f64.dsin());
         let (lx, lz) = (tx * ca - tz * sa, tx * sa + tz * ca);
-        let sole = (lx / 0.045).powi(2) + (lz / (0.11 + 0.012 * (lz / 0.11))).powi(2);
-        let bars = sstep(0.3, 0.6, (lz * 220.0).sin()) * (1.0 - sstep(0.6, 1.0, sole));
+        let sole = (lx / 0.045).dpowi(2) + (lz / (0.11 + 0.012 * (lz / 0.11))).dpowi(2);
+        let bars = sstep(0.3, 0.6, (lz * 220.0).dsin()) * (1.0 - sstep(0.6, 1.0, sole));
         let scuff = sstep(0.35, 0.75, fbm(salt ^ 0x71, u * 30.0, v * 30.0, 2));
         c = mix(c, [0.30, 0.27, 0.24], bars * scuff * 0.55);
         // dust
@@ -143,9 +143,9 @@ fn star_edge(a: f64, ro: f64, ri: f64) -> f64 {
     let phi = if f > sector { 2.0 * sector - f } else { f };
     // the edge from the point (ro, 0) to the notch (ri at the half sector)
     let (ax, ay) = (ro, 0.0);
-    let (bx, by) = (ri * sector.cos(), ri * sector.sin());
+    let (bx, by) = (ri * sector.dcos(), ri * sector.dsin());
     let (ex, ey) = (bx - ax, by - ay);
-    let (dx, dy) = (phi.cos(), phi.sin());
+    let (dx, dy) = (phi.dcos(), phi.dsin());
     (ax * ey - ay * ex) / (dx * ey - dy * ex)
 }
 

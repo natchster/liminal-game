@@ -73,8 +73,8 @@ game::lazy_static_tex!(
         for i in 0..8 {
             let a = (i as f64 / 8.0) * PI * 2.0;
             ctx.begin_path();
-            ctx.move_to(sun_x + a.cos() * (sun_r + 3.0), sun_y + a.sin() * (sun_r + 3.0));
-            ctx.line_to(sun_x + a.cos() * (sun_r + 15.0), sun_y + a.sin() * (sun_r + 15.0));
+            ctx.move_to(sun_x + a.dcos() * (sun_r + 3.0), sun_y + a.dsin() * (sun_r + 3.0));
+            ctx.line_to(sun_x + a.dcos() * (sun_r + 15.0), sun_y + a.dsin() * (sun_r + 15.0));
             ctx.stroke();
         }
         // Green grass ground line.

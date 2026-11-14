@@ -120,7 +120,7 @@ impl Game {
             let a = (i as f64 / count as f64) * PI * 2.0 + rand2(-0.3, 0.3);
             let r = 0.25 + rnd() * 0.95;
             lamp.position().set(
-                a.cos() * r,
+                a.dcos() * r,
                 if floor {
                     0.0
                 } else if rnd() < 0.5 {
@@ -128,7 +128,7 @@ impl Game {
                 } else {
                     0.18
                 },
-                a.sin() * r,
+                a.dsin() * r,
             );
             lamp.rotation().y = rand1(7.0);
             nest.add(&lamp);
@@ -379,7 +379,7 @@ impl Game {
         self.shadow_u_time = t;
         self.sync_shadow_u();
         let phase = self.entities[ei].n("phase");
-        let flick = 0.22 + 0.1 * (t * 9.0 + phase).sin() + 0.06 * (t * 23.0 + phase * 3.0).sin();
+        let flick = 0.22 + 0.1 * (t * 9.0 + phase).dsin() + 0.06 * (t * 23.0 + phase * 3.0).dsin();
         let solid = self.entities[ei].n("solid");
         self.shadow_fade(ei, lerp(flick, 0.96, solid), 0.55 * solid);
         if let Some(edge) = self.entities[ei].parts.get("edge") {
@@ -389,7 +389,7 @@ impl Game {
         // head lolling; lit and on the hunt, a long fast stride, arms reaching
         let e = &mut self.entities[ei];
         let hk0 = or0(e.n("huntK"));
-        let hk = hk0 + ((if e.state == "hunt" { 1.0 } else { 0.0 }) - hk0) * (1.0 - (-dt * 3.0).exp());
+        let hk = hk0 + ((if e.state == "hunt" { 1.0 } else { 0.0 }) - hk0) * (1.0 - (-dt * 3.0).dexp());
         e.set_n("huntK", hk);
         let st = GaitStyle {
             hunt: 0.7 * hk * solid,
@@ -397,7 +397,7 @@ impl Game {
             reach: 0.85 * hk * solid,
             look: 0.35 + 0.65 * hk,
             shiver: 1.0 - solid,
-            tilt: (t * 1.3 + phase).sin() * 0.2 * (1.0 - solid),
+            tilt: (t * 1.3 + phase).dsin() * 0.2 * (1.0 - solid),
             breath: 0.0,
         };
         self.human_gait(ei, dt, t, &HUMAN_RIG_SHADOW, &st);
@@ -457,7 +457,7 @@ impl Game {
         for (i, e) in self.entities.iter().enumerate() {
             if e.kind == "shadow" {
                 let p = e.pos();
-                let d = (p.x - pp.x).powi(2) + (p.z - pp.z).powi(2);
+                let d = (p.x - pp.x).dpowi(2) + (p.z - pp.z).dpowi(2);
                 if d < bd {
                     bd = d;
                     best = Some(i);

@@ -89,7 +89,7 @@ pub(crate) fn place_cake_stands(g: &mut Game, _dist: &[i32]) {
                 stand.add(&light);
                 g.animate(move |_g, _dt, t| {
                     // the old flicker: two sines (5 and 9 Hz)
-                    let f = 0.85 + (t * 5.0 + flicker_phase).sin() * 0.10 + (t * 9.0 + flicker_phase2).sin() * 0.06;
+                    let f = 0.85 + (t * 5.0 + flicker_phase).dsin() * 0.10 + (t * 9.0 + flicker_phase2).dsin() * 0.06;
                     flame.scale().set(FLAME_SCALE * (0.9 + 0.1 * f), FLAME_SCALE * f * 1.1, FLAME_SCALE * (0.9 + 0.1 * f));
                     light.set_intensity(0.35 * f);
                 });
@@ -228,7 +228,7 @@ fn cake_tex(flavour: usize, salt: u32) -> Tex {
         let cols: Vec<(f64, f64, f64)> = (0..12)
             .map(|k| {
                 if k < 9 {
-                    (r.next() * w, h - r.next().powf(1.8) * h * 0.4, if k < 2 { r.range(10.0, 18.0) } else { r.range(3.0, 7.0) })
+                    (r.next() * w, h - r.next().dpowf(1.8) * h * 0.4, if k < 2 { r.range(10.0, 18.0) } else { r.range(3.0, 7.0) })
                 } else {
                     (r.range(0.1, 0.4) * w, r.range(0.1, 0.4) * h, r.range(4.0, 9.0))
                 }

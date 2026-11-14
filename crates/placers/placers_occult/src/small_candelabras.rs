@@ -42,7 +42,7 @@ pub(crate) fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
             let arm = mesh(pg("SmallCandelabras__arm", cyl_geo!(0.004, 0.004, arm_len, 4)), &brass_mat);
             arm.position().set(ax / 2.0, (0.120 + ay) / 2.0, 0);
             // Turn the arm's Y axis onto the column-to-cup direction.
-            arm.rotation().z = (ay - 0.120).atan2(ax) - PI / 2.0;
+            arm.rotation().z = (ay - 0.120).datan2(ax) - PI / 2.0;
             cand.add(&arm);
         }
         // Holder cup at top of arm.
@@ -76,7 +76,7 @@ pub(crate) fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
         let flicker_rate = 6.0 + rnd() * 4.0;
         g.animate(move |_g, _dt, t| {
             let p = t * flicker_rate + flicker_phase;
-            let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3;
+            let wobble = p.dsin() * 0.5 + (p * 1.7).dsin() * 0.3;
             glow.set_intensity(0.3 + wobble * 0.08);
             flame.scale().y = 1.0 + wobble * 0.12;
             halo.scale().set_scalar(1.0 + wobble * 0.15);

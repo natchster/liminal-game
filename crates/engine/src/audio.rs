@@ -8,6 +8,10 @@
 //! scheduled parameter automation. A node is released once its last handle is
 //! dropped and it can no longer make sound.
 #![expect(clippy::new_without_default, reason = "a context opens the output device: a Default would hide that")]
+#![expect(
+    clippy::disallowed_methods,
+    reason = "the sound's synthesis: its values reach the speakers and nothing the game decides (engine::dmath)"
+)]
 
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;

@@ -25,15 +25,15 @@ pub fn pouch(w: f64, h: f64, d: f64, seal: f64, slack: f64, turned: bool, seed: 
                 let a = 2.0 * s - 1.0;
                 // full across the middle, flat at the seals
                 let env = smoothstep(t, seal * 0.6, seal * 2.6) * smoothstep(1.0 - t, seal * 0.6, seal * 2.6);
-                let across = (1.0 - a * a).max(0.0).powf(0.55);
-                let sag = 1.0 - slack * 0.35 * (t * PI).sin() * (0.5 + 0.5 * (s * 7.0 + seed).sin());
+                let across = (1.0 - a * a).max(0.0).dpowf(0.55);
+                let sag = 1.0 - slack * 0.35 * (t * PI).dsin() * (0.5 + 0.5 * (s * 7.0 + seed).dsin());
                 let mut z = side * d / 2.0 * across * env * sag;
                 // the crimp's ridges
                 if t < seal || t > 1.0 - seal {
-                    z += side * 0.0007 * ((t * h) * 900.0).sin();
+                    z += side * 0.0007 * ((t * h) * 900.0).dsin();
                 }
                 // foil wrinkles
-                z += side * 0.0012 * env * ((s * 9.0 + seed * 3.1).sin() * (t * 7.0 + seed).cos());
+                z += side * 0.0012 * env * ((s * 9.0 + seed * 3.1).dsin() * (t * 7.0 + seed).dcos());
                 let flare = 1.0 + 0.05 * (1.0 - env);
                 let x = a * w / 2.0 * flare;
                 pos.extend_from_slice(&[x as f32, (t * h) as f32, z as f32]);

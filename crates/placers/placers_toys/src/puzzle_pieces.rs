@@ -132,7 +132,7 @@ fn puzzle_face_tex(k: usize, inner: bool, lo: (f64, f64), ext: (f64, f64)) -> Te
                         let a = p as f64 * PI / 4.0;
                         ctx.set_fill_style("#d8d2c2");
                         ctx.begin_path();
-                        ctx.ellipse(x + a.cos() * 4.0, y + a.sin() * 4.0, 3.2, 1.6, a, 0, 7);
+                        ctx.ellipse(x + a.dcos() * 4.0, y + a.dsin() * 4.0, 3.2, 1.6, a, 0, 7);
                         ctx.fill();
                     }
                     ctx.set_fill_style("#c09a3c");
@@ -150,7 +150,7 @@ fn puzzle_face_tex(k: usize, inner: bool, lo: (f64, f64), ext: (f64, f64)) -> Te
                     let a = -0.5 + rnd() * 1.0 + if rnd() < 0.3 { 1.2 } else { 0.0 };
                     let l = 10.0 + rnd() * 18.0;
                     let style = if rnd() < 0.5 { "rgba(150,112,48,0.55)" } else { "rgba(224,196,128,0.5)" };
-                    line(ctx, &[(x, y), (x + a.cos() * l, y + a.sin() * l)], 1.0, style);
+                    line(ctx, &[(x, y), (x + a.dcos() * l, y + a.dsin() * l)], 1.0, style);
                 }
                 line(ctx, &[(0.0, h * (0.3 + rnd() * 0.4)), (w, h * (0.2 + rnd() * 0.6))], 2.4, ink);
             }

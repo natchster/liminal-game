@@ -89,7 +89,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
         let sway_phase = rnd() * PI * 2.0;
         let m2 = mirror.clone();
         g.animate(move |_g, _dt, t| {
-            m2.rotation().z = base_rot_z + (t * 0.3 * PI + sway_phase).sin() * 0.02;
+            m2.rotation().z = base_rot_z + (t * 0.3 * PI + sway_phase).dsin() * 0.02;
         });
     }
     let mp = mirror.pos();
@@ -99,7 +99,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     if mirror_cracked {
         let face_up = phong!({ color: 0x1c1e1e, specular: 0x8a8c8c, shininess: 300 });
         let face_down = lambert!({ color: 0x2c2a28 });
-        let (along, out) = ((m_rot_y.cos(), -m_rot_y.sin()), (m_rot_y.sin(), m_rot_y.cos()));
+        let (along, out) = ((m_rot_y.dcos(), -m_rot_y.dsin()), (m_rot_y.dsin(), m_rot_y.dcos()));
         let shard_count = 3 + (rnd() * 4.0).floor() as i32;
         for _sh in 0..shard_count {
             let sw = 0.015 + rnd() * 0.02;
@@ -113,7 +113,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             let k = ((sw + shh) / 0.05).clamp(0.85, 1.15);
             shard.scale().set(k, k, k);
             shard.rotation().y = turn;
-            let (a, n) = (sh_ang.cos() * sh_rad, 0.03 + sh_ang.sin().abs() * sh_rad);
+            let (a, n) = (sh_ang.dcos() * sh_rad, 0.03 + sh_ang.dsin().abs() * sh_rad);
             shard.position().set(mp.x + along.0 * a + out.0 * n, 0.001, mp.z + along.1 * a + out.1 * n);
             g.world.add(&shard);
         }
@@ -342,7 +342,7 @@ impl WmBreak {
             while l < reach && inside(q) {
                 let step = r.range(0.008, 0.022);
                 a += r.range(-0.12, 0.12);
-                q = [q[0] + a.cos() * step, q[1] + a.sin() * step];
+                q = [q[0] + a.dcos() * step, q[1] + a.dsin() * step];
                 l += step;
                 pts.push(q);
             }
@@ -357,7 +357,7 @@ impl WmBreak {
         let mut dirs: Vec<Vec<[f64; 2]>> = vec![];
         for i in 0..n {
             let a = a0 + PI * 2.0 * i as f64 / n as f64 + r.range(-0.25, 0.25);
-            let start = [p[0] + a.cos() * crush, p[1] + a.sin() * crush];
+            let start = [p[0] + a.dcos() * crush, p[1] + a.dsin() * crush];
             let reach = if r.next() < 0.25 { r.range(0.05, 0.16) } else { 9.0 };
             let pts = run(&mut r, start, a, reach);
             if r.next() < 0.4 && pts.len() > 5 {
@@ -371,7 +371,7 @@ impl WmBreak {
             dirs.push(pts.clone());
             b.lines.push((pts, 1.25));
         }
-        let at = |pts: &Vec<[f64; 2]>, rad: f64| pts.iter().find(|q| (q[0] - p[0]).hypot(q[1] - p[1]) >= rad).copied();
+        let at = |pts: &Vec<[f64; 2]>, rad: f64| pts.iter().find(|q| (q[0] - p[0]).dhypot(q[1] - p[1]) >= rad).copied();
         let rings = [r.range(0.018, 0.035), r.range(0.05, 0.09)];
         for (ri, &rad) in rings.iter().enumerate() {
             let chance = if ri == 0 { 0.55 } else { 0.3 };
@@ -460,11 +460,11 @@ fn wm_silver_tex(b: &WmBreak, vary: u32) -> Tex {
                 let fr = [2.0 + rnd() * 2.0, 6.0 + rnd() * 5.0, 15.0 + rnd() * 10.0];
                 let depth = |t: f64| -> f64 {
                     let wave = 0.5
-                        + 0.22 * (fr[0] * t * 6.28 + ph[0]).sin()
-                        + 0.16 * (fr[1] * t * 6.28 + ph[1]).sin()
-                        + 0.1 * (fr[2] * t * 6.28 + ph[2]).sin();
+                        + 0.22 * (fr[0] * t * 6.28 + ph[0]).dsin()
+                        + 0.16 * (fr[1] * t * 6.28 + ph[1]).dsin()
+                        + 0.1 * (fr[2] * t * 6.28 + ph[2]).dsin();
                     let on = ((wave - 0.38) / 0.4).clamp(0.0, 1.0);
-                    let corner = 1.0 + 1.6 * ((1.0 - (t * 2.0 - 1.0).abs()) * -9.0).exp();
+                    let corner = 1.0 + 1.6 * ((1.0 - (t * 2.0 - 1.0).abs()) * -9.0).dexp();
                     deep * (on * on * (3.0 - 2.0 * on)) * wave * corner
                 };
                 let at = |t: f64, d: f64| -> (f64, f64) {
@@ -500,14 +500,14 @@ fn wm_silver_tex(b: &WmBreak, vary: u32) -> Tex {
                 }
                 for _ in 0..(len / 6.0) as usize {
                     let t = rnd();
-                    let d = depth(t).max(1.5) * (1.3 + 2.5 * rnd().powi(2));
+                    let d = depth(t).max(1.5) * (1.3 + 2.5 * rnd().dpowi(2));
                     let (x, y) = at(t, d);
                     spot(ctx, x, y, 0.6 + rnd() * rnd() * 3.0, 0.4 + 0.5 * rnd());
                 }
             }
             // pinholes, all over but most low down
             for _ in 0..60 {
-                let (x, y) = (rnd() * w, h * rnd().powf(0.6));
+                let (x, y) = (rnd() * w, h * rnd().dpowf(0.6));
                 ctx.set_fill_style(format!("rgba(255,255,255,{:.2})", 0.5 + 0.5 * rnd()));
                 ctx.begin_path();
                 ctx.arc(x, y, 0.35 + rnd() * rnd() * 1.1, 0, 7);
@@ -535,7 +535,7 @@ fn wm_silver_tex(b: &WmBreak, vary: u32) -> Tex {
                 let rr = cr / gw * w;
                 for _ in 0..10 {
                     let (a, d) = (rnd() * 7.0, rr * (1.0 + 2.5 * rnd()));
-                    spot(ctx, x + a.cos() * d, y + a.sin() * d, 1.0 + rnd() * rr * 0.8, 0.4 + 0.4 * rnd());
+                    spot(ctx, x + a.dcos() * d, y + a.dsin() * d, 1.0 + rnd() * rr * 0.8, 0.4 + 0.4 * rnd());
                 }
             }
         })
@@ -564,7 +564,7 @@ fn wm_film_tex(b: &WmBreak, smudged: bool, gilt: bool, vary: u32) -> Tex {
             ctx.stroke_rect(3.5, 3.5, w - 7.0, h - 7.0);
             // dust, unevenly, and more of it lower down
             for _ in 0..14 {
-                let (x, y, r) = (rnd() * w, h * rnd().powf(0.7), w * (0.12 + 0.3 * rnd()));
+                let (x, y, r) = (rnd() * w, h * rnd().dpowf(0.7), w * (0.12 + 0.3 * rnd()));
                 let g = ctx.create_radial_gradient(x, y, 0, x, y, r);
                 g.add_color_stop(0, &format!("rgba(176,172,162,{:.3})", 0.05 + 0.06 * rnd()));
                 g.add_color_stop(1, "rgba(176,172,162,0)");
@@ -658,9 +658,9 @@ fn wm_film_tex(b: &WmBreak, smudged: bool, gilt: bool, vary: u32) -> Tex {
                     let a = i as f64 / 14.0 * PI * 2.0;
                     let q = rr * (0.6 + 0.6 * rnd());
                     if i == 0 {
-                        ctx.move_to(x + a.cos() * q, y + a.sin() * q);
+                        ctx.move_to(x + a.dcos() * q, y + a.dsin() * q);
                     } else {
-                        ctx.line_to(x + a.cos() * q, y + a.sin() * q);
+                        ctx.line_to(x + a.dcos() * q, y + a.dsin() * q);
                     }
                 }
                 ctx.close_path();
@@ -672,8 +672,8 @@ fn wm_film_tex(b: &WmBreak, smudged: bool, gilt: bool, vary: u32) -> Tex {
                     ctx.set_stroke_style(format!("rgba({v},{v},{},0.7)", v - 6));
                     ctx.set_line_width(0.6 + 0.4 * rnd());
                     ctx.begin_path();
-                    ctx.move_to(x + a.cos() * r0, y + a.sin() * r0);
-                    ctx.line_to(x + a.cos() * r1, y + a.sin() * r1);
+                    ctx.move_to(x + a.dcos() * r0, y + a.dsin() * r0);
+                    ctx.line_to(x + a.dcos() * r1, y + a.dsin() * r1);
                     ctx.stroke();
                 }
             }
@@ -735,7 +735,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
                     let n = (len / 8.0) as usize + 2;
                     for k in 0..=n {
                         let t = k as f64 / n as f64 * len;
-                        let a = across + amp * (t / len * fr * 6.28 + ph).sin();
+                        let a = across + amp * (t / len * fr * 6.28 + ph).dsin();
                         let (x, y) = if *along_x { (t, a) } else { (a, t) };
                         if k == 0 {
                             ctx.move_to(x, y);
@@ -810,7 +810,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
                     ctx.set_line_width(0.5);
                     ctx.begin_path();
                     ctx.move_to(x, y);
-                    ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                    ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                     ctx.stroke();
                 }
             }
@@ -857,7 +857,7 @@ fn wm_gilt_tex(vary: u32) -> Tex {
             for i in 0..n {
                 let x = (i as f64 + 0.5) / ppm;
                 let d = x.min(WM_SIZE[0] - x).min(y).min(WM_SIZE[1] - y);
-                let bump = |c: f64, s: f64| (-((d - c) / s).powi(2)).exp();
+                let bump = |c: f64, s: f64| (-((d - c) / s).dpowi(2)).dexp();
                 // the beads and the cushion's crest, the quirks between
                 let crest = bump(0.0057, 0.0016).max(bump(0.0200, 0.0042)).max(bump(0.0303, 0.0016));
                 let recess = bump(0.0086, 0.0009).max(bump(0.0277, 0.0009)).max(bump(0.0340, 0.0008));
@@ -922,8 +922,8 @@ fn wm_basin_tex(vary: u32, bowl: bool) -> Tex {
                 let mut a = rnd() * 6.3;
                 for _ in 0..4 {
                     a += (rnd() - 0.5) * 1.6;
-                    x += a.cos() * (4.0 + rnd() * 8.0);
-                    y += a.sin() * (4.0 + rnd() * 8.0);
+                    x += a.dcos() * (4.0 + rnd() * 8.0);
+                    y += a.dsin() * (4.0 + rnd() * 8.0);
                     ctx.line_to(x, y);
                 }
                 ctx.stroke();
@@ -987,8 +987,8 @@ fn wm_stain_tex(vary: u32) -> Tex {
             let r0 = w * 0.34;
             for k in 0..=40 {
                 let a = k as f64 / 40.0 * PI * 2.0;
-                let rr = r0 * (0.85 + 0.15 * (a * 3.0 + rnd() * 0.4).sin());
-                let (x, y) = (w / 2.0 + a.cos() * rr, h / 2.0 + a.sin() * rr * 0.8);
+                let rr = r0 * (0.85 + 0.15 * (a * 3.0 + rnd() * 0.4).dsin());
+                let (x, y) = (w / 2.0 + a.dcos() * rr, h / 2.0 + a.dsin() * rr * 0.8);
                 if k == 0 {
                     ctx.move_to(x, y);
                 } else {

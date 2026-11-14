@@ -47,7 +47,7 @@ pub(crate) fn place_small_crayons(g: &mut Game, _dist: &[i32]) {
             let s_ang = rnd() * PI * 2.0;
             let s_rad = 0.06 + rnd() * 0.12;
             let cp = crayon.pos();
-            sib_crayon.position().set(cp.x + s_ang.cos() * s_rad, 0.008, cp.z + s_ang.sin() * s_rad);
+            sib_crayon.position().set(cp.x + s_ang.dcos() * s_rad, 0.008, cp.z + s_ang.dsin() * s_rad);
             sib_crayon.rotation().y = rnd() * PI * 2.0;
             g.world.add(&sib_crayon);
         }

@@ -60,14 +60,14 @@ pub(crate) fn place_hairbrushes(g: &mut Game, _dist: &[i32]) {
             // Start point near random spot on pad top.
             let ang_start = rnd() * PI * 2.0;
             let r_start = rnd() * 0.035;
-            let mut prev = v3(ang_start.cos() * r_start, 0.030, ang_start.sin() * r_start * 1.3);
+            let mut prev = v3(ang_start.dcos() * r_start, 0.030, ang_start.dsin() * r_start * 1.3);
             // Chain 6 segments arcing outward from pad.
             let mut dir_ang = ang_start + (rnd() - 0.5) * 1.5;
             for i in 0..6 {
                 let step = 0.008 + rnd() * 0.008;
                 dir_ang += (rnd() - 0.5) * 1.2; // Wander.
                 let mut next = prev;
-                next.add(&v3(dir_ang.cos() * step, -0.001 * i as f64, dir_ang.sin() * step));
+                next.add(&v3(dir_ang.dcos() * step, -0.001 * i as f64, dir_ang.dsin() * step));
                 let dir_len = next.distance_to(&prev);
                 let mut mid = prev;
                 mid.add(&next).multiply_scalar(0.5);

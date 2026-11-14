@@ -28,7 +28,7 @@ pub(crate) fn place_formal_diplomas(g: &mut Game, _dist: &[i32]) {
     let dip = mesh(plane_geo!(frame_w - 0.030, frame_h - 0.030), &dip_mat);
     dip.position().set(0, mount_y, 0.020);
     dp.add(&dip);
-    dp.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    dp.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     let px = g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015);
     let pz = g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015);
     dp.position().set(px, 0, pz);
@@ -147,8 +147,8 @@ game::lazy_static_tex!(
             let ang = (i as f64 / 5.0) * PI * 2.0 - PI / 2.0;
             let (r1, r2) = (12.0, 5.0);
             let outer = if i % 2 == 0 { r1 } else { r2 };
-            let px = w - 40.0 + ang.cos() * outer;
-            let py = h - 40.0 + ang.sin() * outer;
+            let px = w - 40.0 + ang.dcos() * outer;
+            let py = h - 40.0 + ang.dsin() * outer;
             if i == 0 {
                 ctx.move_to(px, py);
             } else {

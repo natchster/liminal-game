@@ -33,7 +33,7 @@ pub(crate) fn place_rolled_carpets(g: &mut Game, _dist: &[i32]) {
     let yaw = wall_yaw(&c);
     let vary = roll_hash(c.x, c.z, c.dx * 3 + c.dz);
     // a world offset (x, z) in the first roll's frame (along the wall, out)
-    let (cy, sy) = (yaw.cos(), yaw.sin());
+    let (cy, sy) = (yaw.dcos(), yaw.dsin());
     let local = |wx: f64, wz: f64| (wx * cy - wz * sy, wx * sy + wz * cy);
     let (roll, top) = rolled_rug(0, colourway(carpet_hex), vary, None, (0.0, 0.0));
     roll.rotation().y = yaw;
@@ -127,7 +127,7 @@ fn roll_axis_y(k: usize) -> f64 {
 /// Its axis's bow off straight at `s` m along it (as `r13b` builds it)
 fn roll_bow(k: usize, s: f64) -> f64 {
     let u = 2.0 * s / ROLLS[k].0;
-    0.012 * (1.0 - u * u) - 0.004 * (u * 2.6).sin()
+    0.012 * (1.0 - u * u) - 0.004 * (u * 2.6).dsin()
 }
 
 /// A hash of a tile and a salt (no draw)
@@ -158,7 +158,7 @@ fn rolled_rug(k: usize, colours: usize, vary: u32, rest: Option<RollRest>, origi
     let fringe = lambert!({ color: 0x968a72, side: DoubleSide });
     let twine = lambert!({ color: 0x6a583e });
     let wall_z = -0.15;
-    let (tc, ts) = rest.map_or((1.0, 0.0), |q| (q.tilt.cos(), q.tilt.sin()));
+    let (tc, ts) = rest.map_or((1.0, 0.0), |q| (q.tilt.dcos(), q.tilt.dsin()));
     // a point of the roll as modelled (standing: its axis +y, its floor
     // side +x at x = 0, the room +z) to the wall's frame, and where its
     // axis lies there
@@ -401,7 +401,7 @@ fn roll_pile_tex(k: usize, colours: usize, vary: u32) -> Tex {
                 let fade = 0.40 + 0.16 * fbm(seed ^ 0x99, a * 2.0, b * 2.0, 2);
                 let warm = [lum * 1.05 + 0.05, lum + 0.04, lum * 0.86 + 0.03];
                 // the dust lying on its top, thickest along the crown
-                let top = (-phi.cos()).max(0.0).powi(2) * (0.55 + 0.45 * fbm(seed ^ 0x41, a * 6.0, b * 3.0, 3));
+                let top = (-phi.dcos()).max(0.0).dpowi(2) * (0.55 + 0.45 * fbm(seed ^ 0x41, a * 6.0, b * 3.0, 3));
                 let grime = 0.80 + 0.20 * fbm(seed ^ 0x61, a * 5.0, b * 5.0, 3);
                 for q in 0..3 {
                     let v = (px[q] * (1.0 - fade) + warm[q] * fade) * tuft * grime;

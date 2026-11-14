@@ -50,16 +50,16 @@ const MASK_Y0: f64 = 111.5;
 
 /// The face's relief (`occult/a_shrines_things.py`, `mask_height`): Z (mm) at (X, Y)
 fn mask_height(x: f64, y: f64) -> f64 {
-    let gs = |cx: f64, cy: f64, sx: f64, sy: f64, ax: f64| (-(((ax - cx) / sx).powi(2) + ((y - cy) / sy).powi(2))).exp();
+    let gs = |cx: f64, cy: f64, sx: f64, sy: f64, ax: f64| (-(((ax - cx) / sx).dpowi(2) + ((y - cy) / sy).dpowi(2))).dexp();
     let ax = x.abs();
     let mut z = -(x * x) / (2.0 * 64.0) - (y * y) / (2.0 * 260.0);
     z += 4.5 * gs(0.0, 72.0, 42.0, 30.0, x);
-    z += 5.0 * (-((y - 37.0) / 9.0).powi(2)).exp() * (-(x / 48.0).powi(4)).exp();
+    z += 5.0 * (-((y - 37.0) / 9.0).dpowi(2)).dexp() * (-(x / 48.0).dpowi(4)).dexp();
     z -= 7.0 * gs(32.0, 21.0, 19.0, 11.0, ax);
     z += 7.5 * gs(38.0, -10.0, 19.0, 20.0, ax);
     let t = sstep(32.0, -16.0, y) * (1.0 - sstep(-16.0, -27.0, y));
     let w = 5.5 + 7.0 * sstep(32.0, -16.0, y);
-    z += (3.0 + 21.0 * t.powf(1.3)) * (-(x / w).powi(2)).exp() * (1.0 - sstep(-22.0, -30.0, y) * 0.6) * (1.0 - sstep(30.0, 44.0, y));
+    z += (3.0 + 21.0 * t.dpowf(1.3)) * (-(x / w).dpowi(2)).dexp() * (1.0 - sstep(-22.0, -30.0, y) * 0.6) * (1.0 - sstep(30.0, 44.0, y));
     z += 6.5 * gs(11.0, -21.0, 6.0, 6.0, ax);
     z += 5.5 * gs(0.0, -44.0, 20.0, 5.5, x);
     z += 5.0 * gs(0.0, -55.5, 17.0, 5.0, x);

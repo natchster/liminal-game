@@ -87,7 +87,7 @@ pub(crate) fn place_acorns(g: &mut Game, _dist: &[i32]) {
 
 /// Rotate (x, y) by `a` about the origin
 fn rot2(x: f64, y: f64, a: f64) -> (f64, f64) {
-    let (c, s) = (a.cos(), a.sin());
+    let (c, s) = (a.dcos(), a.dsin());
     (x * c - y * s, x * s + y * c)
 }
 
@@ -123,9 +123,9 @@ const NUT_U_SCAR: f64 = 0.6 * NUT_R / (0.6 * NUT_R + NUT_L + 0.0016);
 /// to the tip, v the angle from its top (both sides alike)
 fn nut_uv(s: f64, ox: f64, oy: f64) -> (f64, f64) {
     let tot = 0.6 * NUT_R + NUT_L + 0.0016;
-    let rho = ox.hypot(oy);
+    let rho = ox.dhypot(oy);
     let u = if s < 2e-5 { rho / tot } else { (0.6 * NUT_R + s) / tot };
-    (u.clamp(0.0, 1.0), ox.abs().atan2(oy) / PI)
+    (u.clamp(0.0, 1.0), ox.abs().datan2(oy) / PI)
 }
 
 /// The bare nut: its axis along x at y = NUT_R, its base at x = -NUT_L / 2
@@ -151,8 +151,8 @@ fn acorn_pair_nut_geo() -> Option<Geo> {
 /// (u, v) on a cup in its standing frame: u round it, v up its outside
 /// (0..0.5) or its inside (0.5..1) from its foot to its rim
 fn cup_uv(q: [f64; 3], n: [f64; 3]) -> (f64, f64) {
-    let rho = q[0].hypot(q[2]);
-    let u = (q[2].atan2(q[0]) / (2.0 * PI) + 1.0) % 1.0;
+    let rho = q[0].dhypot(q[2]);
+    let u = (q[2].datan2(q[0]) / (2.0 * PI) + 1.0) % 1.0;
     let h = (q[1] / CUP_RIM).clamp(0.0, 1.0);
     let inward = if rho > 1e-6 { (n[0] * q[0] + n[2] * q[2]) / rho } else { 0.0 };
     let inside = inward < -0.25 && q[1] > CUP_FLOOR * 0.6;
@@ -214,7 +214,7 @@ fn nut_tex(k: usize, holed: bool) -> Tex {
                 c = mix_unclamped(c, [0.56, 0.52, 0.46], 0.18 * (1.0 - sstep(0.0, 0.5, v)));
                 if holed {
                     // the weevil larva's exit hole: round, 2 mm, on the top
-                    let d = ((u - 0.52) / 0.033).hypot(v / 0.042);
+                    let d = ((u - 0.52) / 0.033).dhypot(v / 0.042);
                     c = mix_unclamped(c, [0.36, 0.26, 0.17], 0.8 * (1.0 - sstep(1.0, 1.5, d)));
                     c = mix_unclamped(c, [0.05, 0.035, 0.03], 1.0 - sstep(0.75, 0.95, d));
                 }
@@ -261,7 +261,7 @@ fn cup_tex() -> Tex {
                 let mut c = mul(mix_unclamped([0.50, 0.44, 0.34], [0.42, 0.36, 0.27], felt), tone);
                 // each scale paler and felted toward its tip, its lower edge
                 // shadowed by the one over it
-                c = mix_unclamped(c, [0.60, 0.55, 0.45], 0.45 * fv.powf(1.5));
+                c = mix_unclamped(c, [0.60, 0.55, 0.45], 0.45 * fv.dpowf(1.5));
                 let edge = (1.0 - sstep(0.0, 0.12, fu.min(1.0 - fu))) * 0.8 + (1.0 - sstep(0.0, 0.22, fv));
                 c = mix_unclamped(c, [0.22, 0.17, 0.13], 0.75 * edge.min(1.0));
                 // the lip of the rim, the stub at the foot

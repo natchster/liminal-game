@@ -41,7 +41,7 @@ pub(crate) fn place_potted_plants(g: &mut Game, _dist: &[i32]) {
         leaf_geo.set_index(vec![0, 1, 2, 0, 2, 3]);
         leaf_geo.compute_vertex_normals();
         let leaf = mesh(leaf_geo, &leaf_mat);
-        leaf.position().set(a.cos() * 0.02, 0.082, a.sin() * 0.02);
+        leaf.position().set(a.dcos() * 0.02, 0.082, a.dsin() * 0.02);
         leaf.rotation().y = -a + PI / 2.0;
         leaf.rotation().z = 0.3 + rnd() * 0.4;
         plant.add(&leaf);

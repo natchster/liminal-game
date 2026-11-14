@@ -76,12 +76,12 @@ fn sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
             for i in 0..iw {
                 let (u, v) = ((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
                 // the wrap: noise that meets itself across u = 0 / 1
-                let (cu, su) = ((u * std::f64::consts::TAU).cos(), (u * std::f64::consts::TAU).sin());
+                let (cu, su) = ((u * std::f64::consts::TAU).dcos(), (u * std::f64::consts::TAU).dsin());
                 let n = fbm(seed, cu * 2.0 + 5.0, su * 2.0 + v * 3.0, 3);
                 // pores: dark pits, dust settled in them
                 let pore = sstep(0.70, 0.86, vn_wrap(seed ^ 2, u * 96.0, v * 44.0, 96));
                 // the side it lies on (u = 0.25), and the grey of dust
-                let under = 0.5 + 0.5 * ((u - 0.25) * std::f64::consts::TAU).cos();
+                let under = 0.5 + 0.5 * ((u - 0.25) * std::f64::consts::TAU).dcos();
                 let grey = 0.10 + 0.10 * n + 0.14 * under;
                 let mut c = [0.0; 3];
                 for k in 0..3 {
@@ -98,7 +98,7 @@ fn sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
                     // how far into the stain: up the point, and more on the up side
                     let s = v + (0.18 - du) * 0.8;
                     let a = (sstep(edge, edge + 0.12, s) + 0.8 * sstep(0.86, 0.97, v)).min(1.0);
-                    let tide = (-((s - edge - 0.05) / 0.025).powi(2)).exp() * a;
+                    let tide = (-((s - edge - 0.05) / 0.025).dpowi(2)).dexp() * a;
                     let soak = a * (0.55 + 0.35 * n);
                     for k in 0..3 {
                         let fc = f[k] * (1.0 - 0.25 * tide) * (1.0 - 0.2 * pore);

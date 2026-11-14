@@ -60,7 +60,7 @@ pub(crate) fn place_small_pinatas(g: &mut Game, _dist: &[i32]) {
         let sway_period = 10.0 + rnd() * 8.0;
         let p = hang.clone();
         g.animate(move |_g, _dt, t| {
-            p.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.012;
+            p.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.012;
         });
     }
 }

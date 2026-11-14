@@ -415,7 +415,7 @@ impl Game {
         } else {
             self.player.bob_amp = lerp(self.player.bob_amp, 0.0, dt * 6.0);
         }
-        let bob = self.player.bob_phase.sin().abs() * self.player.bob_amp * self.settings.bob;
+        let bob = self.player.bob_phase.dsin().abs() * self.player.bob_amp * self.settings.bob;
         let eye_drop = if self.player.crouch { EYE - CROUCH_EYE } else { 0.0 };
         // (Settings: head bob and shake scale; the draw stays)
         let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
@@ -439,8 +439,8 @@ impl Game {
         self.flashlight.set_intensity(fi);
         self.flashlight.position().copy(&cp);
         let fwd = self.player.fwd();
-        let pc = self.player.pitch.cos();
-        self.flashlight_target.position().set(cp.x + fwd.x * pc * 5.0, cp.y + self.player.pitch.sin() * 5.0, cp.z + fwd.z * pc * 5.0);
+        let pc = self.player.pitch.dcos();
+        self.flashlight_target.position().set(cp.x + fwd.x * pc * 5.0, cp.y + self.player.pitch.dsin() * 5.0, cp.z + fwd.z * pc * 5.0);
         self.player_light.position().copy(&cp);
         // the dark wears on you; the lamp keeps it off
         if !self.player.flashlight_on {
@@ -461,7 +461,7 @@ impl Game {
         // louder while the Face is out
         if let Some(ss) = &ss {
             let fdir = self.player.fwd();
-            ss.set_listener(cp.x, cp.y, cp.z, fdir.x, self.player.pitch.sin(), fdir.z);
+            ss.set_listener(cp.x, cp.y, cp.z, fdir.x, self.player.pitch.dsin(), fdir.z);
             let (vp, face_out, landing, flights) = {
                 let s = self.stairwell.as_ref().unwrap();
                 (s.voice_pos(), s.st.face.is_some(), s.landing(), s.flights())
@@ -730,7 +730,7 @@ impl Game {
         } else {
             self.player.bob_amp = lerp(self.player.bob_amp, 0.0, dt * 6.0);
         }
-        let bob = self.player.bob_phase.sin().abs() * self.player.bob_amp * self.settings.bob;
+        let bob = self.player.bob_phase.dsin().abs() * self.player.bob_amp * self.settings.bob;
         // (Settings: head bob and shake scale; the draw stays)
         let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
         let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.05 * shake_k } else { 0.0 };
@@ -752,8 +752,8 @@ impl Game {
         let cp = self.camera.pos();
         self.flashlight.position().copy(&cp);
         let fwd = self.player.fwd();
-        let pc = self.player.pitch.cos();
-        self.flashlight_target.position().set(cp.x + fwd.x * pc * 5.0, cp.y + self.player.pitch.sin() * 5.0, cp.z + fwd.z * pc * 5.0);
+        let pc = self.player.pitch.dcos();
+        self.flashlight_target.position().set(cp.x + fwd.x * pc * 5.0, cp.y + self.player.pitch.dsin() * 5.0, cp.z + fwd.z * pc * 5.0);
         self.player_light.position().copy(&cp);
         // the nearest lamps take the pooled lights; the drift sets fog and sky
         let e = out.env;
@@ -785,7 +785,7 @@ impl Game {
         // sound: the hum drops and the rooms ring longer every lap; steps on carpet
         let ss = self.modes_ss();
         if let (Some(ss), true) = (&ss, self.ac.is_some()) {
-            ss.set_listener(cp.x, cp.y, cp.z, fwd.x, self.player.pitch.sin(), fwd.z);
+            ss.set_listener(cp.x, cp.y, cp.z, fwd.x, self.player.pitch.dsin(), fwd.z);
             ss.set_zone(LOOP_ZONES[e.reverb.clamp(0, 6) as usize], 1.2);
             let hp = out.lights[0];
             if out.light_count > 0 && e.hum > 0.06 && hp.i > 0.05 {

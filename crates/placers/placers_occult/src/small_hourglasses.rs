@@ -30,7 +30,7 @@ pub(crate) fn place_small_hourglasses(g: &mut Game, _dist: &[i32]) {
     for i in 0..4 {
         let a = (i as f64 / 4.0) * PI * 2.0 + PI / 4.0;
         let post = mesh(pg("SmallHourglasses__post", cyl_geo!(0.003, 0.003, 0.15, 4)), &frame_mat);
-        post.position().set(a.cos() * 0.028, 0.080, a.sin() * 0.028);
+        post.position().set(a.dcos() * 0.028, 0.080, a.dsin() * 0.028);
         hg.add(&post);
     }
     // The two bulbs meet at their apexes (the waist, y 0.080) and run to the
@@ -67,7 +67,7 @@ pub(crate) fn place_small_hourglasses(g: &mut Game, _dist: &[i32]) {
     let shim_phase = rnd() * PI * 2.0;
     let stream2 = stream.clone();
     g.animate(move |_g, _dt, t| {
-        stream2.position().y = 0.057 + (t * 8.0 + shim_phase).sin() * 0.001;
+        stream2.position().y = 0.057 + (t * 8.0 + shim_phase).dsin() * 0.001;
         stream2.rotation().y = t * 2.0;
     });
     hg.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

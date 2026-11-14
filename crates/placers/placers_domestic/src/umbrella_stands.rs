@@ -67,11 +67,11 @@ pub(crate) fn place_umbrella_stands(g: &mut Game, _dist: &[i32]) {
         // leant out from its ferrule on the bottom till its canopy meets
         // the rim, toward the old turn (less toward the wall behind); its
         // crook turned once they all stand (below)
-        let wallward = (-y_rot.sin()).max(0.0);
+        let wallward = (-y_rot.dsin()).max(0.0);
         let lean = (0.08 + tilt_angle.abs() / 0.15 * 0.05) * (1.0 - 0.45 * wallward);
-        let foot = STAND_REACH - STAND_RIM * lean.tan();
+        let foot = STAND_REACH - STAND_RIM * lean.dtan();
         let lean_g = group();
-        lean_g.position().set(foot * y_rot.cos(), STAND_FLOOR, foot * y_rot.sin());
+        lean_g.position().set(foot * y_rot.dcos(), STAND_FLOOR, foot * y_rot.dsin());
         lean_g.rotation().y = -y_rot;
         let tip = group();
         tip.rotation().z = -lean;
@@ -87,7 +87,7 @@ pub(crate) fn place_umbrella_stands(g: &mut Game, _dist: &[i32]) {
     // way by the tilt alone, two touched: M8). A crook's way is
     // (cos a, sin a) in the stand's x and z (+z the room, -z its wall)
     let mut by_x: Vec<usize> = (0..crooks.len()).collect();
-    by_x.sort_by(|&a, &b| crooks[a].1.cos().total_cmp(&crooks[b].1.cos()));
+    by_x.sort_by(|&a, &b| crooks[a].1.dcos().total_cmp(&crooks[b].1.dcos()));
     for (rank, &i) in by_x.iter().enumerate() {
         let (umbrella, y_rot, tilt) = &crooks[i];
         let way = if rank == 0 {
@@ -100,7 +100,7 @@ pub(crate) fn place_umbrella_stands(g: &mut Game, _dist: &[i32]) {
         let crook = way + tilt * 0.8;
         umbrella.rotation().y = y_rot - crook;
     }
-    us.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    us.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     // Position at wall-adjacent floor spot.
     let px = g.wx(x) + dx as f64 * (CELL * 0.5 - 0.140);
     let pz = g.wz(z) + dz as f64 * (CELL * 0.5 - 0.140);

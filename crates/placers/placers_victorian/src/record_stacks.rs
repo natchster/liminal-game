@@ -74,7 +74,7 @@ pub(crate) fn place_record_stacks(g: &mut Game, _dist: &[i32]) {
         // its far rim on the floor
         let top = n as f64 * RS_SLEEVE_T;
         let d = 0.095;
-        let tilt = (top / (d + RS_VINYL_R - RS_HALF)).atan();
+        let tilt = (top / (d + RS_VINYL_R - RS_HALF)).datan();
         let side = group();
         side.rotation().y = hash(vary, 9, 9) * PI * 2.0;
         let disc = group();
@@ -277,12 +277,12 @@ fn rs_sleeve_atlas(singles: &[RsSingle], vary: u32) -> Tex {
                 ctx.set_line_width(1.2);
                 ctx.begin_path();
                 ctx.move_to(ax, ay);
-                ctx.line_to(ax + a.cos() * l, ay + a.sin() * l);
+                ctx.line_to(ax + a.dcos() * l, ay + a.dsin() * l);
                 ctx.stroke();
                 ctx.set_stroke_style("rgba(40,28,18,0.18)");
                 ctx.begin_path();
                 ctx.move_to(ax + 1.0, ay + 1.0);
-                ctx.line_to(ax + a.cos() * l + 1.0, ay + a.sin() * l + 1.0);
+                ctx.line_to(ax + a.dcos() * l + 1.0, ay + a.dsin() * l + 1.0);
                 ctx.stroke();
             }
             // a water stain, the floor's grime
@@ -389,13 +389,13 @@ fn rs_vinyl_tex() -> Tex {
                     for i in 0..n {
                         let (x, y) = ((i as f64 + 0.5) / w - 0.5, (j as f64 + 0.5) / h - 0.5);
                         let rr = (x * x + y * y).sqrt() * 0.175; // metres from the middle
-                        let a = y.atan2(x);
+                        let a = y.datan2(x);
                         let mut v = 0.075;
                         if (0.046..0.0835).contains(&rr) {
                             // the grooves: a sheen in rings, the track gaps darker and smooth
                             let gap = ((rr - 0.062).abs() < 0.0006) || ((rr - 0.074).abs() < 0.0006);
-                            let ring = ((rr * 9000.0).sin() * 0.5 + 0.5) * 0.04;
-                            v = if gap { 0.05 } else { 0.10 + ring + 0.03 * (a * 2.0).cos().abs() };
+                            let ring = ((rr * 9000.0).dsin() * 0.5 + 0.5) * 0.04;
+                            v = if gap { 0.05 } else { 0.10 + ring + 0.03 * (a * 2.0).dcos().abs() };
                         }
                         if rr > 0.0855 {
                             v = 0.09;
@@ -406,7 +406,7 @@ fn rs_vinyl_tex() -> Tex {
                             v = 0.45;
                         }
                         let s =
-                            ((x * 3.1 + y * 1.3) * 160.0).sin().abs() < 0.008 && hash(0x51ae, (x * 20.0) as i32, (y * 20.0) as i32) > 0.6;
+                            ((x * 3.1 + y * 1.3) * 160.0).dsin().abs() < 0.008 && hash(0x51ae, (x * 20.0) as i32, (y * 20.0) as i32) > 0.6;
                         if s {
                             v += 0.12;
                         }

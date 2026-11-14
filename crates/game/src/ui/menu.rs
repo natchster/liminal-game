@@ -381,9 +381,9 @@ impl Game {
         let t = self.menu.view_t;
         let cam = self.camera.clone();
         let p = self.menu.view_pos;
-        cam.position().set(p[0], p[1] + (t * 0.9).sin() * 0.004, p[2]);
-        cam.rotation().y = self.menu.view_yaw + (t * 0.045).sin() * 0.22;
-        cam.rotation().x = -0.03 + (t * 0.031).sin() * 0.02;
+        cam.position().set(p[0], p[1] + (t * 0.9).dsin() * 0.004, p[2]);
+        cam.rotation().y = self.menu.view_yaw + (t * 0.045).dsin() * 0.22;
+        cam.rotation().x = -0.03 + (t * 0.031).dsin() * 0.02;
         cam.rotation().z = 0.0;
     }
     /// Where the title stands, and the way it looks: out along the way the
@@ -408,7 +408,7 @@ impl Game {
         let mut best: Option<(f64, f64)> = None;
         for k in 0..16 {
             let yaw = k as f64 * PI / 8.0;
-            let (dx, dz) = (-yaw.sin(), -yaw.cos());
+            let (dx, dz) = (-yaw.dsin(), -yaw.dcos());
             let mut ahead = 0.0;
             while ahead < TITLE_AHEAD && clear(p.x + dx * (ahead + 0.25), p.z + dz * (ahead + 0.25)) {
                 ahead += 0.25;
@@ -420,7 +420,7 @@ impl Game {
         match best {
             Some((yaw, ahead)) if ahead - 0.5 >= TITLE_BACK_MIN => {
                 let d = (ahead - 0.5).min(TITLE_BACK);
-                ([p.x - yaw.sin() * d, f0 + EYE, p.z - yaw.cos() * d], yaw)
+                ([p.x - yaw.dsin() * d, f0 + EYE, p.z - yaw.dcos() * d], yaw)
             }
             _ => ([p.x, f0 + EYE, p.z], self.deepest_view_yaw()),
         }
@@ -429,7 +429,7 @@ impl Game {
     /// How far you can see from where you begin, looking `yaw` (up to 60 m)
     fn sight_depth(&self, yaw: f64) -> f64 {
         let p = self.player.pos;
-        let (dx, dz) = (-yaw.sin(), -yaw.cos());
+        let (dx, dz) = (-yaw.dsin(), -yaw.dcos());
         let mut d = 0.0;
         while d < 60.0 && !self.circle_hits_wall(p.x + dx * (d + 0.5), p.z + dz * (d + 0.5), 0.25) {
             d += 0.5;
@@ -444,7 +444,7 @@ impl Game {
         // on the Building's floors: across the void, toward the door's light
         if let Some(b) = &self.building {
             let (ex, ez) = (self.wx(b.exit.0), self.wz(b.exit.1));
-            return (-(ex - p.x)).atan2(-(ez - p.z));
+            return (-(ex - p.x)).datan2(-(ez - p.z));
         }
         let mut best = (self.player.yaw, 0.0);
         for k in 0..16 {

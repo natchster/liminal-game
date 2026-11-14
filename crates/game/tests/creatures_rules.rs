@@ -657,7 +657,7 @@ fn corner_room(x: i32, z: i32, looks: bool) -> (Game, usize) {
 fn face_me(g: &mut Game, ei: usize) {
     let p = g.entities[ei].pos();
     let pp = g.player.pos;
-    let yaw = (pp.x - p.x).atan2(pp.z - p.z);
+    let yaw = (pp.x - p.x).datan2(pp.z - p.z);
     g.entities[ei].yaw = yaw;
     g.creature_mut(ei).unwrap().ease.insert("home_yaw", yaw);
 }

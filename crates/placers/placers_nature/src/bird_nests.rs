@@ -76,7 +76,7 @@ pub(crate) fn place_bird_nests(g: &mut Game, _dist: &[i32]) {
             // lying in the cup's floor, turned by where it lies
             let (ox, oz) = if e == 0 { (ex - 0.012, ez) } else { (ex + 0.016, ez + 0.006) };
             egg.position().set(ox, NEST_FLOOR - 0.001 + 0.18 * (ox * ox + oz * oz).sqrt(), oz);
-            egg.rotation().y = (ex * 300.0).sin() * PI;
+            egg.rotation().y = (ex * 300.0).dsin() * PI;
             nest.add(&egg);
         }
     }
@@ -116,7 +116,7 @@ fn nest_grass_tex() -> Tex {
             };
             ctx.set_stroke_style(css(c, 0.55 + 0.4 * rnd()));
             ctx.set_line_width(0.8 + rnd() * 2.2);
-            let (dx, dy) = (a.cos() * l / 2.0, a.sin() * l / 2.0);
+            let (dx, dy) = (a.dcos() * l / 2.0, a.dsin() * l / 2.0);
             ctx.begin_path();
             ctx.move_to(x - dx, y - dy);
             ctx.quadratic_curve_to(x - dy * bend, y + dx * bend, x + dx, y + dy);
@@ -150,7 +150,7 @@ fn nest_lining_tex() -> Tex {
         // the dust and droppings of an old nest, pale specks in its bottom
         for _ in 0..30 {
             let (a, r) = (rnd() * PI * 2.0, rnd() * w * 0.25);
-            blob(ctx, w / 2.0 + a.cos() * r, h / 2.0 + a.sin() * r, 2.0 + rnd() * 4.0, 1.0, 0.0, [0.80, 0.78, 0.72], 0.5);
+            blob(ctx, w / 2.0 + a.dcos() * r, h / 2.0 + a.dsin() * r, 2.0 + rnd() * 4.0, 1.0, 0.0, [0.80, 0.78, 0.72], 0.5);
         }
         blob(ctx, w / 2.0, h / 2.0, w * 0.3, 1.0, 0.0, [0.48, 0.45, 0.40], 0.3);
     })

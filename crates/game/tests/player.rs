@@ -34,7 +34,7 @@ fn local_circle_hits_wall(g: &Game, px: f64, pz: f64, r: f64) -> bool {
             }
             let cx = clamp(px, g.wx(x) - CELL / 2.0, g.wx(x) + CELL / 2.0);
             let cz = clamp(pz, g.wz(z) - CELL / 2.0, g.wz(z) + CELL / 2.0);
-            if (px - cx).powi(2) + (pz - cz).powi(2) < r * r {
+            if (px - cx).dpowi(2) + (pz - cz).dpowi(2) < r * r {
                 return true;
             }
         }
@@ -613,7 +613,7 @@ fn the_way_is_shown_along_the_way_to_the_door() {
         let p = a.mesh.pos();
         // down the open column x = 1 toward the door, each further on, a pace apart
         assert!((p.x - r.g.wx(1)).abs() < 0.2, "print {k} off the way at x {:.2}", p.x);
-        let along = (p.x - px).hypot(p.z - pz);
+        let along = (p.x - px).dhypot(p.z - pz);
         assert!(along > last, "print {k} not further on");
         if k > 0 {
             assert!((along - last - WAY_PACE).abs() < 0.25, "print {k}: {:.2} m from the last", along - last);
@@ -921,7 +921,7 @@ fn scripted_run(r: &mut Rig, n: usize) {
         }
         held = want;
         if k % 7 == 0 {
-            r.g.mouse_move(((k as f64) * 0.37).sin() * 40.0, ((k as f64) * 0.11).cos() * 6.0);
+            r.g.mouse_move(((k as f64) * 0.37).dsin() * 40.0, ((k as f64) * 0.11).dcos() * 6.0);
         }
         if k % 400 == 13 {
             r.g.shake_t = 0.6;

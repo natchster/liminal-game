@@ -71,9 +71,9 @@ pub(crate) fn place_stuffed_elephants(g: &mut Game, _dist: &[i32]) {
     // The ears stir: a slow drift, now and then a stronger flap, always out from the head
     g.animate(move |_g, _dt, t| {
         for (ear, base, side, phase) in &eleph_ears {
-            let drift = (t * 0.35 + phase).sin() * 0.12;
-            let flap = (t * 0.18 + phase * 1.3).sin();
-            let big_flap = if flap > 0.92 { ((flap - 0.92) / 0.08 * PI).sin() * 0.30 } else { 0.0 };
+            let drift = (t * 0.35 + phase).dsin() * 0.12;
+            let flap = (t * 0.18 + phase * 1.3).dsin();
+            let big_flap = if flap > 0.92 { ((flap - 0.92) / 0.08 * PI).dsin() * 0.30 } else { 0.0 };
             ear.rotation().y = base - side * (drift.max(-0.12) + 0.12 + big_flap) * 0.9;
         }
     });

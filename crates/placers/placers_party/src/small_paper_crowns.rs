@@ -53,22 +53,22 @@ pub(crate) fn place_small_paper_crowns(g: &mut Game, _dist: &[i32]) {
             let (nx, nz) = (f64::from(gg.normal[i * 3]), f64::from(gg.normal[i * 3 + 2]));
             // where it is along the card, and the card's own normal there
             let (u, ex, ez, sx, sz) = if kind == 0 {
-                let th = (x / CR_AX).atan2(z / CR_AZ).rem_euclid(2.0 * PI);
-                let (ex, ez) = (CR_AX * th.sin(), CR_AZ * th.cos());
-                let (a, b) = (CR_AZ * th.sin(), CR_AX * th.cos());
-                let l = a.hypot(b);
+                let th = (x / CR_AX).datan2(z / CR_AZ).rem_euclid(2.0 * PI);
+                let (ex, ez) = (CR_AX * th.dsin(), CR_AZ * th.dcos());
+                let (a, b) = (CR_AZ * th.dsin(), CR_AX * th.dcos());
+                let l = a.dhypot(b);
                 (th / (2.0 * PI) * CR_C, ex, ez, a / l, b / l)
             } else {
                 let span = length / CR_OPEN_R;
                 let th0 = PI + (2.0 * PI - span) / 2.0;
-                let th = x.atan2(z);
+                let th = x.datan2(z);
                 let u = ((th - th0).rem_euclid(2.0 * PI) * CR_OPEN_R).min(length);
-                let r = CR_OPEN_R * (1.0 + 0.10 * (2.0 * u / length - 1.0).abs().powi(3));
-                (u, r * th.sin(), r * th.cos(), th.sin(), th.cos())
+                let r = CR_OPEN_R * (1.0 + 0.10 * (2.0 * u / length - 1.0).abs().dpowi(3));
+                (u, r * th.dsin(), r * th.dcos(), th.dsin(), th.dcos())
             };
             let off = (x - ex) * sx + (z - ez) * sz;
             // a bent point: how far up the card it was, unfolded
-            let v = if y > CR_VF { CR_VF + (y - CR_VF).hypot(off) } else { y };
+            let v = if y > CR_VF { CR_VF + (y - CR_VF).dhypot(off) } else { y };
             let front = nx * sx + nz * sz > 0.0;
             gg.uv[i * 2] = (u / length) as f32;
             gg.uv[i * 2 + 1] = if front { (v / (CR_HB + CR_HP) * PRINT_V).min(PRINT_V - 0.002) } else { 0.97 } as f32;
@@ -151,7 +151,7 @@ fn crown_print_tex(design: usize, kind: usize, salt: u32) -> Tex {
             }
             // a row of dots along the band
             let dk = (u / 0.012).floor();
-            let dd = (u - (dk + 0.5) * 0.012).hypot(v - CR_HB * 0.5);
+            let dd = (u - (dk + 0.5) * 0.012).dhypot(v - CR_HB * 0.5);
             e = e.max(1.0 - sstep(0.0016, 0.0022, dd));
             c = mix(c, edge, e);
             // a jewel in each point, a pearl at its tip
@@ -159,7 +159,7 @@ fn crown_print_tex(design: usize, kind: usize, salt: u32) -> Tex {
                 let k = ((u - CR_OV) / pitch).floor() as usize;
                 let cu = CR_OV + (k as f64 + 0.5) * pitch;
                 let (du, dv) = ((u - cu) / 0.0075, (v - (CR_HB + 0.014)) / 0.0105);
-                let r = du.hypot(dv);
+                let r = du.dhypot(dv);
                 if r < 1.25 {
                     let jw = jewels[k % 3];
                     let rim = 1.0 - sstep(1.0, 1.25, r);
@@ -170,7 +170,7 @@ fn crown_print_tex(design: usize, kind: usize, salt: u32) -> Tex {
                     let jc = mix(jw, [0.85, 0.82, 0.78], 0.35 * lit * lit);
                     c = mix(c, jc, inner);
                 }
-                let pd = (u - cu).hypot(v - (CR_HB + CR_HP - 0.008));
+                let pd = (u - cu).dhypot(v - (CR_HB + CR_HP - 0.008));
                 c = mix(c, [0.80, 0.78, 0.72], 1.0 - sstep(0.0026, 0.0034, pd));
             }
             // wear: foil dulled in patches, scuffed through to the card

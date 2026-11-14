@@ -53,7 +53,7 @@ pub(crate) fn place_weathered_posters(g: &mut Game, _dist: &[i32]) {
             let ps_count = 3 + (rnd() * 3.0).floor() as i32;
             let pp = poster.pos();
             let th = poster.rot().y;
-            let (along, out) = ((th.cos(), -th.sin()), (th.sin(), th.cos()));
+            let (along, out) = ((th.dcos(), -th.dsin()), (th.dsin(), th.dcos()));
             for _ in 0..ps_count {
                 let sw = 0.014 + rnd() * 0.022;
                 let shh = 0.018 + rnd() * 0.022;
@@ -65,7 +65,7 @@ pub(crate) fn place_weathered_posters(g: &mut Game, _dist: &[i32]) {
                 shard.scale().set(k, k, k);
                 shard.rotation().y = turn;
                 // in front of the wall, not in it
-                let (a, n) = (sh_ang.cos() * sh_rad, 0.02 + sh_ang.sin().abs() * sh_rad);
+                let (a, n) = (sh_ang.dcos() * sh_rad, 0.02 + sh_ang.dsin().abs() * sh_rad);
                 shard.position().set(pp.x + along.0 * a + out.0 * n, 0.001, pp.z + along.1 * a + out.1 * n);
                 g.world.add(&shard);
             }
@@ -489,8 +489,8 @@ fn cracked_pane_tex() -> Tex {
                     let steps = 10 + (rnd() * 10.0) as i32;
                     for _ in 0..steps {
                         a += (rnd() - 0.5) * 0.35;
-                        x += a.cos() * 14.0;
-                        y += a.sin() * 14.0;
+                        x += a.dcos() * 14.0;
+                        y += a.dsin() * 14.0;
                         ctx.line_to(x, y);
                     }
                     ctx.stroke();
@@ -504,9 +504,9 @@ fn cracked_pane_tex() -> Tex {
                         let a = k as f64 / n as f64 * 6.283;
                         let rr = r * (0.8 + rnd() * 0.4);
                         if k == 0 {
-                            ctx.move_to(cx + a.cos() * rr, cy + a.sin() * rr);
+                            ctx.move_to(cx + a.dcos() * rr, cy + a.dsin() * rr);
                         } else {
-                            ctx.line_to(cx + a.cos() * rr, cy + a.sin() * rr);
+                            ctx.line_to(cx + a.dcos() * rr, cy + a.dsin() * rr);
                         }
                     }
                     ctx.stroke();

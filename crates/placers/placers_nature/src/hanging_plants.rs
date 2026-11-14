@@ -119,7 +119,7 @@ pub(crate) fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
     // a draught stirs the vines, barely
     g.animate(move |_g, _dt, t| {
         for (p, lean, phase, amp) in &sway {
-            p.rotation().z = lean + (t * 0.32 + phase).sin() * amp;
+            p.rotation().z = lean + (t * 0.32 + phase).dsin() * amp;
         }
     });
 }
@@ -254,7 +254,7 @@ fn soil_tex(salt: u32) -> Tex {
             c = mix(c, [0.08, 0.06, 0.05], crack * 0.8);
             let grain = (vn(salt ^ 2, u * 160.0, v * 160.0) - 0.86).max(0.0) * 7.0;
             c = mix(c, [0.8, 0.79, 0.74], grain.min(1.0));
-            let rho = ((u - 0.5).hypot(v - 0.5) * 2.0).min(1.0);
+            let rho = ((u - 0.5).dhypot(v - 0.5) * 2.0).min(1.0);
             mix(c, [0.06, 0.05, 0.04], sstep(0.88, 1.0, rho))
         });
     })

@@ -253,8 +253,8 @@ pub fn build_wet_floor_sign(g: &mut Game, cx: &mut PropsCtx) -> Built {
     use crate::assets::props::prop_part_as_modelled;
     const PANEL_H: f64 = 0.655;
     const FACE_Z: f64 = 0.0195; // the printed face, in the panel's frame
-    let splay = (0.15f64 / PANEL_H).asin();
-    let hinge_y = PANEL_H * splay.cos();
+    let splay = (0.15f64 / PANEL_H).dasin();
+    let hinge_y = PANEL_H * splay.dcos();
     let wg = group();
     let plastic = lambert!({ color: 0xc9a227 });
     let print_mat = lambert!({ map: &wet_sign_print_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
@@ -366,7 +366,7 @@ fn wet_sign_print_tex() -> Tex {
             ctx.set_global_alpha(0.4 + 0.5 * rnd());
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // the foot, where the mop and the shoes rub it
@@ -708,7 +708,7 @@ pub fn build_trash_can(g: &mut Game, cx: &mut PropsCtx) -> Built {
         for p in 0..3 {
             let strip = mesh(pg("Props__trash_peel", box_geo!(0.02, 0.09, 0.02)), &peel_mat);
             let a = (p as f64 / 3.0) * PI * 2.0;
-            strip.position().set(a.cos() * 0.03, 0.72, a.sin() * 0.03 + rand2(-0.1, 0.1));
+            strip.position().set(a.dcos() * 0.03, 0.72, a.dsin() * 0.03 + rand2(-0.1, 0.1));
             let rx = rand2(-0.4, 0.4);
             let rz = rand2(-0.4, 0.4);
             strip.rotation().set(rx, a, rz);
@@ -738,7 +738,7 @@ pub fn build_trash_can(g: &mut Game, cx: &mut PropsCtx) -> Built {
         let br = butt.rot();
         tip.rotation().copy(&br);
         tip.position().copy(&butt.pos());
-        tip.position().x += (br.z + PI / 2.0).sin() * 0.017;
+        tip.position().x += (br.z + PI / 2.0).dsin() * 0.017;
         tg.add(&tip);
     }
     // dark liquid stain around base
@@ -1132,8 +1132,8 @@ pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     const RZ: f64 = 0.235;
     const PL_H: f64 = 0.14;
     let heap_h = |x: f64, z: f64| {
-        let q = 1.0 - (x / RX).powi(2) - (z / RZ).powi(2);
-        if q > 0.0 { PL_H * q.powf(1.3) } else { 0.0 }
+        let q = 1.0 - (x / RX).dpowi(2) - (z / RZ).dpowi(2);
+        if q > 0.0 { PL_H * q.dpowf(1.3) } else { 0.0 }
     };
     let pg_ = group();
     let dust = lambert!({ color: 0x858078 });
@@ -1208,7 +1208,7 @@ pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
         let (name, colour, rad, thick) = KINDS[kind];
         let mut y = heap_h(x, z) - 0.006;
         for &(lx, lz, lr, top) in &laid {
-            let d = ((x - lx).powi(2) + (z - lz).powi(2)).sqrt();
+            let d = ((x - lx).dpowi(2) + (z - lz).dpowi(2)).sqrt();
             if d < (rad + lr) * 0.75 {
                 y = y.max(top - 0.01 - 0.02 * d / (rad + lr));
             }
@@ -1222,7 +1222,7 @@ pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
         tilt.position().set(x, y, z);
         // a broad flat piece bridges the lumps: it takes less of the slope
         let k = if kind < 2 { 0.55 } else { 0.85 };
-        tilt.rotation().set(-(sz * k).atan() + tx, 0, (sx * k).atan() + tz);
+        tilt.rotation().set(-(sz * k).datan() + tx, 0, (sx * k).datan() + tz);
         let mat = if kind == 1 { lambert!({ map: &ceiling_tile_tex() }) } else { lambert!({ color: colour }) };
         let m = mesh(geo, mat);
         m.scale().set(s, s, s);
@@ -1248,7 +1248,7 @@ fn pile_dust_mat() -> Mat {
         for _ in 0..26 {
             let a = rnd() * 6.3;
             let d = rnd() * 0.2;
-            let (x, y) = (w * (0.5 + a.cos() * d), h * (0.5 + a.sin() * d));
+            let (x, y) = (w * (0.5 + a.dcos() * d), h * (0.5 + a.dsin() * d));
             let r = w * (0.1 + 0.16 * rnd());
             let (squash, turn) = (0.5 + 0.5 * rnd(), rnd() * 3.0);
             // squashed as a whole, so the fade reaches its edge (an ellipse
@@ -1269,7 +1269,7 @@ fn pile_dust_mat() -> Mat {
         for k in 0..500 {
             let a = rnd() * 6.3;
             let d = 0.15 + 0.3 * rnd() * rnd();
-            let (x, y) = (w * (0.5 + a.cos() * d), h * (0.5 + a.sin() * d));
+            let (x, y) = (w * (0.5 + a.dcos() * d), h * (0.5 + a.dsin() * d));
             ctx.set_fill_style(if k % 3 == 0 { "rgba(70,66,60,0.7)" } else { "rgba(170,164,152,0.6)" });
             let s = 0.8 + rnd() * 2.0;
             ctx.fill_rect(x, y, s, s * (0.5 + rnd()));
@@ -1277,11 +1277,11 @@ fn pile_dust_mat() -> Mat {
         ctx.set_stroke_style("rgba(160,154,142,0.14)");
         for _ in 0..7 {
             let a = rnd() * 6.3;
-            let (x, y) = (w * (0.5 + a.cos() * 0.2), h * (0.5 + a.sin() * 0.2));
+            let (x, y) = (w * (0.5 + a.dcos() * 0.2), h * (0.5 + a.dsin() * 0.2));
             ctx.set_line_width(2.0 + rnd() * 4.0);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * 50.0, y + a.sin() * 50.0);
+            ctx.line_to(x + a.dcos() * 50.0, y + a.dsin() * 50.0);
             ctx.stroke();
         }
     });
@@ -1303,7 +1303,7 @@ fn ceiling_tile_tex() -> Tex {
             ctx.set_line_width(0.6 + rnd() * 0.8);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.quadratic_curve_to(x + (a + 1.0).cos() * l, y + (a + 1.0).sin() * l, x + a.cos() * l * 1.6, y + a.sin() * l * 1.6);
+            ctx.quadratic_curve_to(x + (a + 1.0).dcos() * l, y + (a + 1.0).dsin() * l, x + a.dcos() * l * 1.6, y + a.dsin() * l * 1.6);
             ctx.stroke();
         }
         let (x, y, r) = (w * (0.3 + 0.4 * rnd()), h * (0.3 + 0.4 * rnd()), w * 0.3);

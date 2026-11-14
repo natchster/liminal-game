@@ -121,7 +121,7 @@ pub(crate) fn place_turntables(g: &mut Game, _dist: &[i32]) {
                 }
             }
             // Tonearm subtle jitter.
-            arm2.rotation().y = arm_base_y_rot + (t * 0.7 + jitter_phase).sin() * 0.012 + (t * 2.3 + jitter_phase2).sin() * 0.004;
+            arm2.rotation().y = arm_base_y_rot + (t * 0.7 + jitter_phase).dsin() * 0.012 + (t * 2.3 + jitter_phase2).dsin() * 0.004;
         });
     }
     tt.position().set(g.wx(x) + (rnd() - 0.5) * 1.4, 0, g.wz(z) + (rnd() - 0.5) * 1.4);

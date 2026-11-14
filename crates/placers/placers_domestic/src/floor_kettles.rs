@@ -85,15 +85,15 @@ pub(crate) fn place_floor_kettles(g: &mut Game, _dist: &[i32]) {
         let pressure_phase = rnd() * PI * 2.0;
         let sm = steam_mat.clone();
         g.animate(move |_g, _dt, t| {
-            let pressure = 0.95 + ((t * (PI * 2.0) / pressure_cycle) + pressure_phase).sin() * 0.40;
+            let pressure = 0.95 + ((t * (PI * 2.0) / pressure_cycle) + pressure_phase).dsin() * 0.40;
             for w in &steam_wisps {
                 {
                     let mut p = w.mesh.position();
-                    p.y = w.base_y + (t * 0.7 + w.phase).sin() * 0.015 * pressure;
-                    p.x = w.base_x + (t * 0.5 + w.phase).sin() * 0.010;
-                    p.z = w.base_z + (t * 0.6 + w.phase * 1.3).cos() * 0.010;
+                    p.y = w.base_y + (t * 0.7 + w.phase).dsin() * 0.015 * pressure;
+                    p.x = w.base_x + (t * 0.5 + w.phase).dsin() * 0.010;
+                    p.z = w.base_z + (t * 0.6 + w.phase * 1.3).dcos() * 0.010;
                 }
-                let s = (0.88 + (t * 0.9 + w.phase).sin() * 0.16) * pressure;
+                let s = (0.88 + (t * 0.9 + w.phase).dsin() * 0.16) * pressure;
                 w.mesh.scale().set(s, s * 1.2, s);
             }
             // the wisps share one material
@@ -144,7 +144,7 @@ fn kettle_chip(ctx: &mut Canvas, r: &mut SplitMix64, x: f64, y: f64, rad: f64, d
         .map(|k| {
             let a = k as f64 / n as f64 * PI * 2.0 + r.range(-0.3, 0.3);
             let rr = rad * r.range(0.55, 1.15);
-            (x + a.cos() * rr, y + a.sin() * rr * 0.8)
+            (x + a.dcos() * rr, y + a.dsin() * rr * 0.8)
         })
         .collect();
     let path = |ctx: &mut Canvas, k: f64| {
@@ -295,7 +295,7 @@ fn kettle_steel_tex(salt: u32) -> Tex {
             ctx.set_stroke_style(format!("rgba({},{},{},0.35)", if r.next() < 0.5 { 70 } else { 170 }, 168, 166));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -379,10 +379,10 @@ fn kettle_vapour_tex() -> Tex {
                 ctx.clear_rect(0, 0, w, h);
                 for k in 0..36 {
                     let t = k as f64 / 35.0;
-                    let x = w / 2.0 + (t * 5.0 + rnd() * 0.8).sin() * w * 0.14 * t;
+                    let x = w / 2.0 + (t * 5.0 + rnd() * 0.8).dsin() * w * 0.14 * t;
                     let y = h * (0.97 - t * 0.85);
                     let r = w * (0.12 + t * 0.24);
-                    let a = 0.28 * (1.0 - t).powf(0.7);
+                    let a = 0.28 * (1.0 - t).dpowf(0.7);
                     ctx.save();
                     ctx.translate(x, y);
                     ctx.scale(1.0, 1.4);

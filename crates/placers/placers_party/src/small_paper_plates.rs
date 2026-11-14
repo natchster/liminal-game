@@ -58,7 +58,7 @@ pub(crate) fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
             for i in 0..n {
                 let one = group();
                 let k = f64::from(i);
-                one.position().set(0.0015 * (k * 2.3 + f64::from(salt % 5)).sin(), k * 0.0016, 0.0015 * (k * 1.7).cos());
+                one.position().set(0.0015 * (k * 2.3 + f64::from(salt % 5)).dsin(), k * 0.0016, 0.0015 * (k * 1.7).dcos());
                 one.rotation().y = k * 0.7 + f64::from((salt >> 3) % 9) * 0.1;
                 put_top(&one, "Real__paperPlateTop", &top, PLATE_R);
                 put_top(&one, "Real__paperPlateUnder", &under, PLATE_R);
@@ -137,7 +137,7 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
             let x = (u * 2.0 - 1.0) * PLATE_R;
             let z = ((1.0 - v) * 2.0 - 1.0) * PLATE_R;
             let rr = (x * x + z * z).sqrt();
-            let a = x.atan2(z);
+            let a = x.datan2(z);
             let n = fbm(seed, u * 24.0, v * 24.0, 3);
             let mut c = b;
             if let Some(k) = ink {
@@ -161,8 +161,8 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
                         let hz = hash(seed ^ 2, ci as i32, cj as i32);
                         let (dx, dz) = (x - (ci + 0.25 + 0.5 * hx) * s, z - (cj + 0.25 + 0.5 * hz) * s);
                         let ang = hash(seed ^ 3, ci as i32, cj as i32) * PI;
-                        let al = dx * ang.cos() + dz * ang.sin();
-                        let ac = -dx * ang.sin() + dz * ang.cos();
+                        let al = dx * ang.dcos() + dz * ang.dsin();
+                        let ac = -dx * ang.dsin() + dz * ang.dcos();
                         (al.abs() < 0.0018 && ac.abs() < 0.0007 && hash(seed ^ 4, ci as i32, cj as i32) < 0.6)
                             || (rr > 0.084 && rr < PLATE_FLANGE.1)
                     }
@@ -178,22 +178,22 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
             c = mix(c, [0.86, 0.84, 0.79], 0.22);
             // the pleats: light on one side of each, shade on the other
             let pl = sstep(PLATE_WELL, PLATE_WELL + 0.008, rr);
-            c = mix(c, [0.0, 0.0, 0.0], pl * 0.06 * (1.0 + (a * 32.0).sin()));
+            c = mix(c, [0.0, 0.0, 0.0], pl * 0.06 * (1.0 + (a * 32.0).dsin()));
             if eaten {
                 // the frosting: smeared with a fork, dried hard and cracked
                 let (sx, sz, sa, sl) = smear;
                 let (dx, dz) = (x - sx, z - sz);
-                let al = dx * sa.cos() + dz * sa.sin();
-                let ac = -dx * sa.sin() + dz * sa.cos();
-                let body = sstep(1.0, 0.75, ((al / sl).powi(2) + (ac / (sl * 0.45)).powi(2)).sqrt() + 0.3 * (n - 0.5));
-                let tines = (0.5 + 0.5 * (ac * 2600.0).sin()).powi(3) * 0.25;
+                let al = dx * sa.dcos() + dz * sa.dsin();
+                let ac = -dx * sa.dsin() + dz * sa.dcos();
+                let body = sstep(1.0, 0.75, ((al / sl).dpowi(2) + (ac / (sl * 0.45)).dpowi(2)).sqrt() + 0.3 * (n - 0.5));
+                let tines = (0.5 + 0.5 * (ac * 2600.0).dsin()).dpowi(3) * 0.25;
                 let crack = (1.0 - ((vn(seed ^ 6, x * 900.0, z * 900.0) - 0.5).abs() * 14.0).min(1.0)) * 0.5;
                 c = mix(c, mix(frost, [0.30, 0.26, 0.22], crack), body * (0.95 - tines));
                 // its edge a darker rim where the fat ran into the coating
                 c = mix(c, mix(frost, [0.2, 0.15, 0.1], 0.5), body * (1.0 - body) * 1.2);
                 // grease soaked into the coating round it
                 let (gx, gz, gr) = grease;
-                let gd = (((x - gx).powi(2) + (z - gz).powi(2)).sqrt() / gr) + 0.25 * (n - 0.5);
+                let gd = (((x - gx).dpowi(2) + (z - gz).dpowi(2)).sqrt() / gr) + 0.25 * (n - 0.5);
                 c = mix(c, [0.62, 0.56, 0.42], sstep(1.0, 0.6, gd) * 0.35);
                 // crumbs and specks
                 let sp = vn(seed ^ 8, x * 1400.0, z * 1400.0);
@@ -205,9 +205,9 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
                 // a sole's grime: the forefoot of a shoe, its tread's lugs
                 // (blocks in rows), printed only where it pressed hardest
                 let (sa, so) = sole;
-                let along = x * sa.cos() + z * sa.sin();
-                let across = -x * sa.sin() + z * sa.cos() - so;
-                let half_w = 0.045 * (1.0 - (along / 0.13).powi(2)).max(0.0).sqrt();
+                let along = x * sa.dcos() + z * sa.dsin();
+                let across = -x * sa.dsin() + z * sa.dcos() - so;
+                let half_w = 0.045 * (1.0 - (along / 0.13).dpowi(2)).max(0.0).sqrt();
                 let in_sole = sstep(half_w, half_w - 0.006, across.abs());
                 let row = (along / 0.008).floor();
                 let (la, lc) =
@@ -241,10 +241,10 @@ fn under_tex(board: usize, salt: u32, used: bool) -> Tex {
             let rr = (x * x + z * z).sqrt();
             let n = fbm(seed, u * 30.0, v * 30.0, 3);
             let mut c = mix(b, [0.62, 0.60, 0.55], 0.4 * n);
-            c = mix(c, [0.0, 0.0, 0.0], sstep(PLATE_WELL, PLATE_WELL + 0.008, rr) * 0.05 * (1.0 + (x.atan2(z) * 32.0).sin()));
+            c = mix(c, [0.0, 0.0, 0.0], sstep(PLATE_WELL, PLATE_WELL + 0.008, rr) * 0.05 * (1.0 + (x.datan2(z) * 32.0).dsin()));
             if used {
                 let (gx, gz, gr) = grease;
-                let gd = (((x - gx).powi(2) + (z - gz).powi(2)).sqrt() / (gr * 0.8)) + 0.3 * (n - 0.5);
+                let gd = (((x - gx).dpowi(2) + (z - gz).dpowi(2)).sqrt() / (gr * 0.8)) + 0.3 * (n - 0.5);
                 c = mix(c, [0.56, 0.50, 0.38], sstep(1.0, 0.5, gd) * 0.35);
             }
             c = mix(c, [0.46, 0.43, 0.38], 0.15 + 0.25 * sstep(0.04, 0.0, rr - 0.03) * n);

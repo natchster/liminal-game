@@ -48,7 +48,7 @@ pub(crate) fn place_floor_puddles(g: &mut Game, _dist: &[i32]) {
         let r_period = 4.0 + rnd() * 3.0;
         let m2 = puddle_mat.clone();
         g.animate(move |_g, _dt, t| {
-            let s = 1.0 + (t * (PI * 2.0 / r_period) + r_phase).sin() * 0.15;
+            let s = 1.0 + (t * (PI * 2.0 / r_period) + r_phase).dsin() * 0.15;
             m2.m().specular.set_rgb(sheen * s, sheen * s, sheen * s);
         });
     }
@@ -74,7 +74,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
             (0..(rnd() * 3.5) as usize)
                 .map(|_| {
                     let (a, rr) = (rnd() * PI * 2.0, 0.65 + 0.25 * rnd());
-                    (a.cos() * rx * rr, a.sin() * rz * rr, r0 * (0.1 + 0.15 * rnd()))
+                    (a.dcos() * rx * rr, a.dsin() * rz * rr, r0 * (0.1 + 0.15 * rnd()))
                 })
                 .collect()
         } else {
@@ -83,7 +83,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
         paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
-            let rho = u.hypot(v);
+            let rho = u.dhypot(v);
             let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
             let lobe = 1.0
                 + 0.5 * (fbm(seed, cu * 1.2 + 4.0, cv * 1.2 + 4.0, 3) - 0.5)
@@ -91,7 +91,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
                 + 0.07 * (vn(seed ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
             let mut d = (rho - 0.88 * lobe) * r0;
             for &(qx, qz, qr) in &sats {
-                d = smin(d, (x - qx).hypot(y - qz) - qr, 0.012);
+                d = smin(d, (x - qx).dhypot(y - qz) - qr, 0.012);
             }
             let mut px = Px::CLEAR;
             if hard {
@@ -99,7 +99,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
                 // the damp margin outside it, the film, and the dark line of
                 // its edge
                 if d > 0.0 {
-                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).exp() * (0.6 + 0.4 * vn(seed ^ 0x5e, x * 50.0, y * 50.0)));
+                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).dexp() * (0.6 + 0.4 * vn(seed ^ 0x5e, x * 50.0, y * 50.0)));
                 }
                 px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.4 + 0.08 * vn(seed ^ 0x3c, x * 25.0, y * 25.0)));
                 px.lay([0.035, 0.035, 0.04], tide(d, aa, 0.0015) * 0.35);
@@ -107,7 +107,7 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
                 // soaked in: the edge ragged and soft, a darker rim at it
                 let dd = d + (fbm(seed ^ 0x77, x * 14.0, y * 14.0, 3) - 0.5) * 0.035;
                 px.lay(wet, sstep(0.012, -0.025, dd) * (0.55 + 0.15 * vn(seed ^ 0x3c, x * 30.0, y * 30.0)));
-                px.lay([0.09, 0.07, 0.05], 0.22 * (-(dd + 0.004).abs() / 0.008).exp());
+                px.lay([0.09, 0.07, 0.05], 0.22 * (-(dd + 0.004).abs() / 0.008).dexp());
             }
             px.rgba()
         });

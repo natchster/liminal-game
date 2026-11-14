@@ -212,7 +212,7 @@ fn dequant(q: impl Iterator<Item = f64>, min: [f64; 3], max: [f64; 3]) -> Vec<f3
 /// sRGB byte → linear.
 fn srgb_lin(c: u8) -> f32 {
     let c = c as f64 / 255.0;
-    (if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }) as f32
+    (if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).dpowf(2.4) }) as f32
 }
 
 /// Mesh `m` of `body` decoded: positions in the body's frame, or, for a rigid

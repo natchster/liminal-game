@@ -118,7 +118,7 @@ fn at(u: f64, v: f64) -> (f64, f64, f64, f64) {
     let y = Y0 + (Y1 - Y0) * v;
     let s = (x - SNOUT) / BODY;
     let sc = s.clamp(0.0, 1.0);
-    let yc = 0.0025 * (std::f64::consts::PI * sc).sin() - 0.002 * sc;
+    let yc = 0.0025 * (std::f64::consts::PI * sc).dsin() - 0.002 * sc;
     let h = H * prof(sc);
     (s, (y - yc) / h.max(1e-4), x, y)
 }
@@ -151,7 +151,7 @@ fn spots(seed: u32, x: f64, y: f64, cell: f64, r: f64, keep: f64) -> (f64, f64) 
             let ox = hash(seed ^ 0x51, cx, cy);
             let oy = hash(seed ^ 0x93, cx, cy);
             let rr = r * (0.6 + 0.6 * hash(seed ^ 0x77, cx, cy));
-            let d = ((gx - (cx as f64 + ox)).powi(2) + (gy - (cy as f64 + oy)).powi(2)).sqrt() / rr;
+            let d = ((gx - (cx as f64 + ox)).dpowi(2) + (gy - (cy as f64 + oy)).dpowi(2)).sqrt() / rr;
             let a = 1.0 - sstep(0.75, 1.05, d);
             if a > best.0 {
                 best = (a, hash(seed ^ 0x3c, cx, cy));
@@ -178,7 +178,7 @@ fn trout_tex(salt: u32, kind: usize) -> Tex {
             if fin {
                 // the fins: rays (along the tail; up the dorsal and anal),
                 // the membrane between them darker
-                let ray = if s > 0.97 { (y * 900.0).sin() } else { (x * 700.0 + y * 120.0).sin() };
+                let ray = if s > 0.97 { (y * 900.0).dsin() } else { (x * 700.0 + y * 120.0).dsin() };
                 c = mix(flank, back, 0.72);
                 c = [c[0] * 0.9, c[1] * 0.9, c[2] * 0.88];
                 c = mix(c, [0.16, 0.13, 0.10], (0.5 - 0.5 * ray) * 0.4);
@@ -220,7 +220,7 @@ fn trout_tex(salt: u32, kind: usize) -> Tex {
                 c = mix(c, back, sstep(0.15, 0.7, q));
                 // fine scales: a faint diamond net on the flank
                 let (a, b) = (x * 520.0 + y * 520.0, x * 520.0 - y * 520.0);
-                let net = (a.sin() * b.sin()).abs();
+                let net = (a.dsin() * b.dsin()).abs();
                 c = mix(c, [0.0, 0.0, 0.0], (1.0 - sstep(0.0, 0.25, net)) * 0.08 * sstep(0.2, 0.4, s));
                 match kind {
                     0 => {
@@ -269,7 +269,7 @@ fn trout_tex(salt: u32, kind: usize) -> Tex {
                     if kind == 0 {
                         c = mix(c, [0.66, 0.46, 0.46], (1.0 - sstep(0.0, 0.5, (q + 0.15).abs())) * sstep(0.10, 0.16, s) * 0.6);
                     }
-                    let edge = 0.205 + 0.032 * (1.0 - q.abs()).max(0.0).powi(2);
+                    let edge = 0.205 + 0.032 * (1.0 - q.abs()).max(0.0).dpowi(2);
                     c = mix(c, [0.10, 0.08, 0.06], (1.0 - sstep(0.0, 0.006, (s - edge).abs())) * 0.6 * (1.0 - sstep(0.4, 0.7, q)));
                     let jaw = (q + 0.35 - s * 0.6).abs();
                     c = mix(c, [0.08, 0.06, 0.05], (1.0 - sstep(0.0, 0.08, jaw)) * (1.0 - sstep(0.08, 0.13, s)) * 0.8);
@@ -299,7 +299,7 @@ fn trout_fin_tex(salt: u32, kind: usize) -> Tex {
         let seed = salt ^ 0x0f1;
         let [back, flank, _] = TROUT[kind];
         fill(ctx, w, h, |u, v| {
-            let ray = (v * 70.0 + u * 6.0).sin();
+            let ray = (v * 70.0 + u * 6.0).dsin();
             let mut c = match kind {
                 0 => [0.66, 0.56, 0.52],
                 1 => [0.72, 0.38, 0.24],

@@ -119,12 +119,12 @@ pub(crate) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
         let base_intensity = 0.85;
         let (fl2, fg2) = (fire_light.clone(), flame_group.clone());
         g.animate(move |_g, _dt, t| {
-            let f = 0.85 + (t * 7.0 + flicker_phase).sin() * 0.10 + (t * 13.0 + flicker_phase2).sin() * 0.05;
+            let f = 0.85 + (t * 7.0 + flicker_phase).dsin() * 0.10 + (t * 13.0 + flicker_phase2).dsin() * 0.05;
             fl2.set_intensity(base_intensity * f);
             // each flame's height flickers from its root
             for (i, flame) in fg2.children().iter().enumerate() {
                 let i = i as f64;
-                let local_flick = 0.85 + (t * (8.0 + i) + flicker_phase * i).sin() * 0.15;
+                let local_flick = 0.85 + (t * (8.0 + i) + flicker_phase * i).dsin() * 0.15;
                 flame.scale().set(0.92 + 0.1 * local_flick, local_flick, 0.92 + 0.1 * local_flick);
             }
         });

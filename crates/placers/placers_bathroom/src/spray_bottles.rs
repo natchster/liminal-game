@@ -83,7 +83,7 @@ fn sb_body_tex(vary: u32, kind: usize, tipped: bool) -> Tex {
         let fill = 0.25 + 0.42 * hash(seed, 1, 1);
         // standing: its level up the body; lying: how far round it reaches
         let level = 0.02 + fill * 0.74;
-        let reach = (1.0 - 2.0 * fill).clamp(-0.99, 0.99).acos() / (PI * 2.0);
+        let reach = (1.0 - 2.0 * fill).clamp(-0.99, 0.99).dacos() / (PI * 2.0);
         t04_fill(ctx, w, h, |u, v| {
             let n = fbm(seed ^ 0x3, u * 9.0, v * 9.0, 3);
             let plastic = [0.80 + 0.03 * n, 0.78 + 0.03 * n, 0.70 + 0.02 * n];
@@ -101,14 +101,14 @@ fn sb_body_tex(vary: u32, kind: usize, tipped: bool) -> Tex {
             }
             // the meniscus, a darker line
             if !tipped {
-                let m = (-((v - level) / 0.004).powi(2)).exp() * 0.25;
+                let m = (-((v - level) / 0.004).dpowi(2)).dexp() * 0.25;
                 for k in &mut c {
                     *k *= 1.0 - m;
                 }
             }
             // grime where it was held (round its middle, the back most) and
             // dirt round its foot
-            let held = (-((v - 0.45) / 0.18).powi(2)).exp() * sstep(0.45, 0.8, fbm(seed ^ 0x7, u * 14.0, v * 10.0, 3)) * 0.22;
+            let held = (-((v - 0.45) / 0.18).dpowi(2)).dexp() * sstep(0.45, 0.8, fbm(seed ^ 0x7, u * 14.0, v * 10.0, 3)) * 0.22;
             let foot = (1.0 - sstep(0.0, 0.08, v)) * 0.35;
             for k in &mut c {
                 *k *= 1.0 - held - foot * (0.6 + 0.4 * n);

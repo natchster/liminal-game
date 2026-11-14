@@ -108,16 +108,16 @@ fn enamel_tex(salt: u32) -> Tex {
                 let metal = mix([0.66, 0.67, 0.68], [0.52, 0.53, 0.54], fbm(salt ^ 0x15, u * 30.0, v * 15.0, 2));
                 let mut c = mix(COLS[k], [0.70, 0.68, 0.64], 0.15 * sstep(0.45, 0.8, fbm(salt, u * 8.0, v * 4.0, 3)));
                 let chip_n = fbm(salt ^ 0x25, u * 60.0, v * 30.0, 3);
-                let corner = sstep(0.006, 0.0, (BAR_W / 2.0 - dx).max(0.0).hypot((bar_len(k) / 2.0 - dz).max(0.0)) - 0.002);
+                let corner = sstep(0.006, 0.0, (BAR_W / 2.0 - dx).max(0.0).dhypot((bar_len(k) / 2.0 - dz).max(0.0)) - 0.002);
                 let chip = sstep(0.0035, 0.0005, edge).max(corner) * sstep(0.45, 0.6, chip_n);
                 // where the mallet struck: the middle of the bar, a little to the player
                 let (sx, sz) = ((x - bar_x(k)) / 0.008, (z - 0.004) / 0.011);
-                let strike = (-(sx * sx + sz * sz)).exp() * sstep(0.3, 0.6, fbm(salt ^ 0x35, u * 90.0, v * 45.0, 2));
+                let strike = (-(sx * sx + sz * sz)).dexp() * sstep(0.3, 0.6, fbm(salt ^ 0x35, u * 90.0, v * 45.0, 2));
                 c = mix(c, metal, chip.max(strike * 0.85));
                 let scratch = (fbm(salt ^ 0x45, u * 4.0, v * 70.0, 2) - 0.5).abs();
                 c = mix(c, [0.78, 0.77, 0.74], 0.25 * (1.0 - sstep(0.0, 0.006, scratch)));
                 // grime round the pins and dust
-                let pin = (x - bar_x(k)).hypot(dz - bar_len(k) * (0.5 - 0.224));
+                let pin = (x - bar_x(k)).dhypot(dz - bar_len(k) * (0.5 - 0.224));
                 c = mix(c, [0.22, 0.20, 0.18], 0.5 * sstep(0.006, 0.0025, pin));
                 let dust = sstep(0.5, 0.85, fbm(salt ^ 0x55, u * 12.0, v * 6.0, 3));
                 c = mix(c, [0.55, 0.53, 0.50], 0.2 * dust);

@@ -180,7 +180,7 @@ game::lazy_static_tex!(
                 let ang = (i as f64 / 4.0) * PI - PI / 2.0;
                 ctx.begin_path();
                 ctx.move_to(w * 0.7, mid_y);
-                ctx.line_to(w * 0.7 + ang.cos() * 60.0, mid_y + ang.sin() * 60.0);
+                ctx.line_to(w * 0.7 + ang.dcos() * 60.0, mid_y + ang.dsin() * 60.0);
                 ctx.stroke();
             }
         } else if v.scene == "skyline" {

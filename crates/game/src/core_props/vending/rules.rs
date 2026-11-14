@@ -351,7 +351,7 @@ impl Game {
                 // past the coil's end it tips forward until its top meets the glass
                 let over = (np.z - end + 0.02).max(0.0);
                 let h = 0.2;
-                let lean = (over / h).min(((GLASS_Z - 0.006 - end) / h).clamp(0.0, 1.0)).asin();
+                let lean = (over / h).min(((GLASS_Z - 0.006 - end) / h).clamp(0.0, 1.0)).dasin();
                 let tip = Quat::from_axis_angle(&Vec3::new(1.0, 0.0, 0.0), lean);
                 let mut q2 = tip;
                 q2.multiply(&q);
@@ -384,7 +384,7 @@ impl Game {
         let Some((t0, amp)) = self.vending[i].state.shove else { return };
         let s = ((now - t0) / SHOVE_T).min(1.0);
         // up over the first half, back down hard
-        let a = if s < 0.55 { amp * (s / 0.55 * PI / 2.0).sin() } else { amp * (1.0 - ((s - 0.55) / 0.45).powi(2)).max(0.0) };
+        let a = if s < 0.55 { amp * (s / 0.55 * PI / 2.0).dsin() } else { amp * (1.0 - ((s - 0.55) / 0.45).dpowi(2)).max(0.0) };
         self.vending[i].tilt.rotation().x = 0.003 + a;
         if s < 1.0 {
             return;
@@ -516,7 +516,7 @@ impl Game {
         // its dots are a few pixels from further off: what it says there is
         // painted when you come near (and once when it is first lit)
         let p = m.pos();
-        let far = (p.x - self.player.pos.x).hypot(p.z - self.player.pos.z) > DISPLAY_SEEN;
+        let far = (p.x - self.player.pos.x).dhypot(p.z - self.player.pos.z) > DISPLAY_SEEN;
         let m = &mut self.vending[i];
         if far && !m.state.shown.0.is_empty() {
             return;
@@ -584,7 +584,7 @@ impl Game {
             // standing, its footprint; fallen, it lies on its face before it
             let (z0, z1) = if m.state.down { (FACE, FACE + H) } else { (-D / 2.0, D / 2.0) };
             let (cx, cz) = (p.x.clamp(-W / 2.0, W / 2.0), p.z.clamp(z0, z1));
-            (p.x - cx).powi(2) + (p.z - cz).powi(2) < r * r
+            (p.x - cx).dpowi(2) + (p.z - cz).dpowi(2) < r * r
         })
     }
 
@@ -1024,7 +1024,7 @@ impl Game {
                     let q = Quat::from_euler(&Euler::new(-PI / 2.0, rand1(PI * 2.0), 0.0));
                     let mut qy = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), yaw);
                     qy.multiply(&q);
-                    let (s, cs) = yaw.sin_cos();
+                    let (s, cs) = yaw.dsin_cos();
                     let p = Vec3::new(at.x + x * cs + z * s, 0.012, at.z - x * s + z * cs);
                     (geo, Mat4::compose(&p, &qy, &Vec3::new(1.0, 1.0, 1.0)))
                 })

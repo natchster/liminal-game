@@ -22,7 +22,7 @@ impl Game {
     fn dress_secret(&mut self, i: usize, p: SecretPlan, r: &mut SplitMix64) -> Secret {
         let key = format!("{}:{}", self.level_num, i);
         let fy = self.floor_y_of(p.tile.0, p.tile.1);
-        let face = p.normal.0.atan2(p.normal.1);
+        let face = p.normal.0.datan2(p.normal.1);
         let mut s =
             Secret { plan: p.clone(), key, opened: false, emptied: false, uses: 0, place: None, thing: None, sign: None, lid: None };
         let place = group();
@@ -41,7 +41,7 @@ impl Game {
                 place.add(&void);
                 let tile = mesh(pg("FallenCeilingTiles__tile", box_geo!(TILE - 0.02, 0.016, TILE - 0.02)), self.secret_tile_mat());
                 let (half, a) = ((TILE - 0.02) / 2.0, TILE_HANG);
-                tile.position().set(p.x + half - half * a.cos(), p.y - 0.012 - half * a.sin(), p.z);
+                tile.position().set(p.x + half - half * a.dcos(), p.y - 0.012 - half * a.dsin(), p.z);
                 tile.rotation().z = a;
                 place.add(&tile);
                 s.lid = Some(tile);
@@ -68,7 +68,7 @@ impl Game {
                     screw.position().set(0.02, -0.02 - k * 0.16, 0.012);
                     grille.add(&screw);
                 }
-                let (ax, az) = (face.cos(), -face.sin());
+                let (ax, az) = (face.dcos(), -face.dsin());
                 grille.position().set(p.x - ax * 0.17 + p.normal.0 * 0.012, fy + p.y + 0.1, p.z - az * 0.17 + p.normal.1 * 0.012);
                 grille.rotation().y = face;
                 grille.rotation().z = -0.09;
@@ -95,7 +95,7 @@ impl Game {
                 // the rag stuffed down behind its fins
                 let rag = mesh(sphere_geo!(0.05, 8, 6), lambert!({ color: 0x5a5448 }));
                 rag.scale().set(1.4, 0.8, 0.5);
-                let (ax, az) = (face.cos(), -face.sin());
+                let (ax, az) = (face.dcos(), -face.dsin());
                 rag.position().set(p.x + p.normal.0 * 0.02 + ax * 0.24, fy + 0.62, p.z + p.normal.1 * 0.02 + az * 0.24);
                 rag.rotation().y = face;
                 place.add(&rag);
@@ -112,9 +112,9 @@ impl Game {
                     let b = mesh(box_geo!(0.02, 0.008, 0.015), &grit);
                     let (a, d) = (k as f64 * 2.3 + r.next(), 0.05 + r.next() * 0.15);
                     b.position().set(
-                        p.x + p.normal.0 * (0.08 + d) + a.cos() * 0.06,
+                        p.x + p.normal.0 * (0.08 + d) + a.dcos() * 0.06,
                         fy + 0.004,
-                        p.z + p.normal.1 * (0.08 + d) + a.sin() * 0.06,
+                        p.z + p.normal.1 * (0.08 + d) + a.dsin() * 0.06,
                     );
                     b.rotation().y = a;
                     place.add(&b);
@@ -185,7 +185,7 @@ impl Game {
             let sign = mesh(plane_geo!(0.08, 0.08), sign_mat(p.crossed));
             // (the floor in front of its wall: at the face itself it is the wall's)
             sign.position().set(x, self.floor_y_at(x + n.0 * 0.3, z + n.1 * 0.3) + y, z);
-            sign.rotation().y = n.0.atan2(n.1);
+            sign.rotation().y = n.0.datan2(n.1);
             sign.user().gameplay = true;
             self.world.add(&sign);
             s.sign = Some(sign);
@@ -210,7 +210,7 @@ impl Game {
     fn show_thing(&mut self, p: &SecretPlan, seed: f64) -> Obj {
         let o = self.make_thing(p.thing, seed);
         let fy = self.floor_y_of(p.tile.0, p.tile.1);
-        let face = p.normal.0.atan2(p.normal.1);
+        let face = p.normal.0.datan2(p.normal.1);
         let (x, y, z) = match p.kind {
             PlaceKind::Tile => (p.x, fy + 0.53, p.z),
             PlaceKind::Vent => (p.x + p.normal.0 * 0.35, fy, p.z + p.normal.1 * 0.35),
@@ -224,14 +224,14 @@ impl Game {
                     Some(c) => {
                         let cp = c.pos();
                         let yaw = c.rot().y;
-                        (cp.x + yaw.sin() * 0.46, 0.28 + 0.45 - 0.13, cp.z + yaw.cos() * 0.46)
+                        (cp.x + yaw.dsin() * 0.46, 0.28 + 0.45 - 0.13, cp.z + yaw.dcos() * 0.46)
                     }
                     None => (p.x, fy, p.z),
                 }
             }
             _ => (p.x, fy, p.z),
         };
-        o.rotation().y = face + (seed * 3.1).sin() * 0.6;
+        o.rotation().y = face + (seed * 3.1).dsin() * 0.6;
         // a cap hangs by its brim, its crown out from the wall: tipped up in
         // a frame of its own, turned to the wall in its holder's
         let o = if p.kind == PlaceKind::Hook {
@@ -601,7 +601,7 @@ fn sign_mat(crossed: bool) -> Mat {
         let circle: Vec<(f64, f64)> = (0..=28)
             .map(|k| {
                 let a = k as f64 / 28.0 * PI * 2.0;
-                (w / 2.0 + a.cos() * w * 0.3, h / 2.0 + a.sin() * h * 0.3)
+                (w / 2.0 + a.dcos() * w * 0.3, h / 2.0 + a.dsin() * h * 0.3)
             })
             .collect();
         scratch(ctx, &circle);
@@ -627,11 +627,11 @@ fn hole_mat() -> Mat {
         for k in 0..6 {
             let a = k as f64 * 1.05 + rnd() * 0.4;
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * 26.0, cy + a.sin() * 26.0);
-            let mut p = (cx + a.cos() * 26.0, cy + a.sin() * 26.0);
+            ctx.move_to(cx + a.dcos() * 26.0, cy + a.dsin() * 26.0);
+            let mut p = (cx + a.dcos() * 26.0, cy + a.dsin() * 26.0);
             for _ in 0..4 {
                 let b = a + (rnd() - 0.5) * 0.8;
-                p = (p.0 + b.cos() * 8.0, p.1 + b.sin() * 8.0);
+                p = (p.0 + b.dcos() * 8.0, p.1 + b.dsin() * 8.0);
                 ctx.line_to(p.0, p.1);
             }
             ctx.stroke();
@@ -642,7 +642,7 @@ fn hole_mat() -> Mat {
         for k in 0..=28 {
             let a = k as f64 / 28.0 * PI * 2.0;
             let rr = 30.0 + (rnd() - 0.5) * 7.0;
-            let (x, y) = (cx + a.cos() * rr, cy + a.sin() * rr);
+            let (x, y) = (cx + a.dcos() * rr, cy + a.dsin() * rr);
             if k == 0 {
                 ctx.move_to(x, y);
             } else {
@@ -656,7 +656,7 @@ fn hole_mat() -> Mat {
         for k in 0..=28 {
             let a = k as f64 / 28.0 * PI * 2.0;
             let rr = 23.0 + (rnd() - 0.5) * 6.0;
-            let (x, y) = (cx + a.cos() * rr, cy + a.sin() * rr);
+            let (x, y) = (cx + a.dcos() * rr, cy + a.dsin() * rr);
             if k == 0 {
                 ctx.move_to(x, y);
             } else {

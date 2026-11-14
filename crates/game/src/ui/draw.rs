@@ -18,6 +18,7 @@
 use crate::base::game::Game;
 use crate::ui::model::{Element, HudLayer, LayerBlend};
 use engine::canvas::Canvas;
+use engine::dmath::DMath;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -180,7 +181,7 @@ pub fn parse_radial(s: &str, w: f64, h: f64) -> Option<Radial> {
     // farthest-corner
     let (dx, dy) = (cx.max(1.0 - cx) * w, cy.max(1.0 - cy) * h);
     let radius = if circle {
-        let r = dx.hypot(dy);
+        let r = dx.dhypot(dy);
         [r / w, r / h]
     } else {
         [dx * std::f64::consts::SQRT_2 / w, dy * std::f64::consts::SQRT_2 / h]
@@ -280,7 +281,7 @@ impl ColorMatrix {
                 }
                 "hue-rotate" => {
                     let a = num(arg).to_radians();
-                    let (c, s) = (a.cos(), a.sin());
+                    let (c, s) = (a.dcos(), a.dsin());
                     ColorMatrix([
                         [0.213 + c * 0.787 - s * 0.213, 0.715 - c * 0.715 - s * 0.715, 0.072 - c * 0.072 + s * 0.928, 0.0],
                         [0.213 - c * 0.213 + s * 0.143, 0.715 + c * 0.285 + s * 0.140, 0.072 - c * 0.072 - s * 0.283, 0.0],
@@ -1061,7 +1062,7 @@ fn box_v(src: &[f32], dst: &mut [f32], w: usize, h: usize, r: usize) {
 fn phi(x: f64) -> f64 {
     let z = x / std::f64::consts::SQRT_2;
     let t = 1.0 / (1.0 + 0.3275911 * z.abs());
-    let y = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * (-z * z).exp();
+    let y = 1.0 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * (-z * z).dexp();
     0.5 * (1.0 + if z >= 0.0 { y } else { -y })
 }
 /// coverage of the Gaussian-blurred interval [a, b] at x
@@ -1386,7 +1387,7 @@ fn paint_vignette(grad: &Radial, sh: &Shadow, cm: ColorMatrix, w: f64, h: f64) -
         for x in 0..cw as usize {
             let (px, py) = ((x as f64 + 0.5) / s, (y as f64 + 0.5) / s);
             let (u, v) = (px / w, py / h);
-            let t = (((u - grad.center[0]) / grad.radius[0]).powi(2) + ((v - grad.center[1]) / grad.radius[1]).powi(2)).sqrt();
+            let t = (((u - grad.center[0]) / grad.radius[0]).dpowi(2) + ((v - grad.center[1]) / grad.radius[1]).dpowi(2)).sqrt();
             let gcol = radial_at(grad, t);
             // inset shadow: everything outside the inner rect, blurred
             let inner = blurred_span(px, sh.spread + sh.ox, w - sh.spread + sh.ox, sigma)

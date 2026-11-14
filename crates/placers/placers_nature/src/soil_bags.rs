@@ -152,8 +152,8 @@ fn soil_print_tex(salt: u32) -> Tex {
                 let d = r.range(6.0, 40.0);
                 blob(
                     ctx,
-                    cx + a.cos() * d,
-                    base - pot_h - 6.0 + a.sin() * d * 0.75,
+                    cx + a.dcos() * d,
+                    base - pot_h - 6.0 + a.dsin() * d * 0.75,
                     r.range(6.0, 11.0),
                     0.6,
                     a,
@@ -166,7 +166,7 @@ fn soil_print_tex(salt: u32) -> Tex {
             for _ in 0..9 {
                 let a = r.range(-2.7, -0.4);
                 let d = r.range(14.0, 38.0);
-                let (fx, fy) = (cx + a.cos() * d, base - pot_h - 10.0 + a.sin() * d * 0.8);
+                let (fx, fy) = (cx + a.dcos() * d, base - pot_h - 10.0 + a.dsin() * d * 0.8);
                 for _ in 0..5 {
                     blob(
                         ctx,
@@ -194,9 +194,9 @@ fn soil_print_tex(salt: u32) -> Tex {
             let rr = if k % 2 == 0 { 36.0 } else { 29.0 };
             let a = k as f64 / 32.0 * PI * 2.0;
             if k == 0 {
-                ctx.move_to(sx + a.cos() * rr, sy + a.sin() * rr);
+                ctx.move_to(sx + a.dcos() * rr, sy + a.dsin() * rr);
             } else {
-                ctx.line_to(sx + a.cos() * rr, sy + a.sin() * rr);
+                ctx.line_to(sx + a.dcos() * rr, sy + a.dsin() * rr);
             }
         }
         ctx.close_path();
@@ -220,7 +220,7 @@ fn soil_print_tex(salt: u32) -> Tex {
             ctx.set_line_width(s.range(0.6, 1.8));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         for _ in 0..7 {
@@ -233,10 +233,10 @@ fn soil_print_tex(salt: u32) -> Tex {
                 ctx.begin_path();
                 ctx.move_to(x + off, y + off);
                 ctx.quadratic_curve_to(
-                    x + a.cos() * l * 0.5 + s.range(-8.0, 8.0),
-                    y + a.sin() * l * 0.5,
-                    x + a.cos() * l + off,
-                    y + a.sin() * l + off,
+                    x + a.dcos() * l * 0.5 + s.range(-8.0, 8.0),
+                    y + a.dsin() * l * 0.5,
+                    x + a.dcos() * l + off,
+                    y + a.dsin() * l + off,
                 );
                 ctx.stroke();
             }
@@ -306,8 +306,8 @@ fn soil_scatter_tex(salt: u32) -> Tex {
         // the drift: soft blobs thinning out from the split (at the top left)
         for _ in 0..60 {
             let a = r.range(-0.2, 1.7);
-            let d = r.next().powf(0.7) * 0.75;
-            let (x, y) = (w * 0.3 + a.cos() * d * w * 0.6, h * 0.25 + a.sin() * d * h * 0.7);
+            let d = r.next().dpowf(0.7) * 0.75;
+            let (x, y) = (w * 0.3 + a.dcos() * d * w * 0.6, h * 0.25 + a.dsin() * d * h * 0.7);
             blob(
                 ctx,
                 x,
@@ -322,8 +322,8 @@ fn soil_scatter_tex(salt: u32) -> Tex {
         // crumbs and bits of bark, perlite
         for _ in 0..140 {
             let a = r.range(-0.4, 1.9);
-            let d = r.next().powf(0.6);
-            let (x, y) = (w * 0.3 + a.cos() * d * w * 0.65, h * 0.25 + a.sin() * d * h * 0.75);
+            let d = r.next().dpowf(0.6);
+            let (x, y) = (w * 0.3 + a.dcos() * d * w * 0.65, h * 0.25 + a.dsin() * d * h * 0.75);
             // a grain of perlite now and then, dulled with the dust
             let c = if r.next() < 0.05 { [0.62, 0.6, 0.56] } else { mix(rgb(0x161210), rgb(0x3a2e24), r.next()) };
             ctx.set_fill_style(css(c, r.range(0.6, 0.95)));

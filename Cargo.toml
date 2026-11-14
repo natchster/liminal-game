@@ -39,6 +39,8 @@ raw-window-handle = "0.6"
 cpal = "0.18"
 miniz_oxide = "0.9"
 rustfft = "6"
+# correctly rounded math (CORE-MATH): the same result on every system (engine::dmath)
+core-math = "1.4"
 serde_json = { version = "1", features = ["float_roundtrip"] }
 # ---- tooling (xtask, tests)
 nv-flip = "0.1"

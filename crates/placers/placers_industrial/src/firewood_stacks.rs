@@ -148,7 +148,7 @@ fn wood_bark_tex(species: usize, salt: u32) -> Tex {
                     // ridges along u, fissures between, net-like for ash
                     let stretch = if species == 1 { 9.0 } else { 18.0 };
                     let f = fbm(seed, x / stretch / 4.0, y / 4.5);
-                    let fis = (1.0 - ((f - 0.5).abs() * 4.0).min(1.0)).powf(2.0);
+                    let fis = (1.0 - ((f - 0.5).abs() * 4.0).min(1.0)).dpowf(2.0);
                     let tone = noise(seed ^ 3, x / 3.0, y / 3.0);
                     mix(&mut c, fissure, fis * 0.9);
                     for k in 0..3 {
@@ -239,7 +239,7 @@ fn wood_end_tex(species: usize, salt: u32, piths: &'static [(f64, f64, f64, f64)
                 let (d, k, du, dv, ru) = best;
                 // the log's radius in metres (the ends are about 0.35 m across)
                 let rad = ru * 0.35;
-                let ang = dv.atan2(du);
+                let ang = dv.datan2(du);
                 let wob = 0.025 * (noise(seed ^ k as u32, ang * 2.5 + 10.0, d * 2.0) - 0.5);
                 let rings = ((d + wob) * rad / 0.0032).fract();
                 let late = (1.0 - ((rings - 0.82) / 0.12).abs()).max(0.0);
@@ -269,7 +269,7 @@ fn wood_end_tex(species: usize, salt: u32, piths: &'static [(f64, f64, f64, f64)
                     }
                 }
                 // the chainsaw's arcs, faint
-                let saw = (((u * 3.0 + v * 0.4) * 60.0 + (u * 7.0).sin() * 3.0).fract() - 0.5).abs();
+                let saw = (((u * 3.0 + v * 0.4) * 60.0 + (u * 7.0).dsin() * 3.0).fract() - 0.5).abs();
                 for q in 0..3 {
                     c[q] *= 0.96 + 0.08 * saw;
                 }

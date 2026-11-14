@@ -13,6 +13,7 @@
 //! buffers in, masks and blobs out; the renders are `backrooms --tour`'s.
 use crate::base::game::Game;
 use crate::level::archgen::{BOX_FLOOR, BOX_VOID, GROUND_STAIR, SLAB, Solids};
+use engine::dmath::DMath;
 
 /// A pixel shows the background where the two clear colours differ by more
 /// than this in some channel (0–255)
@@ -77,14 +78,14 @@ pub struct Eye {
 impl Eye {
     /// The world direction through pixel (px, py) (unit length)
     pub fn ray(&self, px: f64, py: f64) -> (f64, f64, f64) {
-        let t = (self.fov / 2.0).tan();
+        let t = (self.fov / 2.0).dtan();
         let a = self.w as f64 / self.h as f64;
         let cx = (2.0 * (px + 0.5) / self.w as f64 - 1.0) * t * a;
         let cy = (1.0 - 2.0 * (py + 0.5) / self.h as f64) * t;
         // camera space (x right, y up, -z forward), pitched about x, then yawed about y
-        let (sp, cp) = self.pitch.sin_cos();
+        let (sp, cp) = self.pitch.dsin_cos();
         let (y1, z1) = (cy * cp - -sp, cy * sp + -cp);
-        let (sy, cyw) = self.yaw.sin_cos();
+        let (sy, cyw) = self.yaw.dsin_cos();
         let (x2, z2) = (cx * cyw + z1 * sy, -cx * sy + z1 * cyw);
         let l = (x2 * x2 + y1 * y1 + z2 * z2).sqrt();
         (x2 / l, y1 / l, z2 / l)
@@ -435,12 +436,12 @@ mod tests {
     fn a_ray_through_the_middle_looks_where_the_eye_does() {
         let e = Eye { x: 0.0, y: 1.6, z: 0.0, yaw: 0.7, pitch: 0.3, fov: 1.1, w: 641, h: 401 };
         let (dx, dy, dz) = e.ray(320.0, 200.0);
-        let f = (-(0.7f64).sin() * (0.3f64).cos(), (0.3f64).sin(), -(0.7f64).cos() * (0.3f64).cos());
+        let f = (-(0.7f64).dsin() * (0.3f64).dcos(), (0.3f64).dsin(), -(0.7f64).dcos() * (0.3f64).dcos());
         assert!((dx - f.0).abs() < 1e-9 && (dy - f.1).abs() < 1e-9 && (dz - f.2).abs() < 1e-9, "{:?} {:?}", (dx, dy, dz), f);
         // the top row looks up, the right column right of forward
         assert!(e.ray(320.0, 0.0).1 > dy);
         let r = e.ray(640.0, 200.0);
-        let right = ((0.7f64).cos(), -(0.7f64).sin());
+        let right = ((0.7f64).dcos(), -(0.7f64).dsin());
         assert!(r.0 * right.0 + r.2 * right.1 > 0.0);
     }
 }

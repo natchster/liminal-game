@@ -49,7 +49,7 @@ fn handle_tex(salt: u32) -> Tex {
         paint_px(ctx, w, h, |px, py| {
             let (u, v) = (px / w, py / h);
             let grain = fbm(salt, u * 9.0, v * 14.0, 4);
-            let streak = ((v * 40.0 + grain * 6.0 + (u * 3.0).sin() * 0.6).sin() * 0.5 + 0.5).powf(4.0);
+            let streak = ((v * 40.0 + grain * 6.0 + (u * 3.0).dsin() * 0.6).dsin() * 0.5 + 0.5).dpowf(4.0);
             let mut c = mix_unclamped([0.62, 0.53, 0.40], [0.52, 0.48, 0.43], 0.55 + 0.3 * fbm(salt ^ 1, u * 4.0, v * 2.0, 3));
             c = mul(c, 0.9 + 0.12 * grain);
             c = mix_unclamped(c, [0.40, 0.31, 0.21], 0.35 * streak);

@@ -24,7 +24,7 @@ pub(crate) fn place_marble_scatters(g: &mut Game, _dist: &[i32]) {
         let marble = mesh(pg("MarbleScatters__marble", sphere_geo!(0.010, 6, 4)), &marble_mat);
         let m_ang = rnd() * PI * 2.0;
         let m_rad = rnd() * 0.30;
-        marble.position().set(cx + m_ang.cos() * m_rad, 0.010, cz + m_ang.sin() * m_rad);
+        marble.position().set(cx + m_ang.dcos() * m_rad, 0.010, cz + m_ang.dsin() * m_rad);
         g.world.add(&marble);
     }
 }

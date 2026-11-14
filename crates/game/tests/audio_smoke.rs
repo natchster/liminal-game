@@ -7,6 +7,7 @@
 //! come out finite, and the clock move exactly as far as it was rendered.
 
 use engine::audio::AudioContext;
+use engine::dmath::DMath;
 use game::Game;
 use game::audio::soundscape::{FOOTSTEP_SURFACES, PHRASES, REVERB_PRESETS, ReverbPreset};
 use game::audio::sys::SFX_NAMES;
@@ -293,8 +294,8 @@ fn every_sound_then_a_second_of_updates() {
         a.stamina_breath_lp.as_ref().unwrap().q().set_target_at_time(0.8, now, 0.5);
         a.stamina_breath_sub_gain.as_ref().unwrap().gain().set_target_at_time(0.02, now, 0.3);
         a.stamina_breath_sub_osc.as_ref().unwrap().frequency().set_target_at_time(80.0, now, 0.5);
-        a.stamina_breath_panner.as_ref().unwrap().pan().set_target_at_time(0.2 * (frame as f64 * 0.2).sin(), now, 0.3);
-        s.set_listener(frame as f64 * 0.05, 1.6, 0.0, (frame as f64 * 0.1).sin(), 0.0, -(frame as f64 * 0.1).cos());
+        a.stamina_breath_panner.as_ref().unwrap().pan().set_target_at_time(0.2 * (frame as f64 * 0.2).dsin(), now, 0.3);
+        s.set_listener(frame as f64 * 0.05, 1.6, 0.0, (frame as f64 * 0.1).dsin(), 0.0, -(frame as f64 * 0.1).dcos());
         if frame % 20 == 10 {
             s.hum.silence();
         } else {

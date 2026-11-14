@@ -58,7 +58,7 @@ pub(crate) fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
             }
             let r = cs / 2.0 + 0.006;
             let (lx, lz) = (hx_off * r, hz_off * r);
-            tuft.position().set(cp.x + lx * cry.cos() + lz * cry.sin(), yk, cp.z - lx * cry.sin() + lz * cry.cos());
+            tuft.position().set(cp.x + lx * cry.dcos() + lz * cry.dsin(), yk, cp.z - lx * cry.dsin() + lz * cry.dcos());
             tuft.rotation().y = cry + [0.0, PI, PI / 2.0, -PI / 2.0][face];
             tuft.scale().set(s, s, s);
             g.world.add(&tuft);
@@ -94,8 +94,8 @@ pub(crate) fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
             let cp = crate_.pos();
             // clear of the crate's own footprint (it is square, and turned)
             let cry = crate_.rot().y;
-            let (dx, dz) = (p_ang.cos(), p_ang.sin());
-            let (lx, lz) = (dx * cry.cos() - dz * cry.sin(), dx * cry.sin() + dz * cry.cos());
+            let (dx, dz) = (p_ang.dcos(), p_ang.dsin());
+            let (lx, lz) = (dx * cry.dcos() - dz * cry.dsin(), dx * cry.dsin() + dz * cry.dcos());
             let foot = cs / 2.0 / lx.abs().max(lz.abs()).max(1e-3) + 0.03;
             let rad = p_rad.max(foot);
             let name = if p % 2 == 0 { "Real__crateSplinter" } else { "Real__crateWoolTuft" };
@@ -232,7 +232,7 @@ fn crate_board_tex(stencil: bool, v: f64) -> Tex {
             ctx.move_to(x, y);
             while x < x0 + len {
                 x += 8.0;
-                ctx.line_to(x, y + (x * f + ph).sin() * a);
+                ctx.line_to(x, y + (x * f + ph).dsin() * a);
             }
             ctx.stroke();
         }
@@ -349,7 +349,7 @@ fn crate_wool_tex() -> Tex {
             let (a, l) = (rnd() * 6.3, 6.0 + rnd() * 26.0);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.quadratic_curve_to(x + (a + 1.2).cos() * l, y + (a + 1.2).sin() * l, x + a.cos() * l * 1.4, y + a.sin() * l * 1.4);
+            ctx.quadratic_curve_to(x + (a + 1.2).dcos() * l, y + (a + 1.2).dsin() * l, x + a.dcos() * l * 1.4, y + a.dsin() * l * 1.4);
             ctx.stroke();
         }
     })

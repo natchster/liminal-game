@@ -96,7 +96,7 @@ pub(crate) fn place_wine_glasses(g: &mut Game, _dist: &[i32]) {
         let reach = 0.10 + 0.04 * k;
         stain.rotation().x = -PI / 2.0;
         stain.rotation().z = rnd() * PI * 2.0;
-        stain.position().set(px + yaw.cos() * reach, 0.0012, pz - yaw.sin() * reach);
+        stain.position().set(px + yaw.dcos() * reach, 0.0012, pz - yaw.dsin() * reach);
         g.world.add(&stain);
     }
 }
@@ -218,7 +218,7 @@ fn wine_glass_film_tex(wine: usize, tide: f64, lipstick: bool, salt: u32) -> Tex
                 }
                 for &(ry, k) in &rings {
                     let dy = y - (vy(ry) + wob * k);
-                    film += k * 1.2 * (-(dy * dy) / 2.2).exp() * (0.7 + 0.3 * wine_noise(seed ^ 7, u * 30.0, 0.0));
+                    film += k * 1.2 * (-(dy * dy) / 2.2).dexp() * (0.7 + 0.3 * wine_noise(seed ^ 7, u * 30.0, 0.0));
                 }
                 let a = (film * fa).min(0.92);
                 out[i * 4..i * 4 + 4].copy_from_slice(&[fr, fg, fb, (a * 255.0) as u8]);
@@ -283,7 +283,7 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
         for _ in 0..4 {
             let a = r.range(0.0, PI * 2.0);
             let d = h * r.range(0.08, 0.18);
-            lobes.push((w * 0.5 + a.cos() * d * 1.3, h * 0.5 + a.sin() * d, h * r.range(0.14, 0.22)));
+            lobes.push((w * 0.5 + a.dcos() * d * 1.3, h * 0.5 + a.dsin() * d, h * r.range(0.14, 0.22)));
         }
         let n = w as usize;
         let mut img = ctx.create_image_data(w, h);
@@ -294,8 +294,8 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
                 // the stain's field: a smooth union of its lobes (> 0 inside)
                 let mut f: f64 = 0.0;
                 for &(cx, cy, cr) in &lobes {
-                    let d = ((x - cx).powi(2) + (y - cy).powi(2)).sqrt() / cr;
-                    f += (1.0 - d * d).max(0.0).powi(2);
+                    let d = ((x - cx).dpowi(2) + (y - cy).dpowi(2)).sqrt() / cr;
+                    f += (1.0 - d * d).max(0.0).dpowi(2);
                 }
                 let edge =
                     f - 0.25 + 0.06 * (wine_noise(seed, x / 26.0, y / 26.0) - 0.5) + 0.02 * (wine_noise(seed ^ 1, x / 6.0, y / 6.0) - 0.5);
@@ -304,7 +304,7 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
                     continue;
                 }
                 // the ring where it dried last, and the soaked middle
-                let ring = (-(edge / 0.035).powi(2)).exp();
+                let ring = (-(edge / 0.035).dpowi(2)).dexp();
                 let body = (edge / 0.08).min(1.0) * (0.5 + 0.25 * wine_noise(seed ^ 3, x / 18.0, y / 18.0));
                 let a = (body * 0.75 + ring * 0.55).min(1.0) * fa * 1.3;
                 out[i * 4..i * 4 + 4].copy_from_slice(&[fr, fg, fb, (a.min(0.8) * 255.0) as u8]);
@@ -314,7 +314,7 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
         // a few drops flung past it
         for _ in 0..5 {
             let a = r.range(0.0, PI * 2.0);
-            let (x, y) = (w * 0.5 + a.cos() * w * r.range(0.3, 0.45), h * 0.5 + a.sin() * h * r.range(0.3, 0.45));
+            let (x, y) = (w * 0.5 + a.dcos() * w * r.range(0.3, 0.45), h * 0.5 + a.dsin() * h * r.range(0.3, 0.45));
             let rr = r.range(1.2, 3.0);
             ctx.set_fill_style(format!("rgba({fr},{fg},{fb},{fa:.2})"));
             ctx.begin_path();

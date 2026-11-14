@@ -64,8 +64,8 @@ game::lazy_static_tex!(
             for i in 0..10 {
                 let a = -PI / 2.0 + (i as f64 / 10.0) * PI * 2.0;
                 let r = if i % 2 == 0 { 30.0 } else { 14.0 };
-                let px = cx + a.cos() * r;
-                let py = cy + a.sin() * r;
+                let px = cx + a.dcos() * r;
+                let py = cy + a.dsin() * r;
                 if i == 0 {
                     ctx.move_to(px, py);
                 } else {

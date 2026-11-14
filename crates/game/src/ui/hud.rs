@@ -1538,7 +1538,7 @@ impl Game {
         // Smooth sanity-driven opacity every frame (not just on refresh)
         let s = self.player.sanity / SAN_MAX;
         let grain_target = 0.08 + (1.0 - s) * 0.28;
-        let ab_scalar = (1.0 - s).powf(1.8);
+        let ab_scalar = (1.0 - s).dpowf(1.8);
         let aberration_target = clamp(ab_scalar * 1.1, 0.0, 0.95);
         // Lerp toward target at ~2Hz half-life
         let k_lerp = (dt * 4.5).min(1.0);

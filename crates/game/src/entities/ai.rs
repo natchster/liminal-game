@@ -227,7 +227,7 @@ impl Game {
             e.vz = (p.z - oz) / dt;
         }
         if hypot2(e.vx, e.vz) > 0.15 {
-            let h = e.vx.atan2(e.vz);
+            let h = e.vx.datan2(e.vz);
             self.entity_turn(ei, h, dt, None);
         }
     }
@@ -362,7 +362,7 @@ impl Game {
         self.hum_pulse_phase += dt * lfo_hz * PI * 2.0 * self.descent_freq_boost();
         let pulse_amp_target = vignette_pulse_amp_by_weather(wk).unwrap_or(VIGNETTE_PULSE_AMP_DEFAULT) * self.descent_boost_mul(0.4);
         self.hum_pulse_amp_current += (pulse_amp_target - self.hum_pulse_amp_current) * (dt * 1.5).min(1.0);
-        let hum_pulse = self.hum_pulse_amp_current * (self.hum_pulse_phase.sin() * 0.5 + 0.5);
+        let hum_pulse = self.hum_pulse_amp_current * (self.hum_pulse_phase.dsin() * 0.5 + 0.5);
         // Sanity dread pulse: "the darkness breathes with you"
         let mut sanity_dread = 0.0;
         let san_for_vig = self.player.sanity / SAN_MAX;
@@ -370,7 +370,7 @@ impl Game {
             let dread_mag = 1.0 - san_for_vig / 0.30;
             let dread_period =
                 sanity_dread_period_ms_by_weather(wk).or(sanity_dread_period_ms_by_weather("normal")).unwrap() / self.descent_freq_boost();
-            sanity_dread = 0.18 * self.descent_boost_mul(0.4) * dread_mag * ((self.clock_ms() / dread_period).sin() * 0.5 + 0.5);
+            sanity_dread = 0.18 * self.descent_boost_mul(0.4) * dread_mag * ((self.clock_ms() / dread_period).dsin() * 0.5 + 0.5);
         }
         // Level-descent vignette baseline
         let descent_dread = (1.0 - self.level_depth_mul()) * 0.8;
@@ -387,7 +387,7 @@ impl Game {
         if self.door_opened_flash_t > 0.0 {
             self.door_opened_flash_t -= dt;
         }
-        let door_pulse = if self.door_opened_flash_t > 0.0 { 0.08 * (PI * self.door_opened_flash_t / 1.0).sin() } else { 0.0 };
+        let door_pulse = if self.door_opened_flash_t > 0.0 { 0.08 * (PI * self.door_opened_flash_t / 1.0).dsin() } else { 0.0 };
         // Elevator ding pulse
         if self.elevator_ding_flash_t > 0.0 {
             self.elevator_ding_flash_t -= dt;
@@ -413,12 +413,12 @@ impl Game {
         };
         // Reality shift vignette pulse
         let shift_pulse = if self.reality_shift_t > 0.0 {
-            0.12 * (PI * (2.0 - self.reality_shift_t) / 2.0).sin() * (self.reality_shift_t / 2.0)
+            0.12 * (PI * (2.0 - self.reality_shift_t) / 2.0).dsin() * (self.reality_shift_t / 2.0)
         } else {
             0.0
         };
         // Pattern break vignette pulse
-        let pattern_pulse = if self.pattern_break_t > 0.0 { 0.03 * (PI * (1.0 - self.pattern_break_t / 4.0)).sin() } else { 0.0 };
+        let pattern_pulse = if self.pattern_break_t > 0.0 { 0.03 * (PI * (1.0 - self.pattern_break_t / 4.0)).dsin() } else { 0.0 };
         // Clock skip vignette pulse
         let skip_pulse = if self.clock_skip_t > 0.0 { 0.06 * (self.clock_skip_t / 0.5) } else { 0.0 };
         let ip = 1.0 - pressure;
@@ -464,7 +464,7 @@ impl Game {
         if s01 < 0.20 && self.state == "playing" {
             let shift_mag = 1.0 - s01 / 0.20; // 0 → 1 as sanity drops
             let hue_spec = sanity_hue_by_weather(wk).or(sanity_hue_by_weather("normal")).unwrap();
-            let hue_deg = (hue_spec.spread * (self.clock_ms() / 700.0).sin() + hue_spec.bias) * shift_mag;
+            let hue_deg = (hue_spec.spread * (self.clock_ms() / 700.0).dsin() + hue_spec.bias) * shift_mag;
             let f = format!(
                 "hue-rotate({}deg) saturate({}) contrast({})",
                 fmt_fixed(hue_deg, 1),
@@ -530,7 +530,7 @@ impl Game {
             // Pan wander at peak fatigue
             if let Some(pn) = &self.audio.stamina_breath_panner {
                 let pan_depth = br_spec.pan_depth * breath_mag;
-                let target_pan = (self.perf_t * br_spec.pan_rate).sin() * pan_depth;
+                let target_pan = (self.perf_t * br_spec.pan_rate).dsin() * pan_depth;
                 let pp = pn.pan();
                 pp.set_value(pp.value() + (target_pan - pp.value()) * (dt * 2.0).min(1.0));
             }

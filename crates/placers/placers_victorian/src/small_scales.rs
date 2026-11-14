@@ -48,7 +48,7 @@ pub(crate) fn place_small_scales(g: &mut Game, _dist: &[i32]) {
     let sway_period = 6.0 + rnd() * 4.0;
     let beam2 = beam.clone();
     g.animate(move |_g, _dt, t| {
-        beam2.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.05;
+        beam2.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.05;
     });
     scales.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     scales.rotation().y = rnd() * PI * 2.0;

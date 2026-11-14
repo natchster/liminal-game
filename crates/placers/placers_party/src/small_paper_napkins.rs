@@ -111,7 +111,7 @@ fn napkin_tex(look: usize, salt: u32) -> Tex {
             let per = 4.0 * (w - 2.0 * b);
             while t <= per {
                 let (side, s) = ((t / (w - 2.0 * b)) as i32, t % (w - 2.0 * b));
-                let off = 3.5 * (t / 6.0).sin();
+                let off = 3.5 * (t / 6.0).dsin();
                 let (x, y) = match side {
                     0 => (b + s, b + off),
                     1 => (w - b + off, b + s),

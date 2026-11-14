@@ -115,7 +115,7 @@ fn or_planet_tex(vary: u32, i: usize) -> Tex {
                 }
                 3 => mix([0.52, 0.30, 0.20], [0.45, 0.25, 0.16], n),
                 _ => {
-                    let band = ((v * 9.0 + 0.3 * n).sin() * 0.5 + 0.5).powf(1.5);
+                    let band = ((v * 9.0 + 0.3 * n).dsin() * 0.5 + 0.5).dpowf(1.5);
                     mix(ivory, [0.55, 0.40, 0.26], band * 0.7)
                 }
             };
@@ -139,7 +139,7 @@ fn or_dial_tex(vary: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let (x, z) = ((u - 0.5) * 2.0 * half, (0.5 - v) * 2.0 * half);
             let r = (x * x + z * z).sqrt();
-            let a = z.atan2(x).to_degrees().rem_euclid(360.0);
+            let a = z.datan2(x).to_degrees().rem_euclid(360.0);
             let mut o = [0.82, 0.76, 0.60];
             // the zodiac's ring washed in three colours by hand, the
             // calendar's in a pale blue
@@ -162,7 +162,7 @@ fn or_dial_tex(vary: u32) -> Tex {
         ctx.set_line_width(0.6);
         for k in 0..360 {
             let a = (k as f64).to_radians();
-            let (c, s) = (a.cos(), a.sin());
+            let (c, s) = (a.dcos(), a.dsin());
             let l: f64 = if k % 30 == 0 {
                 0.016
             } else if k % 10 == 0 {
@@ -182,9 +182,9 @@ fn or_dial_tex(vary: u32) -> Tex {
             let a = k as f64 * PI / 12.0;
             let (r0, r1) = (0.013 * px, if k % 2 == 0 { 0.026 } else { 0.020 } * px);
             ctx.begin_path();
-            ctx.move_to(cx + (a - 0.06).cos() * r0, cy + (a - 0.06).sin() * r0);
-            ctx.line_to(cx + a.cos() * r1, cy + a.sin() * r1);
-            ctx.line_to(cx + (a + 0.06).cos() * r0, cy + (a + 0.06).sin() * r0);
+            ctx.move_to(cx + (a - 0.06).dcos() * r0, cy + (a - 0.06).dsin() * r0);
+            ctx.line_to(cx + a.dcos() * r1, cy + a.dsin() * r1);
+            ctx.line_to(cx + (a + 0.06).dcos() * r0, cy + (a + 0.06).dsin() * r0);
             ctx.set_fill_style("rgba(170,120,40,0.85)");
             ctx.fill();
         }
@@ -200,7 +200,7 @@ fn or_dial_tex(vary: u32) -> Tex {
             for (k, t) in list.iter().enumerate() {
                 let a = (off + k as f64 * step).to_radians();
                 ctx.save();
-                ctx.translate(cx + a.cos() * r * px, cy + a.sin() * r * px);
+                ctx.translate(cx + a.dcos() * r * px, cy + a.dsin() * r * px);
                 ctx.rotate(a + PI / 2.0);
                 ctx.fill_text(t, 0, 0);
                 ctx.restore();
@@ -224,7 +224,7 @@ fn or_dial_tex(vary: u32) -> Tex {
             for i in 0..n {
                 let k = (j * n + i) * 4;
                 let (u, v) = (i as f64 / w, j as f64 / h);
-                let r = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt() * 2.0;
+                let r = ((u - 0.5).dpowi(2) + (v - 0.5).dpowi(2)).sqrt() * 2.0;
                 let mut o = [0, 1, 2].map(|c| f64::from(src.data[k + c]) / 255.0);
                 let am = 0.82 + 0.16 * fbm(seed, u * 7.0, v * 7.0, 3);
                 o = [o[0] * 0.92 * am, o[1] * 0.80 * am, o[2] * 0.60 * am];
@@ -250,7 +250,7 @@ fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
 /// the figure, `base` its colour (sRGB)
 fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [f64; 3] {
     let warp = fbm(seed ^ 0x1d, u * along * 0.15, v * across * 0.05, 3);
-    let ring = ((v * across + warp * 6.0).sin() * 0.5 + 0.5).powf(3.0);
+    let ring = ((v * across + warp * 6.0).dsin() * 0.5 + 0.5).dpowf(3.0);
     let streak = fbm(seed, u * along * 0.2, v * across, 3);
     let fine = vn(seed ^ 3, u * along * 3.0, v * across * 6.0);
     base.map(|c| c * (0.82 + 0.28 * streak + 0.06 * fine - 0.14 * ring))

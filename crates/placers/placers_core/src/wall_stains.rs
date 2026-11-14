@@ -42,7 +42,7 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
     /// A dried rim at signed distance `d` (m, < 0 inside): sharp outside
     /// (over `aa`), what the water left fading inward over `ew`
     fn tide(d: f64, aa: f64, ew: f64) -> f64 {
-        (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
+        (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).dexp()
     }
     /// The smooth minimum of two distances, blended over `k`
     fn smin(a: f64, b: f64, k: f64) -> f64 {
@@ -97,12 +97,12 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                 .collect();
             let reach_at = |x: f64, k: usize, scale: f64| -> f64 {
                 let t = ((x - pw / 2.0) / (w / 2.0)).clamp(-1.0, 1.0);
-                let mut l = (band + 0.12 * lobes[0].2) * (1.0 - t * t).max(0.0).powf(0.5);
+                let mut l = (band + 0.12 * lobes[0].2) * (1.0 - t * t).max(0.0).dpowf(0.5);
                 // each lobe a tongue, rounded at its foot, joined smoothly to the rest
                 for &(c, half, depth) in &lobes {
                     let u = (x - c) / half;
                     if u.abs() < 1.0 {
-                        let tongue = depth * (1.0 - u.abs().powf(2.5)).powf(0.6);
+                        let tongue = depth * (1.0 - u.abs().dpowf(2.5)).dpowf(0.6);
                         let kk = 0.03;
                         let hh = (0.5 + 0.5 * (tongue - l) / kk).clamp(0.0, 1.0);
                         l = l + (tongue - l) * hh + kk * hh * (1.0 - hh);
@@ -120,7 +120,7 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                             let (l0, l1) = (reach_at(x - sx, k, rims[k].0), reach_at(x + sx, k, rims[k].0));
                             let l = reach_at(x, k, rims[k].0);
                             // its edge's slope, to measure across it
-                            (l, (1.0 + ((l1 - l0) / (2.0 * sx)).powi(2)).sqrt())
+                            (l, (1.0 + ((l1 - l0) / (2.0 * sx)).dpowi(2)).sqrt())
                         })
                         .collect()
                 })
@@ -163,7 +163,7 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                         let xc = rx + (fbm(rs, y * 3.0, 0.5, 3) - 0.5) * 0.03 * t;
                         let hw = hw * (1.5 - 0.7 * t) * (0.45 + 1.0 * fbm(rs ^ 0x9, y * 12.0, 0.5, 2));
                         let along = if y <= to - hw * 2.0 { (x - xc).abs() - hw } else { 1.0 };
-                        let drop = (((x - xc) / (hw * 1.4)).hypot((y - (to - hw * 2.0)) / (hw * 2.0)) - 1.0) * hw * 1.4;
+                        let drop = (((x - xc) / (hw * 1.4)).dhypot((y - (to - hw * 2.0)) / (hw * 2.0)) - 1.0) * hw * 1.4;
                         d_run = d_run.min(smin(along, drop, 0.0015));
                     }
                     let (l, slope) = cols[0][i];
@@ -182,7 +182,7 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                     }
                     let inside = (0.5 - d0 / aa).clamp(0.0, 1.0);
                     // paler in the middle, darker toward its rims and up where it came in
-                    let pale = 0.5 + 0.5 * (d0 / 0.04).exp() + 0.3 * (-y / 0.06).exp();
+                    let pale = 0.5 + 0.5 * (d0 / 0.04).dexp() + 0.3 * (-y / 0.06).dexp();
                     let mott = 0.6 + 0.4 * fbm(seed ^ 0x3c3c, x * 30.0, y * 30.0, 2);
                     lay(&mut px, fill, inside * k_fill * heavy * pale * mott);
                     lay(&mut px, line, lines * k_line * heavy);
@@ -195,9 +195,9 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                     }
                     // mould: speckles in soft clusters, denser and darker at the middle
                     for &(mx, my, mr) in &mould {
-                        let q = (x - mx).hypot((y - my) * 0.8) / mr;
+                        let q = (x - mx).dhypot((y - my) * 0.8) / mr;
                         if q < 1.6 {
-                            let dens = (-q * q * 1.4).exp();
+                            let dens = (-q * q * 1.4).dexp();
                             // a spot in each 4 mm cell, as likely as the cluster is dense there
                             let (gi, gj) = ((x / 0.004).floor() as i32, (y / 0.004).floor() as i32);
                             let mut dot = 0.0f64;
@@ -210,7 +210,7 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                                         (cj as f64 + hash(seed ^ 0x78, ci, cj)) * 0.004 - y,
                                     );
                                     let r = 0.0009 + 0.0012 * hash(seed ^ 0x79, ci, cj) * dens;
-                                    dot = dot.max((1.0 - (dx.hypot(dy) - r) / aa).clamp(0.0, 1.0));
+                                    dot = dot.max((1.0 - (dx.dhypot(dy) - r) / aa).clamp(0.0, 1.0));
                                 }
                             }
                             lay(&mut px, [0.24, 0.24, 0.2], (dot * 0.42 + dens * 0.1).min(0.5) * inside.max(0.3));

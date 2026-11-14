@@ -55,7 +55,7 @@ pub(crate) fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
         let sib_drain = clone_obj(&drain);
         let s_ang = rnd() * PI * 2.0;
         let s_rad = 0.6 + rnd() * 0.4;
-        sib_drain.position().set(dp.x + s_ang.cos() * s_rad, 0, dp.z + s_ang.sin() * s_rad);
+        sib_drain.position().set(dp.x + s_ang.dcos() * s_rad, 0, dp.z + s_ang.dsin() * s_rad);
         sib_drain.rotation().y = rnd() * PI * 2.0;
         g.world.add(&sib_drain);
         let sp = sib_drain.pos();

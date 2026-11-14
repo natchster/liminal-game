@@ -15,8 +15,10 @@ paths:
   `irand` / `choice`. Per-level choices that must not shift the build's
   stream use a `SplitMix64` seeded from `current_seed` with a salt (see
   `SIG_SALT`, `BED_SALT`). Never the clock, `thread_rng`, or `HashMap`
-  iteration order. Building `(seed, level)` must give the same result
-  whatever level was built before it.
+  iteration order; and the math from `engine::dmath` (`x.dsin()`, `datan2`,
+  `dpowi`…), never std's, which differs between Macs (clippy refuses it).
+  Building `(seed, level)` must give the same result whatever level was
+  built before it.
 - **Draw order is part of the output.** Adding, removing or reordering a
   random draw shifts every later placer. If that is intended, re-record and
   say so in the commit:

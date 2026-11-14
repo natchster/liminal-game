@@ -141,9 +141,9 @@ fn fw_dirt_tex(vary: u32, k: usize) -> Tex {
                 let cv = if wc.1 { v } else { 1.0 - v };
                 let rr = (cu * cu + cv * cv).sqrt();
                 if rr < 0.35 {
-                    let a = cv.atan2(cu);
-                    let radial = (1.0 - ((a * 9.0).sin().abs() * 40.0 * rr).min(1.0)) * 0.5;
-                    let ring = (1.0 - (((rr * 60.0).sin().abs()) * 6.0).min(1.0)) * 0.35;
+                    let a = cv.datan2(cu);
+                    let radial = (1.0 - ((a * 9.0).dsin().abs() * 40.0 * rr).min(1.0)) * 0.5;
+                    let ring = (1.0 - (((rr * 60.0).dsin().abs()) * 6.0).min(1.0)) * 0.35;
                     d = (d + (radial + ring) * (1.0 - rr / 0.35)).min(1.0);
                 }
             }

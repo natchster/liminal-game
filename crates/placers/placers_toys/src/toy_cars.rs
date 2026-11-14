@@ -87,7 +87,7 @@ fn toy_car_paint_tex(paint: u32) -> Tex {
                 .map(|k| {
                     let a = k as f64 / n as f64 * PI * 2.0;
                     let rr = r0 * (0.5 + rnd() * 0.7);
-                    (x + a.cos() * rr * 1.4, y + a.sin() * rr)
+                    (x + a.dcos() * rr * 1.4, y + a.dsin() * rr)
                 })
                 .collect();
             for (grow, style) in [(0.6, "rgba(34,32,30,0.45)"), (0.0, "rgba(146,146,140,0.9)")] {
@@ -116,7 +116,7 @@ fn toy_car_paint_tex(paint: u32) -> Tex {
             ctx.set_stroke_style(format!("rgba(180,178,170,{:.2})", 0.25 + rnd() * 0.35));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // dust and dirt specks

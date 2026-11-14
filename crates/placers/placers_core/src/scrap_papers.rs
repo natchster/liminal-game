@@ -73,9 +73,9 @@ fn scrap_wad_mat() -> Mat {
                 let t = (k as f64 + rnd() * 0.4) / n as f64 * PI * 2.0;
                 let rr = r * (0.6 + 0.4 * rnd());
                 if k == 0 {
-                    ctx.move_to(cx + t.cos() * rr, cy + t.sin() * rr);
+                    ctx.move_to(cx + t.dcos() * rr, cy + t.dsin() * rr);
                 } else {
-                    ctx.line_to(cx + t.cos() * rr, cy + t.sin() * rr);
+                    ctx.line_to(cx + t.dcos() * rr, cy + t.dsin() * rr);
                 }
             }
             ctx.close_path();
@@ -94,7 +94,7 @@ fn scrap_wad_mat() -> Mat {
             ctx.set_stroke_style(format!("rgba(70,64,52,{:.2})", 0.08 + rnd() * 0.12));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // dust from the floor
@@ -178,7 +178,7 @@ fn scrap_page_mat() -> Mat {
             let (x, y) = (rnd() * w, rnd() * h);
             let a = rnd() * PI;
             let l = 30.0 + rnd() * 140.0;
-            let (dx, dy) = (a.cos() * l, a.sin() * l);
+            let (dx, dy) = (a.dcos() * l, a.dsin() * l);
             ctx.set_line_width(1.0);
             ctx.set_stroke_style(format!("rgba(80,72,58,{:.2})", 0.10 + rnd() * 0.15));
             ctx.begin_path();

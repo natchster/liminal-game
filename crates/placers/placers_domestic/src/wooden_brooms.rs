@@ -34,7 +34,7 @@ pub(crate) fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
     let lean = 0.12 + rnd() * 0.08;
     broom.set_rotation_order(EulerOrder::YXZ);
     broom.rotation().x = -lean;
-    let foot_off = 1.37 * lean.sin() + 0.012 * lean.cos();
+    let foot_off = 1.37 * lean.dsin() + 0.012 * lean.dcos();
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - foot_off);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - foot_off);
     if c.dx.abs() == 1 {
@@ -45,7 +45,7 @@ pub(crate) fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
         broom.position().set(g.wx(c.x) + (rnd() - 0.5) * 1.0, 0, wall_z);
     }
     // Head (bottom at 0.02) down on the floor: its wall-side bottom edge is lowest.
-    broom.position().y = -(0.02 * lean.cos() - 0.025 * lean.sin());
+    broom.position().y = -(0.02 * lean.dcos() - 0.025 * lean.dsin());
     g.world.add(&broom);
     // 25% chance: small dark dust pile beside bristle head.
     if rnd() < 0.25 {

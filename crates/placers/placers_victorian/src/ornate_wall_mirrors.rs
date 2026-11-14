@@ -218,7 +218,7 @@ fn om_film_tex(vary: u32) -> Tex {
         let seed = vary ^ 0xf117;
         fill(ctx, w, h, |u, v| {
             let n = fbm(seed, u * 6.0, v * 8.0, 4);
-            let wipe = ((u - 0.5).powi(2) + (v - 0.35).powi(2)).sqrt();
+            let wipe = ((u - 0.5).dpowi(2) + (v - 0.35).dpowi(2)).sqrt();
             let wiped = sstep(0.30, 0.36, wipe);
             let mut a = (0.06 + 0.16 * n + 0.10 * v) * (0.4 + 0.6 * wiped);
             let mut c = [0.60, 0.57, 0.52];

@@ -24,7 +24,7 @@ pub(crate) fn hang(o: &Obj, mount_y: f64, wall: f64, apex: f64, h: f64, lean: f6
     }
     let foot = group();
     foot.position().y = -apex - h / 2.0;
-    foot.rotation().x = (lean / h).atan();
+    foot.rotation().x = (lean / h).datan();
     nail.add(&foot);
     let body = group();
     body.position().y = h / 2.0;
@@ -94,8 +94,8 @@ pub(crate) fn wander(ctx: &mut Canvas, at: (f64, f64), len: f64, ang: f64, c: (f
     let (mut x, mut y, mut t) = (at.0, at.1, ang);
     for _ in 0..5 {
         t += (rnd() - 0.5) * 0.5;
-        x += t.cos() * len / 5.0;
-        y += t.sin() * len / 5.0;
+        x += t.dcos() * len / 5.0;
+        y += t.dsin() * len / 5.0;
         ctx.line_to(x, y);
     }
     ctx.stroke();

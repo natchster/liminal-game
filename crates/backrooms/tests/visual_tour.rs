@@ -10,6 +10,7 @@
 //!   cargo test --release -p backrooms --test visual_tour -- --nocapture   # stands and views per floor
 mod common;
 
+use engine::dmath::DMath;
 use game::Game;
 use game::debug::sight::FLAG_PX;
 use game::debug::tour::{BODY, TourOpts};
@@ -38,7 +39,7 @@ fn every_stand_is_at_an_edge_a_body_can_reach() {
             assert!(g.standable(s.x, s.z), "L{level}: a stand a body cannot stand on: {s:?}");
             // a step further toward the edge is not one a body can take,
             // and the edge is a body's radius away, not across the room
-            let (fx, fz) = (-s.yaw.sin(), -s.yaw.cos());
+            let (fx, fz) = (-s.yaw.dsin(), -s.yaw.dcos());
             assert!(
                 g.circle_hits_wall(s.x + fx * 0.05, s.z + fz * 0.05, BODY) || !g.standable(s.x + fx * 0.05, s.z + fz * 0.05),
                 "L{level}: {s:?}"
@@ -274,7 +275,7 @@ fn things_keep_their_names_and_coplanar_findings_stand_near_the_tour() {
         let c: Vec<&str> = l.split('\t').collect();
         let at: Vec<f64> = c[5..8].iter().map(|x| x.parse().unwrap()).collect();
         let near =
-            eyes.iter().map(|e| ((e.0 - at[0]).powi(2) + (e.1 - at[1]).powi(2) + (e.2 - at[2]).powi(2)).sqrt()).fold(f64::MAX, f64::min);
+            eyes.iter().map(|e| ((e.0 - at[0]).dpowi(2) + (e.1 - at[1]).dpowi(2) + (e.2 - at[2]).dpowi(2)).sqrt()).fold(f64::MAX, f64::min);
         // within reach in the plan (6 m), and a storey and a half up or down
         assert!(near < game::debug::things::COPLANAR_REACH + 9.0, "{l}: {near:.1} m from every stand");
         n += 1;
@@ -449,7 +450,7 @@ fn the_players_own_step_stops_at_the_tours_stands() {
         let every = (stands.len() / 40).max(1);
         let (mut walked, mut worst) = (0, 0.0f64);
         for s in stands.iter().step_by(every) {
-            let d = (-s.yaw.sin(), -s.yaw.cos());
+            let d = (-s.yaw.dsin(), -s.yaw.dcos());
             // a metre of floor behind it, walked by the tour's body too
             if !(0..=50).all(|k| g.standable(s.x - d.0 * k as f64 * 0.02, s.z - d.1 * k as f64 * 0.02)) {
                 continue;
@@ -464,7 +465,7 @@ fn the_players_own_step_stops_at_the_tours_stands() {
             for _ in 0..5000 {
                 let before = g.player.pos;
                 g.update_player(DT);
-                let moved = (g.player.pos.x - before.x).hypot(g.player.pos.z - before.z);
+                let moved = (g.player.pos.x - before.x).dhypot(g.player.pos.z - before.z);
                 stride = stride.max(moved);
                 still = if moved < 1e-9 { still + 1 } else { 0 };
                 if still > 20 {

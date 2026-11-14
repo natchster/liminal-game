@@ -48,11 +48,11 @@ pub(crate) fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
             let arm = mesh(pg("VictorianHallStands__arm", cyl_geo!(0.004, 0.004, 0.055, 4)), &wood_mat);
             arm.rotation().z = PI / 2.0;
             arm.rotation().y = -angle;
-            arm.position().set(angle.cos() * 0.030, 0.020 + hook_ys[level], angle.sin() * 0.030);
+            arm.position().set(angle.dcos() * 0.030, 0.020 + hook_ys[level], angle.dsin() * 0.030);
             hs.add(&arm);
             // Hook cap — small brass ball.
             let cap = mesh(pg("VictorianHallStands__cap", sphere_geo!(0.008, 6, 5)), &brass_mat);
-            cap.position().set(angle.cos() * 0.058, 0.020 + hook_ys[level] - 0.006, angle.sin() * 0.058);
+            cap.position().set(angle.dcos() * 0.058, 0.020 + hook_ys[level] - 0.006, angle.dsin() * 0.058);
             hs.add(&cap);
         }
     }
@@ -70,7 +70,7 @@ pub(crate) fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
     mirror.add(&m_surf);
     m_frame.scale().y = 1.30; // Slight oval elongation.
     m_surf.scale().y = 1.30;
-    mirror.position().set(mirror_angle.cos() * 0.033, 0.85, mirror_angle.sin() * 0.033);
+    mirror.position().set(mirror_angle.dcos() * 0.033, 0.85, mirror_angle.dsin() * 0.033);
     mirror.rotation().y = -mirror_angle + PI / 2.0;
     hs.add(&mirror);
     // 2-3 umbrellas in tray base (60% chance).
@@ -82,9 +82,9 @@ pub(crate) fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
             // Umbrella shaft (leaning outward).
             let u_angle = (i as f64 / umb_count as f64) * PI * 2.0 + rnd() * 0.5;
             let shaft = mesh(pg("VictorianHallStands__umbrella", cyl_geo!(0.004, 0.004, 0.75, 4)), &umb_mat);
-            shaft.position().set(u_angle.cos() * tray_r * 0.5, 0.35, u_angle.sin() * tray_r * 0.5);
-            shaft.rotation().x = u_angle.sin() * 0.12;
-            shaft.rotation().z = -u_angle.cos() * 0.12;
+            shaft.position().set(u_angle.dcos() * tray_r * 0.5, 0.35, u_angle.dsin() * tray_r * 0.5);
+            shaft.rotation().x = u_angle.dsin() * 0.12;
+            shaft.rotation().z = -u_angle.dcos() * 0.12;
             hs.add(&shaft);
             // J-hook handle at top: upright half-ring whose stick end sits on the shaft top.
             let handle_hook = mesh(pg("VictorianHallStands__crook", torus_geo!(0.018, 0.004, 4, 8, PI)), &umb_mat);
@@ -92,7 +92,7 @@ pub(crate) fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
             shaft_top.apply_euler(&shaft.rot());
             shaft_top.add(&shaft.pos());
             handle_hook.rotation().y = PI - u_angle;
-            handle_hook.position().set(shaft_top.x + u_angle.cos() * 0.018, shaft_top.y - 0.002, shaft_top.z + u_angle.sin() * 0.018);
+            handle_hook.position().set(shaft_top.x + u_angle.dcos() * 0.018, shaft_top.y - 0.002, shaft_top.z + u_angle.dsin() * 0.018);
             hs.add(&handle_hook);
         }
     }
@@ -110,17 +110,17 @@ pub(crate) fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
             let is_top_hat = rnd() < 0.5;
             if is_top_hat {
                 let crown = mesh(pg("VictorianHallStands__topHat", cyl_geo!(0.060, 0.058, 0.090, 10)), &hat_mat);
-                crown.position().set(hat_angle.cos() * 0.10, brim_y + 0.004 + 0.045, hat_angle.sin() * 0.10);
+                crown.position().set(hat_angle.dcos() * 0.10, brim_y + 0.004 + 0.045, hat_angle.dsin() * 0.10);
                 hs.add(&crown);
                 let brim = mesh(pg("VictorianHallStands__topHatBrim", cyl_geo!(0.080, 0.080, 0.008, 12)), &hat_mat);
-                brim.position().set(hat_angle.cos() * 0.10, brim_y + 0.004, hat_angle.sin() * 0.10);
+                brim.position().set(hat_angle.dcos() * 0.10, brim_y + 0.004, hat_angle.dsin() * 0.10);
                 hs.add(&brim);
             } else {
                 let bowler_crown = mesh(pg("VictorianHallStands__bowler", sphere_geo!(0.055, 10, 6, 0, PI * 2.0, 0, PI * 0.55)), &hat_mat);
-                bowler_crown.position().set(hat_angle.cos() * 0.10, brim_y + 0.003, hat_angle.sin() * 0.10);
+                bowler_crown.position().set(hat_angle.dcos() * 0.10, brim_y + 0.003, hat_angle.dsin() * 0.10);
                 hs.add(&bowler_crown);
                 let bowler_brim = mesh(pg("VictorianHallStands__bowlerBrim", cyl_geo!(0.065, 0.065, 0.006, 12)), &hat_mat);
-                bowler_brim.position().set(hat_angle.cos() * 0.10, brim_y + 0.003, hat_angle.sin() * 0.10);
+                bowler_brim.position().set(hat_angle.dcos() * 0.10, brim_y + 0.003, hat_angle.dsin() * 0.10);
                 hs.add(&bowler_brim);
             }
         }
@@ -131,12 +131,12 @@ pub(crate) fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
         let scarf_mat = lambert!({ color: scarf_colors[ri(scarf_colors.len())] });
         let s_angle = rnd() * PI * 2.0;
         let scarf = mesh(pg("VictorianHallStands__scarf", box_geo!(0.005, 0.35, 0.045)), &scarf_mat);
-        scarf.position().set(s_angle.cos() * 0.070, 0.020 + hook_ys[1] - 0.175, s_angle.sin() * 0.070);
+        scarf.position().set(s_angle.dcos() * 0.070, 0.020 + hook_ys[1] - 0.175, s_angle.dsin() * 0.070);
         hs.add(&scarf);
         // Slight fringe bumps at bottom.
         for i in 0..3 {
             let fringe = mesh(pg("VictorianHallStands__fringe", box_geo!(0.005, 0.010, 0.008)), &scarf_mat);
-            fringe.position().set(s_angle.cos() * 0.070, 0.020 + hook_ys[1] - 0.360, s_angle.sin() * 0.070 + (i as f64 - 1.0) * 0.010);
+            fringe.position().set(s_angle.dcos() * 0.070, 0.020 + hook_ys[1] - 0.360, s_angle.dsin() * 0.070 + (i as f64 - 1.0) * 0.010);
             hs.add(&fringe);
         }
     }

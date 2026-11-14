@@ -100,7 +100,7 @@ fn dial_tex(seed: u32) -> Tex {
             let a = k as f64 / 60.0 * PI * 2.0;
             let rr = if k % 5 == 0 { 4.6 } else { 2.2 };
             ctx.begin_path();
-            ctx.arc(cx + a.sin() * r * 0.905, cy - a.cos() * r * 0.905, rr, 0, 7);
+            ctx.arc(cx + a.dsin() * r * 0.905, cy - a.dcos() * r * 0.905, rr, 0, 7);
             ctx.fill();
         }
         ctx.set_text_align("center");
@@ -108,14 +108,14 @@ fn dial_tex(seed: u32) -> Tex {
         ctx.set_font("bold 70px Futura");
         for k in 1..=12 {
             let a = k as f64 / 12.0 * PI * 2.0;
-            ctx.fill_text(&k.to_string(), cx + a.sin() * r * 0.70, cy - a.cos() * r * 0.70 + 3.0);
+            ctx.fill_text(&k.to_string(), cx + a.dsin() * r * 0.70, cy - a.dcos() * r * 0.70 + 3.0);
         }
         // the luminous dots inside the numerals, gone brown
         ctx.set_fill_style("rgba(150,128,80,0.9)");
         for k in 0..12 {
             let a = k as f64 / 12.0 * PI * 2.0;
             ctx.begin_path();
-            ctx.arc(cx + a.sin() * r * 0.52, cy - a.cos() * r * 0.52, 6.0, 0, 7);
+            ctx.arc(cx + a.dsin() * r * 0.52, cy - a.dcos() * r * 0.52, 6.0, 0, 7);
             ctx.fill();
         }
         ctx.set_fill_style(ink);
@@ -182,9 +182,9 @@ fn enamel_tex(seed: u32) -> Tex {
                 let a = k as f64 / 7.0 * PI * 2.0;
                 let rr = rad * r.range(0.5, 1.3);
                 if k == 0 {
-                    ctx.move_to(x + a.cos() * rr, y + a.sin() * rr);
+                    ctx.move_to(x + a.dcos() * rr, y + a.dsin() * rr);
                 } else {
-                    ctx.line_to(x + a.cos() * rr, y + a.sin() * rr);
+                    ctx.line_to(x + a.dcos() * rr, y + a.dsin() * rr);
                 }
             }
             ctx.close_path();

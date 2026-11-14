@@ -64,7 +64,7 @@ pub(crate) fn place_sheet_covered_furniture(g: &mut Game, _dist: &[i32]) {
         let sheet = scf.children().into_iter().next();
         if let Some(sheet) = sheet {
             g.animate(move |_g, _dt, t| {
-                sheet.position().y = (t * breath_freq + breath_phase).sin() * 0.0025;
+                sheet.position().y = (t * breath_freq + breath_phase).dsin() * 0.0025;
             });
         }
     }

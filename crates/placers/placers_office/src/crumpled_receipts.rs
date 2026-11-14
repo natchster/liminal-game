@@ -87,9 +87,9 @@ fn receipt_tex(salt: u32) -> Tex {
                 let t = (k as f64 + r.next() * 0.4) / n as f64 * PI * 2.0;
                 let rr = rad * (0.6 + 0.4 * r.next());
                 if k == 0 {
-                    ctx.move_to(cx + t.cos() * rr, cy + t.sin() * rr);
+                    ctx.move_to(cx + t.dcos() * rr, cy + t.dsin() * rr);
                 } else {
-                    ctx.line_to(cx + t.cos() * rr, cy + t.sin() * rr);
+                    ctx.line_to(cx + t.dcos() * rr, cy + t.dsin() * rr);
                 }
             }
             ctx.close_path();
@@ -118,7 +118,7 @@ fn receipt_tex(salt: u32) -> Tex {
             ctx.set_stroke_style(format!("rgba(72,64,52,{:.2})", 0.08 + r.next() * 0.14));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         for _ in 0..18 {

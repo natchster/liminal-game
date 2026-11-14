@@ -361,7 +361,7 @@ impl Game {
             let askew = rnd() < 0.2;
             let tilt = if askew { rand2(-0.16, 0.16) } else { rand2(-0.025, 0.025) };
             // a board askew needs to be shorter to stay within the faces
-            let len = span / tilt.cos().max(0.9) - 0.02;
+            let len = span / tilt.dcos().max(0.9) - 0.02;
             m.set_scale(len / 2.44, wide / 0.14, 1.0);
             // the askew ones over the rest
             m.position().set(rand2(-0.01, 0.01), y, face * (0.002 + if askew { 0.021 } else { 0.0 }));
@@ -543,7 +543,7 @@ impl Game {
             mg.rotation().x = -lean;
             mg.rotation().y = rand2(-0.25, 0.25);
             // (raised by what its lean dips its foot's back edge)
-            mg.position().set(x + w / 2.0, 0.2 * lean.sin() + 0.003, -0.1 + rand2(-0.04, 0.04));
+            mg.position().set(x + w / 2.0, 0.2 * lean.dsin() + 0.003, -0.1 + rand2(-0.04, 0.04));
             g.add(&mg);
             x += w + 0.005;
         }
@@ -573,7 +573,7 @@ impl Game {
         dg.rotation().x = -lean;
         dg.rotation().z = roll;
         // (raised by what its lean and roll dip a corner)
-        dg.position().set(rand2(-0.2, 0.2) * (span - 2.03).max(0.0), 0.02 * lean.sin() + 1.02 * roll.abs().sin() + 0.003, 0.35);
+        dg.position().set(rand2(-0.2, 0.2) * (span - 2.03).max(0.0), 0.02 * lean.dsin() + 1.02 * roll.abs().dsin() + 0.003, 0.35);
         g.add(&dg);
         for y in [0.6, 1.25] {
             let b = mesh(stud.clone(), &stud_m);
@@ -612,7 +612,7 @@ fn board_mat() -> Mat {
             let mut x = 0.0;
             while x < w {
                 x += 20.0;
-                ctx.line_to(x, y0 + (x * 0.012 + y0).sin() * 1.5);
+                ctx.line_to(x, y0 + (x * 0.012 + y0).dsin() * 1.5);
             }
             ctx.stroke();
         }
@@ -699,8 +699,8 @@ fn mattress_mat() -> Mat {
             let pts: Vec<(f64, f64)> = (0..n)
                 .map(|i| {
                     let a = i as f64 / n as f64 * std::f64::consts::TAU;
-                    let rr = r * (0.7 + 0.45 * rnd()) * (1.0 + 0.25 * (a * 3.0).sin());
-                    (cx + a.cos() * rr, cy + a.sin() * rr * rand2(0.6, 0.9))
+                    let rr = r * (0.7 + 0.45 * rnd()) * (1.0 + 0.25 * (a * 3.0).dsin());
+                    (cx + a.dcos() * rr, cy + a.dsin() * rr * rand2(0.6, 0.9))
                 })
                 .collect();
             ctx.begin_path();
@@ -794,7 +794,7 @@ fn plywood_mat() -> Mat {
         let mut x = 0.0;
         while x < w {
             x += 8.0;
-            ctx.line_to(x, ty + (x * 0.05).sin() * 5.0 + rnd() * 3.0);
+            ctx.line_to(x, ty + (x * 0.05).dsin() * 5.0 + rnd() * 3.0);
         }
         ctx.stroke();
         for _ in 0..80 {
@@ -840,7 +840,7 @@ fn stud_mat() -> Mat {
             let mut x = 0.0;
             while x < w {
                 x += 16.0;
-                ctx.line_to(x, y0 + (x * 0.01 + y0).sin() * 2.0);
+                ctx.line_to(x, y0 + (x * 0.01 + y0).dsin() * 2.0);
             }
             ctx.stroke();
         }

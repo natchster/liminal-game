@@ -30,7 +30,7 @@ pub(crate) fn place_small_rotary_phones(g: &mut Game, _dist: &[i32]) {
     for i in 0..10 {
         let a = (i as f64 / 10.0) * PI * 2.0;
         let hole = mesh(pg("SmallRotaryPhones__hole", cyl_geo!(0.003, 0.003, 0.008, 5)), &body_mat);
-        hole.position().set(a.cos() * 0.020, 0.055, 0.008 + a.sin() * 0.020);
+        hole.position().set(a.dcos() * 0.020, 0.055, 0.008 + a.dsin() * 0.020);
         phone.add(&hole);
     }
     // 2 handset cradle posts.

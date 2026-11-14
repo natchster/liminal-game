@@ -78,7 +78,7 @@ fn pipe_fitting(name: &str, mat: &Mat, at: Vec3, outer_y: f64, inner: (f64, f64)
 /// left (-x) and right (+x), as the run's group is turned.
 fn wall_runs_on(g: &Game, c: &WallCand) -> [bool; 2] {
     let (rot, _) = wall_turn(c);
-    let (ux, uz) = (rot.cos().round() as i32, (-rot.sin()).round() as i32);
+    let (ux, uz) = (rot.dcos().round() as i32, (-rot.dsin()).round() as i32);
     let (nx, nz) = (c.x + c.dx, c.z + c.dz);
     [g.is_wall_tile(nx - ux, nz - uz), g.is_wall_tile(nx + ux, nz + uz)]
 }
@@ -240,9 +240,9 @@ fn pipe_tex(paint: usize, fitting: bool) -> Tex {
                                 let a = q as f64 / k as f64 * 6.283;
                                 let rr = r * (0.7 + rnd() * 0.5) + 1.0;
                                 if q == 0 {
-                                    ctx.move_to(x + a.cos() * rr, y + a.sin() * rr);
+                                    ctx.move_to(x + a.dcos() * rr, y + a.dsin() * rr);
                                 } else {
-                                    ctx.line_to(x + a.cos() * rr, y + a.sin() * rr);
+                                    ctx.line_to(x + a.dcos() * rr, y + a.dsin() * rr);
                                 }
                             }
                             ctx.close_path();
@@ -253,9 +253,9 @@ fn pipe_tex(paint: usize, fitting: bool) -> Tex {
                                 let a = q as f64 / k as f64 * 6.283;
                                 let rr = r * (0.55 + rnd() * 0.45);
                                 if q == 0 {
-                                    ctx.move_to(x + a.cos() * rr, y + a.sin() * rr);
+                                    ctx.move_to(x + a.dcos() * rr, y + a.dsin() * rr);
                                 } else {
-                                    ctx.line_to(x + a.cos() * rr, y + a.sin() * rr);
+                                    ctx.line_to(x + a.dcos() * rr, y + a.dsin() * rr);
                                 }
                             }
                             ctx.close_path();

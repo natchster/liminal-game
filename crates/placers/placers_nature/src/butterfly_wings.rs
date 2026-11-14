@@ -222,7 +222,7 @@ fn wing_tex(k: usize) -> Tex {
                     disc(ctx, 25.8, 6.2, 1.6, black, 0.9);
                     for i in 0..9 {
                         let (a, d) = (hash(0x3a5, i, 0) * 6.3, 0.8 + 2.4 * hash(0x3a5, i, 1));
-                        spot(ctx, 25.8 + a.cos() * d, 6.2 + a.sin() * d * 0.8, 0.8 + 0.6 * hash(0x3a5, i, 2), 1.0, blue, 0.7);
+                        spot(ctx, 25.8 + a.dcos() * d, 6.2 + a.dsin() * d * 0.8, 0.8 + 0.6 * hash(0x3a5, i, 2), 1.0, blue, 0.7);
                     }
                     spot(ctx, 28.4, 2.4, 0.7, 1.0, [0.86, 0.84, 0.80], 0.9);
                 }
@@ -247,7 +247,7 @@ fn wing_tex(k: usize) -> Tex {
                     for i in 0..14 {
                         let a = -0.6 + 4.2 * hash(0x3a1, i, 0);
                         let d = 2.3 + 1.4 * hash(0x3a1, i, 1);
-                        spot(ctx, 17.0 + a.cos() * d, 7.7 + a.sin() * d, 0.7, 1.0, [0.50, 0.56, 0.66], 0.6);
+                        spot(ctx, 17.0 + a.dcos() * d, 7.7 + a.dsin() * d, 0.7, 1.0, [0.50, 0.56, 0.66], 0.6);
                     }
                     disc(ctx, 17.0, 7.6, 1.4, black, 0.95);
                 }
@@ -299,7 +299,7 @@ fn wing_tex(k: usize) -> Tex {
                 for win in margin.windows(2) {
                     let (mx, mz) = ((win[0].0 + win[1].0) / 2.0, (win[0].1 + win[1].1) / 2.0);
                     let (cx, cz) = (size.0 * 0.45, size.1 * 0.45);
-                    let d = (mx - cx).hypot(mz - cz).max(1e-6);
+                    let d = (mx - cx).dhypot(mz - cz).max(1e-6);
                     spot(ctx, mx - (mx - cx) / d * 1.0, mz - (mz - cz) / d * 1.0, 0.7, 0.6, [0.40, 0.48, 0.62], 0.9);
                 }
             }

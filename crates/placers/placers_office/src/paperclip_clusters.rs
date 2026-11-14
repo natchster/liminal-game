@@ -89,7 +89,7 @@ const CLIP_WIRE: f64 = 0.0011;
 /// its half length and half width (separating axes of two turned rects)
 fn rects_overlap(a: (f64, f64, f64, f64, f64), b: (f64, f64, f64, f64, f64)) -> bool {
     let axes = |r: (f64, f64, f64, f64, f64)| {
-        let (s, c) = r.2.sin_cos();
+        let (s, c) = r.2.dsin_cos();
         [(c, -s), (s, c)]
     };
     let reach = |r: (f64, f64, f64, f64, f64), ax: (f64, f64)| {

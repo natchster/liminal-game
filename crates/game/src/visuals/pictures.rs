@@ -392,7 +392,7 @@ fn age_sheet(
             o = o.map(|k| k * (1.0 - 0.25 * edge));
             // silvered out: the dark tones near the edges gone a grey metallic sheen
             if age.silver > 0.0 {
-                let sv = age.silver * (1.0 - smooth(0.0, 0.025, e)) * (1.0 - lum).powi(2) * (0.6 + 0.4 * fbm(seed, x * 0.08, y * 0.08));
+                let sv = age.silver * (1.0 - smooth(0.0, 0.025, e)) * (1.0 - lum).dpowi(2) * (0.6 + 0.4 * fbm(seed, x * 0.08, y * 0.08));
                 o = mix3(o, [0.48, 0.5, 0.52], sv.min(0.7));
             }
             // an oil's cracks: dark lines between islands, each island
@@ -404,14 +404,14 @@ fn age_sheet(
             }
             // the canvas's weave under the paint
             if age.weave > 0.0 {
-                let wv = (x * 2.4).sin() * (y * 2.4).sin();
+                let wv = (x * 2.4).dsin() * (y * 2.4).dsin();
                 o = o.map(|k| k * (1.0 + 0.03 * age.weave * wv));
             }
             // foxing
             for &(sx, sy, rr, k) in &spots {
                 let d2 = ((x - sx) * (x - sx) + (y - sy) * (y - sy)) / (rr * rr);
                 if d2 < 9.0 {
-                    let f = k * (-d2).exp();
+                    let f = k * (-d2).dexp();
                     o = [o[0] * (1.0 - 0.25 * f), o[1] * (1.0 - 0.45 * f), o[2] * (1.0 - 0.65 * f)];
                 }
             }
@@ -421,7 +421,7 @@ fn age_sheet(
                 if y > line {
                     o = [o[0] * 0.95, o[1] * 0.9, o[2] * 0.8];
                 }
-                let rim = (-((y - line) / 1.5).powi(2)).exp() * age.stain;
+                let rim = (-((y - line) / 1.5).dpowi(2)).dexp() * age.stain;
                 o = [o[0] * (1.0 - 0.18 * rim), o[1] * (1.0 - 0.26 * rim), o[2] * (1.0 - 0.36 * rim)];
             }
             // losses: the ground (a warm off-white) where paint has flaked
@@ -475,7 +475,7 @@ fn age_sheet(
         ctx.set_line_width(0.5);
         ctx.begin_path();
         ctx.move_to(x, y);
-        ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+        ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
         ctx.stroke();
     }
 }
@@ -495,7 +495,7 @@ pub fn hang(o: &Obj, mount_y: f64, wall: f64, apex: f64, h: f64, lean: f64, tilt
     }
     let foot = group();
     foot.position().y = -apex - h / 2.0;
-    foot.rotation().x = (lean / h).atan();
+    foot.rotation().x = (lean / h).datan();
     nail.add(&foot);
     let body = group();
     body.position().y = h / 2.0;
@@ -571,7 +571,7 @@ pub fn mat_tex(size: (f64, f64), win: Window, card: [u8; 3], vary: u32, note: Op
                     let px = (i as f64 - sx, j as f64 - sy);
                     let d2 = (px.0 * px.0 + px.1 * px.1) / (rr * rr);
                     if d2 < 9.0 {
-                        let f = 0.4 * (-d2).exp();
+                        let f = 0.4 * (-d2).dexp();
                         o = [o[0] * (1.0 - 0.2 * f), o[1] * (1.0 - 0.4 * f), o[2] * (1.0 - 0.6 * f)];
                     }
                 }
@@ -663,8 +663,8 @@ pub fn moulding_tex(outer: (f64, f64), prof: &'static [(f64, f64)], outline: Out
                     Outline::Oval => {
                         let (a, b) = (outer.0 / 2.0, outer.1 / 2.0);
                         let (px, py) = (x - a, b - y);
-                        let ang = py.atan2(px);
-                        let rl = 1.0 / ((ang.cos() / a).powi(2) + (ang.sin() / b).powi(2)).sqrt();
+                        let ang = py.datan2(px);
+                        let rl = 1.0 / ((ang.dcos() / a).dpowi(2) + (ang.dsin() / b).dpowi(2)).sqrt();
                         let rho = (px * px + py * py).sqrt();
                         (rl - rho, if py > 0.0 { 0 } else { 1 }, ang * a.max(b))
                     }
@@ -688,7 +688,7 @@ pub fn moulding_tex(outer: (f64, f64), prof: &'static [(f64, f64)], outline: Out
                         // the grain: long streaks along the rail, the figure
                         // darker among them, pores
                         let g = fbm(seed ^ (rail as u32 * 31), along * 18.0, d * 900.0 + rail as f64 * 7.0);
-                        let fig = ((d * 2600.0 + g * 9.0 + along * 3.0).sin() * 0.5 + 0.5).powf(6.0);
+                        let fig = ((d * 2600.0 + g * 9.0 + along * 3.0).dsin() * 0.5 + 0.5).dpowf(6.0);
                         let pore = if hash(seed ^ 9, (along * 1400.0) as i32, (d * 9000.0) as i32) > 0.985 { 0.7 } else { 1.0 };
                         let k = (0.82 + 0.3 * g) * (1.0 - 0.25 * fig) * pore;
                         let mut o = base.map(|v| v * k);
@@ -815,8 +815,8 @@ pub fn cracked_glass_tex(size: (f64, f64), at: (f64, f64), vary: u32) -> Tex {
             let mut pts = vec![(x, y)];
             for _ in 0..steps {
                 a += r.range(-0.25, 0.25);
-                x += a.cos() * len / steps as f64;
-                y += a.sin() * len / steps as f64;
+                x += a.dcos() * len / steps as f64;
+                y += a.dsin() * len / steps as f64;
                 pts.push((x, y));
             }
             for (style, wd, off) in [("rgba(20,20,20,0.35)", 1.4, 0.7), ("rgba(236,236,230,0.6)", 0.7, 0.0)] {
@@ -842,8 +842,8 @@ pub fn cracked_glass_tex(size: (f64, f64), at: (f64, f64), vary: u32) -> Tex {
                 let a0 = k as f64 / rays as f64 * PI * 2.0;
                 let a1 = a0 + PI * 2.0 / rays as f64 * r.range(0.6, 1.0);
                 ctx.begin_path();
-                ctx.move_to(cx + a0.cos() * rr, cy + a0.sin() * rr);
-                ctx.line_to(cx + a1.cos() * rr * r.range(0.9, 1.1), cy + a1.sin() * rr * r.range(0.9, 1.1));
+                ctx.move_to(cx + a0.dcos() * rr, cy + a0.dsin() * rr);
+                ctx.line_to(cx + a1.dcos() * rr * r.range(0.9, 1.1), cy + a1.dsin() * rr * r.range(0.9, 1.1));
                 ctx.stroke();
             }
         }

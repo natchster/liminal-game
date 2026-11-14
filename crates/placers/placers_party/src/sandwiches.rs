@@ -48,7 +48,7 @@ pub(crate) fn place_sandwiches(g: &mut Game, _dist: &[i32]) {
         for i in 0..3 {
             let ruffle = mesh(pg("Sandwiches__lettuce", box_geo!(0.024, 0.004, 0.010)), &lettuce_mat);
             let ang = (i as f64 / 3.0) * PI * 2.0 + PI / 4.0;
-            ruffle.position().set(ang.cos() * 0.04, 0.006 + half_h + 0.008, ang.sin() * 0.04);
+            ruffle.position().set(ang.dcos() * 0.04, 0.006 + half_h + 0.008, ang.dsin() * 0.04);
             ruffle.rotation().y = ang + PI / 2.0;
             ruffle.rotation().z = 0.2;
             s.add(&ruffle);
@@ -75,7 +75,7 @@ pub(crate) fn place_sandwiches(g: &mut Game, _dist: &[i32]) {
         let ang = rnd() * PI * 2.0;
         // Resting on the plate's flat, inside the rim.
         let rr = 0.05 + rnd() * 0.035;
-        crumb.position().set(ang.cos() * rr, 0.006 + c_size / 2.0, ang.sin() * rr);
+        crumb.position().set(ang.dcos() * rr, 0.006 + c_size / 2.0, ang.dsin() * rr);
         crumb.rotation().y = rnd() * PI * 2.0;
         s.add(&crumb);
     }

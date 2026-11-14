@@ -39,7 +39,7 @@ pub(crate) fn place_worn_teddy_bears(g: &mut Game, _dist: &[i32]) {
     // 2 ears (small semispheres), tilted out so the flat base sits on the head.
     for s in [-1.0, 1.0] {
         let ear = mesh(pg("WornTeddyBears__ear", sphere_geo!(0.012, 8, 6, 0, PI * 2.0, 0, PI / 2.0)), &fur_mat);
-        ear.position().set(s * 0.032 * (0.6f64).sin(), 0.100 + 0.032 * (0.6f64).cos(), 0);
+        ear.position().set(s * 0.032 * (0.6f64).dsin(), 0.100 + 0.032 * (0.6f64).dcos(), 0);
         ear.rotation().z = -s * 0.6;
         bear.add(&ear);
     }

@@ -85,10 +85,10 @@ fn lk_paint_tex(vary: u32, paint: [f64; 3], door: bool) -> Tex {
         let n = 26 + (r.next() * 14.0) as usize;
         let scratches: Vec<((f64, f64), (f64, f64), f64)> = (0..n)
             .map(|_| {
-                let (x, y) = (r.next(), r.next().powf(1.6));
+                let (x, y) = (r.next(), r.next().dpowf(1.6));
                 let a = r.range(-0.6, 0.6) + if r.next() < 0.5 { 0.0 } else { PI / 2.0 };
                 let l = r.range(0.01, 0.12);
-                ((x, y), (x + a.cos() * l, y + a.sin() * l * 0.2), r.range(0.3, 1.0))
+                ((x, y), (x + a.dcos() * l, y + a.dsin() * l * 0.2), r.range(0.3, 1.0))
             })
             .collect();
         let seed = (r.next() * 4.0e9) as u32;

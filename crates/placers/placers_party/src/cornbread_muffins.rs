@@ -49,13 +49,13 @@ pub(crate) fn place_cornbread_muffins(g: &mut Game, _dist: &[i32]) {
     let cluster = group();
     // real muffins cannot sit 2 cm apart: the old ring opened out until
     // their cases clear each other, the old spread kept over that
-    let ring = MUFFIN_CLEAR / (PI / f64::from(count)).sin();
+    let ring = MUFFIN_CLEAR / (PI / f64::from(count)).dsin();
     for &(k, ang, rr, turn) in &each {
         let muffin = group();
         put(&muffin, "Real__cornMuffinCase", &case);
         put_split(&muffin, if k % 2 == 0 { "Real__cornMuffinA" } else { "Real__cornMuffinB" }, &crowns[k % 2]);
         let r2 = ring + (rr - 0.02) * 0.3;
-        muffin.position().set(ang.cos() * r2, 0, ang.sin() * r2);
+        muffin.position().set(ang.dcos() * r2, 0, ang.dsin() * r2);
         muffin.rotation().y = turn;
         cluster.add(&muffin);
     }
@@ -103,7 +103,7 @@ fn case_tex(salt: u32) -> Tex {
                 }
             }
             // the pleats' creases
-            c = mix(c, [0.0, 0.0, 0.0], 0.08 * (0.5 + 0.5 * (u * PI * 48.0).sin()));
+            c = mix(c, [0.0, 0.0, 0.0], 0.08 * (0.5 + 0.5 * (u * PI * 48.0).dsin()));
             // grease: blotches, darker at their tide edges, most low down
             let gb = fbm(seed ^ 4, u * 9.0, v * 3.0, 3) + 0.25 * (1.0 - v);
             let blot = sstep(0.52, 0.62, gb);
@@ -167,7 +167,7 @@ fn muffin_tex(salt: u32, k: usize) -> Tex {
                     let (ax, az) = (x1 - x0, z1 - z0);
                     let t = (((x - x0) * ax + (z - z0) * az) / (ax * ax + az * az)).clamp(0.0, 1.0);
                     let d =
-                        ((x - x0 - ax * t).powi(2) + (z - z0 - az * t).powi(2)).sqrt() + 0.0015 * (1.0 - (PI * (0.15 + 0.85 * t)).sin());
+                        ((x - x0 - ax * t).dpowi(2) + (z - z0 - az * t).dpowi(2)).sqrt() + 0.0015 * (1.0 - (PI * (0.15 + 0.85 * t)).dsin());
                     dist = dist.min(d);
                 }
                 let wob = 0.0005 * (vn(seed ^ 12, x * 900.0, z * 900.0) - 0.5);

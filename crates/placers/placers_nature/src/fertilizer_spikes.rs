@@ -50,7 +50,7 @@ pub(crate) fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
         // its length along the floor (the spike's middle at the group's
         // origin): the head end, the far end of what lies whole
         let (x0, x1) = (-SPIKE_MID, if whole { SPIKE_L - SPIKE_MID } else { SPIKE_SNAP - SPIKE_MID });
-        let dir = (turn.cos(), -turn.sin());
+        let dir = (turn.dcos(), -turn.dsin());
         let a0 = (sx + dir.0 * x0, sz + dir.1 * x0);
         let a1 = (sx + dir.0 * x1, sz + dir.1 * x1);
         // where it crosses one already down it rests on it: it pivots on its
@@ -76,7 +76,7 @@ pub(crate) fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
         let (sin, head) = best.unwrap_or((0.0, true));
         let pivot = if head { x0 } else { x1 };
         tilt.position().x = pivot;
-        tilt.rotation().z = if head { sin.asin() } else { -sin.asin() };
+        tilt.rotation().z = if head { sin.dasin() } else { -sin.dasin() };
         let inner = group();
         inner.position().x = -SPIKE_MID - pivot;
         tilt.add(&inner);
@@ -157,9 +157,9 @@ impl Laid {
     /// point) over its lift off the floor
     fn top(&self, u: f64) -> f64 {
         let t = u * self.len / SPIKE_L;
-        let thick = if t < 0.58 { 0.0079 - 0.0009 * t } else { 0.0074 * (1.0 - 0.72 * ((t - 0.58) / 0.42).powf(1.15)) };
+        let thick = if t < 0.58 { 0.0079 - 0.0009 * t } else { 0.0074 * (1.0 - 0.72 * ((t - 0.58) / 0.42).dpowf(1.15)) };
         let p = (self.a0.0 + (self.a1.0 - self.a0.0) * u, self.a0.1 + (self.a1.1 - self.a0.1) * u);
-        let lift = (p.0 - self.pivot.0).hypot(p.1 - self.pivot.1) * self.sin;
+        let lift = (p.0 - self.pivot.0).dhypot(p.1 - self.pivot.1) * self.sin;
         lift + thick
     }
 }

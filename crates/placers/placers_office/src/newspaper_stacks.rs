@@ -260,7 +260,7 @@ fn photo(ctx: &mut Canvas, x0: f64, y0: f64, w: f64, h: f64, r: &mut SplitMix64)
             let (cx, cy) = ((x as f64 / cell).floor() * cell + cell / 2.0, (y as f64 / cell).floor() * cell + cell / 2.0);
             let d = 1.0 - lum(cx as usize, cy as usize);
             let rad = d.sqrt() * cell * 0.72;
-            let dist = ((x as f64 + 0.5 - cx).powi(2) + (y as f64 + 0.5 - cy).powi(2)).sqrt();
+            let dist = ((x as f64 + 0.5 - cx).dpowi(2) + (y as f64 + 0.5 - cy).dpowi(2)).sqrt();
             let ink = ((rad - dist + 0.5).clamp(0.0, 1.0)) * 0.85;
             let i = (y * iw + x) * 4;
             let v = (232.0 * (1.0 - ink) + 36.0 * ink) as u8;

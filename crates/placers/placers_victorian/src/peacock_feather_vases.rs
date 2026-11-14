@@ -56,7 +56,7 @@ pub(crate) fn place_peacock_feather_vases(g: &mut Game, _dist: &[i32]) {
         let t = (shaft_len - 0.35) / 0.15;
         let fs = 0.88 + 0.24 * t;
         let pivot = group();
-        pivot.position().set(angle.cos() * 0.010 * k, VASE_H * k - FEATHER_FOOT, angle.sin() * 0.010 * k);
+        pivot.position().set(angle.dcos() * 0.010 * k, VASE_H * k - FEATHER_FOOT, angle.dsin() * 0.010 * k);
         pivot.rotation().y = PI / 2.0 - angle;
         let feather = group();
         feather.rotation().x = 0.16 + 0.12 * t;
@@ -86,7 +86,7 @@ const GLAZES: [[f64; 3]; 5] = [[0.17, 0.25, 0.38], [0.38, 0.19, 0.19], [0.19, 0.
 fn wrap_vn(seed: u32, u: f64, v: f64, fu: f64, fv: f64) -> f64 {
     let a = u * std::f64::consts::TAU;
     let r = fu / std::f64::consts::TAU;
-    0.5 * vn(seed, 40.0 + r * a.cos(), v * fv) + 0.5 * vn(seed ^ 0x77, 40.0 + r * a.sin(), v * fv + 13.0)
+    0.5 * vn(seed, 40.0 + r * a.dcos(), v * fv) + 0.5 * vn(seed ^ 0x77, 40.0 + r * a.dsin(), v * fv + 13.0)
 }
 
 fn wrap_fbm(seed: u32, u: f64, v: f64, fu: f64, fv: f64) -> f64 {
@@ -174,10 +174,10 @@ fn feather_tex(salt: u32) -> Tex {
             // the rings are ellipses taller than wide, the core a kidney
             // dented at its foot
             let r = (dx * dx + (dy / 1.3) * (dy / 1.3)).sqrt();
-            let rk = ((dx * 1.1).powi(2) + ((dy - 0.004) / 1.2).powi(2)).sqrt()
+            let rk = ((dx * 1.1).dpowi(2) + ((dy - 0.004) / 1.2).dpowi(2)).sqrt()
                 - 0.004 * (1.0 - sstep(0.0, 0.01, dx.abs())) * sstep(0.0, 0.01, -dy);
-            let a = dy.atan2(dx);
-            let fib = 0.5 + 0.5 * (a * 70.0).sin();
+            let a = dy.datan2(dx);
+            let fib = 0.5 + 0.5 * (a * 70.0).dsin();
             if r > 0.040 {
                 return [0.0, 0.0, 0.0, 0.0];
             }

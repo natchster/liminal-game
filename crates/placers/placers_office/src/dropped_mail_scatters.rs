@@ -33,7 +33,7 @@ pub(crate) fn place_dropped_mail_scatters(g: &mut Game, _dist: &[i32]) {
             addr.rotation().x = -PI / 2.0;
             // offset 2 cm along the envelope's own long axis (its yaw), just over its top
             let (ep, ery) = (env.pos(), env.rot().y);
-            addr.position().set(ep.x + 0.02 * ery.cos(), ep.y + 0.0006, ep.z - 0.02 * ery.sin());
+            addr.position().set(ep.x + 0.02 * ery.dcos(), ep.y + 0.0006, ep.z - 0.02 * ery.dsin());
             addr.rotation().z = ery;
             grp.add(&addr);
         }

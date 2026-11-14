@@ -48,16 +48,16 @@ fn deck_tex(plastic: [f64; 3], salt: u32) -> Tex {
         let mut c = mix(plastic, [0.60, 0.58, 0.54], 0.22 * sstep(0.4, 0.8, fbm(salt, u * 6.0, v * 2.0, 3)));
         // the moulded grip: a fine raised lattice
         let (gx, gy) = (u * 180.0, v * 50.0);
-        let lat = ((gx + gy).sin() * (gx - gy).sin()).abs();
+        let lat = ((gx + gy).dsin() * (gx - gy).dsin()).abs();
         c = mix(c, [c[0] * 0.82, c[1] * 0.82, c[2] * 0.82], 0.5 * (1.0 - sstep(0.05, 0.35, lat)));
         // scraped white at the ends and the rails, in streaks along it
         let ends = sstep(0.14, 0.02, u).max(sstep(0.88, 0.99, u)).max(sstep(0.12, 0.0, v)).max(sstep(0.88, 1.0, v));
         let streak = sstep(0.55, 0.75, fbm(salt ^ 0x2d, u * 60.0, v * 6.0, 3));
         c = mix(c, [0.74, 0.72, 0.68], 0.75 * ends * streak);
         // where feet stood: darker, the grip worn smooth
-        let feet = (-(((u - 0.30) / 0.10).powi(2) + ((v - 0.5) / 0.35).powi(2)))
-            .exp()
-            .max((-(((u - 0.72) / 0.10).powi(2) + ((v - 0.5) / 0.35).powi(2))).exp());
+        let feet = (-(((u - 0.30) / 0.10).dpowi(2) + ((v - 0.5) / 0.35).dpowi(2)))
+            .dexp()
+            .max((-(((u - 0.72) / 0.10).dpowi(2) + ((v - 0.5) / 0.35).dpowi(2))).dexp());
         c = mix(c, [c[0] * 0.70, c[1] * 0.70, c[2] * 0.70], 0.5 * feet);
         let dirt = sstep(0.5, 0.85, fbm(salt ^ 0x4d, u * 10.0, v * 3.0, 3));
         mix(c, [0.28, 0.26, 0.23], 0.45 * dirt)

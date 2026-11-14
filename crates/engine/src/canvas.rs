@@ -4,6 +4,7 @@
 
 use crate::cg::*;
 use crate::css::{FontSpec, parse_css_color, parse_css_font};
+use crate::dmath::DMath;
 use crate::math::Num;
 use crate::texture::{Image, Tex};
 use std::cell::RefCell;
@@ -415,7 +416,7 @@ impl Canvas {
     }
     pub fn rotate(&mut self, a: impl Num) {
         let a = a.f();
-        let (s, c) = a.sin_cos();
+        let (s, c) = a.dsin_cos();
         let t = CGAffineTransform { a: c, b: s, c: -s, d: c, tx: 0.0, ty: 0.0 };
         self.st.ctm = t.then(&self.st.ctm);
     }
@@ -545,9 +546,9 @@ impl Canvas {
             let d = a0 - a1;
             if d >= tau { -tau } else { -(((d % tau) + tau) % tau) }
         };
-        let (cr, sr) = (rot.cos(), rot.sin());
+        let (cr, sr) = (rot.dcos(), rot.dsin());
         let pt = |t: f64| {
-            let (c, s) = (t.cos(), t.sin());
+            let (c, s) = (t.dcos(), t.dsin());
             let ex = rx * c;
             let ey = ry * s;
             (x + ex * cr - ey * sr, y + ex * sr + ey * cr)
@@ -565,12 +566,12 @@ impl Canvas {
         }
         let n = ((sweep.abs() / (PI / 2.0)).ceil() as usize).max(1);
         let step = sweep / n as f64;
-        let k = 4.0 / 3.0 * (step / 4.0).tan();
+        let k = 4.0 / 3.0 * (step / 4.0).dtan();
         let mut t = a0;
         for _ in 0..n {
             let t2 = t + step;
-            let (c1, s1) = (t.cos(), t.sin());
-            let (c2, s2) = (t2.cos(), t2.sin());
+            let (c1, s1) = (t.dcos(), t.dsin());
+            let (c2, s2) = (t2.dcos(), t2.dsin());
             // control points on the unit circle, then scaled/rotated
             let p = |ux: f64, uy: f64| {
                 let ex = rx * ux;
@@ -608,19 +609,19 @@ impl Canvas {
             return;
         }
         let cos = (v1x * v2x + v1y * v2y) / (l1 * l2);
-        let ang = cos.clamp(-1.0, 1.0).acos();
+        let ang = cos.clamp(-1.0, 1.0).dacos();
         if ang.abs() < 1e-9 || (PI - ang).abs() < 1e-9 {
             self.line_to(x1, y1);
             return;
         }
-        let d = r / (ang / 2.0).tan();
+        let d = r / (ang / 2.0).dtan();
         let (t1x, t1y) = (x1 + v1x / l1 * d, y1 + v1y / l1 * d);
         let (t2x, t2y) = (x1 + v2x / l2 * d, y1 + v2y / l2 * d);
         let cross = v1x * v2y - v1y * v2x;
         let (nx, ny) = if cross > 0.0 { (v1y / l1, -v1x / l1) } else { (-v1y / l1, v1x / l1) };
         let (cx, cy) = (t1x + nx * r, t1y + ny * r);
-        let a0 = (t1y - cy).atan2(t1x - cx);
-        let a1 = (t2y - cy).atan2(t2x - cx);
+        let a0 = (t1y - cy).datan2(t1x - cx);
+        let a1 = (t2y - cy).datan2(t2x - cx);
         self.line_to(t1x, t1y);
         self.ellipse_dir(cx, cy, r, r, 0.0, a0, a1, cross > 0.0);
     }
@@ -737,7 +738,7 @@ impl Canvas {
                     // circle) paints nothing outside the end circle under source-over:
                     // shade only that circle's box, not the whole clip (the same pixels)
                     let clear_end = gd.stops.last().is_some_and(|s| s.1[3] == 0.0);
-                    let inside = ((x1 - x0).powi(2) + (y1 - y0).powi(2)).sqrt() + r0 <= r1;
+                    let inside = ((x1 - x0).dpowi(2) + (y1 - y0).dpowi(2)).sqrt() + r0 <= r1;
                     if clear_end && inside && self.st.composite == kCGBlendModeNormal {
                         let r = r1 + 1.0;
                         CGContextClipToRect(

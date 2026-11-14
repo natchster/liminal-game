@@ -50,7 +50,7 @@ pub(crate) fn place_car_keys(g: &mut Game, _dist: &[i32]) {
     key.rotation().z = (rnd() - 0.5) * 0.15;
     // threaded: the bow's hole (x = -0.0042) sits on the ring, key pointing out
     let kry = key.rot().y;
-    key.position().set(kry.cos() * 0.0162, 0.002, -kry.sin() * 0.0162);
+    key.position().set(kry.dcos() * 0.0162, 0.002, -kry.dsin() * 0.0162);
     k.add(&key);
     // 2nd smaller key — mailbox/luggage style (short, no teeth).
     let key2 = group();
@@ -60,7 +60,7 @@ pub(crate) fn place_car_keys(g: &mut Game, _dist: &[i32]) {
     shaft2.position().set(0.011, 0, 0);
     key2.add(&shaft2);
     key2.rotation().y = 1.8;
-    key2.position().set(1.8f64.cos() * 0.0152, 0.002, -1.8f64.sin() * 0.0152); // hole on the ring
+    key2.position().set(1.8f64.dcos() * 0.0152, 0.002, -1.8f64.dsin() * 0.0152); // hole on the ring
     k.add(&key2);
     // Car fob — small rectangular remote w/ buttons.
     let fob = group();
@@ -82,7 +82,7 @@ pub(crate) fn place_car_keys(g: &mut Game, _dist: &[i32]) {
     fob.rotation().y = -0.6 + (rnd() - 0.5) * 0.3;
     // its small ring (local x = -0.014) links the key ring, body pointing out
     let fry = fob.rot().y;
-    fob.position().set(fry.cos() * 0.0285, 0, -fry.sin() * 0.0285);
+    fob.position().set(fry.dcos() * 0.0285, 0, -fry.dsin() * 0.0285);
     k.add(&fob);
     // 60% chance: leather tag w/ initial letter.
     if rnd() < 0.6 {
@@ -111,7 +111,7 @@ pub(crate) fn place_car_keys(g: &mut Game, _dist: &[i32]) {
         // on the free side of the ring, its small ring (local z = -0.010) linking it
         tag.rotation().y = -1.4 + (rnd() - 0.5) * 0.3;
         let try_ = tag.rot().y;
-        tag.position().set(try_.sin() * 0.0245, 0, try_.cos() * 0.0245);
+        tag.position().set(try_.dsin() * 0.0245, 0, try_.dcos() * 0.0245);
         k.add(&tag);
     }
     k.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

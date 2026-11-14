@@ -105,7 +105,7 @@ fn set(g: &mut Game, ei: usize, to: Mode, why: &'static str) {
 /// Where its face looks (its body's way, its head turned by `head_yaw`).
 fn face_dir(g: &Game, ei: usize) -> (f64, f64) {
     let yaw = g.entities[ei].yaw + g.creature(ei).map_or(0.0, |c| c.get("head_yaw"));
-    (yaw.sin(), yaw.cos())
+    (yaw.dsin(), yaw.dcos())
 }
 
 /// Whether you see its face: in its front half, its face in your view, a
@@ -234,7 +234,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             }
             if knows || sees {
                 g.creature_go(ei, None, true, PACE, dt);
-                let h = (pp.x - pos.x).atan2(pp.z - pos.z);
+                let h = (pp.x - pos.x).datan2(pp.z - pos.z);
                 g.entity_turn(ei, h, dt, Some(8.0));
             } else {
                 g.entity_drive(ei, dt, 0.0);
@@ -374,7 +374,7 @@ fn chosen(g: &Game) -> Option<((i32, i32, i32, i32), crate::base::rng::SplitMix6
 pub fn stand_in(g: &mut Game, ei: usize, x: i32, z: i32, cx: i32, cz: i32) {
     let back = CELL / 2.0 - 0.42;
     let (wx, wz) = (g.wx(x) + cx as f64 * back, g.wz(z) + cz as f64 * back);
-    let yaw = (cx as f64).atan2(cz as f64);
+    let yaw = (cx as f64).datan2(cz as f64);
     let e = &mut g.entities[ei];
     e.g.set_pos(wx, 0.0, wz);
     e.yaw = yaw;
@@ -395,14 +395,14 @@ fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
     let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
 }
 
 fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
 }
 
@@ -428,12 +428,12 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     if killer {
         // it has you: all of it turned to you
         let p = root.pos();
-        let y = (pp.x - p.x).atan2(pp.z - p.z);
+        let y = (pp.x - p.x).datan2(pp.z - p.z);
         root.rotation().y = y;
     }
     let yaw = root.rotation().y;
     let pos = root.pos();
-    let want = wrap_pi((pp.x - pos.x).atan2(pp.z - pos.z) - yaw);
+    let want = wrap_pi((pp.x - pos.x).datan2(pp.z - pos.z) - yaw);
     // the head: round to you over `TURN` (as far as a neck goes, and further)
     let turning = matches!(mode, Mode::Alert);
     let head_yaw = if turning {
@@ -459,7 +459,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     }
     if let Some(ch) = rig.ix("chest") {
         // a slow breath, nothing else
-        rig.turn(ch, &Quat::from_euler(&Euler::new((t * 0.9).sin() * 0.012, 0.0, 0.0)));
+        rig.turn(ch, &Quat::from_euler(&Euler::new((t * 0.9).dsin() * 0.012, 0.0, 0.0)));
     }
     // ---- the legs: planted; it runs in long strides, its arms do not move
     if c.limbs.len() != 2 {
@@ -493,7 +493,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
             for a in 0..3 {
                 limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * s;
             }
-            limb.at[1] = rest_end.y + (s * PI).sin() * 0.18;
+            limb.at[1] = rest_end.y + (s * PI).dsin() * 0.18;
         } else {
             if limb.swing > 0.0 {
                 limb.at = limb.to;

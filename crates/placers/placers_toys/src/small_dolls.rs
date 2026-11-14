@@ -146,13 +146,13 @@ fn dress_tex(salt: u32, b: [f64; 3]) -> Tex {
                     let (cu, cv) = ((u * 18.0).floor(), (v * 18.0).floor());
                     let (fu, fv) = ((u * 18.0).fract() - 0.5, (v * 18.0).fract() - 0.5);
                     let o = hash(seed, cu as i32, cv as i32) * 0.3;
-                    let d = ((fu - o + 0.15).powi(2) + (fv + o - 0.15).powi(2)).sqrt();
+                    let d = ((fu - o + 0.15).dpowi(2) + (fv + o - 0.15).dpowi(2)).sqrt();
                     c = mix(b, [0.84, 0.80, 0.74], sstep(0.16, 0.10, d) * 0.85);
                 }
                 _ => {}
             }
             // the weave
-            let weave = 0.5 + 0.5 * ((u * 900.0).sin() * (v * 900.0).sin());
+            let weave = 0.5 + 0.5 * ((u * 900.0).dsin() * (v * 900.0).dsin());
             c = mix(c, [c[0] * 0.92, c[1] * 0.92, c[2] * 0.92], weave * 0.3);
             let fade = fbm(seed, u * 4.0, v * 4.0, 3);
             c = mix(c, [0.70, 0.68, 0.64], sstep(0.45, 0.8, fade) * 0.35);
@@ -171,7 +171,7 @@ fn sock_tex(salt: u32) -> Tex {
     canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         let seed = salt ^ 0x50c;
         fill(ctx, w, h, |u, v| {
-            let rib = 0.5 + 0.5 * (u * 120.0).sin();
+            let rib = 0.5 + 0.5 * (u * 120.0).dsin();
             let mut c = mix([0.80, 0.79, 0.76], [0.70, 0.69, 0.66], rib * 0.4);
             c = mix(c, [0.45, 0.42, 0.38], (sstep(0.5, 0.85, fbm(seed, u * 4.0, v * 4.0, 3)) + (0.3 - v).max(0.0)) * 0.5);
             [c[0], c[1], c[2], 1.0]
@@ -234,7 +234,7 @@ fn small_face_tex(salt: u32, b: [f64; 3]) -> Tex {
             ctx.begin_path();
             for i in 0..8 {
                 let t = f64::from(i) / 7.0;
-                let (a, b) = px(s * (0.009 + 0.020 * t), 0.0712 + 0.0035 * (1.0 - (2.0 * t - 0.8).powi(2)));
+                let (a, b) = px(s * (0.009 + 0.020 * t), 0.0712 + 0.0035 * (1.0 - (2.0 * t - 0.8).dpowi(2)));
                 if i == 0 {
                     ctx.move_to(a, b);
                 } else {

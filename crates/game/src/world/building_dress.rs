@@ -84,7 +84,7 @@ fn boxm(c: Vec3, yaw: f64, s: Vec3) -> Mat4 {
 
 /// The yaw that turns an object's +z toward `DIRS[d]`
 fn yaw_to(d: usize) -> f64 {
-    (DIRS[d][0] as f64).atan2(DIRS[d][1] as f64)
+    (DIRS[d][0] as f64).datan2(DIRS[d][1] as f64)
 }
 
 /// A door wheel's ring and its spoke (shared by every door)
@@ -170,7 +170,7 @@ impl Game {
     fn hermetic_door(&self, parts: &mut Parts, at: Vec3, yaw: f64, open: f64, steel: &Mat) {
         self.door_frame(parts, at, yaw, steel);
         let frame_geo = self.unit_box_geo.clone();
-        let (c, s) = (yaw.cos(), yaw.sin());
+        let (c, s) = (yaw.dcos(), yaw.dsin());
         let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
         // the leaf, hinged at its left edge
@@ -179,13 +179,13 @@ impl Game {
         // (turned by `open` about the hinge: inward, into the room)
         let hinge = (-hw + 0.03, -0.08);
         let a = open;
-        let mid = (hinge.0 + (lw / 2.0) * a.cos(), hinge.1 - (lw / 2.0) * a.sin());
+        let mid = (hinge.0 + (lw / 2.0) * a.dcos(), hinge.1 - (lw / 2.0) * a.dsin());
         parts.put(leaf, boxm(to_w(mid.0, lh / 2.0 + 0.02, mid.1), yaw + a, Vec3::new(lw, lh, 0.09)));
         // the wheel, on the leaf's outer face: a ring and two spokes
         let (ring_geo, spoke_geo) = door_wheel_geos();
         let ring = parts.part(&ring_geo, steel);
         let spoke = parts.part(&spoke_geo, steel);
-        let wc = to_w(mid.0 + 0.07 * a.sin(), 1.05, mid.1 + 0.07 * a.cos());
+        let wc = to_w(mid.0 + 0.07 * a.dsin(), 1.05, mid.1 + 0.07 * a.dcos());
         parts.put(ring, boxm(wc, yaw + a, Vec3::new(1.0, 1.0, 1.0)));
         for k in [0.0, PI / 2.0] {
             let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), yaw + a);
@@ -198,7 +198,7 @@ impl Game {
     fn door_frame(&self, parts: &mut Parts, at: Vec3, yaw: f64, steel: &Mat) {
         let frame_geo = self.unit_box_geo.clone();
         let frame = parts.part(&frame_geo, steel);
-        let (c, s) = (yaw.cos(), yaw.sin());
+        let (c, s) = (yaw.dcos(), yaw.dsin());
         // local (x along the face to the right seen from outside, z out) → world
         let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
@@ -216,7 +216,7 @@ impl Game {
     /// and the wheel on its spindle through the leaf, a ring and two spokes
     /// on either face (it turns about its local z: `world::cell_knock`)
     fn door_leaf(&self, at: Vec3, yaw: f64, steel: &Mat, worn: &Mat) -> (Obj, Obj) {
-        let (c, s) = (yaw.cos(), yaw.sin());
+        let (c, s) = (yaw.dcos(), yaw.dsin());
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
         let (lw, lh) = (CELL_DOOR - 0.06, hh - 0.04);
         let (hx, hz) = (-hw + 0.03, -0.08);
@@ -1096,7 +1096,7 @@ impl Game {
             for (i, j) in [(0, n / 2), (n / 2 + LANDING - 1, n - 1)] {
                 let (a, b) = (at(i), at(j));
                 let low = |p: Vec3| Vec3::new(p.x + fx * deep / 2.0, p.y - 0.2, p.z + fz * deep / 2.0);
-                let thick = (rise + 0.03) * (CELL / 13.0) / (CELL / 13.0).hypot(rise);
+                let thick = (rise + 0.03) * (CELL / 13.0) / (CELL / 13.0).dhypot(rise);
                 parts.put(step, crate::world::building::soffit(low(a), low(b), thick, 2.38));
             }
             for s in 0..n {
@@ -1402,7 +1402,7 @@ fn room_stool() -> Obj {
     ring.rotation().x = PI / 2.0;
     for k in 0..3 {
         let a = k as f64 * 2.0 * PI / 3.0 + 0.3;
-        let (top, foot) = (Vec3::new(0.03 * a.cos(), 0.36, 0.03 * a.sin()), Vec3::new(0.21 * a.cos(), 0.0, 0.21 * a.sin()));
+        let (top, foot) = (Vec3::new(0.03 * a.dcos(), 0.36, 0.03 * a.dsin()), Vec3::new(0.21 * a.dcos(), 0.0, 0.21 * a.dsin()));
         let dir = Vec3::new(top.x - foot.x, top.y - foot.y, top.z - foot.z);
         let len = dir.length();
         let leg = piece_part(

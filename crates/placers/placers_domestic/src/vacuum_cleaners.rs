@@ -69,7 +69,7 @@ pub(crate) fn place_vacuum_cleaners(g: &mut Game, _dist: &[i32]) {
     let n = pts.len();
     let (pa, pb) = (pts[n - 2], pts[n - 1]);
     plug.position().set(pb.x, 0, pb.z);
-    plug.rotation().y = (pb.x - pa.x).atan2(pb.z - pa.z);
+    plug.rotation().y = (pb.x - pa.x).datan2(pb.z - pa.z);
     put(&plug, "Real__vacuumPlug", &lambert!({ color: 0x2c2a28 }));
     put(&plug, "Real__vacuumPlugBlades", &phong!({ color: 0x7a6e58, specular: 0x5a5244, shininess: 40 }));
     v.add(&plug);
@@ -113,7 +113,7 @@ fn cord_geo(pts: &[Vec3], r: f64, sides: usize) -> Geo {
         b.cross(&side).normalize();
         for k in 0..sides {
             let a = k as f64 / sides as f64 * PI * 2.0;
-            let (c, s) = (a.cos(), a.sin());
+            let (c, s) = (a.dcos(), a.dsin());
             let nx = side.x * c + b.x * s;
             let ny = side.y * c + b.y * s;
             let nz = side.z * c + b.z * s;

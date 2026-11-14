@@ -93,7 +93,7 @@ impl CmBreak {
             while l < reach && inside(q) {
                 let step = r.range(0.008, 0.022);
                 a += r.range(-0.12, 0.12);
-                q = [q[0] + a.cos() * step, q[1] + a.sin() * step];
+                q = [q[0] + a.dcos() * step, q[1] + a.dsin() * step];
                 l += step;
                 pts.push(q);
             }
@@ -108,7 +108,7 @@ impl CmBreak {
         let mut dirs: Vec<Vec<[f64; 2]>> = vec![];
         for i in 0..n {
             let a = a0 + PI * 2.0 * i as f64 / n as f64 + r.range(-0.25, 0.25);
-            let start = [p[0] + a.cos() * crush, p[1] + a.sin() * crush];
+            let start = [p[0] + a.dcos() * crush, p[1] + a.dsin() * crush];
             let reach = if r.next() < 0.25 { r.range(0.05, 0.16) } else { 9.0 };
             let pts = run(&mut r, start, a, reach);
             if r.next() < 0.4 && pts.len() > 5 {
@@ -122,7 +122,7 @@ impl CmBreak {
             dirs.push(pts.clone());
             b.lines.push((pts, 1.25));
         }
-        let at = |pts: &Vec<[f64; 2]>, rad: f64| pts.iter().find(|q| (q[0] - p[0]).hypot(q[1] - p[1]) >= rad).copied();
+        let at = |pts: &Vec<[f64; 2]>, rad: f64| pts.iter().find(|q| (q[0] - p[0]).dhypot(q[1] - p[1]) >= rad).copied();
         let rings = [r.range(0.018, 0.035), r.range(0.05, 0.09)];
         for (ri, &rad) in rings.iter().enumerate() {
             let chance = if ri == 0 { 0.55 } else { 0.3 };
@@ -214,11 +214,11 @@ fn cm_silver_tex(b: &CmBreak, vary: u32) -> Tex {
                 let fr = [2.0 + rnd() * 2.0, 6.0 + rnd() * 5.0, 15.0 + rnd() * 10.0];
                 let depth = |t: f64| -> f64 {
                     let wave = 0.5
-                        + 0.22 * (fr[0] * t * 6.28 + ph[0]).sin()
-                        + 0.16 * (fr[1] * t * 6.28 + ph[1]).sin()
-                        + 0.1 * (fr[2] * t * 6.28 + ph[2]).sin();
+                        + 0.22 * (fr[0] * t * 6.28 + ph[0]).dsin()
+                        + 0.16 * (fr[1] * t * 6.28 + ph[1]).dsin()
+                        + 0.1 * (fr[2] * t * 6.28 + ph[2]).dsin();
                     let on = ((wave - 0.38) / 0.4).clamp(0.0, 1.0);
-                    let corner = 1.0 + 1.6 * ((1.0 - (t * 2.0 - 1.0).abs()) * -9.0).exp();
+                    let corner = 1.0 + 1.6 * ((1.0 - (t * 2.0 - 1.0).abs()) * -9.0).dexp();
                     deep * (on * on * (3.0 - 2.0 * on)) * wave * corner
                 };
                 let at = |t: f64, d: f64| -> (f64, f64) {
@@ -254,14 +254,14 @@ fn cm_silver_tex(b: &CmBreak, vary: u32) -> Tex {
                 }
                 for _ in 0..(len / 6.0) as usize {
                     let t = rnd();
-                    let d = depth(t).max(1.5) * (1.3 + 2.5 * rnd().powi(2));
+                    let d = depth(t).max(1.5) * (1.3 + 2.5 * rnd().dpowi(2));
                     let (x, y) = at(t, d);
                     spot(ctx, x, y, 0.6 + rnd() * rnd() * 3.0, 0.4 + 0.5 * rnd());
                 }
             }
             // pinholes, all over but most low down
             for _ in 0..60 {
-                let (x, y) = (rnd() * w, h * rnd().powf(0.6));
+                let (x, y) = (rnd() * w, h * rnd().dpowf(0.6));
                 ctx.set_fill_style(format!("rgba(255,255,255,{:.2})", 0.5 + 0.5 * rnd()));
                 ctx.begin_path();
                 ctx.arc(x, y, 0.35 + rnd() * rnd() * 1.1, 0, 7);
@@ -289,7 +289,7 @@ fn cm_silver_tex(b: &CmBreak, vary: u32) -> Tex {
                 let rr = cr / gw * w;
                 for _ in 0..10 {
                     let (a, d) = (rnd() * 7.0, rr * (1.0 + 2.5 * rnd()));
-                    spot(ctx, x + a.cos() * d, y + a.sin() * d, 1.0 + rnd() * rr * 0.8, 0.4 + 0.4 * rnd());
+                    spot(ctx, x + a.dcos() * d, y + a.dsin() * d, 1.0 + rnd() * rr * 0.8, 0.4 + 0.4 * rnd());
                 }
             }
         })
@@ -318,7 +318,7 @@ fn cm_film_tex(b: &CmBreak, vary: u32) -> Tex {
             ctx.stroke_rect(3.5, 3.5, w - 7.0, h - 7.0);
             // dust, unevenly, and more of it lower down
             for _ in 0..14 {
-                let (x, y, r) = (rnd() * w, h * rnd().powf(0.7), w * (0.12 + 0.3 * rnd()));
+                let (x, y, r) = (rnd() * w, h * rnd().dpowf(0.7), w * (0.12 + 0.3 * rnd()));
                 let g = ctx.create_radial_gradient(x, y, 0, x, y, r);
                 g.add_color_stop(0, &format!("rgba(176,172,162,{:.3})", 0.05 + 0.06 * rnd()));
                 g.add_color_stop(1, "rgba(176,172,162,0)");
@@ -399,9 +399,9 @@ fn cm_film_tex(b: &CmBreak, vary: u32) -> Tex {
                     let a = i as f64 / 14.0 * PI * 2.0;
                     let q = rr * (0.6 + 0.6 * rnd());
                     if i == 0 {
-                        ctx.move_to(x + a.cos() * q, y + a.sin() * q);
+                        ctx.move_to(x + a.dcos() * q, y + a.dsin() * q);
                     } else {
-                        ctx.line_to(x + a.cos() * q, y + a.sin() * q);
+                        ctx.line_to(x + a.dcos() * q, y + a.dsin() * q);
                     }
                 }
                 ctx.close_path();
@@ -413,8 +413,8 @@ fn cm_film_tex(b: &CmBreak, vary: u32) -> Tex {
                     ctx.set_stroke_style(format!("rgba({v},{v},{},0.7)", v - 6));
                     ctx.set_line_width(0.6 + 0.4 * rnd());
                     ctx.begin_path();
-                    ctx.move_to(x + a.cos() * r0, y + a.sin() * r0);
-                    ctx.line_to(x + a.cos() * r1, y + a.sin() * r1);
+                    ctx.move_to(x + a.dcos() * r0, y + a.dsin() * r0);
+                    ctx.line_to(x + a.dcos() * r1, y + a.dsin() * r1);
                     ctx.stroke();
                 }
             }

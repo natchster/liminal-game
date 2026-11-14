@@ -75,8 +75,8 @@ fn scratches(seed: u32, u: f64, v: f64, n: i32, len: f64) -> f64 {
         let (cx, cy) = (hash(seed, k, 1), hash(seed, k, 2));
         let a = hash(seed, k, 3) * 3.2;
         let (dx, dy) = (u - cx, v - cy);
-        let along = dx * a.cos() + dy * a.sin();
-        let across = -dx * a.sin() + dy * a.cos();
+        let along = dx * a.dcos() + dy * a.dsin();
+        let across = -dx * a.dsin() + dy * a.dcos();
         if along.abs() < len * (0.4 + hash(seed, k, 4)) {
             s = s.max(line(across, 0.004) * (0.4 + 0.6 * hash(seed, k, 5)));
         }
@@ -94,9 +94,9 @@ fn case_tex(kind: usize, salt: u32) -> Tex {
             let n = fbm(seed, u * 7.0, v * 7.0, 3);
             let mut g = 0.84 + 0.12 * n;
             let sc = scratches(seed, u, v, 26, 0.12);
-            let r = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt();
+            let r = ((u - 0.5).dpowi(2) + (v - 0.5).dpowi(2)).sqrt();
             if kind == 2 {
-                g += 0.06 * (r * 260.0).sin() * sstep(0.46, 0.2, r);
+                g += 0.06 * (r * 260.0).dsin() * sstep(0.46, 0.2, r);
                 g += 0.25 * sstep(0.40, 0.48, r) * sstep(0.5, 0.75, fbm(seed ^ 1, u * 14.0, v * 14.0, 2));
                 g += 0.35 * sc;
             } else if kind == 1 {
@@ -147,7 +147,7 @@ fn mirror_tex(salt: u32) -> Tex {
     canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         let seed = salt ^ 0x3177;
         fill(ctx, w, h, |u, v| {
-            let r = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt() * 2.0;
+            let r = ((u - 0.5).dpowi(2) + (v - 0.5).dpowi(2)).sqrt() * 2.0;
             let edge = sstep(0.80, 0.98, r + 0.25 * (fbm(seed, u * 9.0, v * 9.0, 3) - 0.5));
             let spot = sstep(0.90, 0.95, vn(seed ^ 2, u * 26.0, v * 26.0)) * sstep(0.4, 0.7, fbm(seed ^ 8, u * 4.0, v * 4.0, 2));
             let smear = 0.25 * sstep(0.6, 0.75, fbm(seed ^ 4, u * 3.0 + v * 6.0, v * 2.0, 2));
@@ -165,10 +165,10 @@ fn powder_tex(salt: u32) -> Tex {
         let seed = salt ^ 0x90d3;
         let base = [[0.90, 0.78, 0.66], [0.85, 0.70, 0.57], [0.78, 0.61, 0.48]][(salt >> 9) as usize % 3];
         fill(ctx, w, h, |u, v| {
-            let r = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt() * 2.0;
+            let r = ((u - 0.5).dpowi(2) + (v - 0.5).dpowi(2)).sqrt() * 2.0;
             // the hollow, where bathroom/washroom_shelf_and_dressing_table.py wore it (x -4 mm, z +3 mm of 58)
-            let dh = ((u - 0.431).powi(2) + (v - 0.448).powi(2)).sqrt() / 0.30;
-            let worn = (-dh * dh * 1.6).exp();
+            let dh = ((u - 0.431).dpowi(2) + (v - 0.448).dpowi(2)).sqrt() / 0.30;
+            let worn = (-dh * dh * 1.6).dexp();
             let n = fbm(seed, u * 30.0, v * 30.0, 3);
             let mut c = [0.0; 3];
             for k in 0..3 {
@@ -187,7 +187,7 @@ fn powder_tex(salt: u32) -> Tex {
                     let (ii, jj) = (x.floor() as i32 + di, y.floor() as i32 + dj);
                     let fx = f64::from(ii) + hash(seed, ii, jj);
                     let fy = f64::from(jj) + hash(seed ^ 77, ii, jj);
-                    let d = (fx - x).hypot(fy - y);
+                    let d = (fx - x).dhypot(fy - y);
                     if d < d1 {
                         d2 = d1;
                         d1 = d;

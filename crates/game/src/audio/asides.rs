@@ -28,6 +28,7 @@ use super::voice::Line;
 use crate::base::game::Game;
 use crate::base::numeric::hypot2;
 use crate::base::rng::SplitMix64;
+use engine::dmath::DMath;
 
 /// Whose lines your asides are: you, under your breath
 pub const PERSONA: &str = "you_aside";
@@ -404,7 +405,7 @@ pub fn temperament(run_seed: u32) -> f64 {
 /// subject, and `USE_FADE` for each line of the use said about anything
 /// (rule 2: a new place, late in a run, still has its word)
 pub fn chance(u: Use, run_seed: u32, said_about: u32, said_of_use: u32) -> f64 {
-    u.chance() * temperament(run_seed) * u.decay().powi(said_about as i32) * USE_FADE.powi(said_of_use as i32)
+    u.chance() * temperament(run_seed) * u.decay().dpowi(said_about as i32) * USE_FADE.dpowi(said_of_use as i32)
 }
 
 /// SplitMix64's finaliser: a salt mixed through, so that runs whose seeds

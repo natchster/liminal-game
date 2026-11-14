@@ -142,7 +142,7 @@ fn gl_meridian_tex(vary: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let (x, y) = ((u - 0.5) * 2.0 * 0.159, (v - 0.5) * 2.0 * 0.159);
             let r = (x * x + y * y).sqrt();
-            let a = y.atan2(x).to_degrees().rem_euclid(360.0);
+            let a = y.datan2(x).to_degrees().rem_euclid(360.0);
             let k = tarnish(seed, u, v, 7.0);
             let mut o = [0.42, 0.33, 0.17].map(|c| c * k);
             // the degrees: a tick each, longer each 5 and 10, on the outer half
@@ -183,7 +183,7 @@ fn gl_horizon_tex(vary: u32) -> Tex {
             let r = (x * x + z * z).sqrt();
             let mut o = [0.80, 0.72, 0.55];
             // hand colour washed in the zodiac's ring and the calendar's
-            let a = z.atan2(x).to_degrees().rem_euclid(360.0);
+            let a = z.datan2(x).to_degrees().rem_euclid(360.0);
             let sector = (a / 30.0).floor() as i32;
             if r > 0.1865 && r < 0.1935 {
                 let tints = [[0.80, 0.68, 0.52], [0.70, 0.74, 0.60], [0.78, 0.66, 0.58]];
@@ -202,7 +202,7 @@ fn gl_horizon_tex(vary: u32) -> Tex {
         ctx.set_line_width(0.7);
         for k in 0..360 {
             let a = (k as f64).to_radians();
-            let (c, s) = (a.cos(), a.sin());
+            let (c, s) = (a.dcos(), a.dsin());
             let len = if k % 10 == 0 {
                 0.0055
             } else if k % 5 == 0 {
@@ -230,7 +230,7 @@ fn gl_horizon_tex(vary: u32) -> Tex {
             for (k, t) in list.iter().enumerate() {
                 let a = (off + k as f64 * step).to_radians();
                 ctx.save();
-                ctx.translate(cx + a.cos() * r * px, cy + a.sin() * r * px);
+                ctx.translate(cx + a.dcos() * r * px, cy + a.dsin() * r * px);
                 ctx.rotate(a + PI / 2.0);
                 ctx.fill_text(t, 0, 0);
                 ctx.restore();
@@ -256,7 +256,7 @@ fn gl_horizon_tex(vary: u32) -> Tex {
                 let k = (j * n + i) * 4;
                 let (u, v) = (i as f64 / w, j as f64 / h);
                 let (x, z) = ((u - 0.5) * 2.0, (v - 0.5) * 2.0);
-                let a = z.atan2(x);
+                let a = z.datan2(x);
                 let mut o = [0, 1, 2].map(|c| f64::from(src.data[k + c]) / 255.0);
                 // amber varnish, deeper in patches
                 let am = 0.8 + 0.2 * fbm(seed, u * 8.0, v * 8.0, 3);
@@ -337,9 +337,9 @@ fn gl_map_tex(vary: u32) -> Tex {
             let lon = u * PI * 2.0;
             let lat = (v - 0.5) * PI;
             let mx = BL_X0 + lon * BL_K;
-            let my = BL_EQ - (PI / 4.0 + lat / 2.0).tan().ln() * BL_K;
+            let my = BL_EQ - (PI / 4.0 + lat / 2.0).dtan().dln() * BL_K;
             let grat = |lon_deg: f64, lat_deg: f64, every_lon: f64, every_lat: f64| -> f64 {
-                let a = ((lon_deg / every_lon) - (lon_deg / every_lon).round()).abs() * every_lon * lat.cos().max(0.05);
+                let a = ((lon_deg / every_lon) - (lon_deg / every_lon).round()).abs() * every_lon * lat.dcos().max(0.05);
                 let b = ((lat_deg / every_lat) - (lat_deg / every_lat).round()).abs() * every_lat;
                 1.0 - sstep(0.0, 0.45, a.min(b))
             };
@@ -360,7 +360,7 @@ fn gl_map_tex(vary: u32) -> Tex {
             };
             // the insets: out, the sea's paper and the graticule through it
             for &(ix, iy, ir) in &BL_INSETS {
-                let d = ((mx - ix).powi(2) + (my - iy).powi(2)).sqrt();
+                let d = ((mx - ix).dpowi(2) + (my - iy).dpowi(2)).sqrt();
                 if d < ir + 2.0 {
                     let k = sstep(ir + 2.0, ir - 1.0, d);
                     let mut c = mix(sea, [0.0; 3], 0.04 * fbm(seed ^ 1, u * 60.0, v * 40.0, 2));
@@ -376,8 +376,8 @@ fn gl_map_tex(vary: u32) -> Tex {
                 }
             }
             // the gores' joins every 30 degrees, a hair out of true
-            let g = ((lon_d + 0.6 * (lat * 3.0).sin()) / 30.0).fract();
-            let gd = g.min(1.0 - g) * 30.0 * lat.cos();
+            let g = ((lon_d + 0.6 * (lat * 3.0).dsin()) / 30.0).fract();
+            let gd = g.min(1.0 - g) * 30.0 * lat.dcos();
             if lat_d.abs() < 72.0 {
                 o = o.map(|c| c * (1.0 - 0.18 * (1.0 - sstep(0.0, 0.25, gd))));
             }
@@ -411,7 +411,7 @@ fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
 /// the figure, `base` its colour (sRGB)
 fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [f64; 3] {
     let warp = fbm(seed ^ 0x1d, u * along * 0.15, v * across * 0.05, 3);
-    let ring = ((v * across + warp * 6.0).sin() * 0.5 + 0.5).powf(3.0);
+    let ring = ((v * across + warp * 6.0).dsin() * 0.5 + 0.5).dpowf(3.0);
     let streak = fbm(seed, u * along * 0.2, v * across, 3);
     let fine = vn(seed ^ 3, u * along * 3.0, v * across * 6.0);
     base.map(|c| c * (0.82 + 0.28 * streak + 0.06 * fine - 0.14 * ring))

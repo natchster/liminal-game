@@ -104,7 +104,7 @@ fn srgb_table() -> &'static [f32; 256] {
         let mut t = [0f32; 256];
         for (i, v) in t.iter_mut().enumerate() {
             let c = i as f64 / 255.0;
-            *v = (if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }) as f32;
+            *v = (if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).dpowf(2.4) }) as f32;
         }
         t
     })
@@ -179,7 +179,7 @@ pub fn decode_creature(m: &CreaturePartInfo) -> Geometry {
         for k in 0..3 {
             pos[i * 3 + k] = (m.min[k] + ((q(i * 3 + k) + 32767.0) / 65534.0) * span[k]) as f32;
         }
-        uv[i * 2] = ((pos[i * 3] as f64).atan2(pos[i * 3 + 2] as f64) / tau + 0.5) as f32;
+        uv[i * 2] = ((pos[i * 3] as f64).datan2(pos[i * 3 + 2] as f64) / tau + 0.5) as f32;
         uv[i * 2 + 1] = ((pos[i * 3 + 1] as f64 - m.min[1]) / h) as f32;
     }
     let mut g = Geometry { position: pos, uv, ..Default::default() };
@@ -234,7 +234,7 @@ pub fn with_cavity_shade(geo: &Geo, strength: f64, center: Option<Vec3>) -> Geo 
             let l = or_num(hypot(&[dx, dy, dz]), 1.0);
             let facing = (nr(i * 3) * dx + nr(i * 3 + 1) * dy + nr(i * 3 + 2) * dz) / l; // 1 on a smooth dome
             let t = crate::base::numeric::nan_min(1.0, crate::base::numeric::nan_max(0.0, (0.9 - facing) / 0.9));
-            let k = 1.0 - strength * t.powf(1.4);
+            let k = 1.0 - strength * t.dpowf(1.4);
             for j in 0..3 {
                 let b = match &base {
                     Some(b) => b.get(i * 3 + j).copied().unwrap_or(f32::NAN) as f64,

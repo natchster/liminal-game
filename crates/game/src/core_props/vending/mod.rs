@@ -79,7 +79,7 @@ impl Machine {
     }
     /// A point in the machine's frame, in the world
     pub fn world(&self, x: f64, y: f64, z: f64) -> Vec3 {
-        let (p, (s, c)) = (self.pos(), self.yaw().sin_cos());
+        let (p, (s, c)) = (self.pos(), self.yaw().dsin_cos());
         Vec3::new(p.x + x * c + z * s, p.y + y, p.z - x * s + z * c)
     }
     /// Fill coil `k` again (rule 8): as full as it was built, its goods
@@ -106,7 +106,7 @@ impl Machine {
     }
     /// A world point in the machine's frame
     pub fn local(&self, q: &Vec3) -> Vec3 {
-        let (p, (s, c)) = (self.pos(), self.yaw().sin_cos());
+        let (p, (s, c)) = (self.pos(), self.yaw().dsin_cos());
         let (dx, dz) = (q.x - p.x, q.z - p.z);
         Vec3::new(dx * c - dz * s, q.y - p.y, dx * s + dz * c)
     }
@@ -274,7 +274,7 @@ fn cord_geo() -> Geo {
         v.normalize();
         for k in 0..sides {
             let th = k as f64 / sides as f64 * PI * 2.0;
-            let (c, s) = (th.cos() * r, th.sin() * r);
+            let (c, s) = (th.dcos() * r, th.dsin() * r);
             pos.extend_from_slice(&[(p.x + u.x * c + v.x * s) as f32, (p.y + u.y * c + v.y * s) as f32, (p.z + u.z * c + v.z * s) as f32]);
         }
         if i + 1 < pts.len() {
@@ -295,7 +295,7 @@ fn cord_geo() -> Geo {
 /// off the spiral's end (as `rules` leaves one)
 fn hang_front(body: &mut Body, c: &CoilPlace, item: usize) {
     let end = COIL_Z + COIL_LEN / 2.0;
-    let lean = ((GLASS_Z - 0.006 - end) / 0.2).clamp(0.0, 1.0).asin();
+    let lean = ((GLASS_Z - 0.006 - end) / 0.2).clamp(0.0, 1.0).dasin();
     for p in body.pieces.iter_mut().filter(|p| p.item == Some(item)) {
         let (mut pos, q, _) = p.m.decompose();
         pos.z += c.pitch();

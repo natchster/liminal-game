@@ -72,7 +72,7 @@ pub(crate) fn place_brass_sconces(g: &mut Game, _dist: &[i32]) {
         sc.add(&flame_light);
         let phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
-            let flick = 0.85 + (t * 7.0 + phase).sin() * 0.11 + (t * 11.0 + phase * 1.3).sin() * 0.06;
+            let flick = 0.85 + (t * 7.0 + phase).dsin() * 0.11 + (t * 11.0 + phase * 1.3).dsin() * 0.06;
             flame_light.set_intensity(0.30 * flick);
             flame.scale().set(flick, 2.0 * flick, flick);
         });

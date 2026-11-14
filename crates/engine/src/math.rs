@@ -1,6 +1,7 @@
 //! Vectors, Euler angles, quaternions, 3x3 / 4x4 matrices (column-major),
 //! linear-sRGB colours, boxes and spheres, all in f64 numbers.
 
+use crate::dmath::DMath;
 /// Anything numeric a call site may pass (integer literals default to i32).
 pub trait Num: Copy {
     fn f(self) -> f64;
@@ -139,7 +140,7 @@ impl Vec2 {
         self
     }
     pub fn distance_to(&self, o: &Vec2) -> f64 {
-        ((self.x - o.x).powi(2) + (self.y - o.y).powi(2)).sqrt()
+        ((self.x - o.x).dpowi(2) + (self.y - o.y).dpowi(2)).sqrt()
     }
     pub fn dot(&self, o: &Vec2) -> f64 {
         self.x * o.x + self.y * o.y
@@ -326,7 +327,7 @@ impl Vec3 {
         if d == 0.0 {
             return PI / 2.0;
         }
-        clamp(self.dot(o) / d, -1.0, 1.0).acos()
+        clamp(self.dot(o) / d, -1.0, 1.0).dacos()
     }
     pub fn apply_quaternion(&mut self, q: &Quat) -> &mut Self {
         let (vx, vy, vz) = (self.x, self.y, self.z);
@@ -573,62 +574,62 @@ impl Euler {
         let (m31, m32, m33) = (te[2], te[6], te[10]);
         match order {
             EulerOrder::XYZ => {
-                self.y = clamp(m13, -1.0, 1.0).asin();
+                self.y = clamp(m13, -1.0, 1.0).dasin();
                 if m13.abs() < 0.9999999 {
-                    self.x = (-m23).atan2(m33);
-                    self.z = (-m12).atan2(m11);
+                    self.x = (-m23).datan2(m33);
+                    self.z = (-m12).datan2(m11);
                 } else {
-                    self.x = m32.atan2(m22);
+                    self.x = m32.datan2(m22);
                     self.z = 0.0;
                 }
             }
             EulerOrder::YXZ => {
-                self.x = (-clamp(m23, -1.0, 1.0)).asin();
+                self.x = (-clamp(m23, -1.0, 1.0)).dasin();
                 if m23.abs() < 0.9999999 {
-                    self.y = m13.atan2(m33);
-                    self.z = m21.atan2(m22);
+                    self.y = m13.datan2(m33);
+                    self.z = m21.datan2(m22);
                 } else {
-                    self.y = (-m31).atan2(m11);
+                    self.y = (-m31).datan2(m11);
                     self.z = 0.0;
                 }
             }
             EulerOrder::ZXY => {
-                self.x = clamp(m32, -1.0, 1.0).asin();
+                self.x = clamp(m32, -1.0, 1.0).dasin();
                 if m32.abs() < 0.9999999 {
-                    self.y = (-m31).atan2(m33);
-                    self.z = (-m12).atan2(m22);
+                    self.y = (-m31).datan2(m33);
+                    self.z = (-m12).datan2(m22);
                 } else {
                     self.y = 0.0;
-                    self.z = m21.atan2(m11);
+                    self.z = m21.datan2(m11);
                 }
             }
             EulerOrder::ZYX => {
-                self.y = (-clamp(m31, -1.0, 1.0)).asin();
+                self.y = (-clamp(m31, -1.0, 1.0)).dasin();
                 if m31.abs() < 0.9999999 {
-                    self.x = m32.atan2(m33);
-                    self.z = m21.atan2(m11);
+                    self.x = m32.datan2(m33);
+                    self.z = m21.datan2(m11);
                 } else {
                     self.x = 0.0;
-                    self.z = (-m12).atan2(m22);
+                    self.z = (-m12).datan2(m22);
                 }
             }
             EulerOrder::YZX => {
-                self.z = clamp(m21, -1.0, 1.0).asin();
+                self.z = clamp(m21, -1.0, 1.0).dasin();
                 if m21.abs() < 0.9999999 {
-                    self.x = (-m23).atan2(m22);
-                    self.y = (-m31).atan2(m11);
+                    self.x = (-m23).datan2(m22);
+                    self.y = (-m31).datan2(m11);
                 } else {
                     self.x = 0.0;
-                    self.y = m13.atan2(m33);
+                    self.y = m13.datan2(m33);
                 }
             }
             EulerOrder::XZY => {
-                self.z = (-clamp(m12, -1.0, 1.0)).asin();
+                self.z = (-clamp(m12, -1.0, 1.0)).dasin();
                 if m12.abs() < 0.9999999 {
-                    self.x = m32.atan2(m22);
-                    self.y = m13.atan2(m11);
+                    self.x = m32.datan2(m22);
+                    self.y = m13.datan2(m11);
                 } else {
-                    self.x = (-m23).atan2(m33);
+                    self.x = (-m23).datan2(m33);
                     self.y = 0.0;
                 }
             }
@@ -677,8 +678,8 @@ impl Quat {
         q
     }
     pub fn set_from_euler(&mut self, e: &Euler) -> &mut Self {
-        let (c1, c2, c3) = ((e.x / 2.0).cos(), (e.y / 2.0).cos(), (e.z / 2.0).cos());
-        let (s1, s2, s3) = ((e.x / 2.0).sin(), (e.y / 2.0).sin(), (e.z / 2.0).sin());
+        let (c1, c2, c3) = ((e.x / 2.0).dcos(), (e.y / 2.0).dcos(), (e.z / 2.0).dcos());
+        let (s1, s2, s3) = ((e.x / 2.0).dsin(), (e.y / 2.0).dsin(), (e.z / 2.0).dsin());
         match e.order {
             EulerOrder::XYZ => {
                 self.x = s1 * c2 * c3 + c1 * s2 * s3;
@@ -721,8 +722,8 @@ impl Quat {
     }
     pub fn from_axis_angle(axis: &Vec3, angle: f64) -> Quat {
         let h = angle / 2.0;
-        let s = h.sin();
-        Quat::new(axis.x * s, axis.y * s, axis.z * s, h.cos())
+        let s = h.dsin();
+        Quat::new(axis.x * s, axis.y * s, axis.z * s, h.dcos())
     }
     pub fn set_from_axis_angle(&mut self, axis: &Vec3, angle: impl Num) -> &mut Self {
         *self = Quat::from_axis_angle(axis, angle.f());
@@ -828,7 +829,7 @@ impl Quat {
         self
     }
     pub fn angle_to(&self, q: &Quat) -> f64 {
-        2.0 * clamp(self.dot(q), -1.0, 1.0).abs().acos()
+        2.0 * clamp(self.dot(q), -1.0, 1.0).abs().dacos()
     }
     pub fn rotate_towards(&mut self, q: &Quat, step: f64) -> &mut Self {
         let angle = self.angle_to(q);
@@ -875,9 +876,9 @@ impl Quat {
             return self.normalize();
         }
         let sin_half = sqr_sin.sqrt();
-        let half = sin_half.atan2(cos_half);
-        let ra = ((1.0 - t) * half).sin() / sin_half;
-        let rb = (t * half).sin() / sin_half;
+        let half = sin_half.datan2(cos_half);
+        let ra = ((1.0 - t) * half).dsin() / sin_half;
+        let rb = (t * half).dsin() / sin_half;
         self.w = w * ra + self.w * rb;
         self.x = x * ra + self.x * rb;
         self.y = y * ra + self.y * rb;
@@ -1147,21 +1148,21 @@ impl Mat4 {
         self.set(x.f(), 0.0, 0.0, 0.0, 0.0, y.f(), 0.0, 0.0, 0.0, 0.0, z.f(), 0.0, 0.0, 0.0, 0.0, 1.0)
     }
     pub fn make_rotation_x(&mut self, t: impl Num) -> &mut Self {
-        let (c, s) = (t.f().cos(), t.f().sin());
+        let (c, s) = (t.f().dcos(), t.f().dsin());
         self.set(1.0, 0.0, 0.0, 0.0, 0.0, c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0)
     }
     pub fn make_rotation_y(&mut self, t: impl Num) -> &mut Self {
-        let (c, s) = (t.f().cos(), t.f().sin());
+        let (c, s) = (t.f().dcos(), t.f().dsin());
         self.set(c, 0.0, s, 0.0, 0.0, 1.0, 0.0, 0.0, -s, 0.0, c, 0.0, 0.0, 0.0, 0.0, 1.0)
     }
     pub fn make_rotation_z(&mut self, t: impl Num) -> &mut Self {
-        let (c, s) = (t.f().cos(), t.f().sin());
+        let (c, s) = (t.f().dcos(), t.f().dsin());
         self.set(c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0)
     }
     pub fn make_rotation_axis(&mut self, axis: &Vec3, angle: impl Num) -> &mut Self {
         let a = angle.f();
-        let c = a.cos();
-        let s = a.sin();
+        let c = a.dcos();
+        let s = a.dsin();
         let t = 1.0 - c;
         let (x, y, z) = (axis.x, axis.y, axis.z);
         let (tx, ty) = (t * x, t * y);
@@ -1290,11 +1291,11 @@ pub struct Color {
 
 #[inline]
 pub fn srgb_to_linear(c: f64) -> f64 {
-    if c < 0.04045 { c * 0.0773993808 } else { (c * 0.9478672986 + 0.0521327014).powf(2.4) }
+    if c < 0.04045 { c * 0.0773993808 } else { (c * 0.9478672986 + 0.0521327014).dpowf(2.4) }
 }
 #[inline]
 pub fn linear_to_srgb(c: f64) -> f64 {
-    if c < 0.0031308 { c * 12.92 } else { 1.055 * c.powf(0.41666) - 0.055 }
+    if c < 0.0031308 { c * 12.92 } else { 1.055 * c.dpowf(0.41666) - 0.055 }
 }
 
 impl Color {
@@ -1698,6 +1699,6 @@ impl Sphere {
 
 /// Spherical to Cartesian (radius, phi from +Y, theta around Y from +Z)
 pub fn set_from_spherical_coords(radius: f64, phi: f64, theta: f64) -> Vec3 {
-    let s = phi.sin() * radius;
-    Vec3::new(s * theta.sin(), phi.cos() * radius, s * theta.cos())
+    let s = phi.dsin() * radius;
+    Vec3::new(s * theta.dsin(), phi.dcos() * radius, s * theta.dcos())
 }

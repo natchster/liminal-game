@@ -405,7 +405,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         Mode::Alert => {
             // it looks up over the page; its body comes round after
             g.entity_drive(ei, dt, 0.0);
-            let h = (pp.x - pos.x).atan2(pp.z - pos.z);
+            let h = (pp.x - pos.x).datan2(pp.z - pos.z);
             if mode_t > 0.4 {
                 g.entity_turn(ei, h, dt, Some(2.5));
             }
@@ -575,7 +575,7 @@ fn look_up(g: &mut Game, ei: usize) {
 /// `HINT_EVERY` s; it goes there to look.
 fn hint(g: &mut Game, ei: usize, x: f64, z: f64) {
     let (a, r) = with_native(|| (rnd() * PI * 2.0, rand2(4.0, 7.0)));
-    let (hx, hz) = g.open_point(x + a.cos() * r, z + a.sin() * r);
+    let (hx, hz) = g.open_point(x + a.dcos() * r, z + a.dsin() * r);
     let now = g.perf_t;
     let c = g.creature_mut(ei).unwrap();
     c.ease.insert("hint_t", now);
@@ -675,14 +675,14 @@ fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
     let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
 }
 
 fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
 }
 
@@ -709,16 +709,16 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     rig.rest();
     if killer {
         let p = root.pos();
-        root.rotation().y = (pp.x - p.x).atan2(pp.z - p.z);
+        root.rotation().y = (pp.x - p.x).datan2(pp.z - p.z);
     }
     let yaw = root.rotation().y;
     let pos = root.pos();
-    let want = wrap_pi((pp.x - pos.x).atan2(pp.z - pos.z) - yaw).clamp(-1.2, 1.2);
+    let want = wrap_pi((pp.x - pos.x).datan2(pp.z - pos.z) - yaw).clamp(-1.2, 1.2);
     let at_you = matches!(mode, Mode::Alert | Mode::Hunt | Mode::Strike) || killer;
     // ---- how it holds itself
     let up = c.eased("up", if at_you { 1.0 } else { 0.0 }, 7.0, dt);
     let lowered = c.eased("lowered", if killer || (mode == Mode::Strike) { 1.0 } else { 0.0 }, 1.0 / WINDUP * 2.2, dt);
-    let stoop_w = if mode == Mode::Read && stage == 1.0 { (bt / STOOP * PI).sin().max(0.0) } else { 0.0 };
+    let stoop_w = if mode == Mode::Read && stage == 1.0 { (bt / STOOP * PI).dsin().max(0.0) } else { 0.0 };
     let stoop = c.eased("stoop", stoop_w, 12.0, dt);
     let hunt = c.eased("hunt", if mode == Mode::Hunt { 1.0 } else { 0.0 }, 4.0, dt);
     let hips = rig.ix("hips").unwrap();
@@ -728,7 +728,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         rig.turn(sp, &Quat::from_euler(&Euler::new(0.45 * stoop + 0.1 * hunt, 0.0, 0.0)));
     }
     if let Some(ch) = rig.ix("chest") {
-        rig.turn(ch, &Quat::from_euler(&Euler::new(0.35 * stoop + (t * 1.2).sin() * 0.012, 0.0, 0.0)));
+        rig.turn(ch, &Quat::from_euler(&Euler::new(0.35 * stoop + (t * 1.2).dsin() * 0.012, 0.0, 0.0)));
     }
     // ---- the head: down on the page; up over it at you, eyes first
     let held = c.eased("head_yaw", if at_you { want } else { 0.0 }, 5.0, dt);
@@ -736,13 +736,13 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         rig.turn(nk, &Quat::from_euler(&Euler::new(-0.45 * up + 0.2 * stoop, held * 0.45, 0.0)));
     }
     if let Some(hd) = rig.ix("head") {
-        let nod = if at_you { 0.0 } else { (t * 0.9).sin() * 0.03 };
+        let nod = if at_you { 0.0 } else { (t * 0.9).dsin() * 0.03 };
         rig.turn(hd, &Quat::from_euler(&Euler::new(-0.35 * up + nod, held * 0.5, 0.0)));
     }
     // the whisper moves its jaw a little, fast; still when it looks at you
     let whisper = if matches!(mode, Mode::Roam | Mode::Idle | Mode::Stalk | Mode::Read | Mode::Search) { 1.0 } else { 0.0 };
     if let Some(jw) = rig.ix("jaw") {
-        let k = ((t * 23.0).sin() * 0.5 + 0.5) * ((t * 7.3).sin() * 0.5 + 0.5);
+        let k = ((t * 23.0).dsin() * 0.5 + 0.5) * ((t * 7.3).dsin() * 0.5 + 0.5);
         // (the sheet down, its mouth hangs open on the word it was reading)
         rig.turn(jw, &Quat::from_euler(&Euler::new(0.05 * k * whisper + 0.26 * lowered, 0.0, 0.0)));
     }
@@ -812,7 +812,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
                 limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * s;
             }
             // a shuffle barely lifts the foot
-            limb.at[1] = rest_end.y + (s * PI).sin() * if speed > 2.5 { 0.14 } else { 0.035 };
+            limb.at[1] = rest_end.y + (s * PI).dsin() * if speed > 2.5 { 0.14 } else { 0.035 };
         } else {
             if limb.swing > 0.0 {
                 limb.at = limb.to;

@@ -105,7 +105,7 @@ fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
 /// the figure, `base` its colour (sRGB)
 fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [f64; 3] {
     let warp = fbm(seed ^ 0x1d, u * along * 0.15, v * across * 0.05, 3);
-    let ring = ((v * across + warp * 6.0).sin() * 0.5 + 0.5).powf(3.0);
+    let ring = ((v * across + warp * 6.0).dsin() * 0.5 + 0.5).dpowf(3.0);
     let streak = fbm(seed, u * along * 0.2, v * across, 3);
     let fine = vn(seed ^ 3, u * along * 3.0, v * across * 6.0);
     base.map(|c| c * (0.82 + 0.28 * streak + 0.06 * fine - 0.14 * ring))

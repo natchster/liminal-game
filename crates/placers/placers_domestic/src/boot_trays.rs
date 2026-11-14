@@ -100,8 +100,8 @@ fn tray_tex(rubber: [f64; 3], salt: u32) -> Tex {
             }
             // the tide lines: rings of salt about the boots' places
             for (cu, cv, r) in [(0.30, 0.5, 0.17), (0.70, 0.52, 0.19), (0.5, 0.4, 0.35)] {
-                let d = ((u - cu) * 2.0).hypot(v - cv) / r + (fbm(seed ^ 5, u * 8.0, v * 8.0, 3) - 0.5) * 0.5;
-                let line = (1.0 - ((d - 1.0).abs() / 0.06)).max(0.0).powf(1.5);
+                let d = ((u - cu) * 2.0).dhypot(v - cv) / r + (fbm(seed ^ 5, u * 8.0, v * 8.0, 3) - 0.5) * 0.5;
+                let line = (1.0 - ((d - 1.0).abs() / 0.06)).max(0.0).dpowf(1.5);
                 c = mix(c, [0.52, 0.51, 0.48], line * 0.3 * (0.5 + fbm(seed ^ 13, u * 40.0, v * 20.0, 2)));
                 if d < 1.0 {
                     c = mix(c, [0.40, 0.38, 0.34], 0.18 * fbm(seed ^ 9, u * 30.0, v * 30.0, 2));
@@ -202,8 +202,8 @@ fn boot_wander(ctx: &mut Canvas, at: (f64, f64), len: f64, ang: f64, c: (f64, f6
     let (mut x, mut y, mut t) = (at.0, at.1, ang);
     for _ in 0..5 {
         t += (rnd() - 0.5) * 0.5;
-        x += t.cos() * len / 5.0;
-        y += t.sin() * len / 5.0;
+        x += t.dcos() * len / 5.0;
+        y += t.dsin() * len / 5.0;
         ctx.line_to(x, y);
     }
     ctx.stroke();

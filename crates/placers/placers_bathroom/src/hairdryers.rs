@@ -58,7 +58,7 @@ pub(crate) fn place_hairdryers(g: &mut Game, _dist: &[i32]) {
     let (tx, tz) = (tx / tl, tz / tl);
     let plug = group();
     plug.position().set(b[0] + tx * 0.010, 0, b[2] + tz * 0.010);
-    plug.rotation().y = (-tz).atan2(tx);
+    plug.rotation().y = (-tz).datan2(tx);
     put(&plug, "Real__hairdryerPlug", &lambert!({ color: if pale { 0xb0aca2 } else { 0x1e1e1d } }));
     put(&plug, "Real__hairdryerProngs", &phong!({ color: 0x7a7462, specular: 0x5a564a, shininess: 50 }));
     hd.add(&plug);
@@ -87,7 +87,7 @@ fn cord_geo(pts: &[[f64; 3]], r: f64, flat: f64, seg: usize) -> Geo {
         let up = norm(cross(t, side));
         for k in 0..seg {
             let a = PI * 2.0 * k as f64 / seg as f64;
-            let (c, s) = (a.cos() * r, a.sin() * r * flat);
+            let (c, s) = (a.dcos() * r, a.dsin() * r * flat);
             for d in 0..3 {
                 pos.push((pts[i][d] + side[d] * c + up[d] * s) as f32);
             }
@@ -136,12 +136,12 @@ const HD_CORD_R: f64 = 0.0029;
 /// far and which way from the old cord's end), never crossing itself
 fn hd_cord_path(end_x: f64, end_z: f64) -> Vec<[f64; 3]> {
     let s = HD_CORD_START;
-    let dl = (HD_CORD_DIR[0].powi(2) + HD_CORD_DIR[2].powi(2)).sqrt();
+    let dl = (HD_CORD_DIR[0].dpowi(2) + HD_CORD_DIR[2].dpowi(2)).sqrt();
     let dh = [HD_CORD_DIR[0] / dl, HD_CORD_DIR[2] / dl];
     // the line to the plug: turned from the strain relief's heading by the
     // old end's side, its length by how far the old end lay
     let turn = (end_z / 0.15) * 0.6;
-    let base = [dh[0] * turn.cos() - dh[1] * turn.sin(), dh[0] * turn.sin() + dh[1] * turn.cos()];
+    let base = [dh[0] * turn.dcos() - dh[1] * turn.dsin(), dh[0] * turn.dsin() + dh[1] * turn.dcos()];
     let perp = [-base[1], base[0]];
     let len = 0.30 + (end_x + 0.321) * 0.9;
     let amp = (0.07 + 0.05 * (end_x + 0.321) / 0.2) * if end_z < 0.0 { 1.0 } else { -1.0 };
@@ -159,7 +159,7 @@ fn hd_cord_path(end_x: f64, end_z: f64) -> Vec<[f64; 3]> {
         let t = k as f64 / m as f64;
         // bends (a wave and a half) that fade in from the strain relief
         let env = sstep(0.0, 0.25, t);
-        let side = amp * (t * PI * 3.0).sin() * env;
+        let side = amp * (t * PI * 3.0).dsin() * env;
         // the heading turns from the strain relief's to the line's
         let h = [dh[0] + (base[0] - dh[0]) * env, dh[1] + (base[1] - dh[1]) * env];
         let along = len * t;

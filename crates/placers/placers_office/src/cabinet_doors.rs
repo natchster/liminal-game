@@ -174,7 +174,7 @@ pub(crate) fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
             let w_ang = rnd() * PI * 2.0;
             let w_dist = 0.10 + rnd() * 0.15;
             let tp = toolbox.pos();
-            wrench.position().set(tp.x + w_ang.cos() * w_dist, 0.010, tp.z + w_ang.sin() * w_dist); // resting on the knurl ring
+            wrench.position().set(tp.x + w_ang.dcos() * w_dist, 0.010, tp.z + w_ang.dsin() * w_dist); // resting on the knurl ring
             wrench.rotation().y = rnd() * PI * 2.0;
             g.world.add(&wrench);
             // 40% chance: small dark oil-stain circle beneath wrench.

@@ -17,6 +17,7 @@
 //!   cargo test --release -p backrooms --test personas -- --nocapture
 //!
 //! writes `target/personas/report.md` and the explorer heatmaps.
+use engine::dmath::DMath;
 use game::Game;
 use game::base::config::PLAYER_R;
 use game::entities::director::Phase;
@@ -157,7 +158,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
                 }
                 let n = [(1, 0), (-1, 0), (0, 1), (0, -1)].iter().filter(|(dx, dz)| !g.is_wall_tile(x + dx, z + dz)).count();
                 let (wx, wz) = (g.wx(x), g.wz(z));
-                let d = ((wx - sp.0).powi(2) + (wz - sp.1).powi(2)).sqrt();
+                let d = ((wx - sp.0).dpowi(2) + (wz - sp.1).dpowi(2)).sqrt();
                 if n == 1 && d < 40.0 {
                     let score = d + 30.0 * g.region_light_at(x, z);
                     if best.is_none_or(|b| score < b.1) {
@@ -227,7 +228,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
             };
         }
         if persona == Persona::Rusher
-            && let Some(e) = exit.filter(|e| ((e.0 - px).powi(2) + (e.1 - pz).powi(2)).sqrt() < 2.5)
+            && let Some(e) = exit.filter(|e| ((e.0 - px).dpowi(2) + (e.1 - pz).dpowi(2)).sqrt() < 2.5)
         {
             let _ = e;
             run.reached_exit = Some(t);
@@ -243,7 +244,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
             let (cx, cz) = grid.center(c);
             let (dx, dz) = (cx - px, cz - pz);
             if dx * dx + dz * dz > 1e-6 {
-                g.player.yaw = (-dx).atan2(-dz);
+                g.player.yaw = (-dx).datan2(-dz);
             }
             if (dx * dx + dz * dz).sqrt() < 0.6 && path.len() > 4 {
                 path.drain(..2);
@@ -299,7 +300,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         // oracles
         check_t += 1.0 / 60.0;
         if check_t >= 3.0 {
-            let moved = ((g.player.pos.x - check_pos.0).powi(2) + (g.player.pos.z - check_pos.1).powi(2)).sqrt();
+            let moved = ((g.player.pos.x - check_pos.0).dpowi(2) + (g.player.pos.z - check_pos.1).dpowi(2)).sqrt();
             if walking && moved < 0.4 {
                 stuck_now += check_t;
                 run.stuck_for = run.stuck_for.max(stuck_now);

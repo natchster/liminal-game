@@ -82,7 +82,7 @@ const PRINT_V: f64 = 0.92;
 /// along the side it lies on; above `PRINT_V` the card of its inside
 fn horn_print_tex(design: usize, trod: bool, salt: u32) -> Tex {
     canvas_tex_opt(256, 512, false, move |ctx, w, h| {
-        let a = (HORN_RB - HORN_RT).atan2(HORN_L);
+        let a = (HORN_RB - HORN_RT).datan2(HORN_L);
         let card = [0.80, 0.78, 0.72];
         // the foil's diffuse (dark: a metal) and the ink printed on it
         let (ground, ink) = match design {
@@ -95,10 +95,10 @@ fn horn_print_tex(design: usize, trod: bool, salt: u32) -> Tex {
         let sheet = |u: f64, v: f64| -> (f64, f64, f64, f64) {
             let y = v / PRINT_V * HORN_L;
             let r = HORN_RB + (HORN_RT - HORN_RB) * y / HORN_L;
-            let rho = r / a.sin();
+            let rho = r / a.dsin();
             let d = (u * PI * 2.0 - HORN_SEAM1).rem_euclid(PI * 2.0);
-            let psi = d * a.sin();
-            (rho * psi.cos(), rho * psi.sin(), y, r)
+            let psi = d * a.dsin();
+            (rho * psi.dcos(), rho * psi.dsin(), y, r)
         };
         fill(ctx, w, h, |u, v| {
             if v > PRINT_V {
@@ -126,9 +126,9 @@ fn horn_print_tex(design: usize, trod: bool, salt: u32) -> Tex {
                     let off = if (j as i64) % 2 == 0 { 0.0 } else { 0.5 };
                     let (cx, cy) = ((i + 0.5 + off).min(i + 1.0) * sp, (j + 0.5) * sp);
                     let (dx, dy) = (sx - cx, sy - cy);
-                    let ang = dy.atan2(dx) + hash(17, i as i32, j as i32) * 6.0;
-                    let rr = 0.0032 * (0.62 + 0.38 * (2.5 * ang).cos().abs().powf(3.0));
-                    1.0 - sstep(rr - 0.0004, rr + 0.0004, dx.hypot(dy))
+                    let ang = dy.datan2(dx) + hash(17, i as i32, j as i32) * 6.0;
+                    let rr = 0.0032 * (0.62 + 0.38 * (2.5 * ang).dcos().abs().dpowf(3.0));
+                    1.0 - sstep(rr - 0.0004, rr + 0.0004, dx.dhypot(dy))
                 }
                 2 => {
                     // a fine diamond hatch in dark ink
@@ -144,7 +144,7 @@ fn horn_print_tex(design: usize, trod: bool, salt: u32) -> Tex {
                     let off = if (j as i64) % 2 == 0 { 0.0 } else { 0.5 };
                     let i = (sx / sp - off).floor();
                     let (cx, cy) = ((i + 0.5 + off) * sp, (j + 0.5) * sp);
-                    1.0 - sstep(0.0019, 0.0025, (sx - cx).hypot(sy - cy))
+                    1.0 - sstep(0.0019, 0.0025, (sx - cx).dhypot(sy - cy))
                 }
             };
             c = mix(c, ink, m);
@@ -183,7 +183,7 @@ fn horn_print_tex(design: usize, trod: bool, salt: u32) -> Tex {
 /// normal) the band above, by how deep in. Triangles across u's wrap
 /// get their low corners again at u + 1.
 fn cone_uv(gg: &mut Geometry, beta: f64, lift: f64, ymax: f64, print_v: f64) {
-    let (c, s) = (beta.cos(), beta.sin());
+    let (c, s) = (beta.dcos(), beta.dsin());
     let n = gg.position.len() / 3;
     let mut uv = vec![0f32; n * 2];
     for i in 0..n {
@@ -191,9 +191,9 @@ fn cone_uv(gg: &mut Geometry, beta: f64, lift: f64, ymax: f64, print_v: f64) {
         let (px, py) = (x * c + y * s, -x * s + y * c);
         let (nx0, ny0, nz) = (f64::from(gg.normal[i * 3]), f64::from(gg.normal[i * 3 + 1]), f64::from(gg.normal[i * 3 + 2]));
         let nx = nx0 * c + ny0 * s;
-        let l = px.hypot(z).max(1e-6);
+        let l = px.dhypot(z).max(1e-6);
         let inside = (nx * px + nz * z) / l < -0.3;
-        let u = px.atan2(z).rem_euclid(2.0 * PI) / (2.0 * PI);
+        let u = px.datan2(z).rem_euclid(2.0 * PI) / (2.0 * PI);
         let f = (py / ymax).clamp(0.0, 1.0);
         uv[i * 2] = u as f32;
         uv[i * 2 + 1] = if inside { print_v + 0.02 + 0.06 * f } else { (f * print_v).min(print_v - 0.002) } as f32;

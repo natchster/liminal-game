@@ -43,7 +43,7 @@ pub(crate) fn place_small_radios(g: &mut Game, _dist: &[i32]) {
     ant.rotation().z = 0.4;
     // lower end (centre + (0.06 sin 0.4, −0.06 cos 0.4)) 2 mm into the case top
     // near its right end at (0.05, 0.068); it floated ~5 mm off the corner
-    ant.position().set(0.05 - 0.06 * 0.4f64.sin(), 0.068 + 0.06 * 0.4f64.cos(), 0);
+    ant.position().set(0.05 - 0.06 * 0.4f64.dsin(), 0.068 + 0.06 * 0.4f64.dcos(), 0);
     radio.add(&ant);
     scatter(g, &radio, x, z, 2.4);
     g.world.add(&radio);

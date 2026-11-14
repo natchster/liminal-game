@@ -5,6 +5,7 @@
 //! drawn with is the turn the staircase follows; and no prop stands inside
 //! one.
 mod common;
+use engine::dmath::DMath;
 use game::base::config::CELL;
 use game::level::archgen::{BOX_ANGLED, segment_clear};
 use game::world::angled::{DEV_MAX, Wall};
@@ -51,7 +52,7 @@ fn leaning_walls_stay_in_their_tiles_and_close_to_a_look() {
                     // the pivot, into the next of them; and its end a hair into the
                     // wall it ends against: as far as the turn would open a sliver
                     // there, and its corner turns past that)
-                    let m = 2.0 * w.half * w.theta.tan().abs() + 0.004;
+                    let m = 2.0 * w.half * w.theta.dtan().abs() + 0.004;
                     let near = |q: usize| {
                         let (qx, qz) = ((q as i32 % g.w) as f64, (q as i32 / g.w) as f64);
                         nu > qx - m && nu < qx + 1.0 + m && nv > qz - m && nv < qz + 1.0 + m
@@ -65,7 +66,7 @@ fn leaning_walls_stay_in_their_tiles_and_close_to_a_look() {
                     let (_, ac0) = al_ac(w, u, v);
                     let (_, ac1) = al_ac(w, nu, nv);
                     assert!(
-                        ((ac1 - ac0).abs() - w.half * w.theta.sin().abs()) * CELL <= DEV_MAX + 1e-6,
+                        ((ac1 - ac0).abs() - w.half * w.theta.dsin().abs()) * CELL <= DEV_MAX + 1e-6,
                         "{what}: an end goes off its line"
                     );
                 }
@@ -79,7 +80,7 @@ fn leaning_walls_stay_in_their_tiles_and_close_to_a_look() {
             });
             let n = ((a1 - a0) * 40.0) as usize;
             for k in 0..n {
-                let al = w.pivot + (a0 + (a1 - a0) * (k as f64 + 0.37) / n as f64 - w.pivot) * w.theta.cos();
+                let al = w.pivot + (a0 + (a1 - a0) * (k as f64 + 0.37) / n as f64 - w.pivot) * w.theta.dcos();
                 let (c0, c1) = (w.face(al, -1.0) - 0.2, w.face(al, 1.0) + 0.2);
                 let ((u0, v0), (u1, v1)) = if w.along_x { ((al, c0), (al, c1)) } else { ((c0, al), (c1, al)) };
                 assert!(!segment_clear(s, u0, v0, u1, v1, 1.2), "{what}: a look passes through it at {al:.3}");

@@ -75,7 +75,7 @@ pub(crate) fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
     // A draught stirs it (0.5 Hz, each tiller its own phase)
     g.animate(move |_g, _dt, t| {
         for (o, lean, ph) in &tillers {
-            o.rotation().z = lean + (t * 0.5 + ph).sin() * 0.025;
+            o.rotation().z = lean + (t * 0.5 + ph).dsin() * 0.025;
         }
     });
 }
@@ -95,7 +95,7 @@ fn silt_tex(salt: u32) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
         paint_px(ctx, w, h, |x, y| {
             let (u, v) = (x / w - 0.5, y / h - 0.5);
-            let r = u.hypot(v) * 2.0 + 0.3 * (fbm(salt, u * 7.0 + 3.0, v * 7.0 + 3.0, 3) - 0.5);
+            let r = u.dhypot(v) * 2.0 + 0.3 * (fbm(salt, u * 7.0 + 3.0, v * 7.0 + 3.0, 3) - 0.5);
             let grit = vn(salt ^ 0x6, x / 1.5, y / 1.5);
             let c = mix_unclamped([0.22, 0.19, 0.15], [0.36, 0.32, 0.26], sstep(0.1, 0.8, r) * 0.7 + 0.3 * grit);
             [c[0], c[1], c[2], (1.0 - sstep(0.55, 0.95, r)) * (0.75 + 0.25 * grit)]

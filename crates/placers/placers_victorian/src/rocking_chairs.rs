@@ -64,7 +64,7 @@ pub(crate) fn place_rocking_chairs(g: &mut Game, _dist: &[i32]) {
     {
         let chair = chair.clone();
         g.animate(move |_g, _dt, t| {
-            chair.rotation().x = (t * (PI * 2.0 / rock_period) + rock_phase).sin() * 0.04;
+            chair.rotation().x = (t * (PI * 2.0 / rock_period) + rock_phase).dsin() * 0.04;
         });
     }
     scatter(g, &chair, x, z, 1.8);

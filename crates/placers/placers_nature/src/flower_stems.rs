@@ -37,8 +37,8 @@ pub(crate) fn place_flower_stems(g: &mut Game, _dist: &[i32]) {
         let a = (p as f64 / 5.0) * PI * 2.0;
         let petal = mesh(circle_geo!(0.014, 6), &bloom_mat);
         petal.rotation().x = -PI / 2.0;
-        let base_x = 0.03 + a.cos() * 0.010;
-        let base_z = a.sin() * 0.010;
+        let base_x = 0.03 + a.dcos() * 0.010;
+        let base_z = a.dsin() * 0.010;
         petal.position().set(base_x, 0.003, base_z);
         petal.user().base_x = base_x;
         petal.user().base_z = base_z;
@@ -62,8 +62,8 @@ pub(crate) fn place_flower_stems(g: &mut Game, _dist: &[i32]) {
                 (n.user.base_x, n.user.base_z, n.user.phase)
             };
             let mut pos = p.position();
-            pos.x = bx + (t * 0.4 + ph).sin() * 0.0015;
-            pos.z = bz + (t * 0.4 + ph).cos() * 0.0015;
+            pos.x = bx + (t * 0.4 + ph).dsin() * 0.0015;
+            pos.z = bz + (t * 0.4 + ph).dcos() * 0.0015;
         }
     });
 }

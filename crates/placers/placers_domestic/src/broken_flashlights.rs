@@ -40,7 +40,7 @@ pub(crate) fn place_broken_flashlights(g: &mut Game, _dist: &[i32]) {
         // Very unsteady dying flicker.
         let flicker_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
-            let flick = if (t * 12.0 + flicker_phase).sin() > 0.5 { 1.0 } else { 0.15 };
+            let flick = if (t * 12.0 + flicker_phase).dsin() > 0.5 { 1.0 } else { 0.15 };
             glow.set_intensity(0.20 * flick);
         });
     }

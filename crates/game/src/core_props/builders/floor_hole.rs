@@ -46,7 +46,7 @@ pub fn build_floor_hole(g: &mut Game, cx: &mut PropsCtx) -> Built {
     for i in 0..14 {
         let a = (i as f64 / 14.0) * PI * 2.0;
         let b = mesh(box_geo!(0.14, 0.06, 0.14), &footprint);
-        b.position().set(a.cos() * 0.88, 1.23, a.sin() * 0.88);
+        b.position().set(a.dcos() * 0.88, 1.23, a.dsin() * 0.88);
         b.rotation().y = a;
         hg.add(&b);
     }
@@ -207,8 +207,8 @@ fn hole_dust_tex() -> Tex {
         // patchy: thicker in drifts where pieces fell and broke, swept thin elsewhere
         for _ in 0..50 {
             let a = rnd() * 6.283;
-            let d = rim + rnd().powf(1.8) * w * 0.16;
-            let (x, y) = (cx0 + a.cos() * d, cy0 + a.sin() * d);
+            let d = rim + rnd().dpowf(1.8) * w * 0.16;
+            let (x, y) = (cx0 + a.dcos() * d, cy0 + a.dsin() * d);
             let r = 3.0 + rnd() * 10.0;
             let g2 = ctx.create_radial_gradient(x, y, 0, x, y, r);
             g2.add_color_stop(0, "rgba(176,170,158,0.3)");
@@ -219,8 +219,8 @@ fn hole_dust_tex() -> Tex {
         // grit
         for _ in 0..500 {
             let a = rnd() * 6.283;
-            let d = rim + rnd().powf(2.4) * w * 0.2;
-            let (x, y) = (cx0 + a.cos() * d, cy0 + a.sin() * d);
+            let d = rim + rnd().dpowf(2.4) * w * 0.2;
+            let (x, y) = (cx0 + a.dcos() * d, cy0 + a.dsin() * d);
             ctx.set_fill_style(if rnd() < 0.6 { "rgba(120,116,108,0.8)" } else { "rgba(200,196,186,0.8)" });
             ctx.fill_rect(x, y, 0.8 + rnd() * 1.6, 0.8 + rnd() * 1.4);
         }

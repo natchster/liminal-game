@@ -42,7 +42,7 @@ pub(crate) fn place_lego_bricks(g: &mut Game, _dist: &[i32]) {
             let br = below.rot();
             let bp = below.pos();
             brick.rotation().y = br.y + if ry < PI { 0.0 } else { PI / 2.0 };
-            brick.position().set(bp.x + br.y.sin() * off, bp.y + 0.010, bp.z + br.y.cos() * off);
+            brick.position().set(bp.x + br.y.dsin() * off, bp.y + 0.010, bp.z + br.y.dcos() * off);
         } else {
             brick.position().set(px, 0, pz);
             brick.rotation().y = ry;

@@ -61,7 +61,7 @@ pub const WAY_PRINT_LIFE: f64 = 20.0;
 pub fn way_print_opacity(life: f64) -> f64 {
     let age = WAY_PRINT_LIFE - life;
     let up = (age / 0.5).clamp(0.0, 1.0);
-    let dry = (life / WAY_PRINT_LIFE).clamp(0.0, 1.0).powf(0.7);
+    let dry = (life / WAY_PRINT_LIFE).clamp(0.0, 1.0).dpowf(0.7);
     0.85 * up * dry
 }
 
@@ -268,7 +268,7 @@ impl Game {
         self.player.papers -= 1;
         let m = mesh(self.paper_marker_geo.clone(), &self.paper_marker_mat);
         // drop just in front of the player's feet, slight random tilt
-        let (fx, fz) = (-self.player.yaw.sin(), -self.player.yaw.cos());
+        let (fx, fz) = (-self.player.yaw.dsin(), -self.player.yaw.dcos());
         let (px, pz) = (self.player.pos.x + fx * 0.35, self.player.pos.z + fz * 0.35);
         m.position().set(px, self.floor_y_at(px, pz) + 0.008, pz);
         m.rotation().y = self.player.yaw + rand2(-0.4, 0.4);
@@ -478,7 +478,7 @@ impl Game {
                 let (mut along, mut next) = (0.0, WAY_PRINT_FIRST);
                 for w in pts.windows(2) {
                     let (dx, dz) = (w[1].0 - w[0].0, w[1].1 - w[0].1);
-                    let len = dx.hypot(dz);
+                    let len = dx.dhypot(dz);
                     if len < 1e-6 {
                         continue;
                     }
@@ -487,7 +487,7 @@ impl Game {
                         let side = if prints.len() % 2 == 0 { -1.0 } else { 1.0 };
                         let (ux, uz) = (dx / len, dz / len);
                         let (x, z) = (w[0].0 + dx * t - uz * side * 0.1, w[0].1 + dz * t + ux * side * 0.1);
-                        prints.push((x, z, (-ux).atan2(-uz), side));
+                        prints.push((x, z, (-ux).datan2(-uz), side));
                         next += WAY_PACE;
                     }
                     along += len;
@@ -523,8 +523,8 @@ impl Game {
         let (dx, dz) = (bw.x - self.player.pos.x, bw.z - self.player.pos.z);
         let d = hypot2(dx, dz);
         // slow red pulse (~2 Hz) plus a stutter every few seconds
-        let pulse = 0.5 + 0.5 * (t * 2.4).sin();
-        let stutter = if (t * 5.0).sin() > 0.92 { 0.2 } else { 1.0 }; // brief brownout every ~1.3s
+        let pulse = 0.5 + 0.5 * (t * 2.4).dsin();
+        let stutter = if (t * 5.0).dsin() > 0.92 { 0.2 } else { 1.0 }; // brief brownout every ~1.3s
         light.set_intensity(pulse * stutter * 1.4);
         // occasional scrape sfx, only when player is close enough to hear
         let ns = self.broken_elevator.as_ref().unwrap().next_scrape - dt;
@@ -609,7 +609,7 @@ impl Game {
                 }
             }
             // Tremble subtly.
-            v.g.rotation().y += (self.perf_t * 8.0).sin() * 0.005;
+            v.g.rotation().y += (self.perf_t * 8.0).dsin() * 0.005;
             return;
         }
         // ---- follow mode: after petting, follow player at safe distance ----
@@ -620,10 +620,10 @@ impl Game {
             let dp = hypot2(dxp, dzp);
             // Approach if far, stop if close.
             if dp > 1.8 {
-                v.dir = dxp.atan2(dzp);
+                v.dir = dxp.datan2(dzp);
                 let follow_speed = 0.9;
                 let step = follow_speed * dt;
-                let (fx, fz) = (v.dir.sin(), v.dir.cos());
+                let (fx, fz) = (v.dir.dsin(), v.dir.dcos());
                 let nx = gp.x + fx * step;
                 let nz = gp.z + fz * step;
                 if !self.circle_hits_wall(nx, nz, 0.20) {
@@ -652,11 +652,11 @@ impl Game {
             let (dxp, dzp) = (ppx - gp.x, ppz - gp.z);
             let dp = hypot2(dxp, dzp);
             if dp > 0.001 {
-                v.dir = dxp.atan2(dzp);
+                v.dir = dxp.datan2(dzp);
             }
             let chase_speed = 1.7;
             let step = chase_speed * dt;
-            let (fx, fz) = (v.dir.sin(), v.dir.cos());
+            let (fx, fz) = (v.dir.dsin(), v.dir.dcos());
             let nx = gp.x + fx * step;
             let nz = gp.z + fz * step;
             if !self.circle_hits_wall(nx, nz, 0.20) {
@@ -681,7 +681,7 @@ impl Game {
         } else {
             let speed = v.f.get("speed").copied().unwrap_or(0.45);
             let step = speed * dt;
-            let (fx, fz) = (v.dir.sin(), v.dir.cos());
+            let (fx, fz) = (v.dir.dsin(), v.dir.dcos());
             let gp = v.g.pos();
             let nx = gp.x + fx * step;
             let nz = gp.z + fz * step;
@@ -711,7 +711,7 @@ impl Game {
             && let Some(m) = btn.try_mat()
         {
             if fv(v, "chaseT") > 0.0 {
-                let blink = 0.5 + 0.5 * (fv(v, "spinPhase") * 1.5).sin();
+                let blink = 0.5 + 0.5 * (fv(v, "spinPhase") * 1.5).dsin();
                 let r = 0.75 + blink * 0.25;
                 let g_ch = 0.45 + blink * 0.30;
                 let b_ch = 0.10;
@@ -846,8 +846,8 @@ impl Game {
             mx /= l;
             mz /= l;
             let yaw = self.player.yaw;
-            let (fx, fz) = (-yaw.sin(), -yaw.cos());
-            let (rx, rz) = (yaw.cos(), -yaw.sin());
+            let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
+            let (rx, rz) = (yaw.dcos(), -yaw.dsin());
             let dx = (fx * mz + rx * mx) * speed * analog * dt;
             let dz = (fz * mz + rz * mx) * speed * analog * dt;
             let mut p = self.player.pos;
@@ -939,7 +939,7 @@ impl Game {
         // Settings: head bob and camera shake scale (the draws stay, so the
         // per-frame stream does not depend on them)
         let (bob_k, shake_k) = (self.settings.bob, if self.settings.shake { 1.0 } else { 0.0 });
-        let bob_y = self.player.bob_phase.sin().abs() * self.player.bob_amp * bob_k;
+        let bob_y = self.player.bob_phase.dsin().abs() * self.player.bob_amp * bob_k;
         let insanity_shake =
             if self.player.sanity < 40.0 { rand2(-1.0, 1.0) * (1.0 - self.player.sanity / 40.0) * 0.02 * shake_k } else { 0.0 };
         // Idle breathing: weather-scaled amp+freq; at low sanity
@@ -952,14 +952,14 @@ impl Game {
         let idle_freq_mul = 1.0 + panic_mag * 0.6;
         let idle_amp_mul = 1.0 - panic_mag * 0.30;
         let idle_freq_dsc = self.descent_freq_boost();
-        let idle_breath = (idle_t * idle_spec.freq * idle_freq_mul * idle_freq_dsc).sin()
+        let idle_breath = (idle_t * idle_spec.freq * idle_freq_mul * idle_freq_dsc).dsin()
             * idle_spec.amp
             * idle_amp_mul
             * idle_weight
             * self.descent_amp_boost();
         let cam = self.camera.clone();
         {
-            let cx = self.player.pos.x + (self.player.bob_phase * 0.5).cos() * self.player.bob_amp * 0.4 * bob_k;
+            let cx = self.player.pos.x + (self.player.bob_phase * 0.5).dcos() * self.player.bob_amp * 0.4 * bob_k;
             let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.06 * shake_k } else { 0.0 };
             let cy =
                 self.floor_y_at(self.player.pos.x, self.player.pos.z) + self.player.eye_h + bob_y + idle_breath + shake + insanity_shake;
@@ -984,7 +984,7 @@ impl Game {
             let fatigue_mag = 1.0 - self.player.stamina / 40.0;
             let wob_amp = wpick(stamina_wobble_amp_by_weather, wk);
             let wob_freq = wpick(stamina_wobble_freq_by_weather, wk);
-            stamina_crouch_wobble = (self.perf_t * wob_freq).sin() * wob_amp * fatigue_mag;
+            stamina_crouch_wobble = (self.perf_t * wob_freq).dsin() * wob_amp * fatigue_mag;
         }
         let crouch_pitch_target =
             if self.player.crouch { self.crouch_tilt_mag_current * sanity_crouch_boost + stamina_crouch_wobble } else { 0.0 };
@@ -1002,7 +1002,7 @@ impl Game {
         self.sanity_roll_freq_current += (sanity_roll_freq_target - self.sanity_roll_freq_current) * k_sanity;
         let roll_t = mx * (if sprinting { -0.02 } else { -0.012 })
             + if self.player.sanity < 50.0 {
-                (self.perf_t * self.sanity_roll_freq_current).sin() * (1.0 - self.player.sanity / 50.0) * self.sanity_roll_amp_current
+                (self.perf_t * self.sanity_roll_freq_current).dsin() * (1.0 - self.player.sanity / 50.0) * self.sanity_roll_amp_current
             } else {
                 0.0
             };
@@ -1020,7 +1020,7 @@ impl Game {
         // Reality-shift FOV nudge
         let shift_spec_fov = wpick(shift_bend_by_weather, wk);
         let shift_fov_delta = if self.reality_shift_t > 0.0 {
-            ((2.0 - self.reality_shift_t) * PI * 1.2).sin() * (self.reality_shift_t / 2.0) * shift_spec_fov.fov
+            ((2.0 - self.reality_shift_t) * PI * 1.2).dsin() * (self.reality_shift_t / 2.0) * shift_spec_fov.fov
         } else {
             0.0
         };
@@ -1035,18 +1035,18 @@ impl Game {
         let cp = cam.pos();
         self.flashlight.position().copy(&cp);
         let fwd = self.player.fwd();
-        let pitch_cos = self.player.pitch.cos();
+        let pitch_cos = self.player.pitch.dcos();
         // hands that shake (a third sweet: `secrets::keeps`): the beam
         // trembles, a hand's few hertz on the game's clock, no draws
         let (tx, ty) = if self.body.shake {
             let t = self.perf_t;
-            (0.035 * ((t * 7.1).sin() + 0.6 * (t * 11.3).sin()), 0.03 * ((t * 8.3).sin() + 0.5 * (t * 13.7).cos()))
+            (0.035 * ((t * 7.1).dsin() + 0.6 * (t * 11.3).dsin()), 0.03 * ((t * 8.3).dsin() + 0.5 * (t * 13.7).dcos()))
         } else {
             (0.0, 0.0)
         };
         self.flashlight_target.position().set(
             cp.x + fwd.x * pitch_cos * 5.0 - fwd.z * tx,
-            cp.y + self.player.pitch.sin() * 5.0 + ty,
+            cp.y + self.player.pitch.dsin() * 5.0 + ty,
             cp.z + fwd.z * pitch_cos * 5.0 + fwd.x * tx,
         );
 

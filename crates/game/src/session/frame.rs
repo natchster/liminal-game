@@ -116,7 +116,7 @@ impl Game {
         } else if self.state == "dead" {
             // a death's cutscene has the camera (and holds it, behind its card)
             self.cutscene_pre();
-            let y = self.floor_y_at(self.player.pos.x, self.player.pos.z) + EYE + (self.perf_t * 30.0).sin() * 0.01;
+            let y = self.floor_y_at(self.player.pos.x, self.player.pos.z) + EYE + (self.perf_t * 30.0).dsin() * 0.01;
             self.camera.position().y = y;
             match (self.cut.is_some(), self.cut_hold) {
                 (true, _) => {

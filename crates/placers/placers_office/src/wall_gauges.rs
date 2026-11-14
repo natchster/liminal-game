@@ -65,8 +65,8 @@ game::lazy_static_tex!(
             let r_in = if is_major { 32.0 } else { 34.0 };
             ctx.set_line_width(if is_major { 2.0 } else { 1.0 });
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * r_in, cy + a.sin() * r_in);
-            ctx.line_to(cx + a.cos() * 38.0, cy + a.sin() * 38.0);
+            ctx.move_to(cx + a.dcos() * r_in, cy + a.dsin() * r_in);
+            ctx.line_to(cx + a.dcos() * 38.0, cy + a.dsin() * 38.0);
             ctx.stroke();
         }
         // Needle at 30% of scale.
@@ -75,7 +75,7 @@ game::lazy_static_tex!(
         let needle_ang = -PI * 1.25 + 0.3 * PI * 1.5;
         ctx.begin_path();
         ctx.move_to(cx, cy);
-        ctx.line_to(cx + needle_ang.cos() * 26.0, cy + needle_ang.sin() * 26.0);
+        ctx.line_to(cx + needle_ang.dcos() * 26.0, cy + needle_ang.dsin() * 26.0);
         ctx.stroke();
         // Center pivot.
         ctx.set_fill_style("#2a2018");

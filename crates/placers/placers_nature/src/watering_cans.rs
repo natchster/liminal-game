@@ -25,7 +25,7 @@ pub(crate) fn place_watering_cans(g: &mut Game, _dist: &[i32]) {
     // The spout's narrow end (+Y) points out and up along spout_dir; its wide,
     // flanged end is set into the body low on the -X side.
     let spout = mesh(pg("WateringCans__spout", cyl_geo!(0.008, 0.010, 0.095, 6)), &can_mat);
-    let spout_dir = v3(-(PI / 3.0).sin(), (PI / 3.0).cos(), 0);
+    let spout_dir = v3(-(PI / 3.0).dsin(), (PI / 3.0).dcos(), 0);
     spout.rotation().z = PI / 3.0;
     spout.position().set(-0.056, 0.070, 0);
     can.add(&spout);
@@ -43,7 +43,7 @@ pub(crate) fn place_watering_cans(g: &mut Game, _dist: &[i32]) {
     can.add(&rose);
     let mut rose_face = rose.pos();
     rose_face.add_scaled_vector(&spout_dir, 0.0035);
-    let rose_up = v3((PI / 3.0).cos(), (PI / 3.0).sin(), 0);
+    let rose_up = v3((PI / 3.0).dcos(), (PI / 3.0).dsin(), 0);
     // 5 tiny hole dots on rose.
     for hh in 0..5 {
         let hole = mesh(circle_geo!(0.0012, 4), lambert!({ color: 0x101010 }));
@@ -52,8 +52,8 @@ pub(crate) fn place_watering_cans(g: &mut Game, _dist: &[i32]) {
         {
             let mut p = hole.position();
             p.copy(&rose_face);
-            p.add_scaled_vector(&rose_up, a.cos() * 0.005);
-            p.add(&v3(0, 0, a.sin() * 0.005));
+            p.add_scaled_vector(&rose_up, a.dcos() * 0.005);
+            p.add(&v3(0, 0, a.dsin() * 0.005));
         }
         can.add(&hole);
     }

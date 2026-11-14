@@ -54,6 +54,20 @@ from before `03e4b80` benches out loud.
   45), and that day a virtual machine and a copy of the game left playing
   for days shared the CPU and GPU; single runs gave 0.82–1.93 ms. Record a
   run on a quiet machine, never straight after the full check; kept.
+- **R1, the math made ours** (flagged by R1's full check: the creature
+  pack's update p50 0.08 → 0.09–0.10 ms). Real, and the price of correct
+  rounding: CORE-MATH's `sin` and `cos` take about 18 ns where the
+  system's took 7 (its `atan2`, `atan`, `exp` and `acos` are faster; `hypot`
+  is now `√(x² + y²)`, 1 ns). Measured apart, review A (A) and R1 (B)
+  benched in turn three times each: the levels' builds 2503 → 2662 ms in
+  all (+6.3%: the rooms' floors 4–6 +5–9%, 20–33 ms; the Building's within
+  noise), every update p50 +0.01 ms (0.03 → 0.04 on the Building, 0.06 →
+  0.07 on the rooms), p99 unchanged (0.73–0.80). All within budget; seed 7's
+  level 5, the slowest build, has 33 ms left of its 600 (64 before). The
+  kit's noise has no trigonometry, so the cost is spread over the placers'
+  own geometry and painters and the engine's: if a floor nears its budget,
+  look there (`sample` on `--bench`). Kept: a level now builds the same on
+  every Mac.
 
 - **E7** (`8274df8+` in the history, flagged by E8's full check): level 4's
   build, the first floor of the rooms a run builds, 135 → 148 ms in both

@@ -3,6 +3,7 @@
 //! colour. Writes target/hud-<state>.png, the element model as
 //! target/hud-<state>.json, and each HUD canvas of the "hud" state as
 //! target/hud-canvas-<n>-<name>.png, for visual inspection.
+use engine::dmath::DMath;
 use engine::math::Vec3;
 use game::Game;
 use game::ui::model::{Element, HudLayer, LayerBlend};
@@ -68,7 +69,8 @@ pub fn composite(layers: &[HudLayer], wpx: usize, hpx: usize, skip_grain: bool) 
                 for y in 0..hpx {
                     for x in 0..wpx {
                         let (u, v) = ((x as f32 + 0.5) / wpx as f32, (y as f32 + 0.5) / hpx as f32);
-                        let t = (((u - center[0]) / radius[0].max(1e-5)).powi(2) + ((v - center[1]) / radius[1].max(1e-5)).powi(2)).sqrt();
+                        let t =
+                            (((u - center[0]) / radius[0].max(1e-5)).dpowi(2) + ((v - center[1]) / radius[1].max(1e-5)).dpowi(2)).sqrt();
                         let n = stops.len();
                         let mut c = stops[0].1;
                         if t >= stops[n - 1].0 {

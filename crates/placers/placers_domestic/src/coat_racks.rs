@@ -98,8 +98,8 @@ pub(crate) fn place_coat_racks(g: &mut Game, _dist: &[i32]) {
             let sway_phase2 = rnd() * PI * 2.0;
             let coat2 = coat.clone();
             g.animate(move |_g, _dt, t| {
-                coat2.rotation().x = (t * 0.5 + sway_phase).sin() * 0.015;
-                coat2.rotation().z = (t * 0.4 + sway_phase2).sin() * 0.010;
+                coat2.rotation().x = (t * 0.5 + sway_phase).dsin() * 0.015;
+                coat2.rotation().z = (t * 0.4 + sway_phase2).dsin() * 0.010;
             });
         }
     }
@@ -123,7 +123,7 @@ pub(crate) fn place_coat_racks(g: &mut Game, _dist: &[i32]) {
             wall.add(&s);
         }
     }
-    rack.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    rack.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     rack.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&rack);
 }
@@ -169,7 +169,7 @@ fn board_tex(stain: [f64; 3], salt: u32) -> Tex {
             for k in 0..5 {
                 let du = (u - (0.5 + (-0.24 + 0.12 * k as f64) / 0.61)) * 0.61 / 0.03;
                 let dv = (v - 0.5) * 0.09 / 0.03;
-                rub = rub.max((-(du * du + dv * dv)).exp());
+                rub = rub.max((-(du * du + dv * dv)).dexp());
             }
             c = mix(c, mix(stain, [0.62, 0.56, 0.46], 0.4), rub * 0.45);
             c = mix(c, [0.16, 0.13, 0.10], sstep(0.12, 0.0, v) * 0.4 + sstep(0.86, 1.0, v) * 0.15);

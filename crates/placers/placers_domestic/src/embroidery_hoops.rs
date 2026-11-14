@@ -89,7 +89,7 @@ game::lazy_static_tex!(
         for i in 0..6 {
             let ang = (i as f64 / 6.0) * PI * 2.0;
             ctx.save();
-            ctx.translate(cx + ang.cos() * 26.0, cy + ang.sin() * 26.0);
+            ctx.translate(cx + ang.dcos() * 26.0, cy + ang.dsin() * 26.0);
             ctx.rotate(ang);
             ctx.begin_path();
             ctx.ellipse(0, 0, 18, 10, 0, 0, PI * 2.0);
@@ -121,8 +121,8 @@ game::lazy_static_tex!(
             let r0 = w.min(h) * 0.44;
             let r1 = r0 - 4.0;
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * r0, cy + a.sin() * r0);
-            ctx.line_to(cx + a.cos() * r1, cy + a.sin() * r1);
+            ctx.move_to(cx + a.dcos() * r0, cy + a.dsin() * r0);
+            ctx.line_to(cx + a.dcos() * r1, cy + a.dsin() * r1);
             ctx.stroke();
             a += PI / 24.0;
         }

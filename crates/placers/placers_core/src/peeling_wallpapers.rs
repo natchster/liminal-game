@@ -126,7 +126,7 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
         } else {
             // a rounded, torn outline: bitten into deeply here and there
             let (u, v) = (x / sw, y / sh);
-            let q = (u.abs().powf(2.6) + v.abs().powf(2.6)).powf(1.0 / 2.6);
+            let q = (u.abs().dpowf(2.6) + v.abs().dpowf(2.6)).dpowf(1.0 / 2.6);
             let bite = 0.28 * (fbm(s ^ 0x31, x * 9.0, y * 9.0, 3) - 0.5) * 2.0 + 0.05 * (fbm(s ^ 0x32, x * 60.0, y * 60.0, 2) - 0.5);
             (1.0 - q + bite) * sw.min(sh)
         };
@@ -134,10 +134,10 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
             // the old paper: faded stripes in pairs and a small sprig between,
             // yellowed, foxed, grimier low
             let xs = (x - stripe_at).rem_euclid(0.04);
-            let st = (-((xs - 0.004) / 0.0007).powi(2)).exp() + (-((xs - 0.009) / 0.0007).powi(2)).exp();
+            let st = (-((xs - 0.004) / 0.0007).dpowi(2)).dexp() + (-((xs - 0.009) / 0.0007).dpowi(2)).dexp();
             let (gi, gj) = (((x - stripe_at) / 0.04 - 0.5).floor(), (y / 0.05).floor());
             let (sx0, sy0) = ((gi + 0.5 + 0.5) * 0.04 + stripe_at, (gj + 0.5) * 0.05 + if (gi as i32) % 2 == 0 { 0.0 } else { 0.025 });
-            let sprig = (0.5 - (((x - sx0) * 1.4).hypot(y - sy0 - 0.0) - 0.0035) / aa).clamp(0.0, 1.0);
+            let sprig = (0.5 - (((x - sx0) * 1.4).dhypot(y - sy0 - 0.0) - 0.0035) / aa).clamp(0.0, 1.0);
             let fox = sstep(0.62, 0.8, fbm(s ^ 0x41, x * 40.0, y * 40.0, 3));
             let mut c = mix(OLD_PAPER, STRIPE, st * 0.55 + sprig * 0.4);
             c = mix(c, [0.55, 0.42, 0.27], fox * 0.35 + 0.1 * sstep(0.0, 0.2, -y));
@@ -194,7 +194,7 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
         lay(&mut px, SHADE, 0.35 * near * (0.5 - (ds - 0.0008).abs() / 0.0008).clamp(0.0, 1.0));
         lay(&mut px, CORE, 0.25 * near * (0.5 - (ds + 0.0006).abs() / 0.0006).clamp(0.0, 1.0));
         // under the lifted corner's hanging end, the wall in its shade
-        let hang = sstep(0.0, 0.02, u) * sstep(0.0, 0.02, cw - u) * (-((y - (foot - 0.05)) / 0.05).powi(2)).exp();
+        let hang = sstep(0.0, 0.02, u) * sstep(0.0, 0.02, cw - u) * (-((y - (foot - 0.05)) / 0.05).dpowi(2)).dexp();
         lay(&mut px, SHADE, 0.22 * hang);
         // nothing at the plane's edges
         px[3] *= sstep(0.0, 0.01, (pw / 2.0 - x.abs()).min(ph / 2.0 - y.abs()));

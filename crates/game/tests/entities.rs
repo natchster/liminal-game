@@ -166,7 +166,7 @@ impl EntityNav for GridNav {
                 if g.is_wall_tile(x + dx, z + dz) {
                     continue;
                 }
-                let d = (g.wx(x + dx) - px).powi(2) + (g.wz(z + dz) - pz).powi(2);
+                let d = (g.wx(x + dx) - px).dpowi(2) + (g.wz(z + dz) - pz).dpowi(2);
                 if d < bd {
                     bd = d;
                     best = Some((x + dx, z + dz));

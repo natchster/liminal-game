@@ -66,7 +66,7 @@ pub(crate) fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
         let s_ang = rnd() * PI * 2.0;
         let s_rad = 0.10 + rnd() * 0.12;
         let mp = mug.pos();
-        tea_stain.position().set(mp.x + s_ang.cos() * s_rad, 0.004, mp.z + s_ang.sin() * s_rad);
+        tea_stain.position().set(mp.x + s_ang.dcos() * s_rad, 0.004, mp.z + s_ang.dsin() * s_rad);
         g.world.add(&tea_stain);
     }
     // 20% chance: 1-2 sibling mugs nearby (break room scene).
@@ -76,8 +76,8 @@ pub(crate) fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
             let sib_mug = clone_obj(&mug);
             let s_ang = rnd() * PI * 2.0;
             let s_rad = 0.15 + rnd() * 0.20;
-            sib_mug.position().x += s_ang.cos() * s_rad;
-            sib_mug.position().z += s_ang.sin() * s_rad;
+            sib_mug.position().x += s_ang.dcos() * s_rad;
+            sib_mug.position().z += s_ang.dsin() * s_rad;
             sib_mug.rotation().y = rnd() * PI * 2.0;
             g.world.add(&sib_mug);
         }

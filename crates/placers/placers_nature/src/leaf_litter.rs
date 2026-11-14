@@ -73,7 +73,7 @@ pub(crate) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
         let reach = 0.42 * l;
         let mut y = 0.0f64;
         for &(ox, oz, or, ot) in &down {
-            if (base_x - ox).hypot(base_z - oz) < (reach + or) * 0.7 {
+            if (base_x - ox).dhypot(base_z - oz) < (reach + or) * 0.7 {
                 y = y.max(ot * 0.55);
             }
         }
@@ -96,8 +96,8 @@ pub(crate) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
     g.animate(move |_g, _dt, t| {
         for (l, bx, bz, phx, phz) in &leaves {
             let mut p = l.position();
-            p.x = bx + (t * 0.3 + phx).sin() * 0.005;
-            p.z = bz + (t * 0.28 + phz).cos() * 0.004;
+            p.x = bx + (t * 0.3 + phx).dsin() * 0.005;
+            p.z = bz + (t * 0.28 + phz).dcos() * 0.004;
         }
     });
 }
@@ -127,15 +127,16 @@ fn leaf_half(k: usize, a: f64, side: f64) -> f64 {
     }
     let seed = 0x1ea0 + k as u32 * 17;
     let mut hw = if oak {
-        let env = (PI * a.powf(0.62)).sin().max(0.0).powf(0.75) * (1.0 - 0.15 * (1.0 - a)) + 0.18 * (-((a - 0.03) / 0.05).powi(2)).exp();
+        let env =
+            (PI * a.dpowf(0.62)).dsin().max(0.0).dpowf(0.75) * (1.0 - 0.15 * (1.0 - a)) + 0.18 * (-((a - 0.03) / 0.05).dpowi(2)).dexp();
         // rounded lobes between narrow sinuses
         let t = (a * 5.2 + 0.2 + 0.08 * side).fract();
-        let lobe = if a > 0.1 { 0.58 + 0.42 * (1.0 - (2.0 * t - 1.0).powi(2)).max(0.0).sqrt() } else { 1.0 };
+        let lobe = if a > 0.1 { 0.58 + 0.42 * (1.0 - (2.0 * t - 1.0).dpowi(2)).max(0.0).sqrt() } else { 1.0 };
         w * env * lobe
     } else {
-        let env = (PI * a.powf(1.15)).sin().max(0.0).powf(0.8);
+        let env = (PI * a.dpowf(1.15)).dsin().max(0.0).dpowf(0.8);
         // the margin waves between the veins' ends
-        w * env * (1.0 - 0.04 * (0.5 + 0.5 * (2.0 * PI * a * 8.5).cos()))
+        w * env * (1.0 - 0.04 * (0.5 + 0.5 * (2.0 * PI * a * 8.5).dcos()))
     } - 0.0006;
     // ragged where it dried and broke
     hw *= 1.0 - 0.07 * sstep(0.55, 0.8, fbm(seed, a * 18.0, side * 3.0, 3));

@@ -114,8 +114,8 @@ fn skull_bone_tex(salt: u32, base: [f64; 3], buck: bool) -> Tex {
             c = mix(c, base.map(|k| k * 0.82), sstep(0.4, 0.75, n) * 0.7);
             c = mix(c, [0.55, 0.46, 0.32], sstep(0.55, 1.0, v) * 0.35);
             if buck {
-                let ped = (-(((u - 0.26).powi(2) + (v - 0.68).powi(2)) / 0.004)).exp()
-                    + (-(((u - 0.74).powi(2) + (v - 0.68).powi(2)) / 0.004)).exp();
+                let ped = (-(((u - 0.26).dpowi(2) + (v - 0.68).dpowi(2)) / 0.004)).dexp()
+                    + (-(((u - 0.74).dpowi(2) + (v - 0.68).dpowi(2)) / 0.004)).dexp();
                 c = mix(c, [0.40, 0.30, 0.19], ped * 0.7);
             }
             let x = (u - 0.5) * 0.083;

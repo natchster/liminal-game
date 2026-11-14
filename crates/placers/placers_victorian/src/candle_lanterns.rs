@@ -28,7 +28,7 @@ pub(crate) fn place_candle_lanterns(g: &mut Game, _dist: &[i32]) {
     for i in 0..4 {
         let a = (i as f64 / 4.0) * PI * 2.0 + PI / 4.0;
         let post = mesh(pg("CandleLanterns__post", cyl_geo!(0.003, 0.003, 0.14, 4)), &frame_mat);
-        post.position().set(a.cos() * 0.032, 0.075, a.sin() * 0.032);
+        post.position().set(a.dcos() * 0.032, 0.075, a.dsin() * 0.032);
         lantern.add(&post);
     }
     // 4 glass panels (planes between posts).
@@ -36,7 +36,7 @@ pub(crate) fn place_candle_lanterns(g: &mut Game, _dist: &[i32]) {
         let a = (i as f64 / 4.0) * PI * 2.0;
         let panel = mesh(plane_geo!(0.045, 0.12), &glass_mat);
         // on the line between two diagonal posts (0.032 · cos 45° from the centre)
-        panel.position().set(a.cos() * 0.032 * std::f64::consts::FRAC_1_SQRT_2, 0.075, a.sin() * 0.032 * std::f64::consts::FRAC_1_SQRT_2);
+        panel.position().set(a.dcos() * 0.032 * std::f64::consts::FRAC_1_SQRT_2, 0.075, a.dsin() * 0.032 * std::f64::consts::FRAC_1_SQRT_2);
         panel.rotation().y = -a + PI / 2.0;
         lantern.add(&panel);
     }
@@ -62,7 +62,7 @@ pub(crate) fn place_candle_lanterns(g: &mut Game, _dist: &[i32]) {
         let phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
             // Rapid flicker via combined sines (like turbulent flame).
-            let f = 0.7 + 0.15 * (t * 7.0 + phase).sin() + 0.15 * (t * 11.0 + phase * 1.7).sin();
+            let f = 0.7 + 0.15 * (t * 7.0 + phase).dsin() + 0.15 * (t * 11.0 + phase * 1.7).dsin();
             flame.scale().set_scalar(f);
             light.set_intensity(0.18 * f);
         });

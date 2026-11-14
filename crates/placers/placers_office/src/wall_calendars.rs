@@ -45,8 +45,8 @@ pub(crate) fn place_wall_calendars(g: &mut Game, _dist: &[i32]) {
                 line.rotation().y = cry;
                 // Local offset in calendar frame; nudge slightly outward.
                 let cp = cal.pos();
-                let world_x = cp.x + cry.cos() * 0.0 - cry.sin() * cell_x;
-                let world_z = cp.z - cry.sin() * 0.0 - cry.cos() * cell_x;
+                let world_x = cp.x + cry.dcos() * 0.0 - cry.dsin() * cell_x;
+                let world_z = cp.z - cry.dsin() * 0.0 - cry.dcos() * cell_x;
                 line.position().set(world_x - c.dx as f64 * 0.001, cp.y + cell_y, world_z - c.dz as f64 * 0.001);
                 g.world.add(&line);
             }

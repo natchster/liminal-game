@@ -144,8 +144,8 @@ fn dial_tex(k: usize, seed: u32) -> Tex {
             let (r0, r1) = if five { (0.86, 0.97) } else { (0.92, 0.97) };
             ctx.set_line_width(if five { 3.2 } else { 1.2 });
             ctx.begin_path();
-            ctx.move_to(cx + a.sin() * r * r0, cy - a.cos() * r * r0);
-            ctx.line_to(cx + a.sin() * r * r1, cy - a.cos() * r * r1);
+            ctx.move_to(cx + a.dsin() * r * r0, cy - a.dcos() * r * r0);
+            ctx.line_to(cx + a.dsin() * r * r1, cy - a.dcos() * r * r1);
             ctx.stroke();
         }
         ctx.set_fill_style(ink);
@@ -154,13 +154,13 @@ fn dial_tex(k: usize, seed: u32) -> Tex {
         ctx.set_font("bold 30px Helvetica Neue");
         for i in 1..=12 {
             let a = i as f64 / 12.0 * PI * 2.0;
-            ctx.fill_text(&i.to_string(), cx + a.sin() * r * 0.70, cy - a.cos() * r * 0.70 + 1.0);
+            ctx.fill_text(&i.to_string(), cx + a.dsin() * r * 0.70, cy - a.dcos() * r * 0.70 + 1.0);
         }
         ctx.set_fill_style(red);
         ctx.set_font("bold 11px Helvetica Neue");
         for i in 13..=24 {
             let a = (i - 12) as f64 / 12.0 * PI * 2.0;
-            ctx.fill_text(&i.to_string(), cx + a.sin() * r * 0.47, cy - a.cos() * r * 0.47);
+            ctx.fill_text(&i.to_string(), cx + a.dsin() * r * 0.47, cy - a.dcos() * r * 0.47);
         }
         ctx.set_fill_style(ink);
         ctx.set_font("bold 12px Futura");
@@ -176,7 +176,7 @@ fn dial_tex(k: usize, seed: u32) -> Tex {
             let d = r * rr.range(0.2, 0.98).sqrt();
             ctx.set_fill_style(format!("rgba(110,78,40,{:.2})", rr.range(0.15, 0.5)));
             ctx.begin_path();
-            ctx.arc(cx + a.cos() * d, cy + a.sin() * d, rr.range(0.6, 2.2), 0, 7);
+            ctx.arc(cx + a.dcos() * d, cy + a.dsin() * d, rr.range(0.6, 2.2), 0, 7);
             ctx.fill();
         }
         if rr.next() < 0.5 {
@@ -211,7 +211,7 @@ fn strap_mat(band: usize, z0: f64, z1: f64, seed: u32) -> Mat {
             for i in 0..n {
                 let (x, y) = (i as f64, j as f64);
                 let k = if webbing {
-                    let rib = (x * 1.9).sin() * 0.5 + 0.5;
+                    let rib = (x * 1.9).dsin() * 0.5 + 0.5;
                     0.86 + 0.12 * rib + 0.06 * (vn(s, x * 0.3, y * 0.05) - 0.5)
                 } else {
                     let grain = vn(s, x * 0.9, y * 0.9) * 0.5 + vn(s ^ 5, x * 0.25, y * 0.25) * 0.5;
@@ -304,7 +304,7 @@ fn crystal_dirt_tex(seed: u32) -> Tex {
             ctx.set_line_width(r.range(0.5, 1.0));
             ctx.begin_path();
             ctx.move_to(x0, y0);
-            ctx.line_to(x0 + a.cos() * l, y0 + a.sin() * l);
+            ctx.line_to(x0 + a.dcos() * l, y0 + a.dsin() * l);
             ctx.stroke();
         }
     })

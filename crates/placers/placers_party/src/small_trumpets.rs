@@ -41,7 +41,7 @@ pub(crate) fn place_small_trumpets(g: &mut Game, _dist: &[i32]) {
     trumpet.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     trumpet.rotation().y = rnd() * PI * 2.0;
     // Tilt so it rests on the bell rim and the mouthpiece.
-    trumpet.rotation().z = 0.023f64.atan2(0.252);
+    trumpet.rotation().z = 0.023f64.datan2(0.252);
     trumpet.position().y = -0.0069;
     g.world.add(&trumpet);
 }

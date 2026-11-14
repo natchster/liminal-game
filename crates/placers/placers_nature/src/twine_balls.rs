@@ -34,7 +34,7 @@ pub(crate) fn place_twine_balls(g: &mut Game, _dist: &[i32]) {
     // Leaves the ball's lower flank (+Y end on its surface) and slopes down
     // to its frayed free end (-Y) lying on the floor.
     let end_a = v3(0.030, 0.016, 0.010);
-    let end_b = v3(0.030 + 0.0684 * 0.4f64.cos(), 0.0012, 0.010 - 0.0684 * 0.4f64.sin());
+    let end_b = v3(0.030 + 0.0684 * 0.4f64.dcos(), 0.0012, 0.010 - 0.0684 * 0.4f64.dsin());
     let mut dir = end_a;
     dir.sub(&end_b);
     dir.normalize();

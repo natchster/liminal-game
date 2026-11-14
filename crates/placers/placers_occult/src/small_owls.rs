@@ -68,9 +68,9 @@ fn owl_wood_tex(salt: u32, stain: u32) -> Tex {
                 // the facial disc: fine rays from each eye
                 let ex = if u < 0.5 { 0.373 } else { 0.627 };
                 let (dx, dy) = ((u - ex) * 98.0, mm - 104.5);
-                let r = dx.hypot(dy);
-                let a = dy.atan2(dx);
-                let ray = ((a * 24.0).sin().abs()).powf(8.0) * sstep(8.5, 11.0, r) * (1.0 - sstep(14.0, 17.0, r));
+                let r = dx.dhypot(dy);
+                let a = dy.datan2(dx);
+                let ray = ((a * 24.0).dsin().abs()).dpowf(8.0) * sstep(8.5, 11.0, r) * (1.0 - sstep(14.0, 17.0, r));
                 ray * 0.25
             } else {
                 // the feathers: scallop rows, larger and longer toward the

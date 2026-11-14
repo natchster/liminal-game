@@ -35,10 +35,10 @@ pub(crate) fn place_coffee_mugs(g: &mut Game, _dist: &[i32]) {
         let coffee2 = coffee.clone();
         g.animate(move |_g, _dt, t| {
             // Multi-freq combined sine — imperceptible amplitude.
-            coffee2.position().y = coffee_base_y + (t * 1.8 + ripple_phase).sin() * 0.0004 + (t * 3.5 + ripple_phase2).sin() * 0.0002;
+            coffee2.position().y = coffee_base_y + (t * 1.8 + ripple_phase).dsin() * 0.0004 + (t * 3.5 + ripple_phase2).dsin() * 0.0002;
             // Micro-tilt makes the reflection catch light differently.
-            coffee2.rotation().z = (t * 1.2 + ripple_phase).sin() * 0.008;
-            coffee2.rotation().x = -PI / 2.0 + (t * 1.0 + ripple_phase2).sin() * 0.006;
+            coffee2.rotation().z = (t * 1.2 + ripple_phase).dsin() * 0.008;
+            coffee2.rotation().x = -PI / 2.0 + (t * 1.0 + ripple_phase2).dsin() * 0.006;
         });
     }
     // Rim torus.
@@ -72,12 +72,12 @@ pub(crate) fn place_coffee_mugs(g: &mut Game, _dist: &[i32]) {
                 {
                     let mut p = w.mesh.position();
                     // Slow drift upward + gentle horizontal sway.
-                    p.y = w.base_y + (t * 0.6 + w.phase).sin() * 0.015;
-                    p.x = (t * 0.4 + w.phase).sin() * 0.015;
-                    p.z = (t * 0.5 + w.phase * 1.3).cos() * 0.015;
+                    p.y = w.base_y + (t * 0.6 + w.phase).dsin() * 0.015;
+                    p.x = (t * 0.4 + w.phase).dsin() * 0.015;
+                    p.z = (t * 0.5 + w.phase * 1.3).dcos() * 0.015;
                 }
                 // Subtle scale pulse.
-                let s = 0.9 + (t * 0.8 + w.phase).sin() * 0.15;
+                let s = 0.9 + (t * 0.8 + w.phase).dsin() * 0.15;
                 w.mesh.scale().set(s, 2.2 * s, s);
             }
         });

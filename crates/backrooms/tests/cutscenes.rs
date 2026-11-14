@@ -7,6 +7,7 @@
 //! you; danger breaks it off; a held world holds the creatures.
 mod common;
 
+use engine::dmath::DMath;
 use game::Game;
 use game::cutscene::Cutscene;
 use game::cutscene::play::{Anchors, Frame, Pose, SKIP_HOLD};
@@ -70,7 +71,7 @@ fn key(t: f64, anchor: &str, pos: [f64; 3], look: Option<[f64; 3]>) -> Value {
 /// Two metres ahead of you, facing you
 fn ahead(g: &Game) -> Anchors {
     let p = g.player.pos;
-    let (s, c) = g.player.yaw.sin_cos();
+    let (s, c) = g.player.yaw.dsin_cos();
     let at = [p.x - s * 2.0, g.floor_y_at(p.x, p.z), p.z - c * 2.0];
     Anchors { thing: Some(Frame::thing(at, g.player.yaw)), killer: None, seen_as: None }
 }

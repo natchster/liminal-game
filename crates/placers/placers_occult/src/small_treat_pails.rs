@@ -42,7 +42,7 @@ pub(crate) fn place_small_treat_pails(g: &mut Game, _dist: &[i32]) {
     // Face on body: each decal 1 mm outside the (0.070, 0.0525, 0.070)
     // ellipsoid (the lobed body stays inside it), facing along its normal.
     let on_body = |m: &Obj, px: f64, py: f64| {
-        let zs = 0.070 * (1.0 - (px / 0.070).powi(2) - ((py - 0.055) / 0.0525).powi(2)).sqrt();
+        let zs = 0.070 * (1.0 - (px / 0.070).dpowi(2) - ((py - 0.055) / 0.0525).dpowi(2)).sqrt();
         let mut n = v3(px / 0.0049, (py - 0.055) / 0.00275625, zs / 0.0049);
         n.normalize();
         m.position().set(px, py, zs).add_scaled_vector(&n, 0.001);

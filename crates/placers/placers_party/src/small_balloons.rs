@@ -58,11 +58,11 @@ pub(crate) fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
         let (base_x, base_z) = (bp.x, bp.z);
         let b = body.clone();
         g.animate(move |_g, _dt, t| {
-            let wobble = (t * (PI * 2.0 / sway_period) + sway_phase).sin();
+            let wobble = (t * (PI * 2.0 / sway_period) + sway_phase).dsin();
             {
                 let mut p = b.position();
                 p.x = base_x + wobble * 0.020;
-                p.z = base_z + (t * (PI * 2.0 / sway_period) + sway_phase).cos() * 0.015;
+                p.z = base_z + (t * (PI * 2.0 / sway_period) + sway_phase).dcos() * 0.015;
             }
             b.rotation().z = wobble * 0.05;
         });
@@ -90,7 +90,7 @@ pub(crate) fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
             let s_ang = rnd() * PI * 2.0;
             let s_rad = 0.20 + rnd() * 0.20;
             let bp = balloon.pos();
-            sib_balloon.position().set(bp.x + s_ang.cos() * s_rad, 0, bp.z + s_ang.sin() * s_rad);
+            sib_balloon.position().set(bp.x + s_ang.dcos() * s_rad, 0, bp.z + s_ang.dsin() * s_rad);
             g.world.add(&sib_balloon);
         }
     }

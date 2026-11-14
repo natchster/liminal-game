@@ -25,7 +25,7 @@ pub(crate) fn place_teapots(g: &mut Game, _dist: &[i32]) {
         let a = (i as f64 / 3.0) * PI * 2.0;
         let foot = mesh(pg("Teapots__foot", cyl_geo!(0.006, 0.006, 0.008, 4)), &trivet_mat);
         // Under the trivet (top 0.5 mm into its underside); the group is raised onto the feet.
-        foot.position().set(a.cos() * 0.060, -0.0035, a.sin() * 0.060);
+        foot.position().set(a.dcos() * 0.060, -0.0035, a.dsin() * 0.060);
         teapot.add(&foot);
     }
     let body = mesh(pg("Teapots__body", sphere_geo!(0.060, 12, 10)), &pot_mat);
@@ -66,10 +66,10 @@ pub(crate) fn place_teapots(g: &mut Game, _dist: &[i32]) {
     let phase = rnd() * PI * 2.0;
     let (lid2, knob2) = (lid.clone(), knob.clone());
     g.animate(move |_g, _dt, t| {
-        let trig = (t * 0.12 + phase).sin();
+        let trig = (t * 0.12 + phase).dsin();
         if trig > 0.94 {
             let local = (trig - 0.94) / 0.06; // 0..1
-            let lift = (local * PI).sin() * 0.003;
+            let lift = (local * PI).dsin() * 0.003;
             lid2.position().y = 0.101 + lift;
             knob2.position().y = 0.111 + lift;
         } else {

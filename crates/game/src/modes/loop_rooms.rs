@@ -229,12 +229,12 @@ pub fn lap_look(lap: i32) -> LapLook {
     let l = 0.max(lap);
     let k = l.min(6) as usize;
     let past = 0.max(l - 6);
-    let fade = 0.35f64.max(0.93f64.powf(past as f64));
+    let fade = 0.35f64.max(0.93f64.dpowf(past as f64));
     LapLook {
         lap: l,
         tint: [TINT[k][0] * fade, TINT[k][1] * fade, TINT[k][2] * fade],
         light: LIGHT[k],
-        bright: 0.22f64.max(BRIGHT[k] * 0.9f64.powf(past as f64)),
+        bright: 0.22f64.max(BRIGHT[k] * 0.9f64.dpowf(past as f64)),
         flicker: if l >= 3 { 1f64.min(0.3 + 0.18 * (l - 3) as f64) } else { 0.0 },
         turned: l >= 2,
         red: l >= 4,
@@ -316,8 +316,8 @@ pub fn env_row(l: i32) -> [f64; 9] {
     if past > 0 {
         let p = past as f64;
         o[3] = 0.16f64.min(0.08 + 0.014 * p);
-        o[4] *= 0.88f64.powf(p);
-        o[5] *= 0.88f64.powf(p);
+        o[4] *= 0.88f64.dpowf(p);
+        o[5] *= 0.88f64.dpowf(p);
         o[6] = 0.05;
         o[7] = 0.7 + 0.45 * p;
         o[8] = 0.6;
@@ -710,8 +710,8 @@ fn add_chair(b: &mut Builder, p0: &Mat4) {
     const DARK: u32 = 0x1a1918;
     for i in 0..5 {
         let a = (i as f64 / 5.0) * PI * 2.0;
-        b.add(bevel_box(0.05, 0.035, 0.3, 0.008), &under(p0, &mtr(a.sin() * 0.15, 0.06, a.cos() * 0.15, 0.0, a, 0.0)), MET);
-        b.add(cyl_geo!(0.024, 0.024, 0.04, 8), &under(p0, &mtr(a.sin() * 0.29, 0.024, a.cos() * 0.29, 0.0, 0.0, PI / 2.0)), DARK);
+        b.add(bevel_box(0.05, 0.035, 0.3, 0.008), &under(p0, &mtr(a.dsin() * 0.15, 0.06, a.dcos() * 0.15, 0.0, a, 0.0)), MET);
+        b.add(cyl_geo!(0.024, 0.024, 0.04, 8), &under(p0, &mtr(a.dsin() * 0.29, 0.024, a.dcos() * 0.29, 0.0, 0.0, PI / 2.0)), DARK);
     }
     b.add(cyl_geo!(0.024, 0.03, 0.36, 10), &under(p0, &mt(0.0, 0.26, 0.0)), MET);
     b.add(bevel_box(0.46, 0.08, 0.44, 0.025), &under(p0, &mt(0.0, 0.47, 0.02)), FAB);
@@ -839,7 +839,7 @@ fn in_cone(px: f64, pz: f64, yaw: f64, tx: f64, tz: f64, half_deg: f64) -> bool 
     if l < 1e-6 {
         return true;
     }
-    (-yaw.sin() * dx - yaw.cos() * dz) / l > (half_deg * PI / 180.0).cos()
+    (-yaw.dsin() * dx - yaw.dcos() * dz) / l > (half_deg * PI / 180.0).dcos()
 }
 
 impl LoopMode {
@@ -892,7 +892,7 @@ impl LoopMode {
                     let s = r(0.8, 2.6);
                     ctx.set_fill_style(format!("rgba(48,9,6,{})", r(0.4, 0.8)));
                     ctx.begin_path();
-                    ctx.arc(64.0 + a.cos() * d, 64.0 + a.sin() * d * 0.9, s, 0, 7);
+                    ctx.arc(64.0 + a.dcos() * d, 64.0 + a.dsin() * d * 0.9, s, 0, 7);
                     ctx.fill();
                 }
                 // right half: runs and a smear from above
@@ -1088,7 +1088,7 @@ impl LoopMode {
                 let a = (i as f64 / 12.0) * PI * 2.0;
                 b.add(
                     box_geo!(0.01, if i % 3 != 0 { 0.018 } else { 0.03 }, 0.004),
-                    &under(&kc, &mtr(a.sin() * 0.122, a.cos() * 0.122, 0.053, 0.0, 0.0, -a)),
+                    &under(&kc, &mtr(a.dsin() * 0.122, a.dcos() * 0.122, 0.053, 0.0, 0.0, -a)),
                     0x2a2824,
                 );
             }
@@ -1096,7 +1096,7 @@ impl LoopMode {
             let mut hand = |len: f64, wd: f64, ang: f64| {
                 b.add(
                     box_geo!(wd, len, 0.004),
-                    &under(&kc, &mtr(ang.sin() * len * 0.4, ang.cos() * len * 0.4, 0.058, 0.0, 0.0, -ang)),
+                    &under(&kc, &mtr(ang.dsin() * len * 0.4, ang.dcos() * len * 0.4, 0.058, 0.0, 0.0, -ang)),
                     0x1a1917,
                 );
             };
@@ -1122,7 +1122,7 @@ impl LoopMode {
                 let a = (i as f64 / 11.0) * PI * 2.0 + rr() * 0.4;
                 let tilt = 0.08 + rr() * 0.26;
                 let mut m = Mat4::IDENTITY;
-                m.make_translation(a.sin() * 0.05, 0.3, a.cos() * 0.05);
+                m.make_translation(a.dsin() * 0.05, 0.3, a.dcos() * 0.05);
                 let mut ry = Mat4::IDENTITY;
                 ry.make_rotation_y(a);
                 let mut rx = Mat4::IDENTITY;
@@ -1192,7 +1192,7 @@ impl LoopMode {
                     0xffffff,
                 );
             };
-            let (ca, sa) = (0.5f64.cos(), 0.5f64.sin());
+            let (ca, sa) = (0.5f64.dcos(), 0.5f64.dsin());
             plane_q(-0.45, 0.004, P / 2.0 + 0.55, 1.9, 1.3, [0.0, 1.0, 0.0], [ca, 0.0, sa], &blot);
             plane_q(-W / 2.0 + 0.004, 1.3, P / 2.0 + 1.35, 0.85, 1.6, [1.0, 0.0, 0.0], [0.0, 0.0, -1.0], &runs);
             plane_q(-1.55, 1.05, Z_F - 0.004, 0.95, 1.2, [0.0, 0.0, -1.0], [-1.0, 0.0, 0.0], &runs);
@@ -1524,7 +1524,7 @@ impl LoopMode {
         let mut dirty = false;
         // --- movement: slide along walls, per axis. Walls always hold; if you
         // are somehow inside a piece of furniture you may walk out of it ---
-        let (sy, cy) = (inp.yaw.sin(), inp.yaw.cos());
+        let (sy, cy) = (inp.yaw.dsin(), inp.yaw.dcos());
         let dx = (-sy * inp.fwd + cy * inp.strafe) * inp.speed * dt;
         let dz = (-cy * inp.fwd - sy * inp.strafe) * inp.speed * dt;
         if truthy(dx) || truthy(dz) {
@@ -1654,7 +1654,7 @@ impl LoopMode {
                         self.fig.x = nx;
                         self.fig.gz = nz + lapz;
                         self.fig.moved += moved;
-                        self.fig.yaw = (self.st.x - nx).atan2(self.st.z - nz);
+                        self.fig.yaw = (self.st.x - nx).datan2(self.st.z - nz);
                         if self.fig.inst >= 0 {
                             set_at(&self.m_figure, self.fig.inst as usize, self.fig.x, 0.0, nz, self.fig.yaw);
                             self.m_figure.instances_changed();

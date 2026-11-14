@@ -40,7 +40,7 @@ pub(crate) fn place_small_opera_glasses(g: &mut Game, _dist: &[i32]) {
     // sloping down so the finial rests on the floor.
     let handle = mesh(pg("SmallOperaGlasses__handle", cyl_geo!(0.004, 0.004, 0.10, 6)), &body_mat);
     handle.rotation().x = -PI / 2.0 - 0.16;
-    handle.position().set(0.030, 0.012, -0.039 - 0.05 * 0.16f64.cos());
+    handle.position().set(0.030, 0.012, -0.039 - 0.05 * 0.16f64.dcos());
     opera.add(&handle);
     opera.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     opera.rotation().y = rnd() * PI * 2.0;

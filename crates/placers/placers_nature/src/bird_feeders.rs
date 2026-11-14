@@ -40,7 +40,7 @@ pub(crate) fn place_bird_feeders(g: &mut Game, _dist: &[i32]) {
         let a = (i as f64 / 4.0) * PI * 2.0;
         let perch = mesh(pg("BirdFeeders__perch", cyl_geo!(0.002, 0.002, 0.040, 4)), &perch_mat);
         perch.rotation().z = PI / 2.0;
-        perch.position().set(a.cos() * 0.048, 0.030 + i as f64 * 0.010, a.sin() * 0.048);
+        perch.position().set(a.dcos() * 0.048, 0.030 + i as f64 * 0.010, a.dsin() * 0.048);
         perch.rotation().y = -a;
         feeder.add(&perch);
     }

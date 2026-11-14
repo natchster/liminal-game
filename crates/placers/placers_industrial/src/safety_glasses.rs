@@ -107,7 +107,7 @@ fn lens_dirt_tex(seed: u32) -> Tex {
             ctx.set_line_width(r.range(0.5, 1.1));
             ctx.begin_path();
             ctx.move_to(x0, y0);
-            ctx.line_to(x0 + a.cos() * l, y0 + a.sin() * l);
+            ctx.line_to(x0 + a.dcos() * l, y0 + a.dsin() * l);
             ctx.stroke();
         }
         // a few long ones, from a fall
@@ -120,10 +120,10 @@ fn lens_dirt_tex(seed: u32) -> Tex {
             ctx.begin_path();
             ctx.move_to(x0, y0);
             ctx.quadratic_curve_to(
-                x0 + a.cos() * l * 0.5 + r.range(-8.0, 8.0),
-                y0 + a.sin() * l * 0.5 + r.range(-8.0, 8.0),
-                x0 + a.cos() * l,
-                y0 + a.sin() * l,
+                x0 + a.dcos() * l * 0.5 + r.range(-8.0, 8.0),
+                y0 + a.dsin() * l * 0.5 + r.range(-8.0, 8.0),
+                x0 + a.dcos() * l,
+                y0 + a.dsin() * l,
             );
             ctx.stroke();
         }

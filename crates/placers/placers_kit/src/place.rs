@@ -3,7 +3,7 @@ use game::prelude::*;
 
 /// `atan2(-dx, -dz)` with float negation, so a zero component stays `-0.0` (kept on purpose).
 pub fn face_wall(dx: i32, dz: i32) -> f64 {
-    (-(dx as f64)).atan2(-(dz as f64))
+    (-(dx as f64)).datan2(-(dz as f64))
 }
 
 /// The index of `c` in `cs` (the old colour a draw picked)
@@ -158,7 +158,7 @@ pub fn wall_key_at(g: &Game, x: i32, z: i32) -> String {
 
 /// `rotation.y = `atan2`(-dx, -dz)` + position on the wall face `CELL * 0.5 - inset` out.
 pub fn wall_mount(g: &Game, o: &Obj, x: i32, z: i32, dx: i32, dz: i32, inset: f64) {
-    o.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    o.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     o.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - inset), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - inset));
 }
 

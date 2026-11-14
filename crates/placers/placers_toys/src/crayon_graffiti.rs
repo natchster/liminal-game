@@ -151,7 +151,7 @@ impl Wax {
         let mut q = vec![];
         for k in 0..pts.len() - 1 {
             let (a, b) = (pts[k], pts[k + 1]);
-            let n = ((b.0 - a.0).hypot(b.1 - a.1) / 10.0).ceil().max(1.0) as usize;
+            let n = ((b.0 - a.0).dhypot(b.1 - a.1) / 10.0).ceil().max(1.0) as usize;
             for j in 0..n {
                 let t = j as f64 / n as f64;
                 let wob = if j == 0 { 0.0 } else { 1.0 };
@@ -164,12 +164,12 @@ impl Wax {
 
     /// The wax along the line `p`, dab by dab
     fn lay(&mut self, hand: &mut Hand, p: &[(f64, f64)], width: f64, press: f64, col: u8, id: u32) {
-        let len: f64 = p.windows(2).map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1)).sum();
+        let len: f64 = p.windows(2).map(|w| (w[1].0 - w[0].0).dhypot(w[1].1 - w[0].1)).sum();
         let wob = hand.range(0.0, 6.0);
         let mut s = 0.0;
         for k in 1..p.len() {
             let (a, b) = (p[k - 1], p[k]);
-            let seg = (b.0 - a.0).hypot(b.1 - a.1);
+            let seg = (b.0 - a.0).dhypot(b.1 - a.1);
             if seg < 1e-6 {
                 continue;
             }
@@ -180,8 +180,8 @@ impl Wax {
                 let (cx, cy) = (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
                 let at = (s + seg * t) / len.max(1e-6);
                 let ends = (at / 0.05).min(1.0) * ((1.0 - at) / 0.08).min(1.0);
-                let pr = press * (0.82 + 0.12 * (at * 11.0 + wob).sin() + 0.06 * (at * 29.0 + wob).sin()) * (0.55 + 0.45 * ends);
-                let r = width / 2.0 * (0.9 + 0.1 * (at * 7.0 + wob).cos());
+                let pr = press * (0.82 + 0.12 * (at * 11.0 + wob).dsin() + 0.06 * (at * 29.0 + wob).dsin()) * (0.55 + 0.45 * ends);
+                let r = width / 2.0 * (0.9 + 0.1 * (at * 7.0 + wob).dcos());
                 self.dab(cx + self.ox, cy, r, pr, -ty, tx, id, col);
             }
             s += seg;
@@ -198,7 +198,7 @@ impl Wax {
         for y in y0..=y1 {
             for x in x0..=x1 {
                 let (dx, dy) = (x as f64 + 0.5 - cx, y as f64 + 0.5 - cy);
-                let d = dx.hypot(dy);
+                let d = dx.dhypot(dy);
                 let cov = (r - d + 0.5).clamp(0.0, 1.0);
                 if cov <= 0.0 {
                     continue;
@@ -264,8 +264,8 @@ fn loop_pts(hand: &mut Hand, cx: f64, cy: f64, rx: f64, ry: f64) -> Vec<(f64, f6
     (0..=n)
         .map(|k| {
             let a = a0 + (PI * 2.0 + over) * k as f64 / n as f64;
-            let w = 1.0 + 0.06 * (a * 3.0 + a0).sin();
-            (cx + rx * w * a.cos(), cy + ry * w * a.sin())
+            let w = 1.0 + 0.06 * (a * 3.0 + a0).dsin();
+            (cx + rx * w * a.dcos(), cy + ry * w * a.dsin())
         })
         .collect()
 }
@@ -291,7 +291,7 @@ fn crayon_tex(salt: u32) -> Tex {
             let (cx, cy) = (if sun_left { hand.range(62.0, 92.0) } else { w - hand.range(62.0, 92.0) }, hand.range(58.0, 78.0));
             let r = hand.range(32.0, 42.0);
             let col = if hand.f() < 0.7 { YELLOW } else { ORANGE };
-            let fill = move |x: f64, y: f64| (x - cx).hypot(y - cy) < r - 2.0;
+            let fill = move |x: f64, y: f64| (x - cx).dhypot(y - cy) < r - 2.0;
             wax.hatch(&mut hand, (cx - r, cy - r, cx + r, cy + r), &fill, 6.0, 0.25, 0.55, col);
             let ring = loop_pts(&mut hand, cx, cy, r, r);
             wax.stroke(&mut hand, &ring, 6.5, 0.9, if col == YELLOW { ORANGE } else { col });
@@ -299,7 +299,13 @@ fn crayon_tex(salt: u32) -> Tex {
             for k in 0..n {
                 let a = PI * 2.0 * k as f64 / n as f64 + hand.range(-0.12, 0.12);
                 let (r0, r1) = (r + hand.range(5.0, 9.0), r + hand.range(20.0, 32.0));
-                wax.stroke(&mut hand, &[(cx + r0 * a.cos(), cy + r0 * a.sin()), (cx + r1 * a.cos(), cy + r1 * a.sin())], 6.0, 0.85, col);
+                wax.stroke(
+                    &mut hand,
+                    &[(cx + r0 * a.dcos(), cy + r0 * a.dsin()), (cx + r1 * a.dcos(), cy + r1 * a.dsin())],
+                    6.0,
+                    0.85,
+                    col,
+                );
             }
         }
         // the house on the ground, its roof, door and window
@@ -342,13 +348,13 @@ fn crayon_tex(salt: u32) -> Tex {
             wax.stroke(&mut hand, &[(tx - 9.0, ground), (tx - 7.0, ground - th)], 6.0, 0.9, BROWN);
             wax.stroke(&mut hand, &[(tx + 9.0, ground), (tx + 8.0, ground - th)], 6.0, 0.9, BROWN);
             let (cx, cy, r) = (tx, ground - th - 44.0, hand.range(50.0, 64.0));
-            let crown = move |x: f64, y: f64| ((x - cx) / r).hypot((y - cy) / (r * 0.85)) < 0.95;
+            let crown = move |x: f64, y: f64| ((x - cx) / r).dhypot((y - cy) / (r * 0.85)) < 0.95;
             wax.hatch(&mut hand, (cx - r, cy - r, cx + r, cy + r), &crown, 6.0, 0.4, 0.6, GREEN);
             let mut pts = vec![];
             for k in 0..=40 {
                 let a = PI * 2.0 * k as f64 / 40.0;
-                let bump = 1.0 + 0.12 * (a * 7.0).sin().abs();
-                pts.push((cx + r * bump * a.cos(), cy + r * 0.85 * bump * a.sin()));
+                let bump = 1.0 + 0.12 * (a * 7.0).dsin().abs();
+                pts.push((cx + r * bump * a.dcos(), cy + r * 0.85 * bump * a.dsin()));
             }
             wax.stroke(&mut hand, &pts, 6.0, 0.9, GREEN);
             (tx - r - 10.0, tx + r + 10.0)
@@ -376,7 +382,7 @@ fn crayon_tex(salt: u32) -> Tex {
             let smile: Vec<(f64, f64)> = (0..=6)
                 .map(|q| {
                     let a = PI * (0.2 + 0.6 * q as f64 / 6.0);
-                    (hx + head_r * 0.5 * a.cos(), hy + head_r * 0.15 + head_r * 0.38 * a.sin())
+                    (hx + head_r * 0.5 * a.dcos(), hy + head_r * 0.15 + head_r * 0.38 * a.dsin())
                 })
                 .collect();
             wax.stroke(&mut hand, &smile, 4.0, 0.85, RED);
@@ -386,7 +392,7 @@ fn crayon_tex(salt: u32) -> Tex {
                 .map(|q| {
                     let a = PI * (1.1 + 0.8 * q as f64 / 8.0);
                     let rr = head_r * if q % 2 == 0 { 1.05 } else { 1.35 };
-                    (hx + rr * a.cos(), hy + rr * a.sin())
+                    (hx + rr * a.dcos(), hy + rr * a.dsin())
                 })
                 .collect();
             wax.stroke(&mut hand, &hp, 4.5, 0.85, hair);
@@ -416,7 +422,7 @@ fn crayon_tex(salt: u32) -> Tex {
                 let (ex, ey, sgn) = if prev_hand.is_none() { (lh.0, lh.1, -1.0) } else { (rh.0, rh.1, 1.0) };
                 for f in 0..4 {
                     let a = (-0.9 + 0.6 * f as f64) + if sgn < 0.0 { PI } else { 0.0 };
-                    wax.stroke(&mut hand, &[(ex, ey), (ex + 9.0 * a.cos(), ey + 9.0 * a.sin())], 3.5, 0.8, col);
+                    wax.stroke(&mut hand, &[(ex, ey), (ex + 9.0 * a.dcos(), ey + 9.0 * a.dsin())], 3.5, 0.8, col);
                 }
             }
             prev_hand = Some(rh);
@@ -447,7 +453,7 @@ fn crayon_tex(salt: u32) -> Tex {
             let pc = hand.pick(&[RED, PINK, PURPLE, YELLOW, ORANGE]);
             for q in 0..5 {
                 let a = PI * 2.0 * q as f64 / 5.0;
-                let petal = loop_pts(&mut hand, fx + 7.0 * a.cos(), top + 7.0 * a.sin(), 5.0, 5.0);
+                let petal = loop_pts(&mut hand, fx + 7.0 * a.dcos(), top + 7.0 * a.dsin(), 5.0, 5.0);
                 wax.stroke(&mut hand, &petal, 4.0, 0.85, pc);
             }
         }
@@ -459,7 +465,7 @@ fn crayon_tex(salt: u32) -> Tex {
                 let bx = cx - 40.0 + 20.0 * q as f64;
                 for k in 0..=6 {
                     let a = PI + PI * k as f64 / 6.0;
-                    pts.push((bx + 11.0 * a.cos(), cy + 11.0 * a.sin()));
+                    pts.push((bx + 11.0 * a.dcos(), cy + 11.0 * a.dsin()));
                 }
             }
             pts.push((cx + 46.0, cy + 8.0));
@@ -484,7 +490,7 @@ fn crayon_tex(salt: u32) -> Tex {
             let mut pts = vec![];
             for k in 0..60 {
                 let a = k as f64 * 0.7;
-                pts.push((cx + (14.0 + 8.0 * (k as f64 * 0.23).sin()) * a.cos() + k as f64 * 0.9, cy + 10.0 * a.sin()));
+                pts.push((cx + (14.0 + 8.0 * (k as f64 * 0.23).dsin()) * a.dcos() + k as f64 * 0.9, cy + 10.0 * a.dsin()));
             }
             wax.stroke(&mut hand, &pts, 5.5, 0.75, col);
         }
@@ -505,7 +511,7 @@ fn crayon_tex(salt: u32) -> Tex {
                 let tooth = 0.62 * vn(0x7a11, x / 1.4, y / 1.4) + 0.38 * vn(0x7a13, x / 5.0, y / 5.0);
                 let mut a = f64::from(ink[k]);
                 if let Some((sx, sy, sr)) = scrub {
-                    let d = ((x - sx) / sr).hypot((y - sy) / (sr * 0.5));
+                    let d = ((x - sx) / sr).dhypot((y - sy) / (sr * 0.5));
                     let rub = (1.0 - d).clamp(0.0, 1.0) * (0.55 + 0.35 * vn(seed ^ 0x31, x / 30.0, y / 3.0));
                     a *= 1.0 - rub;
                 }

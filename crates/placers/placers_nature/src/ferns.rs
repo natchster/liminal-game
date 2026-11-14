@@ -77,7 +77,7 @@ pub(crate) fn place_ferns(g: &mut Game, _dist: &[i32]) {
     // phase): it turns a hair on the floor about its stalk's end
     let phase = ph[2] * PI * 2.0;
     g.animate(move |_g, _dt, t| {
-        body.rotation().y = (t * 0.4 + phase).sin() * 0.012;
+        body.rotation().y = (t * 0.4 + phase).dsin() * 0.012;
     });
 }
 
@@ -95,7 +95,7 @@ const FERN_ANG: f64 = 64.0 * PI / 180.0;
 fn fern_seg(k: usize, side: f64) -> (f64, f64, f64) {
     let t = (k as f64 + if side > 0.0 { 0.0 } else { 0.45 }) / FERN_N as f64;
     let x = FERN_L * (0.02 + 0.86 * t);
-    let k = if t < 0.5 { 0.90 + 0.10 * (t * 4.0).min(1.0) } else { ((t - 0.5) / 0.5 * PI / 2.0).cos().max(0.0).powf(0.8) };
+    let k = if t < 0.5 { 0.90 + 0.10 * (t * 4.0).min(1.0) } else { ((t - 0.5) / 0.5 * PI / 2.0).dcos().max(0.0).dpowf(0.8) };
     let l = 0.032 * k + 0.004;
     let hw = 0.0036 + 0.0006 * (1.0 - t);
     (x, l, hw)
@@ -105,7 +105,7 @@ fn fern_seg(k: usize, side: f64) -> (f64, f64, f64) {
 /// nearest segment's along (0..1) and across (-1..1), or None on the
 /// rachis's wing or the tip)
 fn fern_at(x: f64, z: f64) -> (f64, Option<(f64, f64, usize)>) {
-    let (ca, sa) = (FERN_ANG.cos(), FERN_ANG.sin());
+    let (ca, sa) = (FERN_ANG.dcos(), FERN_ANG.dsin());
     let side = if z >= 0.0 { 1.0 } else { -1.0 };
     let mut best = (-1.0f64, None);
     for k in 0..FERN_N {
@@ -114,10 +114,10 @@ fn fern_at(x: f64, z: f64) -> (f64, Option<(f64, f64, usize)>) {
         let s = (dx * ca + dz * sa).clamp(0.0, l);
         let (qx, qz) = (x0 + s * ca, s * sa);
         let across = (x - qx) * (-sa) + (z * side - qz) * ca;
-        let d = (x - qx).hypot(z * side - qz);
+        let d = (x - qx).dhypot(z * side - qz);
         // narrowing a little to its blunt tip, its margin finely notched
         let a = s / l;
-        let w = hw * (1.0 - 0.18 * a) * (1.0 - 0.06 * (0.5 + 0.5 * (s * 2600.0).cos()));
+        let w = hw * (1.0 - 0.18 * a) * (1.0 - 0.06 * (0.5 + 0.5 * (s * 2600.0).dcos()));
         let tipd = if s >= l - 1e-9 { d } else { across.abs() };
         let inside = w - tipd;
         if inside > best.0 {
@@ -134,7 +134,7 @@ fn fern_at(x: f64, z: f64) -> (f64, Option<(f64, f64, usize)>) {
     // the tip: a last pointed lobe
     if x > FERN_L * 0.86 {
         let t = (x - FERN_L * 0.86) / (FERN_L * 0.14);
-        let tip = 0.0055 * (1.0 - t).max(0.0).powf(0.8) - z.abs();
+        let tip = 0.0055 * (1.0 - t).max(0.0).dpowf(0.8) - z.abs();
         if tip > best.0 {
             best = (tip, None);
         }
@@ -193,7 +193,7 @@ fn fern_tex(state: usize, back: bool) -> Tex {
                             let da = (a * 7.0 - 0.6 - row) / 7.0;
                             let dc = cr.abs() - 0.55;
                             let (_, l, hw) = fern_seg(k, if z >= 0.0 { 1.0 } else { -1.0 });
-                            let d = (da * l).hypot(dc * hw) / 0.0009;
+                            let d = (da * l).dhypot(dc * hw) / 0.0009;
                             let sori = [[0.60, 0.36, 0.12], [0.45, 0.28, 0.12], [0.30, 0.20, 0.12]][state];
                             c = mix_unclamped(c, sori, 1.0 - sstep(0.7, 1.0, d));
                         }

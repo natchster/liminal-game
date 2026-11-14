@@ -24,17 +24,17 @@ pub(crate) fn place_bellows_cameras(g: &mut Game, _dist: &[i32]) {
         let leg = mesh(pg("BellowsCameras__leg", cyl_geo!(0.008, 0.014, leg_h, 5)), &wood_mat);
         // Splay: foot on its rubber foot at r 0.20, top leaning 0.16 rad
         // inward so the three tops meet in the hub.
-        let leg_dir = v3(-angle.cos() * 0.16f64.sin(), 0.16f64.cos(), -angle.sin() * 0.16f64.sin());
+        let leg_dir = v3(-angle.dcos() * 0.16f64.dsin(), 0.16f64.dcos(), -angle.dsin() * 0.16f64.dsin());
         leg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &leg_dir);
         leg.position().set(
-            angle.cos() * 0.20 + leg_dir.x * leg_h / 2.0,
+            angle.dcos() * 0.20 + leg_dir.x * leg_h / 2.0,
             0.008 + leg_dir.y * leg_h / 2.0,
-            angle.sin() * 0.20 + leg_dir.z * leg_h / 2.0,
+            angle.dsin() * 0.20 + leg_dir.z * leg_h / 2.0,
         );
         bc.add(&leg);
         // Foot at bottom.
         let foot = mesh(pg("BellowsCameras__foot", cyl_geo!(0.010, 0.012, 0.008, 6)), &bellows_mat);
-        foot.position().set(angle.cos() * 0.20, 0.004, angle.sin() * 0.20);
+        foot.position().set(angle.dcos() * 0.20, 0.004, angle.dsin() * 0.20);
         bc.add(&foot);
         // Metal brace between legs.
         if i < 2 {
@@ -42,13 +42,13 @@ pub(crate) fn place_bellows_cameras(g: &mut Game, _dist: &[i32]) {
             let next_angle = ((i + 1) as f64 / 3.0) * PI * 2.0;
             // At the height where the legs' surfaces are 0.14 apart.
             let brace_r = (0.14 + 0.02) / 3f64.sqrt();
-            let brace_y = 0.008 + (0.20 - brace_r) / 0.16f64.tan();
+            let brace_y = 0.008 + (0.20 - brace_r) / 0.16f64.dtan();
             brace.position().set(
-                (angle.cos() + next_angle.cos()) * brace_r / 2.0,
+                (angle.dcos() + next_angle.dcos()) * brace_r / 2.0,
                 brace_y,
-                (angle.sin() + next_angle.sin()) * brace_r / 2.0,
+                (angle.dsin() + next_angle.dsin()) * brace_r / 2.0,
             );
-            brace.look_at(next_angle.cos() * brace_r, brace_y, next_angle.sin() * brace_r);
+            brace.look_at(next_angle.dcos() * brace_r, brace_y, next_angle.dsin() * brace_r);
             brace.rotate_x(PI / 2.0);
             bc.add(&brace);
         }
@@ -126,7 +126,7 @@ pub(crate) fn place_bellows_cameras(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.3 {
         // Rod clamped to tripod leg 0 (the +X leg), rising beside the bellows.
         let flash_rod = mesh(pg("BellowsCameras__flashRod", cyl_geo!(0.003, 0.003, 0.25, 4)), &brass_mat);
-        let rod_lo = v3(0.20 - (0.987 - 0.008) * 0.16f64.tan(), 0.987, 0);
+        let rod_lo = v3(0.20 - (0.987 - 0.008) * 0.16f64.dtan(), 0.987, 0);
         let rod_hi = v3(0.12, cam_y + 0.045, 0);
         {
             let mut p = flash_rod.position();

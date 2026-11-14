@@ -102,7 +102,7 @@ pub(crate) fn place_inkwell_letters(g: &mut Game, _dist: &[i32]) {
         let cap = mesh(pg("InkwellLetters__cap", cyl_geo!(jar_r + 0.001, jar_r + 0.001, 0.008, 12)), &trim_mat);
         cap.rotation().z = (rnd() - 0.5) * 0.3;
         let crz = cap.rot().z;
-        cap.position().set(-0.030, 0.004 + (jar_r + 0.001) * crz.sin().abs(), -0.043);
+        cap.position().set(-0.030, 0.004 + (jar_r + 0.001) * crz.dsin().abs(), -0.043);
         inkwell.add(&cap);
     }
     // Beside the letter, clear of its left edge.

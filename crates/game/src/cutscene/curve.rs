@@ -2,6 +2,7 @@
 //! Catmull-Rom spline through its keys' positions, and angles turned the
 //! shortest way round. Pure functions of their arguments (no state, no
 //! random draw), so a camera is a function of the cutscene's time alone.
+use engine::dmath::DMath;
 use std::f64::consts::{PI, TAU};
 
 /// How a segment of a track eases from its key to the next.
@@ -40,7 +41,7 @@ impl Ease {
         match self {
             Ease::Linear => u,
             Ease::In => u * u * u,
-            Ease::Out => 1.0 - (1.0 - u).powi(3),
+            Ease::Out => 1.0 - (1.0 - u).dpowi(3),
             Ease::InOut => u * u * (3.0 - 2.0 * u),
         }
     }
@@ -65,7 +66,7 @@ pub fn lerp3(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
 }
 
 fn dist(a: [f64; 3], b: [f64; 3]) -> f64 {
-    ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt()
+    ((a[0] - b[0]).dpowi(2) + (a[1] - b[1]).dpowi(2) + (a[2] - b[2]).dpowi(2)).sqrt()
 }
 
 /// An angle wrapped into (-π, π]
@@ -131,14 +132,14 @@ pub fn catmull(p0: [f64; 3], p1: [f64; 3], p2: [f64; 3], p3: [f64; 3], u: f64) -
 pub fn look_angles(from: [f64; 3], to: [f64; 3]) -> (f64, f64) {
     let (dx, dy, dz) = (to[0] - from[0], to[1] - from[1], to[2] - from[2]);
     let flat = (dx * dx + dz * dz).sqrt();
-    ((-dx).atan2(-dz), dy.atan2(flat))
+    ((-dx).datan2(-dz), dy.datan2(flat))
 }
 
 /// A shake: fast, within ±1 on each of yaw, pitch and roll, a sum of sines
 /// at frequencies with no common period, so it is a function of the time
 /// alone (the same at any frame rate) and needs no random draw
 pub fn jitter(t: f64) -> (f64, f64, f64) {
-    let j = |a: f64, b: f64, c: f64, p: f64| (t * a + p).sin() * 0.5 + (t * b + p * 1.7).sin() * 0.3 + (t * c + p * 2.3).sin() * 0.2;
+    let j = |a: f64, b: f64, c: f64, p: f64| (t * a + p).dsin() * 0.5 + (t * b + p * 1.7).dsin() * 0.3 + (t * c + p * 2.3).dsin() * 0.2;
     (j(83.0, 131.0, 197.0, 0.3), j(89.0, 139.0, 211.0, 1.9), j(97.0, 149.0, 223.0, 3.1))
 }
 
@@ -150,8 +151,8 @@ pub fn sway(t: f64, amount: f64) -> (f64, f64) {
         return (0.0, 0.0);
     }
     let k = 0.007 * amount;
-    let yaw = (t * 0.71).sin() * 0.6 + (t * 1.37 + 1.3).sin() * 0.3 + (t * 2.93 + 0.4).sin() * 0.1;
-    let pitch = (t * 0.53 + 2.1).sin() * 0.6 + (t * 1.19 + 0.7).sin() * 0.3 + (t * 3.31 + 2.6).sin() * 0.1;
+    let yaw = (t * 0.71).dsin() * 0.6 + (t * 1.37 + 1.3).dsin() * 0.3 + (t * 2.93 + 0.4).dsin() * 0.1;
+    let pitch = (t * 0.53 + 2.1).dsin() * 0.6 + (t * 1.19 + 0.7).dsin() * 0.3 + (t * 3.31 + 2.6).dsin() * 0.1;
     (yaw * k, pitch * k)
 }
 

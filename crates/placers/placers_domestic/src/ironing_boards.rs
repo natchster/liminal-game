@@ -45,7 +45,7 @@ pub(crate) fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
             let leg = mesh(pg("IroningBoards__leg", cyl_geo!(0.006, 0.006, board_h * 1.02, 5)), &leg_mat);
             let off = if i == 0 { -0.06 } else { 0.06 };
             leg.position().set(side as f64 * 0.03, 0.42, off);
-            leg.rotation().z = side as f64 * 0.22f64.atan2(0.84);
+            leg.rotation().z = side as f64 * 0.22f64.datan2(0.84);
             ib.add(&leg);
             side += 2;
         }
@@ -115,8 +115,8 @@ pub(crate) fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
             let wisp = mesh(sphere_geo!(0.010, 6, 5), &steam_mat);
             wisp.scale().y = 2.0;
             let iry = iron.rot().y;
-            let wisp_x = -0.10 + iry.cos() * (-0.02 + rnd() * 0.04);
-            let wisp_z = iry.sin() * (-0.02 + rnd() * 0.04);
+            let wisp_x = -0.10 + iry.dcos() * (-0.02 + rnd() * 0.04);
+            let wisp_z = iry.dsin() * (-0.02 + rnd() * 0.04);
             wisp.position().set(wisp_x, board_h + 0.070 + i as f64 * 0.025, wisp_z);
             let p = wisp.pos();
             wisps.push(Wisp { mesh: wisp.clone(), phase: rnd() * PI * 2.0, base_y: p.y, base_x: p.x, base_z: p.z });
@@ -126,11 +126,11 @@ pub(crate) fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
             for w in &wisps {
                 {
                     let mut p = w.mesh.position();
-                    p.y = w.base_y + (t * 0.5 + w.phase).sin() * 0.020 + 0.010;
-                    p.x = w.base_x + (t * 0.4 + w.phase).sin() * 0.010;
-                    p.z = w.base_z + (t * 0.6 + w.phase).cos() * 0.010;
+                    p.y = w.base_y + (t * 0.5 + w.phase).dsin() * 0.020 + 0.010;
+                    p.x = w.base_x + (t * 0.4 + w.phase).dsin() * 0.010;
+                    p.z = w.base_z + (t * 0.6 + w.phase).dcos() * 0.010;
                 }
-                let s = 0.85 + (t * 0.7 + w.phase).sin() * 0.18;
+                let s = 0.85 + (t * 0.7 + w.phase).dsin() * 0.18;
                 w.mesh.scale().set(s, 2.0 * s, s);
             }
         });
@@ -143,10 +143,10 @@ pub(crate) fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
     let mut prev = cord_start;
     for i in 0..cord_segs {
         let t = (i + 1) as f64 / cord_segs as f64;
-        let arc_amt = (t * PI).sin() * 0.03;
-        let cx = cord_start.x + (cord_end.x - cord_start.x) * t + (t * PI * 2.0).sin() * arc_amt;
-        let cy = cord_start.y + (cord_end.y - cord_start.y) * t + (t * PI * 1.5).sin().abs() * 0.01;
-        let cz = cord_start.z + (cord_end.z - cord_start.z) * t + (t * PI * 2.0).cos() * arc_amt * 0.7;
+        let arc_amt = (t * PI).dsin() * 0.03;
+        let cx = cord_start.x + (cord_end.x - cord_start.x) * t + (t * PI * 2.0).dsin() * arc_amt;
+        let cy = cord_start.y + (cord_end.y - cord_start.y) * t + (t * PI * 1.5).dsin().abs() * 0.01;
+        let cz = cord_start.z + (cord_end.z - cord_start.z) * t + (t * PI * 2.0).dcos() * arc_amt * 0.7;
         let next = v3(cx, cy, cz);
         let dir_len = next.distance_to(&prev);
         if dir_len > 0.001 {

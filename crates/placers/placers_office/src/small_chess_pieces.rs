@@ -34,7 +34,7 @@ pub(crate) fn place_small_chess_pieces(g: &mut Game, _dist: &[i32]) {
         for i in 0..4 {
             let a = (i as f64 / 4.0) * PI * 2.0;
             let crenel = mesh(pg("SmallChessPieces__merlon", box_geo!(0.008, 0.008, 0.008)), &piece_mat);
-            crenel.position().set(a.cos() * 0.012, 0.058, a.sin() * 0.012);
+            crenel.position().set(a.dcos() * 0.012, 0.058, a.dsin() * 0.012);
             piece.add(&crenel);
         }
     } else if kind == 2 {

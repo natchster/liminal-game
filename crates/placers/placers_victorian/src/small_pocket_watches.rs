@@ -35,7 +35,7 @@ pub(crate) fn place_small_pocket_watches(g: &mut Game, _dist: &[i32]) {
     for i in 0..6 {
         let fi = i as f64;
         let link = mesh(pg("SmallPocketWatches__link", torus_geo!(0.005, 0.001, 4, 8)), &brass_mat);
-        link.position().set(0.036 + fi * 0.008, 0.005 + (fi * 0.4).sin() * 0.003, 0);
+        link.position().set(0.036 + fi * 0.008, 0.005 + (fi * 0.4).dsin() * 0.003, 0);
         link.rotation().x = if i % 2 == 0 { PI / 2.0 } else { 0.0 };
         watch.add(&link);
     }

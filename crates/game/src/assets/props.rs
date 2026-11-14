@@ -482,7 +482,7 @@ pub fn uv_for(kind: PartFrame, p: &[f32], nn: &[f32], i: usize, lo: &[f64; 3], e
                 u = cz * 0.5 + 0.5;
                 v = cx * 0.5 * (if ny > 0.0 { 1.0 } else { -1.0 }) + 0.5;
             } else {
-                u = ((fx * 2.0 - 1.0).atan2(fz * 2.0 - 1.0) / tau + 1.0) % 1.0;
+                u = ((fx * 2.0 - 1.0).datan2(fz * 2.0 - 1.0) / tau + 1.0) % 1.0;
                 v = fy;
             }
         }
@@ -490,8 +490,8 @@ pub fn uv_for(kind: PartFrame, p: &[f32], nn: &[f32], i: usize, lo: &[f64; 3], e
             let cx = fx * 2.0 - 1.0;
             let cy = fy * 2.0 - 1.0;
             let cz = fz * 2.0 - 1.0;
-            u = (cz.atan2(-cx) / tau + 1.0) % 1.0;
-            v = 1.0 - nan_max(-1.0, nan_min(1.0, cy / or_num(hypot(&[cx, cy, cz]), 1.0))).acos() / std::f64::consts::PI;
+            u = (cz.datan2(-cx) / tau + 1.0) % 1.0;
+            v = 1.0 - nan_max(-1.0, nan_min(1.0, cy / or_num(hypot(&[cx, cy, cz]), 1.0))).dacos() / std::f64::consts::PI;
         }
         PartFrame::Plane => {
             u = fx;

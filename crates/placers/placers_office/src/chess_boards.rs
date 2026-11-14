@@ -65,7 +65,7 @@ pub(crate) fn place_chess_boards(g: &mut Game, _dist: &[i32]) {
             for i in 0..4 {
                 let ang = (i as f64 / 4.0) * PI * 2.0;
                 let cren = mesh(pg("ChessBoards__cren", box_geo!(cell_size * 0.10, piece_h * 0.15, cell_size * 0.10)), mat);
-                cren.position().set(ang.cos() * cell_size * 0.15, piece_h * 0.90, ang.sin() * cell_size * 0.15);
+                cren.position().set(ang.dcos() * cell_size * 0.15, piece_h * 0.90, ang.dsin() * cell_size * 0.15);
                 pg_.add(&cren);
             }
         } else if kind == "bishop" {
@@ -95,7 +95,7 @@ pub(crate) fn place_chess_boards(g: &mut Game, _dist: &[i32]) {
             for i in 0..4 {
                 let ang = (i as f64 / 4.0) * PI * 2.0;
                 let spike = mesh(pg("ChessBoards__spike", cone_geo!(cell_size * 0.03, cell_size * 0.12, 4)), mat);
-                spike.position().set(ang.cos() * cell_size * 0.14, piece_h * 1.10, ang.sin() * cell_size * 0.14);
+                spike.position().set(ang.dcos() * cell_size * 0.14, piece_h * 1.10, ang.dsin() * cell_size * 0.14);
                 pg_.add(&spike);
             }
         } else if kind == "king" {

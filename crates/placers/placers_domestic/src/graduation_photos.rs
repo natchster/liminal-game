@@ -37,7 +37,7 @@ pub(crate) fn place_graduation_photos(g: &mut Game, _dist: &[i32]) {
     };
     let gp = group();
     let mount_y = 1.60;
-    gp.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    gp.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     gp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     // askew on its nail (the old tilt's draw)
     let tilt = (rnd() - 0.5) * 0.04;

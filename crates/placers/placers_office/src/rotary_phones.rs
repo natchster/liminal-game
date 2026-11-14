@@ -47,7 +47,7 @@ pub(crate) fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
         // Handset placed on floor 0.15-0.20 m away from base.
         let oh_ang = rnd() * PI * 2.0;
         let oh_rad = 0.15 + rnd() * 0.05;
-        handset.position().set(oh_ang.cos() * oh_rad, 0.017, oh_ang.sin() * oh_rad);
+        handset.position().set(oh_ang.dcos() * oh_rad, 0.017, oh_ang.dsin() * oh_rad);
         handset.rotation().y = rnd() * PI * 2.0;
         handset.rotation().z = 0.0;
     } else {
@@ -63,7 +63,7 @@ pub(crate) fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
         // lie along the floor from the base toward the handset
         let hp = handset.pos();
         cord.rotation().z = -PI / 2.0;
-        cord.rotation().y = -hp.z.atan2(hp.x);
+        cord.rotation().y = -hp.z.datan2(hp.x);
         cord.position().set(hp.x * 0.5, 0.005, hp.z * 0.5);
     } else {
         cord.rotation().z = PI / 2.0 + (rnd() - 0.5) * 0.3;

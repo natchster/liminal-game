@@ -36,7 +36,7 @@ pub(crate) fn place_motion_sensors(g: &mut Game, _dist: &[i32]) {
         let blink_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
             // 2 s period sin wave: opacity = 0.7 + 0.3 * sin.
-            led_mat_own.m().opacity = 0.7 + 0.3 * (t * PI + blink_phase).sin();
+            led_mat_own.m().opacity = 0.7 + 0.3 * (t * PI + blink_phase).dsin();
         });
         let ox = (rnd() - 0.5) * 1.4;
         let oz = (rnd() - 0.5) * 1.4;

@@ -45,7 +45,7 @@ fn mushrooms(brown: bool, seed: f64) -> Obj {
     let gill_mat = lambert!({ color: gill_c, side: DoubleSide });
     let spots = [(0.0, 0.0, 1.6), (0.055, 0.02, 1.3), (-0.05, 0.03, 1.45), (0.02, -0.055, 1.05), (-0.035, -0.04, 0.8)];
     for (k, &(x, z, s)) in spots.iter().enumerate() {
-        let tilt = ((seed * 7.3 + k as f64 * 2.1).sin()) * 0.18;
+        let tilt = ((seed * 7.3 + k as f64 * 2.1).dsin()) * 0.18;
         let m = group();
         let h = 0.05 * s;
         let stem = mesh(pg("Mushrooms__stem", cyl_geo!(0.006 * s, 0.009 * s, h, 8)), &stem_mat);
@@ -89,9 +89,9 @@ fn sweets_dish(seed: f64) -> Obj {
         let a = k as f64 * 2.4 + seed;
         let rr = if k == 0 { 0.0 } else { 0.03 + 0.025 * ((k % 3) as f64 / 2.0) };
         let s = sweet(colours[k % colours.len()]);
-        s.position().set(a.cos() * rr, 0.018 + (k / 4) as f64 * 0.012, a.sin() * rr);
+        s.position().set(a.dcos() * rr, 0.018 + (k / 4) as f64 * 0.012, a.dsin() * rr);
         s.rotation().y = a * 1.7;
-        s.rotation().z = (a * 0.7).sin() * 0.3;
+        s.rotation().z = (a * 0.7).dsin() * 0.3;
         g.add(&s);
     }
     // the card, folded into a tent, written by hand
@@ -153,7 +153,7 @@ fn seeds_saucer(seed: f64) -> Obj {
         let r = 0.004 + (k % 3) as f64 * 0.007;
         let s = mesh(sphere_geo!(0.0045, 7, 5), &aril);
         s.scale().set(1.0, 0.8, 1.25);
-        s.position().set(a.cos() * r, 0.011, a.sin() * r);
+        s.position().set(a.dcos() * r, 0.011, a.dsin() * r);
         s.rotation().y = a;
         g.add(&s);
     }

@@ -25,6 +25,7 @@
 //! The Showroom and the Borrowed House keep their residents' own rules until
 //! E9 (the playthrough leaves them in god mode); the levels with the
 //! Stairwell's or the Loop's door are walked to their own door.
+use engine::dmath::DMath;
 use game::Game;
 use game::base::config::{PLAYER_R, SPRINT};
 use game::entities::creature::RunMemory;
@@ -71,7 +72,7 @@ impl Grid {
     }
     /// Whether a body walks straight from `a` to `b` (every cell on the way free).
     fn clear(&self, a: (f64, f64), b: (f64, f64)) -> bool {
-        let n = (((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2)).sqrt() / 0.1).ceil().max(1.0) as i32;
+        let n = (((b.0 - a.0).dpowi(2) + (b.1 - a.1).dpowi(2)).sqrt() / 0.1).ceil().max(1.0) as i32;
         (0..=n).all(|k| {
             let f = k as f64 / n as f64;
             self.ok(self.cell(a.0 + (b.0 - a.0) * f, a.1 + (b.1 - a.1) * f))
@@ -187,7 +188,7 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
     let cap = game::entities::creature::CHASE_CAP + 0.15;
     for _ in 0..(SECONDS * 60.0) as usize {
         let (px, pz) = (g.player.pos.x, g.player.pos.z);
-        if ((exit.0 - px).powi(2) + (exit.1 - pz).powi(2)).sqrt() < 2.5 {
+        if ((exit.0 - px).dpowi(2) + (exit.1 - pz).dpowi(2)).sqrt() < 2.5 {
             g.try_interact();
         }
         // the lamp's battery, as a player keeps it: a spare in when it runs
@@ -217,7 +218,7 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
             }
         }
         if detour.is_none() {
-            let dist = |q: &(f64, f64, f64)| ((q.0 - px).powi(2) + (q.1 - pz).powi(2)).sqrt();
+            let dist = |q: &(f64, f64, f64)| ((q.0 - px).dpowi(2) + (q.1 - pz).dpowi(2)).sqrt();
             detour = wanted
                 .iter()
                 .filter(|q| dist(q) < q.2 && !given_up.iter().any(|u| (u.0 - q.0).abs() < 0.01 && (u.1 - q.1).abs() < 0.01))
@@ -238,7 +239,7 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
         if bot == Bot::RuleFollower
             && page_left
             && let Some((cx, cz)) = camp
-            && ((cx - px).powi(2) + (cz - pz).powi(2)).sqrt() < 1.6
+            && ((cx - px).dpowi(2) + (cz - pz).dpowi(2)).sqrt() < 1.6
         {
             g.take_page();
         }
@@ -288,7 +289,7 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
         }
         if let Some(&q) = path.get(4.min(path.len().saturating_sub(1))) {
             let (cx, cz) = grid.center(q);
-            if ((cx - px).powi(2) + (cz - pz).powi(2)).sqrt() < 0.6 && path.len() > 4 {
+            if ((cx - px).dpowi(2) + (cz - pz).dpowi(2)).sqrt() < 0.6 && path.len() > 4 {
                 path.drain(..2);
             }
         }
@@ -331,7 +332,7 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
             for (i, e) in g.entities.iter().enumerate() {
                 let Some(cr) = g.creature(i) else { continue };
                 let p = e.pos();
-                let d = ((p.x - px).powi(2) + (p.z - pz).powi(2)).sqrt();
+                let d = ((p.x - px).dpowi(2) + (p.z - pz).dpowi(2)).sqrt();
                 if d < 30.0 {
                     let pc = g.perceive(i);
                     println!(
@@ -431,8 +432,11 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
     out.contacts = g.director.log.iter().filter(|e| e.1 == "contact").count();
     if !out.finished && out.died.is_none() {
         let (px, pz) = (g.player.pos.x, g.player.pos.z);
-        out.unfinished =
-            format!("{:.0} m from the door after {SECONDS} s, path {}", ((exit.0 - px).powi(2) + (exit.1 - pz).powi(2)).sqrt(), path.len());
+        out.unfinished = format!(
+            "{:.0} m from the door after {SECONDS} s, path {}",
+            ((exit.0 - px).dpowi(2) + (exit.1 - pz).dpowi(2)).sqrt(),
+            path.len()
+        );
     }
     for k in ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "ControlLeft"] {
         press(&mut g, k, false);

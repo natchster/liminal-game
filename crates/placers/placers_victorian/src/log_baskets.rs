@@ -33,7 +33,7 @@ pub(crate) fn place_log_baskets(g: &mut Game, _dist: &[i32]) {
         for i in 0..8 {
             let ang = (i as f64 / 8.0) * PI * 2.0;
             let slat = mesh(box_geo!(0.006, b_h * 0.9, 0.001), &slat_mat);
-            slat.position().set(ang.cos() * b_r * 0.98, b_h / 2.0 + 0.002, ang.sin() * b_r * 0.98);
+            slat.position().set(ang.dcos() * b_r * 0.98, b_h / 2.0 + 0.002, ang.dsin() * b_r * 0.98);
             slat.rotation().y = ang + PI / 2.0;
             lb.add(&slat);
         }
@@ -42,7 +42,7 @@ pub(crate) fn place_log_baskets(g: &mut Game, _dist: &[i32]) {
         for i in 0..12 {
             let ang = (i as f64 / 12.0) * PI * 2.0;
             let bar = mesh(pg("Birdcages__bar", cyl_geo!(0.002, 0.002, b_h, 4)), &basket_mat);
-            bar.position().set(ang.cos() * b_r, b_h / 2.0 + 0.002, ang.sin() * b_r);
+            bar.position().set(ang.dcos() * b_r, b_h / 2.0 + 0.002, ang.dsin() * b_r);
             lb.add(&bar);
         }
         // 3 horizontal ring bands.
@@ -82,8 +82,8 @@ pub(crate) fn place_log_baskets(g: &mut Game, _dist: &[i32]) {
         log.rotation().y = if is_rotated { PI / 3.0 } else { 0.0 };
         let across = (if i % 2 == 0 { -1.0 } else { 1.0 }) * 0.032; // offset perpendicular to the log
         let lr = log.rot();
-        let layer_y = 0.002 + log_r + layer as f64 * 0.058 + half_l * lr.z.cos().abs();
-        log.position().set(lr.y.sin() * across + (rnd() - 0.5) * 0.020, layer_y, lr.y.cos() * across + (rnd() - 0.5) * 0.030);
+        let layer_y = 0.002 + log_r + layer as f64 * 0.058 + half_l * lr.z.dcos().abs();
+        log.position().set(lr.y.dsin() * across + (rnd() - 0.5) * 0.020, layer_y, lr.y.dcos() * across + (rnd() - 0.5) * 0.030);
         lb.add(&log);
         // Bark end-cap circles, on the (tilted) log's two ends, facing out.
         let mut log_axis = v3(0, 1, 0);

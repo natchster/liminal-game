@@ -12,6 +12,7 @@
 use crate::base::game::Game;
 use crate::cutscene::play::{Anchors, Frame, Pose};
 use crate::cutscene::{Cutscene, Then};
+use engine::dmath::DMath;
 
 /// Turns faster than this (°/s) are a jolt the cutscene must declare
 pub const MAX_TURN: f64 = 150.0;
@@ -182,7 +183,7 @@ impl Game {
                     return Err(format!("stage {stage}: no broken lift on that floor"));
                 };
                 // a metre out from its doors, facing them
-                let (w, n) = (f.o, [f.yaw.sin(), f.yaw.cos()]);
+                let (w, n) = (f.o, [f.yaw.dsin(), f.yaw.dcos()]);
                 // (your place is kept at eye height, as play keeps it)
                 self.player.pos = engine::math::Vec3::new(w[0] + n[0], self.floor_y_at(w[0], w[2]) + crate::prelude::EYE, w[2] + n[1]);
                 self.player.yaw = f.yaw
@@ -209,7 +210,7 @@ impl Game {
             "ahead" => {
                 self.stage_floor(4242, 6);
                 let p = self.player.pos;
-                let (s, c) = self.player.yaw.sin_cos();
+                let (s, c) = self.player.yaw.dsin_cos();
                 let at = [p.x - s * 2.0, self.floor_y_at(p.x, p.z), p.z - c * 2.0];
                 let thing = Frame::thing(at, self.player.yaw);
                 Ok(Staged { stage: stage.into(), anchors: Anchors { thing: Some(thing), killer: None, seen_as: None } })
@@ -388,7 +389,7 @@ impl Game {
     /// facing out
     fn stage_back_to_wall(&mut self) {
         let p = self.player.pos;
-        let (s, c) = self.player.yaw.sin_cos();
+        let (s, c) = self.player.yaw.dsin_cos();
         let mut d = 0.0;
         while d < 12.0 && !self.circle_hits_wall(p.x + s * (d + 0.1), p.z + c * (d + 0.1), 0.3) {
             d += 0.1;
@@ -406,7 +407,7 @@ impl Game {
         let pp = self.player.pos;
         let d = |g: &Game, i: usize| {
             let q = g.entities[i].pos();
-            (q.x - pp.x).hypot(q.z - pp.z)
+            (q.x - pp.x).dhypot(q.z - pp.z)
         };
         let near = (0..self.entities.len()).filter(|&i| self.creature(i).is_some()).min_by(|&a, &b| d(self, a).total_cmp(&d(self, b)));
         if let Some(i) = near {

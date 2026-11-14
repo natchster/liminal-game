@@ -92,10 +92,10 @@ pub(crate) fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     let mut prev = chain_start;
     for i in 0..chain_segs {
         let t = (i + 1) as f64 / chain_segs as f64;
-        let arc_amt = (t * PI).sin() * 0.02;
+        let arc_amt = (t * PI).dsin() * 0.02;
         let cx = chain_start.x + (chain_end.x - chain_start.x) * t;
         let cy = chain_ys[i];
-        let cz = chain_start.z + (chain_end.z - chain_start.z) * t + (t * PI * 2.0).cos() * arc_amt * 0.6;
+        let cz = chain_start.z + (chain_end.z - chain_start.z) * t + (t * PI * 2.0).dcos() * arc_amt * 0.6;
         let next = v3(cx, cy, cz);
         let dir_len = next.distance_to(&prev);
         if dir_len > 0.001 {
@@ -125,7 +125,7 @@ pub(crate) fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
             let ear_tilt = (rnd() - 0.5) * 0.4;
             earring.rotation().x = PI / 2.0 + ear_tilt;
             let ex = -box_w * 0.4 - rnd() * 0.05;
-            let ey = 0.005 * ear_tilt.sin().abs() + 0.0008; // low edge on the floor
+            let ey = 0.005 * ear_tilt.dsin().abs() + 0.0008; // low edge on the floor
             let ez = box_d * 0.4 + (rnd() - 0.5) * 0.06;
             earring.position().set(ex, ey, ez);
             jb.add(&earring);

@@ -20,6 +20,7 @@
 //! (the recording lives in `tests/recorded/`, next to `tests/reference/`,
 //! whose every file is a recorded level)
 use engine::audio::AudioContext;
+use engine::dmath::DMath;
 use game::Game;
 use serde_json::{Value, json};
 
@@ -96,7 +97,7 @@ fn measure(seed: u32, level: i32, secs: f64) -> Measured {
     Measured {
         integrated: ebu.loudness_global().unwrap(),
         range: ebu.loudness_range().unwrap(),
-        true_peak: 20.0 * true_peak.max(1e-9).log10(),
+        true_peak: 20.0 * true_peak.max(1e-9).dlog10(),
         momentary_max,
         repeats,
     }

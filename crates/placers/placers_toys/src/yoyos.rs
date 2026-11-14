@@ -34,7 +34,7 @@ pub(crate) fn place_yoyos(g: &mut Game, _dist: &[i32]) {
     for i in 1..6 {
         hd += 0.12;
         let q = str_pts[i];
-        str_pts.push(v3(q.x + hd.cos() * 0.028, 0.0006, q.z + hd.sin() * 0.028));
+        str_pts.push(v3(q.x + hd.dcos() * 0.028, 0.0006, q.z + hd.dsin() * 0.028));
     }
     for i in 0..6 {
         let seg = mesh(cyl_geo!(0.0006, 0.0006, 0.030, 3), &string_mat);

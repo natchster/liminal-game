@@ -69,7 +69,7 @@ pub(crate) fn place_travel_documents(g: &mut Game, _dist: &[i32]) {
         // Apex out along the pen axis, base 0.5 mm into the writing end.
         pen_tip.rotation().z = PI / 2.0;
         pen_tip.rotation().y = -0.4;
-        pen_tip.position().set(-0.088 - 0.0535 * 0.4f64.cos(), 0.003, -0.06 - 0.0535 * 0.4f64.sin());
+        pen_tip.position().set(-0.088 - 0.0535 * 0.4f64.dcos(), 0.003, -0.06 - 0.0535 * 0.4f64.dsin());
         td.add(&pen_tip);
     }
     let px = g.wx(x) + (rnd() - 0.5) * 2.2;

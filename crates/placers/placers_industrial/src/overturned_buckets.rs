@@ -82,7 +82,7 @@ pub(crate) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
         // its long axis along the pail's, its near edge under the mouth
         spill.rotation().y = bucket_yaw;
         let reach = if upside { 0.0 } else { 0.17 + rz * 0.75 };
-        let (fx, fz) = (bucket_yaw.sin(), bucket_yaw.cos());
+        let (fx, fz) = (bucket_yaw.dsin(), bucket_yaw.dcos());
         let pp = parent.pos();
         spill.position().set(pp.x + fx * reach, 0.004, pp.z + fz * reach);
         g.world.add(&spill);
@@ -143,7 +143,7 @@ fn scuffs(ctx: &mut Canvas, w: f64, h: f64, col: [f64; 3], n: usize) {
         ctx.set_line_width(0.6 + rnd() * 1.2);
         ctx.begin_path();
         ctx.move_to(x, y);
-        ctx.line_to(x + a.cos() * l, y + a.sin() * l * 0.35);
+        ctx.line_to(x + a.dcos() * l, y + a.dsin() * l * 0.35);
         ctx.stroke();
     }
 }
@@ -192,8 +192,8 @@ fn inside_tex(col: [f64; 3], salt: u32) -> Tex {
             let thick = under * (0.45 + 0.35 * sstep(tide_y, 0.0, y)) * (0.75 + 0.25 * wrap_fbm(seed ^ 4, u, y, 90.0, 60.0, 2));
             c = mix(c, [0.27, 0.23, 0.17], thick);
             // the line itself: a dark crust, a paler band just above it
-            c = mix(c, [0.17, 0.14, 0.1], (-(d / 0.0014).powi(2)).exp() * 0.7);
-            c = mix(c, [0.6, 0.57, 0.5], (-((d - 0.003) / 0.0018).powi(2)).exp() * 0.25);
+            c = mix(c, [0.17, 0.14, 0.1], (-(d / 0.0014).dpowi(2)).dexp() * 0.7);
+            c = mix(c, [0.6, 0.57, 0.5], (-((d - 0.003) / 0.0018).dpowi(2)).dexp() * 0.25);
             c
         });
     })
@@ -214,7 +214,7 @@ fn floor_tex(col: [f64; 3], salt: u32) -> Tex {
                     let (ii, jj) = (cx.floor() as i32 + di, cy.floor() as i32 + dj);
                     let fx = ii as f64 + hash(seed, ii, jj);
                     let fy = jj as f64 + hash(seed ^ 77, ii, jj);
-                    let d = (fx - cx).hypot(fy - cy);
+                    let d = (fx - cx).dhypot(fy - cy);
                     if d < d1 {
                         d2 = d1;
                         d1 = d;
@@ -225,7 +225,7 @@ fn floor_tex(col: [f64; 3], salt: u32) -> Tex {
             }
             // the crust lies thick in the middle and in patches, thin to
             // the plastic at the edge
-            let rho = ((u - 0.5).hypot(v - 0.5) * 2.0).min(1.0);
+            let rho = ((u - 0.5).dhypot(v - 0.5) * 2.0).min(1.0);
             let cover = sstep(0.38, 0.55, fbm(seed ^ 2, x * 25.0, y * 25.0, 3) + 0.25 * (1.0 - rho));
             let crack = sstep(0.06, 0.0, d2 - d1) * cover;
             let mut c = [col[0] * 0.55, col[1] * 0.55, col[2] * 0.55];
@@ -255,7 +255,7 @@ fn spill_mat(rx: f64, rz: f64, hard: bool, salt: u32) -> Mat {
         paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
-            let rho = u.hypot(v);
+            let rho = u.dhypot(v);
             let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
             let lobe = 1.0
                 + 0.5 * (fbm(seed, cu * 1.3 + 4.0, cv * 1.3 + 4.0, 3) - 0.5)

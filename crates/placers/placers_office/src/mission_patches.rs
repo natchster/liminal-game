@@ -66,8 +66,8 @@ game::lazy_static_tex!(
             for i in 0..4 {
                 let ang = (i as f64 / 4.0) * PI * 2.0 + PI / 4.0;
                 ctx.begin_path();
-                ctx.move_to(cx + ang.cos() * 8.0, cy + ang.sin() * 8.0);
-                ctx.line_to(cx + ang.cos() * 25.0, cy + ang.sin() * 25.0);
+                ctx.move_to(cx + ang.dcos() * 8.0, cy + ang.dsin() * 8.0);
+                ctx.line_to(cx + ang.dcos() * 25.0, cy + ang.dsin() * 25.0);
                 ctx.stroke();
             }
         } else if m.4 == "capsule" {
@@ -91,8 +91,8 @@ game::lazy_static_tex!(
         for _ in 0..15 {
             let sang = rnd() * PI * 2.0;
             let sr = 30.0 + rnd() * 40.0;
-            let sx = cx + sang.cos() * sr;
-            let sy = cy + sang.sin() * sr;
+            let sx = cx + sang.dcos() * sr;
+            let sy = cy + sang.dsin() * sr;
             ctx.begin_path();
             ctx.arc(sx, sy, 0.8 + rnd(), 0, PI * 2.0);
             ctx.fill();

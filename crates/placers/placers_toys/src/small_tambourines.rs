@@ -32,7 +32,7 @@ pub(crate) fn place_small_tambourines(g: &mut Game, _dist: &[i32]) {
     for j in 0..6 {
         let j_ang = (j as f64 / 6.0) * PI * 2.0;
         let jingle = mesh(pg("SmallTambourines__jingle", cyl_geo!(0.008, 0.008, 0.004, 6)), &jingle_mat);
-        jingle.position().set(j_ang.cos() * 0.09, 0.014, j_ang.sin() * 0.09);
+        jingle.position().set(j_ang.dcos() * 0.09, 0.014, j_ang.dsin() * 0.09);
         tamb.add(&jingle);
     }
     tamb.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

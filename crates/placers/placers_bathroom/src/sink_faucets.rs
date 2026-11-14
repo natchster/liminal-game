@@ -158,19 +158,19 @@ fn sf_ghost_tex(vary: u32) -> Tex {
                 c = over(c, [0.93, 0.93, 0.92, a]);
             }
             // a line of dirt where its edge met the wall
-            let line = (-(inside / 0.0025).powi(2)).exp() * (0.10 + 0.14 * n);
+            let line = (-(inside / 0.0025).dpowi(2)).dexp() * (0.10 + 0.14 * n);
             c = over(c, [0.20, 0.17, 0.12, line]);
             // the caulk along the rim, torn away in places
             let dr = y - SF_RIM;
             if x.abs() < SF_HALF + 0.004 && dr.abs() < 0.006 {
                 let keep_caulk = sstep(0.48, 0.56, fbm(seed ^ 0xca, x * 22.0, 0.3, 3));
-                let bead = (1.0 - (dr / 0.0045).powi(2)).max(0.0);
+                let bead = (1.0 - (dr / 0.0045).dpowi(2)).max(0.0);
                 let dirt = 0.75 + 0.25 * fbm(seed ^ 0xcb, x * 120.0, y * 120.0, 2);
                 c = over(c, [0.62 * dirt, 0.61 * dirt, 0.56 * dirt, bead * keep_caulk * 0.85]);
             }
             // above the rim: splashes and soap, densest just over it
             if dr > 0.0 && x.abs() < SF_HALF + 0.01 && dr < 0.17 {
-                let near = (-dr / 0.06).exp();
+                let near = (-dr / 0.06).dexp();
                 let sp = hash(seed ^ 0x51, (x * 900.0) as i32, (y * 900.0) as i32);
                 if sp < 0.05 * near + 0.004 {
                     c = over(c, [0.82, 0.80, 0.74, 0.35]);
@@ -182,11 +182,11 @@ fn sf_ghost_tex(vary: u32) -> Tex {
             let fx = x + SF_C;
             if y < -0.020 && y > -0.48 {
                 let fall = -0.020 - y;
-                let wob = 0.004 * (y * 37.0 + 1.3).sin() + 0.003 * fbm(seed ^ 0x17, 0.5, y * 12.0, 2);
+                let wob = 0.004 * (y * 37.0 + 1.3).dsin() + 0.003 * fbm(seed ^ 0x17, 0.5, y * 12.0, 2);
                 let wid = 0.004 + 0.010 * sstep(0.0, 0.25, fall);
-                let core = (-((fx - wob) / wid).powi(2)).exp();
+                let core = (-((fx - wob) / wid).dpowi(2)).dexp();
                 let fade = 1.0 - sstep(0.15, 0.46, fall);
-                let tide = (-((((fx - wob).abs() - wid) / 0.0015).powi(2))).exp() * 0.5;
+                let tide = (-((((fx - wob).abs() - wid) / 0.0015).dpowi(2))).dexp() * 0.5;
                 let a = (core * 0.30 + tide * 0.25) * fade;
                 c = over(c, [0.46, 0.36, 0.22, a]);
             }
@@ -196,12 +196,12 @@ fn sf_ghost_tex(vary: u32) -> Tex {
                 let fall = SF_HANGER_Y - 0.01 - y;
                 if fall > 0.0 && fall < 0.16 && dx.abs() < 0.01 {
                     let len = 0.04 + 0.10 * hash(seed ^ 0x61, (sx * 100.0) as i32, 0);
-                    let a = (-(dx / 0.0025).powi(2)).exp() * (1.0 - sstep(0.0, len, fall)) * 0.35;
+                    let a = (-(dx / 0.0025).dpowi(2)).dexp() * (1.0 - sstep(0.0, len, fall)) * 0.35;
                     c = over(c, [0.38, 0.20, 0.09, a]);
                 }
             }
             // dirt round the waste's escutcheon
-            let dw = (x * x + (y - SF_WASTE_Y).powi(2)).sqrt();
+            let dw = (x * x + (y - SF_WASTE_Y).dpowi(2)).sqrt();
             let ring = sstep(0.031, 0.034, dw) * (1.0 - sstep(0.034, 0.06, dw));
             c = over(c, [0.18, 0.15, 0.11, ring * (0.25 + 0.15 * n)]);
             c

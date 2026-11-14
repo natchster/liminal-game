@@ -51,7 +51,7 @@ pub(crate) fn place_typewriters(g: &mut Game, _dist: &[i32]) {
             let p_ang = rnd() * PI * 2.0;
             let p_rad = 0.25 + rnd() * 0.35;
             let tp = tw.pos();
-            psheet.position().set(tp.x + p_ang.cos() * p_rad, 0.004, tp.z + p_ang.sin() * p_rad);
+            psheet.position().set(tp.x + p_ang.dcos() * p_rad, 0.004, tp.z + p_ang.dsin() * p_rad);
             g.world.add(&psheet);
         }
     }

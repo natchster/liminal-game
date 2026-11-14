@@ -35,7 +35,7 @@ pub(crate) fn place_off_hook_phones(g: &mut Game, _dist: &[i32]) {
     for i in 0..10 {
         let ang = (i as f64 / 10.0) * PI * 2.0;
         let hole = mesh(pg("OffHookPhones__fingerhole", cyl_geo!(0.0038, 0.0038, 0.007, 5)), &phone_mat);
-        hole.position().set(-0.02 + ang.cos() * 0.028, 0.033, ang.sin() * 0.028);
+        hole.position().set(-0.02 + ang.dcos() * 0.028, 0.033, ang.dsin() * 0.028);
         p.add(&hole);
     }
     // 2 hook cradle bumps on top (empty — handset is off).
@@ -76,7 +76,7 @@ pub(crate) fn place_off_hook_phones(g: &mut Game, _dist: &[i32]) {
         let t = i as f64 / 7.0;
         let cx = cord_start_x + (handset_off_x - cord_start_x - 0.04) * t;
         let cz = cord_start_z + (handset_off_z - cord_start_z) * t;
-        let cy = 0.010 + (t * PI).sin() * 0.010;
+        let cy = 0.010 + (t * PI).dsin() * 0.010;
         let ring = mesh(pg("OffHookPhones__cord", torus_geo!(0.005, 0.001, 3, 8)), &cord_mat);
         ring.rotation().z = PI / 2.0;
         ring.position().set(cx, cy, cz);
@@ -87,7 +87,7 @@ pub(crate) fn place_off_hook_phones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&p);
     // Track position — for handset dial-tone audio.
     let (pp, ry) = (p.pos(), p.rot().y);
-    let handset_world_x = pp.x + handset_off_x * ry.cos() - handset_off_z * ry.sin();
-    let handset_world_z = pp.z + handset_off_x * ry.sin() + handset_off_z * ry.cos();
+    let handset_world_x = pp.x + handset_off_x * ry.dcos() - handset_off_z * ry.dsin();
+    let handset_world_z = pp.z + handset_off_x * ry.dsin() + handset_off_z * ry.dcos();
     g.pp.off_hook_phone_positions.push(v3(handset_world_x, 0, handset_world_z));
 }

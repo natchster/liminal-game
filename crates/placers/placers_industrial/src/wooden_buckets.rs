@@ -28,7 +28,7 @@ pub(crate) fn place_wooden_buckets(g: &mut Game, _dist: &[i32]) {
         // follow the body's taper (r ≈ 0.072 at the foot, 0.081 at the rim)
         stave.rotation().y = -a;
         stave.rotation().z = -0.0655;
-        stave.position().set(a.cos() * 0.0770, 0.070, a.sin() * 0.0770);
+        stave.position().set(a.dcos() * 0.0770, 0.070, a.dsin() * 0.0770);
         bucket.add(&stave);
     }
     // 2 metal bands (top + bottom).

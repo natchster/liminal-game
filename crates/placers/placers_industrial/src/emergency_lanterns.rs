@@ -38,8 +38,8 @@ pub(crate) fn place_emergency_lanterns(g: &mut Game, _dist: &[i32]) {
     let phase = rnd() * PI * 2.0;
     let lens_m = lens.mat();
     g.animate(move |_g, _dt, t| {
-        let drift = 0.85 + 0.15 * (t * 0.7 + phase).sin();
-        let dip = if (t * 0.3 + phase * 2.0).sin() > 0.94 { 0.55 } else { 1.0 };
+        let drift = 0.85 + 0.15 * (t * 0.7 + phase).dsin();
+        let dip = if (t * 0.3 + phase * 2.0).dsin() > 0.94 { 0.55 } else { 1.0 };
         lamp_light.set_intensity(0.30 * drift * dip);
         let mut m = lens_m.m();
         m.opacity = drift * dip;

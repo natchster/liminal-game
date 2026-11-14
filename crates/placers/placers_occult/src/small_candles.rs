@@ -55,7 +55,7 @@ pub(crate) fn place_small_candles(g: &mut Game, _dist: &[i32]) {
         let fl_period = 0.4 + rnd() * 0.4; // fast 0.4-0.8 s
         let (flame2, flame_mat2, light2) = (flame.clone(), flame_mat.clone(), flame_light.clone());
         g.animate(move |_g, _dt, t| {
-            let wobble = (t * (PI * 2.0 / fl_period) + fl_phase).sin();
+            let wobble = (t * (PI * 2.0 / fl_period) + fl_phase).dsin();
             let s = 1.0 + wobble * 0.15;
             flame2.scale().set(0.7 * s, 1.6 * s, 0.7 * s);
             flame_mat2.m().opacity = 0.85 + wobble * 0.10;
@@ -91,8 +91,8 @@ pub(crate) fn place_small_candles(g: &mut Game, _dist: &[i32]) {
             let sib_candle = clone_obj(&candle);
             let s_ang = rnd() * PI * 2.0;
             let s_rad = 0.10 + rnd() * 0.14;
-            sib_candle.position().x += s_ang.cos() * s_rad;
-            sib_candle.position().z += s_ang.sin() * s_rad;
+            sib_candle.position().x += s_ang.dcos() * s_rad;
+            sib_candle.position().z += s_ang.dsin() * s_rad;
             sib_candle.rotation().y = rnd() * PI * 2.0;
             g.world.add(&sib_candle);
         }

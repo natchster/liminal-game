@@ -39,17 +39,17 @@ pub(crate) fn place_childrens_tea_sets(g: &mut Game, _dist: &[i32]) {
     for i in 0..n_cups {
         let a = (i as f64 / n_cups as f64) * PI * 2.0;
         let cup = mesh(pg("ChildrensTeaSets__cup", cyl_geo!(0.011, 0.008, 0.015, 8, 1, true)), &set_mat);
-        cup.position().set(a.cos() * 0.06, 0.008, a.sin() * 0.06);
+        cup.position().set(a.dcos() * 0.06, 0.008, a.dsin() * 0.06);
         grp.add(&cup);
         // Saucer.
         let saucer = mesh(pg("ChildrensTeaSets__saucer", cyl_geo!(0.018, 0.018, 0.002, 10)), &set_mat);
-        saucer.position().set(a.cos() * 0.06, 0.001, a.sin() * 0.06);
+        saucer.position().set(a.dcos() * 0.06, 0.001, a.dsin() * 0.06);
         grp.add(&saucer);
         // Tea residue.
         if rnd() < 0.5 {
             let tea = mesh(circle_geo!(0.008, 8), &tea_mat);
             tea.rotation().x = -PI / 2.0;
-            tea.position().set(a.cos() * 0.06, 0.013, a.sin() * 0.06);
+            tea.position().set(a.dcos() * 0.06, 0.013, a.dsin() * 0.06);
             grp.add(&tea);
         }
     }

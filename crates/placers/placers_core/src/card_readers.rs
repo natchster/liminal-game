@@ -36,7 +36,7 @@ pub(crate) fn place_card_readers(g: &mut Game, _dist: &[i32]) {
     {
         let led = led.clone();
         g.animate(move |_g, _dt, t| {
-            led.set_visible((t * 1.5 + blink_phase).sin() > 0.6);
+            led.set_visible((t * 1.5 + blink_phase).dsin() > 0.6);
         });
     }
     let (wall_x, wall_z) = wall_xz(g, c, 0.010);

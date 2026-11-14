@@ -331,8 +331,8 @@ impl Game {
                     }
                 }
                 let best = best.unwrap();
-                let yaw = (best.0 as f64).atan2(best.1 as f64);
-                let (cs, sn) = (yaw.cos(), yaw.sin());
+                let yaw = (best.0 as f64).datan2(best.1 as f64);
+                let (cs, sn) = (yaw.dcos(), yaw.dsin());
                 let at = |lx: f64, lz: f64| (cx + lx * cs + lz * sn, cz - lx * sn + lz * cs);
                 for p in store_kit::room_set(theme, &mut || rnd()).unwrap() {
                     let obj = kit.build(p.name, p.a1, p.a2).unwrap_or_else(|| panic!("store kit has no builder {}", p.name));
@@ -447,7 +447,7 @@ impl Game {
                         }
                     }
                     if let Some((dx, dz)) = dir {
-                        list.push(Arrow { x: self.wx(x), z: self.wz(z), yaw: (-(dx as f64)).atan2(-(dz as f64)) });
+                        list.push(Arrow { x: self.wx(x), z: self.wz(z), yaw: (-(dx as f64)).datan2(-(dz as f64)) });
                     }
                 }
             }
@@ -605,7 +605,7 @@ impl Game {
         let curve: Vec<f32> = (0..256)
             .map(|i| {
                 let x = i as f64 / 128.0 - 1.0;
-                (x * 3.0).tanh() as f32
+                (x * 3.0).dtanh() as f32
             })
             .collect();
         shaper.set_curve(curve);
@@ -701,7 +701,7 @@ impl Game {
                 let (dx, dz) = (self.player.pos.x - o.x, self.player.pos.z - o.z);
                 // into the object's frame (its front is +z)
                 let ry = h.obj.rot().y;
-                let (c, s) = ((-ry).cos(), (-ry).sin());
+                let (c, s) = ((-ry).dcos(), (-ry).dsin());
                 let (lx, lz) = (dx * c + dz * s, -dx * s + dz * c);
                 let front = match h.front {
                     Some(f) if truthy(f) => f,

@@ -191,9 +191,9 @@ fn shelf_glass_tex(salt: u32, kinds: Vec<usize>) -> Tex {
             // lime: splashes dried white in blotches
             dirt += 0.35 * sstep(0.62, 0.78, fbm(seed ^ 9, u * 22.0, v * 6.0, 3));
             for &(rx, rz, ra, rc) in &rings {
-                let r = (((x - rx) / ra).powi(2) + ((z - rz) / rc).powi(2)).sqrt();
+                let r = (((x - rx) / ra).dpowi(2) + ((z - rz) / rc).dpowi(2)).sqrt();
                 // a dried ring at its foot's edge, cleaner inside it
-                dirt += 0.45 * (-((r - 1.0) / 0.08).powi(2)).exp() - 0.14 * sstep(1.0, 0.75, r);
+                dirt += 0.45 * (-((r - 1.0) / 0.08).dpowi(2)).dexp() - 0.14 * sstep(1.0, 0.75, r);
             }
             let g = dirt.clamp(0.0, 1.0);
             [g, g, g, 1.0]
@@ -229,12 +229,12 @@ fn bottle_grime_tex(salt: u32, round: bool) -> Tex {
             let n = fbm(seed, u * 5.0, v * 9.0, 3);
             let mut g = 0.80 + 0.14 * n;
             // the scum at the foot, its tide line
-            g -= 0.22 * sstep(0.10, 0.02, v) + 0.10 * (-((v - 0.095) / 0.012).powi(2)).exp();
+            g -= 0.22 * sstep(0.10, 0.02, v) + 0.10 * (-((v - 0.095) / 0.012).dpowi(2)).dexp();
             // runs from the shoulder, drying thinner as they went
             for &(ru, end, wd) in &runs {
                 if v < top && v > end {
                     let t = (top - v) / (top - end);
-                    let wob = 0.01 * (v * 40.0 + ru * 9.0).sin();
+                    let wob = 0.01 * (v * 40.0 + ru * 9.0).dsin();
                     let d = ((u - ru - wob).abs() / (wd * (1.0 - 0.5 * t))).min(2.0);
                     g -= 0.12 * (1.0 - d).max(0.0) * (1.0 - 0.4 * t);
                 }

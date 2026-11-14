@@ -1,5 +1,6 @@
 //! Baked things (loaves, pies, muffins, firewood's bark): their own noise, and mould.
 
+use engine::dmath::DMath;
 /// A hash of an integer lattice point
 pub fn hash(seed: u32, x: i32, y: i32) -> f64 {
     let mut h = seed ^ (x as u32).wrapping_mul(0x8da6_b343) ^ (y as u32).wrapping_mul(0xd816_3841);
@@ -40,7 +41,7 @@ pub fn mould(cols: &[(f64, f64, f64)], x: f64, y: f64, seed: u32) -> (f64, f64, 
     let warp = fbm(seed, x / 7.0, y / 7.0) - 0.5;
     let fuzz = noise(seed ^ 0x33, x / 1.6, y / 1.6);
     for &(cx, cy, cr) in cols {
-        let d = ((x - cx).powi(2) + (y - cy).powi(2)).sqrt() / cr + 0.9 * warp;
+        let d = ((x - cx).dpowi(2) + (y - cy).dpowi(2)).sqrt() / cr + 0.9 * warp;
         s = s.max(((0.55 - d) * 3.0).clamp(0.0, 1.0) * (0.6 + 0.4 * fuzz));
         wr = wr.max(((1.05 - d) * 2.2).clamp(0.0, 1.0) * (0.35 + 0.65 * fuzz));
         st = st.max(((1.5 - d) * 1.6).clamp(0.0, 1.0));

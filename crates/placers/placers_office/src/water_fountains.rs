@@ -68,8 +68,8 @@ pub(crate) fn place_water_fountains(g: &mut Game, _dist: &[i32]) {
         stain.rotation().z = rnd() * PI * 2.0;
         // Position: slightly in front of fountain along the wall-normal.
         let fry = fountain.rot().y;
-        let fx = -fry.sin(); // fountain-front direction
-        let fz = -fry.cos();
+        let fx = -fry.dsin(); // fountain-front direction
+        let fz = -fry.dcos();
         stain.position().set(fp.x + fx * 0.25, 0.004, fp.z + fz * 0.25);
         g.world.add(&stain);
     }

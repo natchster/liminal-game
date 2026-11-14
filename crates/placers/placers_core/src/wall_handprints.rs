@@ -60,8 +60,8 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
             start_hand.rotation().y = dr.y;
             start_hand.rotation().z = dr.z;
             // Offset toward the drag's left (leftmost = start of drag texture).
-            let right_vec_x = (dr.y + PI / 2.0).sin();
-            let right_vec_z = (dr.y + PI / 2.0).cos();
+            let right_vec_x = (dr.y + PI / 2.0).dsin();
+            let right_vec_z = (dr.y + PI / 2.0).dcos();
             start_hand.position().set(drag_pos_x - right_vec_x * 0.28, drag_height, drag_pos_z - right_vec_z * 0.28);
             g.world.add(&start_hand);
         }
@@ -196,7 +196,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         let fade_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
             // 30 s period: opacity oscillates base_opacity ↔ 0.15.
-            let frac = ((t * (PI / 15.0) + fade_phase).sin() + 1.0) * 0.5;
+            let frac = ((t * (PI / 15.0) + fade_phase).dsin() + 1.0) * 0.5;
             fade_mat.m().opacity = 0.15 + (base_opacity - 0.15) * frac;
         });
     }
@@ -237,7 +237,7 @@ game::lazy_static_tex!(
             ctx.set_stroke_style(format!("rgba(70,64,52,{:.2})", 0.1 + rnd() * 0.12));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -279,14 +279,14 @@ fn hand_press(x: f64, y: f64, right: bool, spread: f64) -> (f64, f64) {
     let cap = |a: (f64, f64), b: (f64, f64), r: f64| -> (f64, f64) {
         let (ex, ey) = (b.0 - a.0, b.1 - a.1);
         let t = (((x - a.0) * ex + (y - a.1) * ey) / (ex * ex + ey * ey)).clamp(0.0, 1.0);
-        ((x - a.0 - ex * t).hypot(y - a.1 - ey * t) - r, t)
+        ((x - a.0 - ex * t).dhypot(y - a.1 - ey * t) - r, t)
     };
     // the palm: a rounded block narrowing to the wrist
     let (pcx, pcy) = (0.002, -0.042);
     let half_w = 0.04 - 0.008 * ((pcy - y) / 0.05).clamp(0.0, 1.0);
     let qx = (x - pcx).abs() - half_w + 0.014;
     let qy = (y - pcy).abs() - 0.047 + 0.014;
-    let palm = qx.max(0.0).hypot(qy.max(0.0)) + qx.max(qy).min(0.0) - 0.014;
+    let palm = qx.max(0.0).dhypot(qy.max(0.0)) + qx.max(qy).min(0.0) - 0.014;
     let mut d = palm;
     let mut press = 0.0f64;
     let fingers = [
@@ -295,7 +295,7 @@ fn hand_press(x: f64, y: f64, right: bool, spread: f64) -> (f64, f64) {
         ((0.011, 0.002), 0.072, 0.0092, 0.07),
         ((0.029, -0.006), 0.057, 0.0079, 0.18),
     ];
-    let blob = |cx: f64, cy: f64, sx: f64, sy: f64| (-(((x - cx) / sx).powi(2) + ((y - cy) / sy).powi(2))).exp();
+    let blob = |cx: f64, cy: f64, sx: f64, sy: f64| (-(((x - cx) / sx).dpowi(2) + ((y - cy) / sy).dpowi(2))).dexp();
     if palm < 0.0 {
         // the heel of the hand (the ball of the thumb, and the little
         // finger's side), the pads under the fingers; the hollow between
@@ -311,7 +311,7 @@ fn hand_press(x: f64, y: f64, right: bool, spread: f64) -> (f64, f64) {
     // the fingers: (base, length, radius, lean); the thumb from the palm's side
     for (k, &((bx, by), len, r, lean)) in fingers.iter().enumerate() {
         let a = lean * (0.6 + 0.8 * spread) + (k as f64 - 1.5) * 0.02 * spread;
-        let tip = (bx + a.sin() * len, by + a.cos() * len);
+        let tip = (bx + a.dsin() * len, by + a.dcos() * len);
         let (fd, t) = cap((bx, by), tip, r);
         d = smin(d, fd, 0.004);
         if fd < 0.0 {
@@ -416,7 +416,7 @@ fn hand_drag_tex(right: bool, grime: [f64; 3], vary: u32) -> Tex {
                 let run = ((x - start) / 0.5).max(0.0);
                 let mut a = 0.0f64;
                 // the palm's smear where it began
-                let palm = (-(((x - start - 0.03) / 0.065).powi(2) + ((y - mid + 0.03) / 0.04).powi(2))).exp();
+                let palm = (-(((x - start - 0.03) / 0.065).dpowi(2) + ((y - mid + 0.03) / 0.04).dpowi(2))).dexp();
                 a = a.max(palm * 0.85 * (0.4 + 0.6 * fbm(seed ^ 0x3, x * 60.0, y * 60.0, 3)));
                 for &(ty, tw, reach, press, ts) in &tracks {
                     if x < start {
@@ -431,7 +431,7 @@ fn hand_drag_tex(right: bool, grime: [f64; 3], vary: u32) -> Tex {
                     let broken = sstep(0.05 + 0.5 * (1.0 - fade), 0.45, vn(ts ^ 0x9, run * 30.0, (y - yc) * 300.0));
                     // streaked along by the skin's ridges and grit
                     let streak = 0.6 + 0.4 * vn(ts ^ 0x5, x * 25.0, y * 1200.0);
-                    a = a.max(across * fade.powf(0.5) * press * broken * streak);
+                    a = a.max(across * fade.dpowf(0.5) * press * broken * streak);
                 }
                 let speck = hash(seed ^ 0x77, (x / 0.0011) as i32, (y / 0.0011) as i32);
                 let a = a * (0.55 + 0.45 * sstep(speck - 0.4, speck + 0.2, a * 1.3));
@@ -519,7 +519,7 @@ fn chalk_date_tex(vary: u32) -> Tex {
 /// draws it
 fn hand_chalk_digit(d: u32) -> Vec<Vec<(f64, f64)>> {
     let arc = |cx: f64, cy: f64, rx: f64, ry: f64, a0: f64, a1: f64| -> Vec<(f64, f64)> {
-        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.cos(), cy + ry * a.sin())).collect()
+        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.dcos(), cy + ry * a.dsin())).collect()
     };
     match d {
         0 => vec![arc(0.5, 0.5, 0.48, 0.5, -1.4, 4.95)],
@@ -585,7 +585,7 @@ fn hand_chalk_raster(lines: &[Vec<(f64, f64)>], w: f64, h: f64, width: f64, seed
         let mut d = vec![];
         for k in 0..p.len().saturating_sub(1) {
             let (a, b) = (p[k], p[k + 1]);
-            let c = ((a.0 - b.0).hypot(a.1 - b.1) / 3.0).ceil().max(1.0) as usize;
+            let c = ((a.0 - b.0).dhypot(a.1 - b.1) / 3.0).ceil().max(1.0) as usize;
             for i in 0..c {
                 let t = i as f64 / c as f64;
                 d.push((a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t));
@@ -602,7 +602,7 @@ fn hand_chalk_raster(lines: &[Vec<(f64, f64)>], w: f64, h: f64, width: f64, seed
             if dab {
                 return 0.95;
             }
-            (0.8 + 0.2 * (t * 7.0 + li as f64).sin()) * (t / 0.08).clamp(0.35, 1.0) * ((1.0 - t) / 0.12).clamp(0.25, 1.0)
+            (0.8 + 0.2 * (t * 7.0 + li as f64).dsin()) * (t / 0.08).clamp(0.35, 1.0) * ((1.0 - t) / 0.12).clamp(0.25, 1.0)
         };
         for k in 0..d.len().saturating_sub(1) {
             segs.push((d[k], d[k + 1], press(k), press(k + 1), seed.wrapping_add(li as u32 * 97)));
@@ -637,14 +637,14 @@ fn hand_chalk_raster(lines: &[Vec<(f64, f64)>], w: f64, h: f64, width: f64, seed
                 let (ex, ey) = (b.0 - a.0, b.1 - a.1);
                 let l2 = (ex * ex + ey * ey).max(1e-9);
                 let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
-                let d = (x - a.0 - ex * t).hypot(y - a.1 - ey * t);
+                let d = (x - a.0 - ex * t).dhypot(y - a.1 - ey * t);
                 let rr = r * (0.85 + 0.3 * vn(ls ^ 0x5a, x * 0.35, y * 0.35));
                 let cover = sstep(rr + 0.8, rr - 0.8, d);
                 if cover <= 0.0 {
                     continue;
                 }
                 let skip = sstep(0.2, 0.5, vn(ls ^ 0x77, (a.0 + ex * t) * 0.11, (a.1 + ey * t) * 0.11));
-                let press = (pa + (pb - pa) * t) * (0.3 + 0.7 * skip) * (1.0 - 0.45 * (d / rr).powi(2));
+                let press = (pa + (pb - pa) * t) * (0.3 + 0.7 * skip) * (1.0 - 0.45 * (d / rr).dpowi(2));
                 keep = 1.0 - (1.0 - keep) * (1.0 - cover * press);
             }
             let grain = hash(seed ^ 0x1d, (x / 1.3) as i32, (y / 1.3) as i32);

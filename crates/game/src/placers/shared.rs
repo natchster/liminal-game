@@ -90,17 +90,17 @@ crate::lazy_static_tex!(
         let nums = ["XII", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
         for i in 0..12 {
             let a = -PI / 2.0 + (i as f64 / 12.0) * PI * 2.0;
-            ctx.fill_text(nums[i], w / 2.0 + a.cos() * 46.0, h / 2.0 + a.sin() * 46.0);
+            ctx.fill_text(nums[i], w / 2.0 + a.dcos() * 46.0, h / 2.0 + a.dsin() * 46.0);
         }
         ctx.set_line_width(4);
         ctx.begin_path();
         ctx.move_to(w / 2.0, h / 2.0);
-        ctx.line_to(w / 2.0 + (-PI / 2.0 + PI * 0.6).cos() * 26.0, h / 2.0 + (-PI / 2.0 + PI * 0.6).sin() * 26.0);
+        ctx.line_to(w / 2.0 + (-PI / 2.0 + PI * 0.6).dcos() * 26.0, h / 2.0 + (-PI / 2.0 + PI * 0.6).dsin() * 26.0);
         ctx.stroke();
         ctx.set_line_width(3);
         ctx.begin_path();
         ctx.move_to(w / 2.0, h / 2.0);
-        ctx.line_to(w / 2.0 + (-PI / 2.0 + PI * 1.35).cos() * 40.0, h / 2.0 + (-PI / 2.0 + PI * 1.35).sin() * 40.0);
+        ctx.line_to(w / 2.0 + (-PI / 2.0 + PI * 1.35).dcos() * 40.0, h / 2.0 + (-PI / 2.0 + PI * 1.35).dsin() * 40.0);
         ctx.stroke();
         ctx.begin_path();
         ctx.arc(w / 2.0, h / 2.0, 5, 0, PI * 2.0);
@@ -285,8 +285,8 @@ pub fn clock_textures() -> Vec<Tex> {
                                 let r_in = if major { 46.0 } else { 50.0 };
                                 ctx.set_line_width(if major { 2.5 } else { 1.0 });
                                 ctx.begin_path();
-                                ctx.move_to(w / 2.0 + a.cos() * r_in, h / 2.0 + a.sin() * r_in);
-                                ctx.line_to(w / 2.0 + a.cos() * 54.0, h / 2.0 + a.sin() * 54.0);
+                                ctx.move_to(w / 2.0 + a.dcos() * r_in, h / 2.0 + a.dsin() * r_in);
+                                ctx.line_to(w / 2.0 + a.dcos() * 54.0, h / 2.0 + a.dsin() * 54.0);
                                 ctx.stroke();
                             }
                             ctx.set_fill_style("#302820");
@@ -303,12 +303,12 @@ pub fn clock_textures() -> Vec<Tex> {
                             ctx.set_line_width(4);
                             ctx.begin_path();
                             ctx.move_to(w / 2.0, h / 2.0);
-                            ctx.line_to(w / 2.0 + hour_ang.cos() * 28.0, h / 2.0 + hour_ang.sin() * 28.0);
+                            ctx.line_to(w / 2.0 + hour_ang.dcos() * 28.0, h / 2.0 + hour_ang.dsin() * 28.0);
                             ctx.stroke();
                             ctx.set_line_width(3);
                             ctx.begin_path();
                             ctx.move_to(w / 2.0, h / 2.0);
-                            ctx.line_to(w / 2.0 + min_ang.cos() * 40.0, h / 2.0 + min_ang.sin() * 40.0);
+                            ctx.line_to(w / 2.0 + min_ang.dcos() * 40.0, h / 2.0 + min_ang.dsin() * 40.0);
                             ctx.stroke();
                             ctx.set_fill_style("#1a1410");
                             ctx.begin_path();
@@ -326,8 +326,8 @@ pub fn clock_textures() -> Vec<Tex> {
                                     ctx.set_line_width(0.8 + rnd() * 1.2);
                                     ctx.begin_path();
                                     ctx.move_to(ix, iy);
-                                    ctx.line_to(ix + ang.cos() * len * 0.5 + mid, iy + ang.sin() * len * 0.5 + mid);
-                                    ctx.line_to(ix + ang.cos() * len, iy + ang.sin() * len);
+                                    ctx.line_to(ix + ang.dcos() * len * 0.5 + mid, iy + ang.dsin() * len * 0.5 + mid);
+                                    ctx.line_to(ix + ang.dcos() * len, iy + ang.dsin() * len);
                                     ctx.stroke();
                                 }
                                 ctx.set_fill_style("rgba(20,15,10,0.6)");
@@ -360,8 +360,8 @@ crate::lazy_static_tex!(
             ctx.set_line_width(0.8 + rnd() * 1.4);
             ctx.begin_path();
             ctx.move_to(ix, iy);
-            ctx.line_to(ix + ang.cos() * len * 0.55 + mid, iy + ang.sin() * len * 0.55 + mid);
-            ctx.line_to(ix + ang.cos() * len, iy + ang.sin() * len);
+            ctx.line_to(ix + ang.dcos() * len * 0.55 + mid, iy + ang.dsin() * len * 0.55 + mid);
+            ctx.line_to(ix + ang.dcos() * len, iy + ang.dsin() * len);
             ctx.stroke();
         }
         ctx.set_fill_style("rgba(15,10,8,0.65)");

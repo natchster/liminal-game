@@ -47,13 +47,13 @@ pub(crate) fn place_candle_clusters(g: &mut Game, _dist: &[i32]) {
             let flicker_rate = 6.0 + rnd() * 4.0;
             g.animate(move |_g, _dt, t| {
                 let p = t * flicker_rate + flicker_phase;
-                let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3;
+                let wobble = p.dsin() * 0.5 + (p * 1.7).dsin() * 0.3;
                 flame_light.set_intensity(0.28 + wobble * 0.07);
                 flame.scale().y = 1.0 + wobble * 0.14;
                 halo.scale().set_scalar(1.0 + wobble * 0.15);
             });
         }
-        candle.position().set(angle.cos() * ring_radius, 0, angle.sin() * ring_radius);
+        candle.position().set(angle.dcos() * ring_radius, 0, angle.dsin() * ring_radius);
         cluster.add(&candle);
     }
     cluster.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);

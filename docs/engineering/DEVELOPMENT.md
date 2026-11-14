@@ -165,6 +165,16 @@ Levels must be a pure function of `(run_seed, level)`:
   has changed the level, not only its looks.
 * Use `base::numeric` where exact results matter (`round_half_up`,
   `nan_min` / `nan_max`, `hypot2` / `hypot3`, `fmt_fixed`, `round_decimals`).
+* **The math is ours.** What decides a level or a frame takes its
+  transcendental functions from `engine::dmath` (`x.dsin()`, `datan2`,
+  `dexp`, `dpowf`…, in every prelude): CORE-MATH's correctly rounded
+  results, the same on every Mac, macOS and compiler. The system's libm
+  is not correctly rounded (on the reference Mac `sin` misses on 4% of
+  inputs, `tan` on 38%) and may change with an update, and `powi` is
+  whatever LLVM makes of it; `dpowi` is products in a fixed order and
+  `dhypot` is `√(x² + y²)`, both exact by IEEE 754. `clippy.toml` forbids
+  the std methods; only the sound's synthesis (`engine::audio`) and xtask
+  keep them, each saying why.
 
 ## Adding a placer
 

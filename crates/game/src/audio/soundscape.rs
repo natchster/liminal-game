@@ -322,7 +322,7 @@ pub fn make_ir_data(p: &ReverbPreset, sr: f64, rng: &dyn Fn() -> f64) -> Vec<Vec
         let mut lp = 0.0f64;
         for i in pre..len {
             let t = (i - pre) as f64 / sr;
-            let env = (-6.9 * t / p.t60).exp();
+            let env = (-6.9 * t / p.t60).dexp();
             // high frequencies die faster: a one-pole lowpass whose smoothing
             // grows with time (damp sets how fast the room gets dull)
             let a = (0.97f64).min(0.05 + p.damp * 0.85 * (1f64).min(t / (p.t60 * 0.5)));
@@ -334,7 +334,7 @@ pub fn make_ir_data(p: &ReverbPreset, sr: f64, rng: &dyn Fn() -> f64) -> Vec<Vec
             let ti = pre + (sr * rand(0.003, 0.045)).floor() as usize;
             if ti < len {
                 let sign = if rng() < 0.5 { -1.0 } else { 1.0 };
-                d[ti] = (d[ti] as f64 + sign * rand(0.35, 0.8) * (-(k as f64) * 0.35).exp()) as f32;
+                d[ti] = (d[ti] as f64 + sign * rand(0.35, 0.8) * (-(k as f64) * 0.35).dexp()) as f32;
             }
         }
         // flutter echo between parallel walls (tunnels, the stairwell)
@@ -342,7 +342,7 @@ pub fn make_ir_data(p: &ReverbPreset, sr: f64, rng: &dyn Fn() -> f64) -> Vec<Vec
             let step = (p.flutter * sr * (if ch == 1 { 1.03 } else { 1.0 })).floor() as usize;
             let (mut i, mut k) = (pre + step, 1i32);
             while i < len && k < 40 {
-                d[i] = (d[i] as f64 + 0.5 * (-(k as f64) * 0.14).exp() * (if k % 2 == 1 { 1.0 } else { -1.0 })) as f32;
+                d[i] = (d[i] as f64 + 0.5 * (-(k as f64) * 0.14).dexp() * (if k % 2 == 1 { 1.0 } else { -1.0 })) as f32;
                 i += step;
                 k += 1;
             }
@@ -399,13 +399,13 @@ impl VoiceSlot {
         self.panner.position_x().set_value(x);
         self.panner.position_y().set_value(y);
         self.panner.position_z().set_value(z);
-        self.input.frequency().set_value(18000.0 * (0.03f64).powf(amount));
+        self.input.frequency().set_value(18000.0 * (0.03f64).dpowf(amount));
         self.gain.gain().set_value(1.0 - amount * 0.45);
     }
     /// Occlusion `amount` — 0 clear line of sight … 1 behind walls
     pub fn occlude(&self, amount: f64) {
         let t = self.ac.current_time();
-        self.input.frequency().set_target_at_time(18000.0 * (0.03f64).powf(amount), t, 0.08);
+        self.input.frequency().set_target_at_time(18000.0 * (0.03f64).dpowf(amount), t, 0.08);
         self.gain.gain().set_target_at_time(1.0 - amount * 0.45, t, 0.08);
     }
 }
@@ -445,7 +445,7 @@ impl Hum {
             o.set_type("sine");
             o.frequency().set_value(120.0 * nf + rand_r(rng, -0.25, 0.25) * nf);
             let g = ac.create_gain();
-            g.gain().set_value(0.55 / nf.powf(1.3) * (if n % 2 == 1 { 1.0 } else { 0.8 }));
+            g.gain().set_value(0.55 / nf.dpowf(1.3) * (if n % 2 == 1 { 1.0 } else { 0.8 }));
             o.connect(&g);
             g.connect(&drift);
             o.start(0.0);
@@ -979,7 +979,7 @@ impl Soundscape {
             let mut c = vec![0f32; 1024];
             for (i, v) in c.iter_mut().enumerate() {
                 let x = i as f64 / 512.0 - 1.0;
-                *v = (x * 6.0).tanh() as f32;
+                *v = (x * 6.0).dtanh() as f32;
             }
             shaper.set_curve(c);
         }

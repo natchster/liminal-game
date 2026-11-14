@@ -2,6 +2,7 @@
 //! morph targets, groups) and the primitive generators: box, plane, circle,
 //! cylinder, cone, sphere, torus, ring, lathe, capsule, polyhedra and shapes.
 
+use crate::dmath::DMath;
 use crate::math::*;
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
@@ -694,8 +695,8 @@ pub fn circle_geometry(radius: f64, segments: f64, theta_start: f64, theta_lengt
     g.uv.extend_from_slice(&[0.5, 0.5]);
     for s in 0..=segs {
         let seg = theta_start + s as f64 / segs as f64 * theta_length;
-        let x = (radius * seg.cos()) as f32;
-        let y = (radius * seg.sin()) as f32;
+        let x = (radius * seg.dcos()) as f32;
+        let y = (radius * seg.dsin()) as f32;
         g.position.extend_from_slice(&[x, y, 0.0]);
         g.normal.extend_from_slice(&[0.0, 0.0, 1.0]);
         // from the f32-rounded stored position (deliberately)
@@ -737,7 +738,7 @@ fn cylinder_into(
             for x in 0..=radial {
                 let u = x as f64 / radial as f64;
                 let theta = u * theta_length + theta_start;
-                let (st, ct) = (theta.sin(), theta.cos());
+                let (st, ct) = (theta.dsin(), theta.dcos());
                 g.position.extend_from_slice(&[(radius * st) as f32, (-v * height + half) as f32, (radius * ct) as f32]);
                 let mut n = Vec3::new(st, slope, ct);
                 n.normalize();
@@ -776,7 +777,7 @@ fn cylinder_into(
         for x in 0..=radial {
             let u = x as f64 / radial as f64;
             let theta = u * theta_length + theta_start;
-            let (ct, st) = (theta.cos(), theta.sin());
+            let (ct, st) = (theta.dcos(), theta.dsin());
             g.position.extend_from_slice(&[(radius * st) as f32, (half * sign) as f32, (radius * ct) as f32]);
             g.normal.extend_from_slice(&[0.0, sign as f32, 0.0]);
             g.uv.extend_from_slice(&[(ct * 0.5 + 0.5) as f32, (st * 0.5 * sign + 0.5) as f32]);
@@ -850,9 +851,9 @@ pub fn sphere_geometry(radius: f64, ws: f64, hs: f64, phi_start: f64, phi_length
         }
         for ix in 0..=ws {
             let u = ix as f64 / ws as f64;
-            let x = -radius * (phi_start + u * phi_length).cos() * (theta_start + v * theta_length).sin();
-            let y = radius * (theta_start + v * theta_length).cos();
-            let z = radius * (phi_start + u * phi_length).sin() * (theta_start + v * theta_length).sin();
+            let x = -radius * (phi_start + u * phi_length).dcos() * (theta_start + v * theta_length).dsin();
+            let y = radius * (theta_start + v * theta_length).dcos();
+            let z = radius * (phi_start + u * phi_length).dsin() * (theta_start + v * theta_length).dsin();
             g.position.extend_from_slice(&[x as f32, y as f32, z as f32]);
             let mut n = Vec3::new(x, y, z);
             n.normalize();
@@ -890,11 +891,11 @@ pub fn torus_geometry(radius: f64, tube: f64, radial: f64, tubular: f64, arc: f6
         for i in 0..=ts {
             let u = i as f64 / ts as f64 * arc;
             let v = j as f64 / rs as f64 * PI * 2.0;
-            let x = (radius + tube * v.cos()) * u.cos();
-            let y = (radius + tube * v.cos()) * u.sin();
-            let z = tube * v.sin();
+            let x = (radius + tube * v.dcos()) * u.dcos();
+            let y = (radius + tube * v.dcos()) * u.dsin();
+            let z = tube * v.dsin();
             g.position.extend_from_slice(&[x as f32, y as f32, z as f32]);
-            let c = Vec3::new(radius * u.cos(), radius * u.sin(), 0.0);
+            let c = Vec3::new(radius * u.dcos(), radius * u.dsin(), 0.0);
             let mut n = Vec3::new(x, y, z);
             n.sub(&c).normalize();
             g.normal.extend_from_slice(&[n.x as f32, n.y as f32, n.z as f32]);
@@ -926,8 +927,8 @@ pub fn ring_geometry(inner: f64, outer: f64, theta_seg: f64, phi_seg: f64, theta
     for _ in 0..=ps {
         for i in 0..=ts {
             let seg = theta_start + i as f64 / ts as f64 * theta_length;
-            let x = r * seg.cos();
-            let y = r * seg.sin();
+            let x = r * seg.dcos();
+            let y = r * seg.dsin();
             g.position.extend_from_slice(&[x as f32, y as f32, 0.0]);
             g.normal.extend_from_slice(&[0.0, 0.0, 1.0]);
             g.uv.push(((x / outer + 1.0) / 2.0) as f32);
@@ -986,7 +987,7 @@ fn lathe_into(g: &mut Geometry, points: &[Vec2], segs: u32, phi_start: f64, phi_
     }
     for i in 0..=segs {
         let phi = phi_start + i as f64 * inv * phi_length;
-        let (s, c) = (phi.sin(), phi.cos());
+        let (s, c) = (phi.dsin(), phi.dcos());
         for j in 0..n {
             g.position.extend_from_slice(&[(points[j].x * s) as f32, points[j].y as f32, (points[j].x * c) as f32]);
             g.uv.extend_from_slice(&[(i as f64 / segs as f64) as f32, (j as f64 / (n - 1) as f64) as f32]);
@@ -1070,8 +1071,8 @@ fn polyhedron(vertices: &[f64], indices: &[u32], radius: f64, detail: u32, param
         p[1] = v.y;
         p[2] = v.z;
     }
-    let azimuth = |v: &Vec3| v.z.atan2(-v.x);
-    let inclination = |v: &Vec3| (-v.y).atan2((v.x * v.x + v.z * v.z).sqrt());
+    let azimuth = |v: &Vec3| v.z.datan2(-v.x);
+    let inclination = |v: &Vec3| (-v.y).datan2((v.x * v.x + v.z * v.z).sqrt());
     for p in buf.as_chunks::<3>().0 {
         let v = Vec3::new(p[0], p[1], p[2]);
         let u = azimuth(&v) / 2.0 / PI + 0.5;
@@ -1225,10 +1226,10 @@ impl Curve2 {
                     }
                 }
                 let angle = a0 + t * delta;
-                let mut px = x + rx * angle.cos();
-                let mut py = y + ry * angle.sin();
+                let mut px = x + rx * angle.dcos();
+                let mut py = y + ry * angle.dsin();
                 if rot != 0.0 {
-                    let (c, s) = (rot.cos(), rot.sin());
+                    let (c, s) = (rot.dcos(), rot.dsin());
                     let tx = px - x;
                     let ty = py - y;
                     px = tx * c - ty * s + x;

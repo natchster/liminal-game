@@ -45,7 +45,7 @@ pub(crate) fn place_wall_outlets(g: &mut Game, _dist: &[i32]) {
         let cord = mesh(pg("WallOutlets__cord", cyl_geo!(0.002, 0.002, 0.20, 3)), &plug_mat);
         // upper end (local y +0.10, tilted 0.3 rad) 4 mm up inside the plug's
         // bottom-centre (x 0, y 0.007); the cord dangles down and to +X from there
-        cord.position().set(0.10 * 0.3f64.sin(), 0.011 - 0.10 * 0.3f64.cos(), 0.010);
+        cord.position().set(0.10 * 0.3f64.dsin(), 0.011 - 0.10 * 0.3f64.dcos(), 0.010);
         cord.rotation().z = 0.3;
         outlet.add(&cord);
     }

@@ -36,12 +36,12 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
     let n_arms = 6;
     for i in 0..n_arms {
         let a = (i as f64 / n_arms as f64) * PI * 2.0;
-        let arm_x = a.cos() * 0.09;
-        let arm_z = a.sin() * 0.09;
+        let arm_x = a.dcos() * 0.09;
+        let arm_z = a.dsin() * 0.09;
         // Arm cylinder; tip socket under the cup's foot.
         let arm = mesh(pg("CrystalChandeliers__arm", cyl_geo!(0.003, 0.003, 0.10, 4)), &brass_mat);
         arm.position().set(arm_x / 2.0, center_y + 0.013, arm_z / 2.0);
-        arm.rotation().z = -(0.0f64).atan2(0.09);
+        arm.rotation().z = -(0.0f64).datan2(0.09);
         // Just orient toward outward direction.
         let arm_dir = v3(arm_x, 0.005, arm_z).normalized();
         let mut q = Quat::IDENTITY;
@@ -71,7 +71,7 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
         let a = (i as f64 / 8.0) * PI * 2.0;
         let dr = 0.07;
         let dangle = mesh(cone_geo!(0.005, 0.030, 4), &crystal_mat);
-        dangle.position().set(a.cos() * dr, center_y - 0.030, a.sin() * dr);
+        dangle.position().set(a.dcos() * dr, center_y - 0.030, a.dsin() * dr);
         dangle.rotation().x = PI;
         chandelier.add(&dangle);
     }
@@ -82,7 +82,7 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
     let flicker_phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
         let p = t * 5.0 + flicker_phase;
-        glow.set_intensity(0.9 + p.sin() * 0.06 + (p * 1.7).sin() * 0.04);
+        glow.set_intensity(0.9 + p.dsin() * 0.06 + (p * 1.7).dsin() * 0.04);
     });
     scatter(g, &chandelier, x, z, 1.5);
     // Track for chime audio.
@@ -97,11 +97,11 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
         let mut sway_off = [0.0f64; 3];
         let ch = chandelier.clone();
         g.animate(move |_g, _dt, t| {
-            let rz = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.015;
+            let rz = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.015;
             ch.rotation().z = rz;
-            let s = rz.sin() * WALL_H;
+            let s = rz.dsin() * WALL_H;
             let ry = ch.rot().y;
-            let o = [s * ry.cos(), (1.0 - rz.cos()) * WALL_H, -s * ry.sin()];
+            let o = [s * ry.dcos(), (1.0 - rz.dcos()) * WALL_H, -s * ry.dsin()];
             {
                 let mut pp = ch.position();
                 pp.x += o[0] - sway_off[0];

@@ -60,7 +60,7 @@ pub(crate) fn place_sewing_machines(g: &mut Game, _dist: &[i32]) {
         let needle2 = needle.clone();
         g.animate(move |_g, _dt, t| {
             // Fast up-down oscillation ~4 Hz w/ ±3 mm amplitude.
-            needle2.position().y = needle_base_y + (t * 8.0 + needle_phase).sin() * 0.003;
+            needle2.position().y = needle_base_y + (t * 8.0 + needle_phase).dsin() * 0.003;
         });
     }
     // Note: the `sewing_machine_positions` push happens after world placement below.

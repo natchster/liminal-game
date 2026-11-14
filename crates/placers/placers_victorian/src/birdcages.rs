@@ -44,10 +44,10 @@ pub(crate) fn place_birdcages(g: &mut Game, _dist: &[i32]) {
         let ang = (i as f64 / 12.0) * PI * 2.0;
         let bar = mesh(pg("Birdcages__bar", cyl_geo!(0.002, 0.002, cage_h, 3)), &iron_mat);
         // Slight taper — bars converge upward slightly.
-        let bottom_x = ang.cos() * cage_r;
-        let bottom_z = ang.sin() * cage_r;
-        let top_x = ang.cos() * cage_r * 0.6;
-        let top_z = ang.sin() * cage_r * 0.6;
+        let bottom_x = ang.dcos() * cage_r;
+        let bottom_z = ang.dsin() * cage_r;
+        let top_x = ang.dcos() * cage_r * 0.6;
+        let top_z = ang.dsin() * cage_r * 0.6;
         bar.position().set((bottom_x + top_x) / 2.0, cage_y + cage_h / 2.0, (bottom_z + top_z) / 2.0);
         // Compute bar tilt.
         let mut v = v3(top_x - bottom_x, cage_h, top_z - bottom_z);

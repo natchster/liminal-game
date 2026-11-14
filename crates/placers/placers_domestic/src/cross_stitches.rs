@@ -274,11 +274,11 @@ fn sampler_tex(vary: u32) -> Tex {
                     let d_top = (u + v - 1.0 + jit).abs() / 2f64.sqrt();
                     let d_bot = (u - v - jit).abs() / 2f64.sqrt();
                     let shade = if d_top < hw {
-                        let tw = 0.07 * (((u - v) * 7.0 + cx as f64) * PI).sin();
-                        Some(1.02 - 0.5 * (d_top / hw).powi(2) + tw)
+                        let tw = 0.07 * (((u - v) * 7.0 + cx as f64) * PI).dsin();
+                        Some(1.02 - 0.5 * (d_top / hw).dpowi(2) + tw)
                     } else if d_bot < hw {
-                        let tw = 0.06 * (((u + v) * 7.0 + cy as f64) * PI).sin();
-                        Some(0.88 - 0.45 * (d_bot / hw).powi(2) + tw)
+                        let tw = 0.06 * (((u + v) * 7.0 + cy as f64) * PI).dsin();
+                        Some(0.88 - 0.45 * (d_bot / hw).dpowi(2) + tw)
                     } else {
                         None
                     };
@@ -365,7 +365,7 @@ fn sp_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm: f64) 
                     let n = (len / 8.0) as usize + 2;
                     for k in 0..=n {
                         let t = k as f64 / n as f64 * len;
-                        let a = across + amp * (t / len * fr * 6.28 + ph).sin();
+                        let a = across + amp * (t / len * fr * 6.28 + ph).dsin();
                         let (x, y) = if *along_x { (t, a) } else { (a, t) };
                         if k == 0 {
                             ctx.move_to(x, y);
@@ -440,7 +440,7 @@ fn sp_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm: f64) 
                     ctx.set_line_width(0.5);
                     ctx.begin_path();
                     ctx.move_to(x, y);
-                    ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+                    ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
                     ctx.stroke();
                 }
             }

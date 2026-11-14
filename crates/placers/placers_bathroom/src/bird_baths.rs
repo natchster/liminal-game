@@ -61,7 +61,7 @@ pub(crate) fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
     let back = |i: u32| (salt >> (16 + i)) & 3 == 0;
     // afloat, wet and dark, near the middle
     let afloat = dead_leaf(pickk(0), back(0), 0.62);
-    let (fx, fz) = (0.03 * turn0.cos(), 0.03 * turn0.sin());
+    let (fx, fz) = (0.03 * turn0.dcos(), 0.03 * turn0.dsin());
     afloat.position().set(fx, BB_WATER_Y + 0.0004, fz);
     afloat.rotation().y = turn0;
     bath.add(&afloat);
@@ -71,8 +71,8 @@ pub(crate) fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
         // the pivot's +z out along the slope, tipped up with it
         let pivot = group();
         pivot.set_rotation_order(EulerOrder::YXZ);
-        pivot.position().set(r * phi.sin(), BB_DISH_Y + h + 0.0025, r * phi.cos());
-        pivot.rotation().set(-slope.atan(), phi, 0.0);
+        pivot.position().set(r * phi.dsin(), BB_DISH_Y + h + 0.0025, r * phi.dcos());
+        pivot.rotation().set(-slope.datan(), phi, 0.0);
         let l = dead_leaf(pickk(1 + i as u32), back(1 + i as u32), 0.82 + 0.1 * i as f64);
         l.rotation().y = turn;
         pivot.add(&l);
@@ -81,7 +81,7 @@ pub(crate) fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
     for (i, (r, a)) in [(0.19, 1.1), (0.235, 3.5)].into_iter().enumerate() {
         let phi = turn0 + a;
         let l = dead_leaf(pickk(3 + i as u32), back(3 + i as u32), 0.9 + 0.08 * i as f64);
-        l.position().set(r * phi.sin(), 0.0, r * phi.cos());
+        l.position().set(r * phi.dsin(), 0.0, r * phi.dcos());
         l.rotation().y = phi + 1.3 + i as f64 * 2.0;
         bath.add(&l);
     }
@@ -91,10 +91,10 @@ pub(crate) fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
     let phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
         let mut q = afloat.position();
-        q.x = fx + (t * 0.07 + phase).cos() * 0.006;
-        q.z = fz + (t * 0.05 + phase).sin() * 0.005;
+        q.x = fx + (t * 0.07 + phase).dcos() * 0.006;
+        q.z = fz + (t * 0.05 + phase).dsin() * 0.005;
         drop(q);
-        afloat.rotation().y = turn0 + (t * 0.04 + phase).sin() * 0.4;
+        afloat.rotation().y = turn0 + (t * 0.04 + phase).dsin() * 0.4;
     });
 }
 
@@ -150,7 +150,7 @@ fn bowl_tex(salt: u32) -> Tex {
         let seed = salt ^ 0xb0b1;
         fill(ctx, w, h, |u, v| {
             let (x, y) = (u - 0.5, v - 0.5);
-            let r = x.hypot(y) * 0.41; // m from the middle
+            let r = x.dhypot(y) * 0.41; // m from the middle
             let n = fbm(seed, u * 30.0, v * 30.0, 4);
             let mut c = mix([0.38, 0.37, 0.34], [0.52, 0.51, 0.47], n);
             let agg = (vn(seed ^ 2, u * 220.0, v * 220.0) - 0.7).max(0.0) * 2.0;
@@ -161,7 +161,7 @@ fn bowl_tex(salt: u32) -> Tex {
             c = mix(c, ac, crust * 0.85);
             // tide lines where the water stood and dried: wavering, broken,
             // strong here and gone there, a paler crust just outside each
-            let (ca, sa) = (y.atan2(x).cos(), y.atan2(x).sin());
+            let (ca, sa) = (y.datan2(x).dcos(), y.datan2(x).dsin());
             for (k, tr) in [0.121, 0.142, 0.163].into_iter().enumerate() {
                 let sd = seed ^ (10 + k as u32);
                 let wob = 0.009 * (fbm(sd, ca * 2.5 + 7.0, sa * 2.5, 3) - 0.5) + 0.003 * (fbm(sd ^ 1, u * 22.0, v * 22.0, 2) - 0.5);
@@ -205,13 +205,14 @@ fn leaf_half(k: usize, a: f64, side: f64) -> f64 {
     }
     let seed = 0x1ea0 + k as u32 * 17;
     let mut hw = if oak {
-        let env = (PI * a.powf(0.62)).sin().max(0.0).powf(0.75) * (1.0 - 0.15 * (1.0 - a)) + 0.18 * (-((a - 0.03) / 0.05).powi(2)).exp();
+        let env =
+            (PI * a.dpowf(0.62)).dsin().max(0.0).dpowf(0.75) * (1.0 - 0.15 * (1.0 - a)) + 0.18 * (-((a - 0.03) / 0.05).dpowi(2)).dexp();
         let t = (a * 5.2 + 0.2 + 0.08 * side).fract();
-        let lobe = if a > 0.1 { 0.58 + 0.42 * (1.0 - (2.0 * t - 1.0).powi(2)).max(0.0).sqrt() } else { 1.0 };
+        let lobe = if a > 0.1 { 0.58 + 0.42 * (1.0 - (2.0 * t - 1.0).dpowi(2)).max(0.0).sqrt() } else { 1.0 };
         w * env * lobe
     } else {
-        let env = (PI * a.powf(1.15)).sin().max(0.0).powf(0.8);
-        w * env * (1.0 - 0.04 * (0.5 + 0.5 * (2.0 * PI * a * 8.5).cos()))
+        let env = (PI * a.dpowf(1.15)).dsin().max(0.0).dpowf(0.8);
+        w * env * (1.0 - 0.04 * (0.5 + 0.5 * (2.0 * PI * a * 8.5).dcos()))
     } - 0.0006;
     hw *= 1.0 - 0.07 * sstep(0.55, 0.8, fbm(seed, a * 18.0, side * 3.0, 3));
     let ta = 0.35 + 0.3 * hash(seed, 1, 0);

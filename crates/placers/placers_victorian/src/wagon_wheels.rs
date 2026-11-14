@@ -86,11 +86,11 @@ fn spokes_tex(salt: u32, paint: Option<[f64; 3]>) -> Tex {
             let (x, y) = ((u * 2.0 - 1.0) * SPOKES.0, (v * 2.0 - 1.0) * SPOKES.1);
             let r = (x * x + y * y).sqrt();
             let step = PI / 5.0;
-            let a = (y.atan2(x) - SPOKE0).rem_euclid(step);
-            let k = ((y.atan2(x) - SPOKE0).rem_euclid(PI * 2.0) / step).round() as u32 % 10;
+            let a = (y.datan2(x) - SPOKE0).rem_euclid(step);
+            let k = ((y.datan2(x) - SPOKE0).rem_euclid(PI * 2.0) / step).round() as u32 % 10;
             let off = if a > step / 2.0 { a - step } else { a };
             let shelter = 1.0 - sstep(0.04, 0.07, r) + sstep(0.09, 0.115, r);
-            let c = weathered(seed ^ k.wrapping_mul(97), r, r * off.sin(), shelter, paint);
+            let c = weathered(seed ^ k.wrapping_mul(97), r, r * off.dsin(), shelter, paint);
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -104,7 +104,7 @@ fn felloes_tex(salt: u32, paint: Option<[f64; 3]>) -> Tex {
         fill(ctx, w, h, |u, v| {
             let (x, y) = ((u * 2.0 - 1.0) * FELLOES, (v * 2.0 - 1.0) * FELLOES);
             let r = (x * x + y * y).sqrt();
-            let th = y.atan2(x);
+            let th = y.datan2(x);
             let rel = (th - JOINT0).rem_euclid(PI * 2.0 / 5.0);
             let k = ((th - JOINT0).rem_euclid(PI * 2.0) / (PI * 2.0 / 5.0)).floor() as u32;
             let shelter = sstep(0.136, 0.144, r);
@@ -124,8 +124,8 @@ fn hub_tex(salt: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let (x, y) = ((u * 2.0 - 1.0) * HUB, (v * 2.0 - 1.0) * HUB);
             let r = (x * x + y * y).sqrt();
-            let th = y.atan2(x);
-            let ring = ((r * 900.0 + fbm(seed, th * 3.0, r * 40.0, 2) * 4.0).sin() * 0.5 + 0.5).powf(3.0);
+            let th = y.datan2(x);
+            let ring = ((r * 900.0 + fbm(seed, th * 3.0, r * 40.0, 2) * 4.0).dsin() * 0.5 + 0.5).dpowf(3.0);
             let mut c = mix([0.36, 0.30, 0.23], [0.20, 0.15, 0.11], ring * 0.6);
             c = mix(c, [0.44, 0.40, 0.34], sstep(0.5, 0.8, fbm(seed ^ 3, x * 60.0, y * 60.0, 2)) * 0.3);
             let check = (fbm(seed ^ 5, th * 6.0, r * 8.0, 2) - 0.5).abs();

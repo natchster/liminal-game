@@ -8,6 +8,7 @@
 //! seed whatever was built before, moving no other draw.
 mod common;
 
+use engine::dmath::DMath;
 use game::Game;
 use game::base::config::EYE;
 use game::world::assembly::Stage;
@@ -45,7 +46,7 @@ fn stand_at(g: &mut Game, i: usize) {
     let d = g.knocks.doors[i].clone();
     let p = d.stand();
     g.player.pos = engine::math::Vec3::new(p.x, g.floor_y_at(p.x, p.z) + EYE, p.z);
-    g.player.yaw = d.normal.0.atan2(d.normal.1);
+    g.player.yaw = d.normal.0.datan2(d.normal.1);
     g.player.pitch = 0.0;
 }
 
@@ -142,7 +143,7 @@ fn an_ordinary_door_answers_once_and_gives_its_thing() {
             let (d, p) = (&g.knocks.doors[i], gv.obj.pos());
             let foot = d.point(0.5, 0.0, 0.0);
             assert!(
-                ((p.x - foot.x).powi(2) + (p.z - foot.z).powi(2)).sqrt() < 0.3 && (p.y - foot.y).abs() < 0.15,
+                ((p.x - foot.x).dpowi(2) + (p.z - foot.z).dpowi(2)).sqrt() < 0.3 && (p.y - foot.y).abs() < 0.15,
                 "seed {seed} door {i}: it lies at the door's foot ({p:?} vs {foot:?})"
             );
             // standing there, it is picked up once it lies still

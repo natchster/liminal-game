@@ -179,7 +179,7 @@ fn doll_face_tex() -> Tex {
             for i in 0..9 {
                 let t = i as f64 / 8.0;
                 let x = s * (0.008 + 0.022 * t);
-                let y = 0.0715 + 0.0035 * (1.0 - (2.0 * t - 0.8).powi(2));
+                let y = 0.0715 + 0.0035 * (1.0 - (2.0 * t - 0.8).dpowi(2));
                 let (a, b) = px(x, y);
                 ctx.begin_path();
                 ctx.move_to(a, b + 1.0);
@@ -192,7 +192,7 @@ fn doll_face_tex() -> Tex {
             for i in 0..6 {
                 let t = i as f64 / 5.0;
                 let x = s * (0.0125 + 0.0135 * t);
-                let (a, b) = px(x, 0.0532 - 0.0012 * (1.0 - (2.0 * t - 1.0).powi(2)) + s * (x - s * 0.019) * 0.1);
+                let (a, b) = px(x, 0.0532 - 0.0012 * (1.0 - (2.0 * t - 1.0).dpowi(2)) + s * (x - s * 0.019) * 0.1);
                 ctx.begin_path();
                 ctx.move_to(a, b);
                 ctx.line_to(a + s * 1.2, b + 3.2);
@@ -278,8 +278,8 @@ fn doll_eye_tex() -> Tex {
         for k in 0..28 {
             let a = k as f64 / 28.0 * 6.283;
             ctx.begin_path();
-            ctx.move_to(cx0 + a.cos() * 9.0, cy0 + a.sin() * 9.0);
-            ctx.line_to(cx0 + a.cos() * 19.0, cy0 + a.sin() * 19.0);
+            ctx.move_to(cx0 + a.dcos() * 9.0, cy0 + a.dsin() * 9.0);
+            ctx.line_to(cx0 + a.dcos() * 19.0, cy0 + a.dsin() * 19.0);
             ctx.stroke();
         }
         ctx.set_fill_style("#1c1a1a");

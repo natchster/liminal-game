@@ -149,7 +149,7 @@ fn cap_top_mat(k: usize) -> Mat {
                 for i in 0..10 {
                     let a = -PI / 2.0 + i as f64 * PI / 5.0;
                     let rr = if i % 2 == 0 { 9.0 } else { 3.8 };
-                    let (x, y) = (cx + a.cos() * rr, cy - 22.0 + a.sin() * rr);
+                    let (x, y) = (cx + a.dcos() * rr, cy - 22.0 + a.dsin() * rr);
                     if i == 0 {
                         ctx.move_to(x, y);
                     } else {
@@ -195,7 +195,7 @@ fn cap_top_mat(k: usize) -> Mat {
                 for i in 0..24 {
                     let a = i as f64 / 24.0 * PI * 2.0;
                     ctx.begin_path();
-                    ctx.arc(cx + a.cos() * 42.0, cy + a.sin() * 42.0, 1.8, 0, 7);
+                    ctx.arc(cx + a.dcos() * 42.0, cy + a.dsin() * 42.0, 1.8, 0, 7);
                     ctx.fill();
                 }
                 ctx.set_font("bold 26px Copperplate");
@@ -216,7 +216,7 @@ fn cap_top_mat(k: usize) -> Mat {
             ctx.set_stroke_style(format!("rgba(186,184,176,{:.2})", 0.35 + rnd() * 0.45));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // the ring the bottle's lip pressed into it, a little bright

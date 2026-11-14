@@ -1,6 +1,7 @@
 //! The scene graph: nodes with a transform (position, rotation/quaternion, scale)
 //! and a kind: groups, meshes, lights, sprites, points, bones, cameras.
 
+use crate::dmath::DMath;
 use crate::geometry::*;
 use crate::material::*;
 use crate::math::*;
@@ -36,7 +37,7 @@ impl CameraData {
     /// Perspective projection matrix from fov / aspect / near / far / zoom
     /// (OpenGL clip space, z in [-1, 1]).
     pub fn projection(&self) -> Mat4 {
-        let top = self.near * (deg_to_rad(0.5 * self.fov)).tan() / self.zoom;
+        let top = self.near * (deg_to_rad(0.5 * self.fov)).dtan() / self.zoom;
         let height = 2.0 * top;
         let width = self.aspect * height;
         let left = -0.5 * width;

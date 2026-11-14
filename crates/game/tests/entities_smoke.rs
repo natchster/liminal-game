@@ -45,7 +45,7 @@ fn entities_smoke() {
             let t = k as f64 * dt;
             // the player roams, runs, lights the lamp, loses their mind
             let ph = k as f64 / 2400.0;
-            g.player.yaw = t * 0.7 + (t * 0.31).sin() * 2.0;
+            g.player.yaw = t * 0.7 + (t * 0.31).dsin() * 2.0;
             let f = g.player.fwd();
             let step = if ph > 0.3 && ph < 0.5 { 6.0 } else { 2.5 } * dt;
             let mut p = g.player.pos;
@@ -109,7 +109,7 @@ fn entities_smoke() {
         // the dead state only billboards the faces
         g.state = "dead".into();
         for k in 0..10 {
-            g.camera.position().y = EYE + (k as f64).sin() * 0.01;
+            g.camera.position().y = EYE + (k as f64).dsin() * 0.01;
             for i in 0..g.entities.len() {
                 g.update_face(i);
             }

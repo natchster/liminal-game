@@ -37,7 +37,7 @@ pub(crate) fn place_toy_drums(g: &mut Game, _dist: &[i32]) {
     // drum's rim at +X, trailing off 0.3 rad from the tangent.
     let strap = mesh(plane_geo!(0.015, 0.20), &strap_mat);
     strap.rotation().x = -PI / 2.0;
-    strap.position().set(0.06 + 0.3f64.sin() * 0.095, 0.0015, 0.3f64.cos() * 0.095);
+    strap.position().set(0.06 + 0.3f64.dsin() * 0.095, 0.0015, 0.3f64.dcos() * 0.095);
     strap.rotation().z = 0.3;
     drum.add(&strap);
     drum.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

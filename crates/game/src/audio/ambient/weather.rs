@@ -46,8 +46,8 @@ impl Game {
             // Spawn position biased away from camera-forward
             let drip_ang = self.biased_spawn_angle();
             let drip_dist = 2.0 + rnd() * 3.0;
-            let dsx = self.player.pos.x + drip_ang.cos() * drip_dist;
-            let dsz = self.player.pos.z + drip_ang.sin() * drip_dist;
+            let dsx = self.player.pos.x + drip_ang.dcos() * drip_dist;
+            let dsz = self.player.pos.z + drip_ang.dsin() * drip_dist;
             // Distance falloff
             let dgain = 1.0 / (1.0 + drip_dist * 0.15);
             // Stereo pan from spawn position
@@ -79,8 +79,8 @@ impl Game {
         if amb_due(&mut self.wet_splash_timer, dt, m) {
             let spl_ang = self.biased_spawn_angle();
             let spl_dist = 4.0 + rnd() * 4.0; // 4–8 m
-            let sx = self.player.pos.x + spl_ang.cos() * spl_dist;
-            let sz = self.player.pos.z + spl_ang.sin() * spl_dist;
+            let sx = self.player.pos.x + spl_ang.dcos() * spl_dist;
+            let sz = self.player.pos.z + spl_ang.dsin() * spl_dist;
             let sgain = 1.0 / (1.0 + spl_dist * 0.15);
             let span = self.pan_for_world_pos(sx, sz);
             let sf_shift = (0.55f64).max(1.0 - spl_dist * 0.08);
@@ -478,7 +478,7 @@ impl Game {
         }
         self.reality_shift_t = (0.0f64).max(self.reality_shift_t - dt);
         let env = self.reality_shift_t / 2.0; // 1 → 0 over 2 s
-        let wobble_phase = ((2.0 - self.reality_shift_t) * PI * 1.2).sin();
+        let wobble_phase = ((2.0 - self.reality_shift_t) * PI * 1.2).dsin();
         let wk = self.weather_key();
         let shift_spec = shift_bend_by_weather(wk).or(shift_bend_by_weather("normal")).unwrap();
         let bend_mul = 1.0 - shift_spec.bend * env * env * wobble_phase;

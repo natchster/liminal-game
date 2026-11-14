@@ -62,7 +62,7 @@ pub fn settle_albedo(c: &Color) -> Color {
     if chroma > CHROMA_KNEE {
         // pull toward the colour's own grey: hue and lightness stay, chroma rolls off
         let span = CHROMA_MAX - CHROMA_KNEE;
-        let want = CHROMA_KNEE + span * (1.0 - (-(chroma - CHROMA_KNEE) / span).exp());
+        let want = CHROMA_KNEE + span * (1.0 - (-(chroma - CHROMA_KNEE) / span).dexp());
         let luma = 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
         let k = want / chroma;
         for v in s.iter_mut() {
@@ -73,10 +73,10 @@ pub fn settle_albedo(c: &Color) -> Color {
     let m = out.r.max(out.g).max(out.b);
     let want = if m > ALBEDO_KNEE {
         let span = ALBEDO_MAX - ALBEDO_KNEE;
-        ALBEDO_KNEE + span * (1.0 - (-(m - ALBEDO_KNEE) / span).exp())
+        ALBEDO_KNEE + span * (1.0 - (-(m - ALBEDO_KNEE) / span).dexp())
     } else {
         // a soft floor: (m⁴ + min⁴)^¼ is m well above the floor and the floor at 0
-        (m.powi(4) + ALBEDO_MIN.powi(4)).powf(0.25)
+        (m.dpowi(4) + ALBEDO_MIN.dpowi(4)).dpowf(0.25)
     };
     if m > 1e-6 {
         let k = want / m;

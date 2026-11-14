@@ -38,7 +38,7 @@ pub(crate) fn place_cassettes(g: &mut Game, _dist: &[i32]) {
         for t in 0..6 {
             let a = (t as f64 / 6.0) * PI * 2.0;
             let tooth = mesh(box_geo!(0.002, 0.001, 0.002), &reel_mat);
-            tooth.position().set(side * 0.024 + a.cos() * 0.006, 0.008, -0.012 + a.sin() * 0.006);
+            tooth.position().set(side * 0.024 + a.dcos() * 0.006, 0.008, -0.012 + a.dsin() * 0.006);
             cassette.add(&tooth);
         }
     }

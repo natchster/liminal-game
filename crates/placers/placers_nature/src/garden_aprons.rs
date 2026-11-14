@@ -62,7 +62,7 @@ fn apron_tex(base: [f64; 3], salt: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let (x, y) = (u * 0.34, v * 0.34);
             // the weave: 18 threads a cm, a fine cross of light and dark
-            let wv = ((x * 1800.0 * PI).sin() * (y * 1700.0 * PI).sin()) * 0.5;
+            let wv = ((x * 1800.0 * PI).dsin() * (y * 1700.0 * PI).dsin()) * 0.5;
             let n = fbm(seed, u * 20.0, v * 20.0, 4);
             let mut c = base.map(|k| k * (0.9 + 0.16 * n + 0.04 * wv));
             // faded in patches
@@ -70,12 +70,12 @@ fn apron_tex(base: [f64; 3], salt: u32) -> Tex {
             // soil: smears with ragged edges
             let mut dirt = 0.0f64;
             for &(sx, sy, sr) in &stains {
-                let d = ((u - sx).hypot(v - sy) / sr) + 0.5 * (fbm(seed ^ 2, u * 30.0, v * 30.0, 3) - 0.5);
+                let d = ((u - sx).dhypot(v - sy) / sr) + 0.5 * (fbm(seed ^ 2, u * 30.0, v * 30.0, 3) - 0.5);
                 dirt = dirt.max(sstep(1.0, 0.4, d));
             }
             c = mix(c, [0.24, 0.19, 0.14], dirt * 0.55);
             // a dried water stain: its tide line darker than its middle
-            let d = (u - ring.0).hypot(v - ring.1) / ring.2 + 0.25 * (fbm(seed ^ 3, u * 12.0, v * 12.0, 2) - 0.5);
+            let d = (u - ring.0).dhypot(v - ring.1) / ring.2 + 0.25 * (fbm(seed ^ 3, u * 12.0, v * 12.0, 2) - 0.5);
             c = mix(c, c.map(|k| k * 0.82), sstep(1.0, 0.95, d) * 0.6 + sstep(0.9, 1.0, d) * sstep(1.06, 1.0, d) * 0.5);
             // dust
             c = mix(c, [0.62, 0.6, 0.55], 0.08 + (vn(seed ^ 4, u * 300.0, v * 300.0) - 0.8).max(0.0) * 2.0);

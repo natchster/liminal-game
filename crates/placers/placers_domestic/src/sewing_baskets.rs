@@ -70,7 +70,7 @@ pub(crate) fn place_sewing_baskets(g: &mut Game, _dist: &[i32]) {
         for i in 0..3 {
             let ang = (i as f64 / 3.0) * PI * 2.0;
             let pin = mesh(sphere_geo!(0.003, 4, 3), &pin_head_mat);
-            pin.position().set(-0.040 + ang.cos() * 0.010, 0.087, 0.025 + ang.sin() * 0.010);
+            pin.position().set(-0.040 + ang.dcos() * 0.010, 0.087, 0.025 + ang.dsin() * 0.010);
             basket.add(&pin);
             let by = pin.pos().y;
             pins.push((pin, by));
@@ -82,7 +82,7 @@ pub(crate) fn place_sewing_baskets(g: &mut Game, _dist: &[i32]) {
             let bob_phase = rnd() * PI * 2.0;
             let cushion_base_y = cushion.pos().y;
             g.animate(move |_g, _dt, t| {
-                let bob = (t * 1.4 + bob_phase).sin() * 0.0006;
+                let bob = (t * 1.4 + bob_phase).dsin() * 0.0006;
                 cushion.position().y = cushion_base_y + bob;
                 for (m, base_y) in &pins {
                     m.position().y = *base_y + bob;

@@ -343,7 +343,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
 fn face_you(g: &mut Game, ei: usize) {
     let pos = g.entities[ei].pos();
     let pp = g.player.pos;
-    g.entities[ei].yaw = (pp.x - pos.x).atan2(pp.z - pos.z);
+    g.entities[ei].yaw = (pp.x - pos.x).datan2(pp.z - pos.z);
     let yaw = g.entities[ei].yaw;
     g.entities[ei].g.rotation().y = wrap_pi(yaw);
 }

@@ -54,7 +54,7 @@ pub(crate) fn place_old_crt_tvs(g: &mut Game, _dist: &[i32]) {
     let flicker_phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
         let p = t * 12.0 + flicker_phase;
-        glow.set_intensity(0.20 + p.sin() * 0.06 + (p * 3.3).sin() * 0.04);
+        glow.set_intensity(0.20 + p.dsin() * 0.06 + (p * 3.3).dsin() * 0.04);
     });
     scatter(g, &tv, x, z, 1.6);
     g.world.add(&tv);

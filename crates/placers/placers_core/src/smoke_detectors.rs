@@ -27,7 +27,7 @@ pub(crate) fn place_smoke_detectors(g: &mut Game, _dist: &[i32]) {
     // Slow LED throb (0.4 Hz).
     let phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
-        let pulse = 0.7 + 0.3 * (t * 2.5 + phase).sin();
+        let pulse = 0.7 + 0.3 * (t * 2.5 + phase).dsin();
         led.scale().set_scalar(pulse);
     });
     let (px, pz) = jitter(g, x, z, 1.0);

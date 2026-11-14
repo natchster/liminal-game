@@ -29,7 +29,7 @@ pub(crate) fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
         let t_frac = (i as f64 + 0.5) / n_flags as f64;
         let x_pos = (t_frac - 0.5) * span_len;
         // Catenary sag approximation.
-        let sag_y = anchor_y - sag * (1.0 - ((t_frac - 0.5) * 2.0).powi(2));
+        let sag_y = anchor_y - sag * (1.0 - ((t_frac - 0.5) * 2.0).dpowi(2));
         let fs = 0.055;
         let flag_geo = buf_geo(&[-fs / 2.0, 0.0, 0.0, fs / 2.0, 0.0, 0.0, 0.0, -fs * 1.4, 0.0], &[0, 1, 2]);
         let flag_mat = lambert!({ color: pick(&ban_colors), side: DoubleSide });
@@ -46,12 +46,12 @@ pub(crate) fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
         }
         let x0 = (t0 - 0.5) * span_len;
         let x1 = (t1 - 0.5) * span_len;
-        let y0 = anchor_y - sag * (1.0 - ((t0 - 0.5) * 2.0).powi(2));
-        let y1 = anchor_y - sag * (1.0 - ((t1 - 0.5) * 2.0).powi(2));
+        let y0 = anchor_y - sag * (1.0 - ((t0 - 0.5) * 2.0).dpowi(2));
+        let y1 = anchor_y - sag * (1.0 - ((t1 - 0.5) * 2.0).dpowi(2));
         let seg_len = hypot2(x1 - x0, y1 - y0);
         let seg = mesh(pg("SmallPartyBanners__string", cyl_geo!(0.002, 0.002, seg_len, 3)), &string_mat);
         seg.position().set((x0 + x1) / 2.0, (y0 + y1) / 2.0, 0);
-        seg.rotation().z = -(x1 - x0).atan2(y1 - y0);
+        seg.rotation().z = -(x1 - x0).datan2(y1 - y0);
         banner.add(&seg);
     }
     // End string segments to anchor points: tied into the ceiling, each runs
@@ -60,7 +60,7 @@ pub(crate) fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
     for &(ex, ey) in end_anchors.iter() {
         let nearest =
             if ex < 0.0 { -span_len / 2.0 + span_len / n_flags as f64 / 2.0 } else { span_len / 2.0 - span_len / n_flags as f64 / 2.0 };
-        let nearest_y = anchor_y - sag * (1.0 - ((0.5 / n_flags as f64 - 0.5) * 2.0).powi(2));
+        let nearest_y = anchor_y - sag * (1.0 - ((0.5 / n_flags as f64 - 0.5) * 2.0).dpowi(2));
         let dx = nearest - ex;
         let dy = nearest_y - ey;
         let seg_len = hypot2(dx, dy);
@@ -69,7 +69,7 @@ pub(crate) fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
         }
         let seg = mesh(pg("SmallPartyBanners__string", cyl_geo!(0.002, 0.002, seg_len, 3)), &string_mat);
         seg.position().set((nearest + ex) / 2.0, (nearest_y + ey) / 2.0, 0);
-        seg.rotation().z = -dx.atan2(dy);
+        seg.rotation().z = -dx.datan2(dy);
         banner.add(&seg);
     }
     banner.position().set(g.wx(x) + (rnd() - 0.5) * 1.5, 0, g.wz(z) + (rnd() - 0.5) * 1.5);

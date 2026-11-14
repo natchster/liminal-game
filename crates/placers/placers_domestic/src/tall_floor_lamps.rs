@@ -60,7 +60,7 @@ pub(crate) fn place_tall_floor_lamps(g: &mut Game, _dist: &[i32]) {
             let light2 = light.clone();
             let bulb2 = bulb.clone();
             g.animate(move |_g, _dt, t| {
-                let f = 0.85 + (t * 6.0 + flicker_phase).sin() * 0.10 + (t * 11.0 + flicker_phase * 1.4).sin() * 0.05;
+                let f = 0.85 + (t * 6.0 + flicker_phase).dsin() * 0.10 + (t * 11.0 + flicker_phase * 1.4).dsin() * 0.05;
                 light2.set_intensity(0.60 * f);
                 bulb2.scale().set(f, f, f);
             });

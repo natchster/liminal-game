@@ -75,7 +75,7 @@ pub(crate) fn place_hobby_horses(g: &mut Game, _dist: &[i32]) {
         let side_z = if rnd() < 0.5 { -1.0 } else { 1.0 };
         let hang = -0.25 + (rnd() - 0.5) * 0.5;
         strand.rotation().z = hang;
-        strand.position().set(along + (strand_len / 2.0) * hang.sin(), 0.036 - (strand_len / 2.0) * hang.cos(), side_z * 0.0265);
+        strand.position().set(along + (strand_len / 2.0) * hang.dsin(), 0.036 - (strand_len / 2.0) * hang.dcos(), side_z * 0.0265);
         head_group.add(&strand);
     }
     // Rope reins — from snout side down to the floor.

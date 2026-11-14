@@ -49,8 +49,8 @@ game::lazy_static_tex!(
             let r1 = w * 0.42;
             let r2 = if i % 4 == 0 { w * 0.33 } else { w * 0.38 };
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * r1, cy + a.sin() * r1);
-            ctx.line_to(cx + a.cos() * r2, cy + a.sin() * r2);
+            ctx.move_to(cx + a.dcos() * r1, cy + a.dsin() * r1);
+            ctx.line_to(cx + a.dcos() * r2, cy + a.dsin() * r2);
             ctx.stroke();
         }
         // Labels: RAIN CHANGE FAIR.

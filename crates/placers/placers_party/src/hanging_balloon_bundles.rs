@@ -23,8 +23,8 @@ pub(crate) fn place_hanging_balloon_bundles(g: &mut Game, _dist: &[i32]) {
         let angle = (i as f64 / n_balloons as f64) * PI * 2.0 + rnd() * 0.4;
         let spread = 0.15 + rnd() * 0.08;
         let balloon_y = WALL_H - (0.4 + rnd() * 0.4);
-        let bx = angle.cos() * spread;
-        let bz = angle.sin() * spread;
+        let bx = angle.dcos() * spread;
+        let bz = angle.dsin() * spread;
         // String from anchor to balloon tie (the knot on top of the neck-up balloon).
         let dx = bx - 0.0;
         let dy = balloon_y + 0.105 - anchor_y;
@@ -62,7 +62,7 @@ pub(crate) fn place_hanging_balloon_bundles(g: &mut Game, _dist: &[i32]) {
         let base_rot_z = bundle.rot().z;
         let b = bundle.clone();
         g.animate(move |_g, _dt, t| {
-            b.rotation().z = base_rot_z + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.02;
+            b.rotation().z = base_rot_z + (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.02;
         });
     }
 }

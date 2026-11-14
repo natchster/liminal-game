@@ -39,14 +39,14 @@ pub(crate) fn place_overflowing_ashtrays(g: &mut Game, _dist: &[i32]) {
         let in_tray = (i as f64) < n_butts as f64 * 0.6;
         let r = if in_tray { rnd() * 0.035 } else { 0.06 + rnd() * 0.15 };
         let a = rnd() * PI * 2.0;
-        let px = a.cos() * r;
-        let pz = a.sin() * r;
+        let px = a.dcos() * r;
+        let pz = a.dsin() * r;
         let py = if in_tray { 0.018 } else { 0.002 };
         let ang = rnd() * PI * 2.0;
         paper.position().set(px, py, pz);
         paper.rotation().y = ang;
         // on the paper's axis: rotation.y = ang lays the tube along (cos, 0, -sin)
-        filter.position().set(px + ang.cos() * 0.010, py, pz - ang.sin() * 0.010);
+        filter.position().set(px + ang.dcos() * 0.010, py, pz - ang.dsin() * 0.010);
         filter.rotation().y = ang;
         grp.add(&paper);
         grp.add(&filter);

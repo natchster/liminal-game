@@ -32,8 +32,8 @@ pub(crate) fn place_small_witch_hats(g: &mut Game, _dist: &[i32]) {
     cone.rotation().z = (rnd() - 0.5) * 0.2;
     // Tilt about the crown's base (centred on the brim, y 0.006), not its middle.
     let rz = cone.rot().z;
-    cone.position().x = -rz.sin() * 0.07;
-    cone.position().y = 0.006 + rz.cos() * 0.07;
+    cone.position().x = -rz.dsin() * 0.07;
+    cone.position().y = 0.006 + rz.dcos() * 0.07;
     // Band around cone base.
     let band = mesh(pg("SmallWitchHats__band", cyl_geo!(0.045, 0.045, 0.010, 12)), &band_mat);
     band.position().y = 0.014;

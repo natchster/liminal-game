@@ -30,7 +30,7 @@ pub(crate) fn place_horseshoes(g: &mut Game, _dist: &[i32]) {
         // 0.6 mm proud of the web face (z 0.0122). The group is already turned to the room.
         let a = -PI * 0.03 + (i as f64 / 5.0) * PI * 1.06;
         let nail = mesh(circle_geo!(0.004, 5), &nail_mat);
-        nail.position().set(a.cos() * 0.058, mount_y + a.sin() * 0.058, 0.0128);
+        nail.position().set(a.dcos() * 0.058, mount_y + a.dsin() * 0.058, 0.0128);
         shoe.add(&nail);
     }
     // Small nail-hanger at very top.

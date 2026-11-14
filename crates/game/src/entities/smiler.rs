@@ -167,7 +167,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     let was_sighted = g.creature(ei).unwrap().get("sighted") > 0.0;
     let rough = |g: &Game, near: f64, far: f64| {
         let (a, r) = with_native(|| (rnd() * PI * 2.0, near + rnd() * (far - near)));
-        g.open_point(pp.x + a.cos() * r, pp.z + a.sin() * r)
+        g.open_point(pp.x + a.dcos() * r, pp.z + a.dsin() * r)
     };
     let guess = if feed > 0.0 && sighted {
         Some((pp.x, pp.z))
@@ -284,7 +284,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         Mode::Alert => {
             // its head is already on the light; the body comes round after
             g.entity_drive(ei, dt, 0.0);
-            let h = (pp.x - pos.x).atan2(pp.z - pos.z);
+            let h = (pp.x - pos.x).datan2(pp.z - pos.z);
             if mode_t > 0.5 {
                 g.entity_turn(ei, h, dt, Some(2.0));
             }
@@ -417,7 +417,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
 /// a wall), taken at most every `HINT_EVERY` s; it goes there to look.
 fn hint(g: &mut Game, ei: usize, x: f64, z: f64) {
     let (a, r) = with_native(|| (rnd() * PI * 2.0, rand2(4.0, 7.0)));
-    let (hx, hz) = g.open_point(x + a.cos() * r, z + a.sin() * r);
+    let (hx, hz) = g.open_point(x + a.dcos() * r, z + a.dsin() * r);
     let now = g.perf_t;
     let c = g.creature_mut(ei).unwrap();
     c.ease.insert("hint_t", now);
@@ -436,7 +436,7 @@ fn scan(g: &mut Game, ei: usize, t: f64, dt: f64) {
         c.ease.insert("scan_set", 1.0);
     }
     let base = c.get("scan_from");
-    g.entity_turn(ei, wrap_pi(base + 1.6 * (t * 0.45).sin()), dt, Some(0.9));
+    g.entity_turn(ei, wrap_pi(base + 1.6 * (t * 0.45).dsin()), dt, Some(0.9));
 }
 
 /// It is sure: a hiss through its teeth, and it comes.
@@ -462,14 +462,14 @@ fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
     let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
 }
 
 fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
 }
 
@@ -502,20 +502,20 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     // ---- the trunk: a slow sway at rest, lower and forward when it comes
     let hips = rig.ix("hips").unwrap();
     let h0 = rest_head(&rig, hips);
-    let sway = (t * 1.3).sin() * 0.01 * (1.0 - hunt);
+    let sway = (t * 1.3).dsin() * 0.01 * (1.0 - hunt);
     rig.bones[hips].set_pos(h0.x + sway, h0.y - 0.08 * coil - 0.03 * hunt, h0.z);
     if let Some(sp) = rig.ix("spine") {
-        rig.turn(sp, &Quat::from_euler(&Euler::new(0.15 * hunt + 0.5 * lunge - 0.2 * coil, 0.0, (t * 0.7).sin() * 0.03)));
+        rig.turn(sp, &Quat::from_euler(&Euler::new(0.15 * hunt + 0.5 * lunge - 0.2 * coil, 0.0, (t * 0.7).dsin() * 0.03)));
     }
     if let Some(ch) = rig.ix("chest") {
         // a slow breath
-        rig.turn(ch, &Quat::from_euler(&Euler::new((t * 1.1).sin() * 0.02 + 0.2 * lunge, 0.0, 0.0)));
+        rig.turn(ch, &Quat::from_euler(&Euler::new((t * 1.1).dsin() * 0.02 + 0.2 * lunge, 0.0, 0.0)));
     }
     // ---- the head: on you (or your light) first; it turns in snaps
     let yaw = root.rotation().y;
     let pos = root.pos();
-    let want = wrap_pi((pp.x - pos.x).atan2(pp.z - pos.z) - yaw).clamp(-1.4, 1.4);
-    let look = if matches!(mode, Mode::Alert | Mode::Hunt | Mode::Strike) || killer { want } else { (t * 0.23).sin() * 0.3 };
+    let want = wrap_pi((pp.x - pos.x).datan2(pp.z - pos.z) - yaw).clamp(-1.4, 1.4);
+    let look = if matches!(mode, Mode::Alert | Mode::Hunt | Mode::Strike) || killer { want } else { (t * 0.23).dsin() * 0.3 };
     let held = c.get("head_yaw");
     let snapped = if (look - held).abs() > 0.25 { look } else { held };
     c.ease.insert("head_yaw", snapped);
@@ -523,7 +523,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         rig.turn(nk, &Quat::from_euler(&Euler::new(-0.3 * lunge + 0.35 * stare, snapped * 0.5, 0.0)));
     }
     if let Some(hd) = rig.ix("head") {
-        rig.turn(hd, &Quat::from_euler(&Euler::new(-0.2 * lunge + 0.15 * stare, snapped * 0.5, (t * 0.4).sin() * 0.06 + 0.3 * stare)));
+        rig.turn(hd, &Quat::from_euler(&Euler::new(-0.2 * lunge + 0.15 * stare, snapped * 0.5, (t * 0.4).dsin() * 0.06 + 0.3 * stare)));
     }
     if let Some(jw) = rig.ix("jaw") {
         rig.turn(jw, &Quat::from_euler(&Euler::new(0.12 * coil + 0.3 * lunge + 0.3 * stare, 0.0, 0.0)));
@@ -532,7 +532,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     for side in [".L", ".R"] {
         let sx = if side == ".L" { 1.0 } else { -1.0 };
         if let (Some(ua), Some(fa)) = (rig.ix(&format!("upperarm{side}")), rig.ix(&format!("forearm{side}"))) {
-            let swing = (speed * 0.08).min(0.2) * (t * 3.0 + sx).sin();
+            let swing = (speed * 0.08).min(0.2) * (t * 3.0 + sx).dsin();
             let r = rig.rest_dir[ua];
             let reach = v3(sx * 0.15, -0.1, 1.0);
             let hang = v3(r.x, r.y, r.z + swing);
@@ -580,7 +580,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
             for a in 0..3 {
                 limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * st;
             }
-            limb.at[1] = rest_end.y + (s * PI).sin() * 0.1;
+            limb.at[1] = rest_end.y + (s * PI).dsin() * 0.1;
         } else {
             if limb.swing > 0.0 {
                 limb.at = limb.to;
@@ -617,7 +617,7 @@ pub fn eyeshine(g: &mut Game, ei: usize) {
             let in_beam = ((f.x * dx + f.y * dy + f.z * dz) / d - 0.86) / 0.11;
             // how squarely it faces you: its head's forward against the way to you
             let yaw = rig.root.rotation().y;
-            let facing = -(yaw.sin() * dx + yaw.cos() * dz) / (dx * dx + dz * dz).sqrt().max(1e-6);
+            let facing = -(yaw.dsin() * dx + yaw.dcos() * dz) / (dx * dx + dz * dz).sqrt().max(1e-6);
             k = in_beam.clamp(0.0, 1.0) * ((facing - 0.3) / 0.6).clamp(0.0, 1.0) * 1.8 / (1.0 + d * d / 120.0);
         }
         for mat in m.mats() {

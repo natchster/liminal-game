@@ -172,7 +172,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         // blind, it places a sound roughly, never closer than a metre (the
         // fainter, the rougher), and never in a wall
         let (a, r) = with_native(|| (rnd() * PI * 2.0, 1.0 + rnd() * (1.0 - sense) * 3.0));
-        let (hx, hz) = g.open_point(pp.x + a.cos() * r, pp.z + a.sin() * r);
+        let (hx, hz) = g.open_point(pp.x + a.dcos() * r, pp.z + a.dsin() * r);
         let c = g.creature_mut(ei).unwrap();
         c.brain.feed(DATA.sound_gain * sense, dt, 1.0);
         c.brain.mem.heard = Some((hx, hz, now));
@@ -231,7 +231,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 let last = g.creature(ei).unwrap().get("hint_t");
                 if last == 0.0 || now - last > HINT_EVERY {
                     let (a, r) = with_native(|| (rnd() * PI * 2.0, rand2(4.0, 7.0)));
-                    let (hx, hz) = g.open_point(x + a.cos() * r, z + a.sin() * r);
+                    let (hx, hz) = g.open_point(x + a.dcos() * r, z + a.dsin() * r);
                     let c = g.creature_mut(ei).unwrap();
                     c.ease.insert("hint_t", now);
                     c.brain.mem.heard = Some((hx, hz, now));
@@ -291,7 +291,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 // it knows the sound's direction, not its spot: it goes near it
                 if let Some((x, z, t)) = g.creature(ei).unwrap().brain.mem.heard {
                     let (a, r) = with_native(|| (rnd() * PI * 2.0, rand2(1.5, 3.5)));
-                    let (hx, hz) = g.open_point(x + a.cos() * r, z + a.sin() * r);
+                    let (hx, hz) = g.open_point(x + a.dcos() * r, z + a.dsin() * r);
                     g.creature_mut(ei).unwrap().brain.mem.heard = Some((hx, hz, t));
                 }
                 set(g, ei, Mode::Search, "silence: it goes to where it heard");
@@ -312,7 +312,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                     g.creature_mut(ei).unwrap().brain.t = 0.0;
                     if let Some((x, z, t)) = g.creature(ei).unwrap().brain.mem.heard {
                         let a = with_native(rnd) * PI * 2.0;
-                        let (hx, hz) = g.open_point(x + a.cos() * 2.5, z + a.sin() * 2.5);
+                        let (hx, hz) = g.open_point(x + a.dcos() * 2.5, z + a.dsin() * 2.5);
                         g.creature_mut(ei).unwrap().brain.mem.heard = Some((hx, hz, t));
                     }
                 }
@@ -453,14 +453,14 @@ fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
     let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
 }
 
 fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
     let o = root.pos();
     let yaw = root.rotation().y;
-    let (s, c) = (yaw.sin(), yaw.cos());
+    let (s, c) = (yaw.dsin(), yaw.dcos());
     v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
 }
 
@@ -503,17 +503,17 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     // ---- trunk: a bob with the gait, lower in the crouch, a lurch when it runs
     let hips = rig.ix("hips").unwrap();
     let h0 = rest_head(&rig, hips);
-    let bob = (phase * PI * 4.0).sin() * (0.012 + 0.03 * run);
+    let bob = (phase * PI * 4.0).dsin() * (0.012 + 0.03 * run);
     rig.bones[hips].set_pos(h0.x, h0.y + bob - 0.11 * crouch, h0.z - 0.05 * crouch);
     let pitch = -0.06 * run + 0.18 * crouch;
-    rig.turn(hips, &Quat::from_euler(&Euler::new(pitch, 0.0, (phase * PI * 2.0).sin() * 0.05)));
+    rig.turn(hips, &Quat::from_euler(&Euler::new(pitch, 0.0, (phase * PI * 2.0).dsin() * 0.05)));
     if let Some(sp) = rig.ix("spine") {
-        rig.turn(sp, &Quat::from_euler(&Euler::new(-0.5 * pitch, 0.0, -(phase * PI * 2.0).sin() * 0.04)));
+        rig.turn(sp, &Quat::from_euler(&Euler::new(-0.5 * pitch, 0.0, -(phase * PI * 2.0).dsin() * 0.04)));
     }
     // ---- head: hanging and swaying; raised and cocked when it listens; up when it bays
-    let cock = if crouch > 0.5 { ((t * 1.3).floor() * 1.7).sin() * 0.35 } else { 0.0 }; // it snaps between cocks
+    let cock = if crouch > 0.5 { ((t * 1.3).floor() * 1.7).dsin() * 0.35 } else { 0.0 }; // it snaps between cocks
     if let Some(nk) = rig.ix("neck") {
-        rig.turn(nk, &Quat::from_euler(&Euler::new(-0.5 * crouch - 0.9 * bay + (phase * PI * 4.0).sin() * 0.05, 0.0, 0.0)));
+        rig.turn(nk, &Quat::from_euler(&Euler::new(-0.5 * crouch - 0.9 * bay + (phase * PI * 4.0).dsin() * 0.05, 0.0, 0.0)));
     }
     if let Some(hd) = rig.ix("head") {
         rig.turn(hd, &Quat::from_euler(&Euler::new(-0.3 * bay, 0.0, cock * crouch)));
@@ -523,11 +523,11 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     }
     // ---- hair: it hangs to the floor whatever the head does, trailing a little as it moves
     let yaw = root.rotation().y;
-    let (sy, cy) = (yaw.sin(), yaw.cos());
+    let (sy, cy) = (yaw.dsin(), yaw.dcos());
     let (bvx, bvz) = (vx * cy - vz * sy, vx * sy + vz * cy);
     for k in 0..3 {
         if let Some(hb) = rig.ix(["hair.0", "hair.1", "hair.2"][k]) {
-            let sway = (t * 2.3 + k as f64).sin() * 0.04 * (1.0 + run);
+            let sway = (t * 2.3 + k as f64).dsin() * 0.04 * (1.0 + run);
             rig.aim(hb, v3(-bvx * 0.05 + sway, -1.0, -bvz * 0.05), 0.0);
         }
     }
@@ -556,7 +556,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
                 limb.to = [home_w.x + d.x, rest_end.y, home_w.z + d.z];
             }
             limb.swing = s.max(1e-3);
-            let lift = if lame { 0.0 } else { (s * PI).sin() * (0.07 + 0.05 * run) };
+            let lift = if lame { 0.0 } else { (s * PI).dsin() * (0.07 + 0.05 * run) };
             for a in 0..3 {
                 limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * s;
             }

@@ -64,7 +64,7 @@ fn cap_print_tex(kind: usize, salt: u32) -> Tex {
                     for p in 0..5 {
                         let a = p as f64 * 1.2566 + rnd() * 0.2;
                         ctx.begin_path();
-                        ctx.ellipse(x + a.cos() * 2.6, y + a.sin() * 2.6, 2.2, 1.4, a, 0, 7);
+                        ctx.ellipse(x + a.dcos() * 2.6, y + a.dsin() * 2.6, 2.2, 1.4, a, 0, 7);
                         ctx.fill();
                     }
                     ctx.set_fill_style("rgba(190,160,80,0.8)");
@@ -98,7 +98,7 @@ fn cap_print_tex(kind: usize, salt: u32) -> Tex {
                     for p in 0..8 {
                         let a = p as f64 * 0.785;
                         ctx.begin_path();
-                        ctx.ellipse(x + a.cos() * 3.0, y + a.sin() * 3.0, 2.4, 0.9, a, 0, 7);
+                        ctx.ellipse(x + a.dcos() * 3.0, y + a.dsin() * 3.0, 2.4, 0.9, a, 0, 7);
                         ctx.fill();
                     }
                     ctx.set_fill_style("rgba(200,150,50,0.9)");

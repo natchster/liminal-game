@@ -82,9 +82,9 @@ pub(crate) fn place_stuffed_rabbits(g: &mut Game, _dist: &[i32]) {
     g.animate(move |_g, _dt, t| {
         for (ear, phase, side) in &rabbit_ears {
             // Base + occasional short twitch (when sin > 0.96, add a rapid wobble).
-            let trigger = (t * 0.2 + phase).sin();
+            let trigger = (t * 0.2 + phase).dsin();
             if trigger > 0.96 {
-                ear.rotation().z = (t * 30.0).sin() * 0.08 * side;
+                ear.rotation().z = (t * 30.0).dsin() * 0.08 * side;
             } else {
                 ear.rotation().z = 0.0;
             }

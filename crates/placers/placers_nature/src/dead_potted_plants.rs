@@ -38,7 +38,7 @@ pub(crate) fn place_dead_potted_plants(g: &mut Game, _dist: &[i32]) {
         stem.rotation().y = rnd() * PI * 2.0;
         let stem_ang = rnd() * PI * 2.0;
         let stem_rad = rnd() * 0.04;
-        stem.position().set(stem_ang.cos() * stem_rad, 0.24, stem_ang.sin() * stem_rad);
+        stem.position().set(stem_ang.dcos() * stem_rad, 0.24, stem_ang.dsin() * stem_rad);
         plant.add(&stem);
     }
     plant.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

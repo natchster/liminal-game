@@ -172,7 +172,7 @@ fn repeat_tile(look: usize) -> Option<(Canvas, f64, f64)> {
                     for p in 0..5 {
                         let a = rot + p as f64 * PI * 2.0 / 5.0;
                         t.begin_path();
-                        t.arc(cx + a.cos() * 3.2, cy + a.sin() * 3.2, 2.4, 0, 7);
+                        t.arc(cx + a.dcos() * 3.2, cy + a.dsin() * 3.2, 2.4, 0, 7);
                         t.fill();
                     }
                     t.set_fill_style(rgba((196.0, 170.0, 110.0), 0.8));
@@ -273,7 +273,7 @@ fn carton_atlas(look: usize, salt: u32) -> Tex {
             let a = k as f64 / 160.0 * PI * 2.0;
             let f = 1.0 + 0.04 * r.next();
             ctx.set_fill_style(rgba((172.0, 166.0, 154.0), 0.5 + 0.4 * r.next()));
-            ctx.fill_rect(cx + a.cos() * rx * f - 1.0, cy + a.sin() * ry * f - 1.0, 1.5 + r.next() * 2.0, 1.5 + r.next() * 1.5);
+            ctx.fill_rect(cx + a.dcos() * rx * f - 1.0, cy + a.dsin() * ry * f - 1.0, 1.5 + r.next() * 2.0, 1.5 + r.next() * 1.5);
         }
         ctx.set_fill_style(rgba((84.0, 78.0, 70.0), 0.75));
         ctx.set_text_align("left");
@@ -352,12 +352,12 @@ fn carton_atlas(look: usize, salt: u32) -> Tex {
                 ctx.set_stroke_style(rgba((60.0, 52.0, 44.0), 0.35));
                 ctx.begin_path();
                 ctx.move_to(sx0, sy0);
-                ctx.line_to(sx0 + a.cos() * l, sy0 + a.sin() * l);
+                ctx.line_to(sx0 + a.dcos() * l, sy0 + a.dsin() * l);
                 ctx.stroke();
                 ctx.set_stroke_style(rgba((240.0, 234.0, 222.0), 0.25));
                 ctx.begin_path();
                 ctx.move_to(sx0 + 1.0, sy0 + 1.0);
-                ctx.line_to(sx0 + a.cos() * l + 1.0, sy0 + a.sin() * l + 1.0);
+                ctx.line_to(sx0 + a.dcos() * l + 1.0, sy0 + a.dsin() * l + 1.0);
                 ctx.stroke();
             }
         }

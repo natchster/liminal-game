@@ -69,7 +69,7 @@ impl Barricade {
     pub fn hits(&self, x: f64, z: f64, r: f64) -> bool {
         let cx = x.clamp(self.x0, self.x1);
         let cz = z.clamp(self.z0, self.z1);
-        (x - cx).powi(2) + (z - cz).powi(2) < r * r
+        (x - cx).dpowi(2) + (z - cz).dpowi(2) < r * r
     }
     /// Does the segment (ax, az)–(bx, bz) cross the slab? (slab test)
     pub fn crosses(&self, ax: f64, az: f64, bx: f64, bz: f64) -> bool {

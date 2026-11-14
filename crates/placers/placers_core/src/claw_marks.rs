@@ -83,7 +83,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
             let len = ph * (0.52 + 0.18 * rnd());
             let bend = (rnd() - 0.5) * 0.25;
             let fan = 0.1 + 0.25 * rnd();
-            let (dx, dy) = (lean.sin(), lean.cos());
+            let (dx, dy) = (lean.dsin(), lean.dcos());
             let (nx, ny) = (dy, -dx);
             let top = (pw / 2.0 - dx * len / 2.0, (ph - dy * len) / 2.0 - 0.02);
             // each finger's reach, where it starts and how hard it pressed
@@ -110,7 +110,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                         let o = off * (1.0 + fan * t) + bend * len * (t * t - t) + (fbm(gs, t * 6.0, 0.5, 2) - 0.5) * 0.004;
                         g.pts.push((top.0 + dx * a + nx * o, top.1 + dy * a + ny * o));
                         // dug in at once, lifting slowly; chattering, skipping
-                        let mut e = sstep(0.0, 0.04, t) * (1.0 - t).powf(0.6) * (0.8 + 0.2 * vn(gs ^ 0x5, t * 40.0, 0.5));
+                        let mut e = sstep(0.0, 0.04, t) * (1.0 - t).dpowf(0.6) * (0.8 + 0.2 * vn(gs ^ 0x5, t * 40.0, 0.5));
                         if vn(gs ^ 0x6, t * 9.0, 0.5) > 0.82 {
                             e *= 0.3;
                         }
@@ -129,7 +129,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                     .map(|g| {
                         let k = g.pts.len() * (5 + (rnd() * 4.0) as usize) / 10;
                         let (p, q) = (g.pts[k], g.pts[(k + 4).min(g.pts.len() - 1)]);
-                        (p.0, p.1, (q.1 - p.1).atan2(q.0 - p.0), 0.007 + 0.01 * rnd())
+                        (p.0, p.1, (q.1 - p.1).datan2(q.0 - p.0), 0.007 + 0.01 * rnd())
                     })
                     .collect()
             } else {
@@ -175,7 +175,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                             let l2 = ex * ex + ey * ey;
                             let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
                             let (qx, qy) = (a.0 + ex * t, a.1 + ey * t);
-                            let d = (x - qx).hypot(y - qy);
+                            let d = (x - qx).dhypot(y - qy);
                             let hw = g.half[k] + (g.half[k + 1] - g.half[k]) * t;
                             let dp = g.depth[k] + (g.depth[k + 1] - g.depth[k]) * t;
                             let side = if (x - qx) * ey - (y - qy) * ex > 0.0 { 1.0 } else { -1.0 };
@@ -186,7 +186,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                             // the dust that fell: under the gouge, straight down the wall
                             if y > qy && (x - qx).abs() < hw * 2.0 + 0.002 {
                                 let fall = y - qy;
-                                dust_v = dust_v.max(dp * (-fall / 0.035).exp() * sstep(hw * 2.0 + 0.002, 0.0, (x - qx).abs()));
+                                dust_v = dust_v.max(dp * (-fall / 0.035).dexp() * sstep(hw * 2.0 + 0.002, 0.0, (x - qx).abs()));
                             }
                         }
                     }
@@ -216,7 +216,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                         }
                         // the lifted lip's shadow, on the side away from the light
                         if e > fringe * 0.4 && side * nl < 0.0 {
-                            px.lay([0.07, 0.06, 0.05], 0.5 * dp * (-nl * side).min(1.0) * (-(e - fringe * 0.4) / 0.0012).exp());
+                            px.lay([0.07, 0.06, 0.05], 0.5 * dp * (-nl * side).min(1.0) * (-(e - fringe * 0.4) / 0.0012).dexp());
                         }
                         if e <= aa {
                             // inside: the core, scored along by the nail; the wall
@@ -238,11 +238,11 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                     }
                     // a strip of paper rolled up from the tear
                     for &(cx, cy, a, l) in &curls {
-                        let (ux, uy) = ((x - cx) * a.cos() + (y - cy) * a.sin(), -(x - cx) * a.sin() + (y - cy) * a.cos());
-                        let q = (ux / l).hypot(uy / (l * 0.3));
+                        let (ux, uy) = ((x - cx) * a.dcos() + (y - cy) * a.dsin(), -(x - cx) * a.dsin() + (y - cy) * a.dcos());
+                        let q = (ux / l).dhypot(uy / (l * 0.3));
                         if q < 1.6 {
                             // its shadow on the wall beside it, then the curl, lit on top
-                            let sq = ((ux - 0.0006) / l).hypot((uy - 0.0011) / (l * 0.34));
+                            let sq = ((ux - 0.0006) / l).dhypot((uy - 0.0011) / (l * 0.34));
                             px.lay([0.06, 0.05, 0.04], 0.18 * sstep(1.15, 0.85, sq));
                             let shade = 0.82 + 0.25 * (-uy / (l * 0.3)).clamp(-1.0, 1.0);
                             px.lay([edge[0] * shade, edge[1] * shade, edge[2] * shade], sstep(1.0, 0.85, q));

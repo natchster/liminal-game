@@ -37,7 +37,7 @@ pub(crate) fn place_motion_detector_domes(g: &mut Game, _dist: &[i32]) {
     {
         let led = led.clone();
         g.animate(move |_g, _dt, t| {
-            led.set_visible((t * 2.0 + blink_phase).sin() > 0.7);
+            led.set_visible((t * 2.0 + blink_phase).dsin() > 0.7);
         });
     }
     scatter(g, &det, x, z, 2.0);

@@ -50,7 +50,7 @@ pub(crate) fn place_window_signs(g: &mut Game, _dist: &[i32]) {
             shard.rotation().z = rnd() * PI * 2.0;
             let sh_ang = rnd() * PI * 2.0;
             let sh_rad = 0.08 + rnd() * 0.25;
-            shard.position().set(sp.x + sh_ang.cos() * sh_rad, 0.003, sp.z + sh_ang.sin() * sh_rad);
+            shard.position().set(sp.x + sh_ang.dcos() * sh_rad, 0.003, sp.z + sh_ang.dsin() * sh_rad);
             g.world.add(&shard);
         }
     }

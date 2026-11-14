@@ -86,8 +86,8 @@ pub(crate) fn place_vintage_typewriters(g: &mut Game, _dist: &[i32]) {
         let y_off = paper_h * 0.5 - 0.020 - i as f64 * 0.020;
         line.position().set(
             -paper_w / 2.0 + actual_len / 2.0 + 0.010,
-            body_h + 0.020 + paper_h / 2.0 + y_off * (-0.08f64).cos(),
-            -body_d * 0.14 - 0.002 + y_off * (-0.08f64).sin(),
+            body_h + 0.020 + paper_h / 2.0 + y_off * (-0.08f64).dcos(),
+            -body_d * 0.14 - 0.002 + y_off * (-0.08f64).dsin(),
         );
         tw.add(&line);
     }

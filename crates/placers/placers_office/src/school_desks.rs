@@ -110,7 +110,7 @@ const BK_T: f64 = 0.011;
 /// `industrial/washroom_janitor_classroom_and_plant.py` models them)
 fn page_top(x: f64) -> f64 {
     let ax = x.abs();
-    0.0035 + BK_T * (1.0 - (-ax / 0.022).exp()) - 0.0018 * (ax / BK_W).powi(3) + 0.0012
+    0.0035 + BK_T * (1.0 - (-ax / 0.022).dexp()) - 0.0018 * (ax / BK_W).dpowi(3) + 0.0012
 }
 
 /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right,
@@ -155,7 +155,7 @@ fn top_tex(salt: u32) -> Tex {
             let pore = (vn(seed ^ 2, x * 900.0, y * 300.0) - 0.82).max(0.0) * 4.0;
             c = mix(c, [0.3, 0.2, 0.12], pore);
             // worn where forearms lay: paler, matte
-            let wear = (-(((x - 0.305) / 0.18).powi(2) + ((y - 0.08) / 0.09).powi(2))).exp() * 0.5;
+            let wear = (-(((x - 0.305) / 0.18).dpowi(2) + ((y - 0.08) / 0.09).dpowi(2))).dexp() * 0.5;
             c = mix(c, [0.7, 0.6, 0.47], wear * (0.6 + 0.4 * fbm(seed ^ 3, x * 40.0, y * 40.0, 2)));
             // dust and grime
             c = mix(c, [0.48, 0.45, 0.4], 0.12 + 0.12 * fbm(seed ^ 4, x * 10.0, y * 10.0, 3));
@@ -233,7 +233,7 @@ fn top_tex(salt: u32) -> Tex {
             ctx.set_line_width(0.6 + rnd() * 0.8);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -270,7 +270,7 @@ fn ply_tex(back: bool, salt: u32) -> Tex {
             let mut c = mix([0.46, 0.3, 0.16], [0.56, 0.38, 0.21], fbm(seed ^ 1, a * 8.0, b * 2.0, 3));
             c = mix(c, [0.36, 0.22, 0.11], (grain - 0.5).max(0.0) * 1.5);
             let worn =
-                (-(((u - 0.5) / 0.28).powi(2) + ((v - 0.5) / 0.3).powi(2))).exp() * (0.5 + 0.5 * fbm(seed ^ 2, u * 30.0, v * 30.0, 2));
+                (-(((u - 0.5) / 0.28).dpowi(2) + ((v - 0.5) / 0.3).dpowi(2))).dexp() * (0.5 + 0.5 * fbm(seed ^ 2, u * 30.0, v * 30.0, 2));
             c = mix(c, [0.66, 0.53, 0.38], worn * 0.55);
             let edge = sstep(0.4, 0.5, (u - 0.5).abs().max((v - 0.5).abs()));
             c = mix(c, [0.22, 0.16, 0.1], edge * 0.5);
@@ -284,7 +284,7 @@ fn ply_tex(back: bool, salt: u32) -> Tex {
             ctx.set_line_width(0.7);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -310,7 +310,7 @@ fn pages_tex(salt: u32) -> Tex {
             // the tide mark at the foot
             let tide = 0.12 + 0.05 * fbm(seed ^ 2, x * 9.0, 0.5, 2);
             c = mix(c, [0.7, 0.62, 0.48], sstep(tide + 0.01, tide - 0.03, y) * 0.35);
-            c = mix(c, [0.52, 0.44, 0.32], (-((y - tide) / 0.006).powi(2)).exp() * 0.45);
+            c = mix(c, [0.52, 0.44, 0.32], (-((y - tide) / 0.006).dpowi(2)).dexp() * 0.45);
             opaque(c)
         });
         ctx.translate(w, h);

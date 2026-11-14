@@ -147,7 +147,7 @@ impl Default for Player {
 impl Player {
     /// Horizontal forward unit vector for the current yaw.
     pub fn fwd(&self) -> Vec3 {
-        Vec3::new(-self.yaw.sin(), 0.0, -self.yaw.cos())
+        Vec3::new(-self.yaw.dsin(), 0.0, -self.yaw.dcos())
     }
 }
 

@@ -30,7 +30,7 @@ pub(crate) fn place_small_metronomes(g: &mut Game, _dist: &[i32]) {
     base.position().y = 0.004;
     metronome.add(&base);
     // Front face slot: dark rectangle. The front face leans back 0.214 rad.
-    let face_tilt = (0.028f64 / 0.129).atan();
+    let face_tilt = (0.028f64 / 0.129).datan();
     let slot = mesh(plane_geo!(0.020, 0.10), &arm_mat);
     slot.position().set(0, 0.075, 0.0287);
     slot.rotation().x = -face_tilt;
@@ -52,7 +52,7 @@ pub(crate) fn place_small_metronomes(g: &mut Game, _dist: &[i32]) {
     let swing_period = 1.2 + rnd() * 0.6;
     let ap = arm_pivot.clone();
     g.animate(move |_g, _dt, t| {
-        ap.rotation().z = (t * (PI * 2.0 / swing_period) + swing_phase).sin() * 0.35;
+        ap.rotation().z = (t * (PI * 2.0 / swing_period) + swing_phase).dsin() * 0.35;
     });
     metronome.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     metronome.rotation().y = rnd() * PI * 2.0;

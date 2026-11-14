@@ -57,23 +57,23 @@ pub(crate) fn place_extension_cords(g: &mut Game, _dist: &[i32]) {
         let seg = mesh(pg("ExtensionCords__seg", cyl_geo!(0.012, 0.012, seg_len, 5)), &cord_mat);
         seg.rotation().z = PI / 2.0;
         seg.rotation().y = -cur_ang; // axis along (cos a, 0, sin a), the way the path advances
-        seg.position().set(cur_x + cur_ang.cos() * seg_len * 0.5, 0.012, cur_z + cur_ang.sin() * seg_len * 0.5);
+        seg.position().set(cur_x + cur_ang.dcos() * seg_len * 0.5, 0.012, cur_z + cur_ang.dsin() * seg_len * 0.5);
         cord.add(&seg);
         // Advance path with angular jitter.
-        cur_x += cur_ang.cos() * seg_len;
-        cur_z += cur_ang.sin() * seg_len;
+        cur_x += cur_ang.dcos() * seg_len;
+        cur_z += cur_ang.dsin() * seg_len;
         cur_ang += (rnd() - 0.5) * 1.4;
     }
     // Small plug head at cord end, turned to the cord heading, boot (-x) on the cord end.
     let plug = mesh(pg("ExtensionCords__plug", box_geo!(0.05, 0.03, 0.035)), &plug_mat);
     plug.rotation().y = -cur_ang;
-    plug.position().set(cur_x + cur_ang.cos() * 0.025, 0.015, cur_z + cur_ang.sin() * 0.025);
+    plug.position().set(cur_x + cur_ang.dcos() * 0.025, 0.015, cur_z + cur_ang.dsin() * 0.025);
     cord.add(&plug);
     // 2 tiny prongs sticking out from plug.
     for yoff in [-0.008, 0.008] {
         let prong = mesh(pg("ExtensionCords__prong", box_geo!(0.02, 0.003, 0.003)), &plug_mat);
         prong.rotation().y = -cur_ang;
-        prong.position().set(cur_x + cur_ang.cos() * 0.059, 0.015 + yoff, cur_z + cur_ang.sin() * 0.059);
+        prong.position().set(cur_x + cur_ang.dcos() * 0.059, 0.015 + yoff, cur_z + cur_ang.dsin() * 0.059);
         cord.add(&prong);
     }
     if let (true, Some(sp)) = (near_socket, socket_pos) {

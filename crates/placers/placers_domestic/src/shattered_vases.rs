@@ -26,7 +26,7 @@ pub(crate) fn place_shattered_vases(g: &mut Game, _dist: &[i32]) {
     for i in 0..5 {
         let a = (i as f64 / 5.0) * PI * 2.0 + rnd() * 0.4;
         let tab = mesh(pg("ShatteredVases__shard", box_geo!(0.010, 0.014 + rnd() * 0.010, 0.004)), &pot_mat);
-        tab.position().set(a.cos() * 0.028, 0.024, a.sin() * 0.028);
+        tab.position().set(a.dcos() * 0.028, 0.024, a.dsin() * 0.028);
         tab.rotation().y = PI / 2.0 - a;
         grp.add(&tab);
     }

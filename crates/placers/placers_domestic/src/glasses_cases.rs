@@ -88,7 +88,7 @@ pub(crate) fn place_glasses_cases(g: &mut Game, _dist: &[i32]) {
             let temple = mesh(pg("GlassesCases__temple", cyl_geo!(0.001, 0.001, 0.028, 3)), &glass_frame_mat);
             temple.rotation().z = side * PI / 2.0;
             temple.rotation().y = side * 0.2;
-            temple.position().set(side * (0.026 - 0.014 * 0.2f64.cos()), case_h + 0.0095, -0.004 + 0.014 * 0.2f64.sin());
+            temple.position().set(side * (0.026 - 0.014 * 0.2f64.dcos()), case_h + 0.0095, -0.004 + 0.014 * 0.2f64.dsin());
             gc.add(&temple);
         }
     }

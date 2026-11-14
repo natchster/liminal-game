@@ -101,7 +101,7 @@ pub(crate) fn place_hat_racks(g: &mut Game, _dist: &[i32]) {
         }
         rack.add(&hat);
     }
-    rack.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    rack.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     let px = g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015);
     let pz = g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015);
     rack.position().set(px, 0, pz);

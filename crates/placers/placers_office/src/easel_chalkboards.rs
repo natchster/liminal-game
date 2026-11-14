@@ -72,7 +72,7 @@ pub(crate) fn place_easel_chalkboards(g: &mut Game, _dist: &[i32]) {
             let roll_phase = rnd() * PI * 2.0;
             let c2 = chalk.clone();
             g.animate(move |_g, _dt, t| {
-                c2.rotation().x = (t * 0.9 + roll_phase).sin() * 0.08;
+                c2.rotation().x = (t * 0.9 + roll_phase).dsin() * 0.08;
             });
         }
     }
@@ -187,7 +187,7 @@ game::lazy_static_tex!(
             ctx.move_to(w * 0.6, h - 15.0);
             let mut px = 0.0;
             while px < w * 0.35 {
-                let py = h - 15.0 - (px * 0.10).sin() * 20.0 - px * 0.15;
+                let py = h - 15.0 - (px * 0.10).dsin() * 20.0 - px * 0.15;
                 ctx.line_to(w * 0.6 + px, py);
                 px += 3.0;
             }

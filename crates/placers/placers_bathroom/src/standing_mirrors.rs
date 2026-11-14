@@ -71,10 +71,10 @@ pub(crate) fn place_standing_mirrors(g: &mut Game, _dist: &[i32]) {
             let blob = mesh(circle_geo!(rr, 6), &smudge_mat);
             let ang = rnd() * PI * 2.0;
             let dd = rnd() * 0.030;
-            blob.position().set(ang.cos() * dd, 0, ang.sin() * dd);
+            blob.position().set(ang.dcos() * dd, 0, ang.dsin() * dd);
             blob.rotation().x = tilt;
             // Offset slightly above mirror surface.
-            let mirror_pos = v3(ang.cos() * dd, 0.115, 0.004 + ang.sin() * dd);
+            let mirror_pos = v3(ang.dcos() * dd, 0.115, 0.004 + ang.dsin() * dd);
             blob.position().copy(&mirror_pos);
             blob.rotation().x = tilt;
             // Random rotation for organic look.

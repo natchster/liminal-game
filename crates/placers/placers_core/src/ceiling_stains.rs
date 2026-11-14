@@ -38,7 +38,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
     /// A dried rim at signed distance `d` (m, < 0 inside): sharp outside
     /// (over `aa`), what the water left fading inward over `ew`
     fn tide(d: f64, aa: f64, ew: f64) -> f64 {
-        (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
+        (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).dexp()
     }
     /// `c` at alpha `a` over straight colour and alpha `dst`
     fn lay(dst: &mut [f64; 4], c: [f64; 3], a: f64) {
@@ -100,7 +100,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                             let rs = (rnd() * 4.0e9) as u32;
                             let reach = (0..=256)
                                 .map(|a| {
-                                    let (dv, du) = (a as f64 / 256.0 * PI * 2.0).sin_cos();
+                                    let (dv, du) = (a as f64 / 256.0 * PI * 2.0).dsin_cos();
                                     let lobe = 1.0
                                         + 0.42 * (fbm(rs, du * 1.6 + 9.0, dv * 1.6 + 9.0, 3) - 0.5)
                                         + 0.12 * (vnoise(rs ^ 0x33, du * 5.0 + 3.0, dv * 5.0 + 3.0) - 0.5)
@@ -113,7 +113,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                         .collect()
                 })
                 .collect();
-            let (sn, cs) = turn.sin_cos();
+            let (sn, cs) = turn.dsin_cos();
             let mut img = ctx.create_image_data(cw, cw);
             let n = cw as usize;
             par_rows(&mut img.data, n * 4, |j, out| {
@@ -123,7 +123,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                     let mut px = [line[0], line[1], line[2], 0.0];
                     if lx.abs() > hs || lz.abs() > hs {
                         // the bar: rust where the leak ran along it
-                        let dl = (wx - leak.0).hypot(wz - leak.1);
+                        let dl = (wx - leak.0).dhypot(wz - leak.1);
                         if dl < leak.2 {
                             let r = (vnoise(seed ^ 0x2a7, wx * 90.0, wz * 90.0) - 0.55 + 0.3 * (1.0 - dl / leak.2)).max(0.0) * 2.0;
                             lay(&mut px, [0.4, 0.26, 0.15], r.min(0.6));
@@ -134,11 +134,11 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                         for (sp, rim) in spots.iter().zip(&rims) {
                             let (dx, dz) = (wx - sp.x, wz - sp.z);
                             let (u, v) = ((dx * cs + dz * sn) / ax.0, (-dx * sn + dz * cs) / ax.1);
-                            let rho = u.hypot(v) / sp.r;
+                            let rho = u.dhypot(v) / sp.r;
                             if rho > 1.4 {
                                 continue;
                             }
-                            let a = (v.atan2(u) / (PI * 2.0)).rem_euclid(1.0) * 256.0;
+                            let a = (v.datan2(u) / (PI * 2.0)).rem_euclid(1.0) * 256.0;
                             let (a0, t) = (a.floor() as usize, a.fract());
                             let (mut d0, mut lines) = (0.0, 0.0);
                             for (k, (st, reach)) in rim.iter().enumerate() {
@@ -152,7 +152,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                             }
                             // the middle paler, what it carried left at the rims
                             let inside = (0.5 - d0 / aa).clamp(0.0, 1.0);
-                            let pale = 0.55 + 0.45 * (d0 / 0.05).exp();
+                            let pale = 0.55 + 0.45 * (d0 / 0.05).dexp();
                             let mott = 0.65 + 0.35 * vnoise(seed ^ 0x3c, wx * 40.0, wz * 40.0);
                             lay(&mut px, fill, inside * if salt { 0.45 } else { 0.68 } * sp.k * pale * mott);
                             lay(&mut px, line, lines * 0.9 * sp.k);
@@ -242,7 +242,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                     let (ccx, ccz) = centre(cell);
                     // the nearest point of this tile to the leak, and how far
                     let (nx, nz) = (leak.0.clamp(ccx - c / 2.0, ccx + c / 2.0), leak.1.clamp(ccz - c / 2.0, ccz + c / 2.0));
-                    let dn = (nx - leak.0).hypot(nz - leak.1);
+                    let dn = (nx - leak.0).dhypot(nz - leak.1);
                     let h = hash(seed, cell.0, cell.1);
                     // (not into the next 4 m tile: its ceiling may be another height)
                     if (ccx - tx).abs() > CELL / 2.0 || (ccz - tz).abs() > CELL / 2.0 - c / 2.0 {

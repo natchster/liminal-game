@@ -88,7 +88,7 @@ fn mould_mat(seed: u32, pw: f64, ph: f64, damp: bool) -> Mat {
             let d = (d0 + (d1 - d0) * r.f()) * spread;
             let rad = r0 + (r1 - r0) * r.f();
             let sq = 0.7 + 0.5 * r.f();
-            let (x, y) = keep(cx + ang.cos() * d * 1.1, cy + ang.sin() * d * 0.9, rad, sq);
+            let (x, y) = keep(cx + ang.dcos() * d * 1.1, cy + ang.dsin() * d * 0.9, rad, sq);
             cols.push((x, y, rad, a0 + (a1 - a0) * r.f(), sq));
         }
     };
@@ -124,17 +124,17 @@ fn mould_mat(seed: u32, pw: f64, ph: f64, damp: bool) -> Mat {
         let warp = fbm(s, x * 22.0, y * 22.0, 2) - 0.5;
         let (mut dn, mut dh) = (0.0f64, 0.0f64);
         for (k, &(mx, my, mr, ma, sq)) in cols.iter().enumerate() {
-            let q = (x - mx).hypot((y - my) * sq) / mr * (1.0 + 0.7 * warp + 0.25 * (hash(s, k as i32, 7) - 0.5));
+            let q = (x - mx).dhypot((y - my) * sq) / mr * (1.0 + 0.7 * warp + 0.25 * (hash(s, k as i32, 7) - 0.5));
             if q < 3.5 {
-                dn = 1.0 - (1.0 - dn) * (1.0 - ma * (-q * q * 0.9).exp());
+                dn = 1.0 - (1.0 - dn) * (1.0 - ma * (-q * q * 0.9).dexp());
             }
-            dh = dh.max(ma * (-(q / 2.3).powi(2)).exp());
+            dh = dh.max(ma * (-(q / 2.3).dpowi(2)).dexp());
         }
         let mut px = [CORE[0], CORE[1], CORE[2], 0.0];
         // the damp's stain under it, and the line where it stopped
         let dh = dh * (0.8 + 0.4 * fbm(s ^ 0x55, x * 9.0, y * 9.0, 2));
         lay(&mut px, STAIN, 0.15 * sstep(0.05, 0.35, dh));
-        lay(&mut px, TIDE, 0.16 * (-((dh - 0.1) / 0.02).powi(2)).exp());
+        lay(&mut px, TIDE, 0.16 * (-((dh - 0.1) / 0.02).dpowi(2)).dexp());
         // the velvety haze among the specks, and the sooty film at the oldest middles
         let mottle = fbm(s ^ 0x77, x * 70.0, y * 70.0, 3);
         lay(&mut px, mix(EDGE, CORE, 0.55), 0.36 * sstep(0.2, 0.9, dn) * (0.35 + 0.65 * mottle));

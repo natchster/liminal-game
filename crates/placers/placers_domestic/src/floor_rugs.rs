@@ -71,7 +71,7 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     rug.position().set(px, 0, pz);
     g.world.add(&rug);
     // the rug's top under a point (world x, z), or the floor off it
-    let (cy, sy) = (yaw.cos(), yaw.sin());
+    let (cy, sy) = (yaw.dcos(), yaw.dsin());
     let on_rug = |wx: f64, wz: f64| {
         let (dx, dz) = (wx - px, wz - pz);
         let (lx, lz) = ((dx * cy - dz * sy) / k, (dx * sy + dz * cy) / k);
@@ -100,7 +100,7 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
         // Place near rug edge (±0.35 m from rug center).
         let l_ang = rnd() * PI * 2.0;
         let l_rad = 0.25 + rnd() * 0.15;
-        let (lx, lz) = (px + l_ang.cos() * l_rad, pz + l_ang.sin() * l_rad);
+        let (lx, lz) = (px + l_ang.dcos() * l_rad, pz + l_ang.dsin() * l_rad);
         // standing on the rug where it is on it
         lamp.position().set(lx, on_rug(lx, lz), lz);
         lamp.rotation().y = rnd() * PI * 2.0;
@@ -158,7 +158,7 @@ fn rug_turned_corner(geo: &Geo, reach: f64, lift: f64, corner: usize) -> Geo {
             }
             let a = t / rho;
             let r = rho - y;
-            let (t2, y2) = (r * a.sin(), rho - r * a.cos());
+            let (t2, y2) = (r * a.dsin(), rho - r * a.dcos());
             let dt = t2 - t;
             v[0] = (x + ux * dt) as f32;
             v[1] = y2 as f32;
@@ -328,7 +328,7 @@ fn rug_knot(a: f64, b: f64, len: f64, wid: f64, c: &RugColours, medallion: bool,
 /// the path walked across it (the same as its shape's in family `coat_hook_broom_apron_and_rugs`)
 fn rug_worn(x: f64, z: f64) -> f64 {
     let d = (x * 0.42 + z * 0.91) - 0.05;
-    (-(d / 0.16) * (d / 0.16)).exp() * (0.6 + 0.4 * (x * 4.0 + 1.0).sin())
+    (-(d / 0.16) * (d / 0.16)).dexp() * (0.6 + 0.4 * (x * 4.0 + 1.0).dsin())
 }
 
 /// The rug's face and back, painted at its knots' scale: the face its
@@ -395,7 +395,7 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
                 }
                 // moth: a few patches eaten to the foundation near its edges
                 for &(mx, mz, r) in &moths {
-                    let d = ((x - mx).powi(2) + (z - mz).powi(2)).sqrt() / r + 0.5 * (fbm(seed ^ 0x6d, x * 40.0, z * 40.0, 2) - 0.5);
+                    let d = ((x - mx).dpowi(2) + (z - mz).dpowi(2)).sqrt() / r + 0.5 * (fbm(seed ^ 0x6d, x * 40.0, z * 40.0, 2) - 0.5);
                     if d < 1.0 {
                         let k_ = sstep(1.0, 0.7, d);
                         for (q, v) in px.iter_mut().enumerate() {
@@ -406,7 +406,7 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
                 // old stains: dark and brown, soft, their tide rims darker
                 for &(sx, sz, r) in &stains {
                     let d =
-                        ((x - sx).powi(2) + ((z - sz) * 1.4).powi(2)).sqrt() / r + 0.35 * (fbm(seed ^ 0x2b, x * 12.0, z * 12.0, 3) - 0.5);
+                        ((x - sx).dpowi(2) + ((z - sz) * 1.4).dpowi(2)).sqrt() / r + 0.35 * (fbm(seed ^ 0x2b, x * 12.0, z * 12.0, 3) - 0.5);
                     if d < 1.05 {
                         let k_ = 0.30 * sstep(1.05, 0.7, d) + 0.18 * sstep(0.12, 0.0, (d - 0.95).abs());
                         for (q, v) in px.iter_mut().enumerate() {

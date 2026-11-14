@@ -111,11 +111,11 @@ pub(crate) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
         let toward = if sx < 0.0 { 1.0 } else { -1.0 };
         let room = AQ_IN.0 - toward * sx - 0.015;
         let lift = 0.24 - (gravel_top(sz) - AQ_FLOOR);
-        let lean_lo = (lift / reach).clamp(-1.0, 1.0).acos() + 0.05;
-        let lean_hi = (room / reach).clamp(-1.0, 1.0).asin();
+        let lean_lo = (lift / reach).clamp(-1.0, 1.0).dacos() + 0.05;
+        let lean_hi = (room / reach).clamp(-1.0, 1.0).dasin();
         let lean = (lean_lo + (lean_hi - lean_lo).max(0.0) * 0.5).max(lean_lo).min(1.45);
         let az = if toward > 0.0 { 0.0 } else { PI } + (br - 0.5) * 0.5;
-        let dir = v3(az.cos() * lean.sin(), lean.cos(), az.sin() * lean.sin());
+        let dir = v3(az.dcos() * lean.dsin(), lean.dcos(), az.dsin() * lean.dsin());
         let stem = group();
         stem.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &dir);
         stem.position().set(sx, gravel_top(sz) - 0.008, sz);
@@ -178,7 +178,7 @@ pub(crate) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
     if let Some(film) = surface {
         let y0 = film.pos().y;
         g.animate(move |_g, _dt, t| {
-            film.position().y = y0 + 0.0006 * (t * 3.1 + ripple_phase).sin();
+            film.position().y = y0 + 0.0006 * (t * 3.1 + ripple_phase).dsin();
         });
     }
     // the bubbles' rise (the old animator, always there)
@@ -319,14 +319,14 @@ fn laminate_tex(salt: u32, top: bool) -> Tex {
             // waved, fine streaks
             let big = fbm(seed, a * 1.5, b * 5.0, 3);
             let warp = fbm(seed ^ 1, a * 3.0, b * 12.0, 3);
-            let lines = ((b * 260.0 + warp * 5.0).sin() * 0.5 + 0.5).powf(3.0);
+            let lines = ((b * 260.0 + warp * 5.0).dsin() * 0.5 + 0.5).dpowf(3.0);
             let fine = fbm(seed ^ 9, a * 10.0, b * 90.0, 2);
             let mut c = mix([0.60, 0.46, 0.30], [0.44, 0.31, 0.18], 0.3 + 0.4 * (big - 0.5) + 0.35 * lines + 0.25 * (fine - 0.5));
             if top {
                 // rings of scale where water stood round the tank's foot
                 let edge = (u.min(1.0 - u) * 0.55).min(v.min(1.0 - v) * 0.30);
                 let wet = 1.0 - sstep(0.010, 0.030, edge);
-                let tide = ((edge * 900.0 + fbm(seed ^ 3, u * 8.0, v * 8.0, 2) * 6.0).sin() * 0.5 + 0.5).powf(6.0);
+                let tide = ((edge * 900.0 + fbm(seed ^ 3, u * 8.0, v * 8.0, 2) * 6.0).dsin() * 0.5 + 0.5).dpowf(6.0);
                 c = mix(c, [0.70, 0.68, 0.62], wet * tide * 0.6);
                 c = mix(c, [0.36, 0.30, 0.22], wet * 0.25);
             } else {
@@ -370,7 +370,7 @@ fn gravel_tex(salt: u32, wet: bool) -> Tex {
                     let (i, j) = (cx as i32 + di, cy as i32 + dj);
                     let px = (i as f64 + hash(seed, i, j)) / s;
                     let py = (j as f64 + hash(seed ^ 1, i, j)) / s;
-                    let d = ((px - x).powi(2) + (py - y).powi(2)).sqrt() * s;
+                    let d = ((px - x).dpowi(2) + (py - y).dpowi(2)).sqrt() * s;
                     if d < best.0 {
                         best = (d, i, j);
                     }
@@ -413,7 +413,7 @@ fn scum_tex(salt: u32) -> Tex {
             let edge = 1.0 - sstep(0.0, 0.08, u.min(1.0 - u).min(v.min(1.0 - v) * 0.5));
             // the stone at the back left: the bubbles break over it
             let (bx, by) = ((AQ_STONE.0 + AQ_IN.0) / (2.0 * AQ_IN.0), (AQ_STONE.2 + AQ_IN.1) / (2.0 * AQ_IN.1));
-            let clear = 1.0 - sstep(0.04, 0.12, ((u - bx) * 2.0).hypot(v - by));
+            let clear = 1.0 - sstep(0.04, 0.12, ((u - bx) * 2.0).dhypot(v - by));
             let a = ((0.12 + 0.40 * (n - 0.3).max(0.0) + 0.25 * edge) * (1.0 - 0.8 * clear)).clamp(0.0, 0.7);
             let speck = vn(seed ^ 3, u * 120.0, v * 60.0);
             let c = if speck > 0.85 { [0.20, 0.18, 0.14] } else { [0.30, 0.33, 0.22] };
@@ -443,8 +443,8 @@ fn leaf_tex(salt: u32, wet: bool) -> Tex {
         fill(ctx, w, h, |u, v| {
             let n = fbm(seed, u * 5.0, v * 5.0, 3);
             let (dx, dy) = (u - 0.5, v - 0.5);
-            let ang = dy.atan2(dx);
-            let vein = ((ang * 4.0).sin().abs() < 0.08) as i32 as f64 * 0.4;
+            let ang = dy.datan2(dx);
+            let vein = ((ang * 4.0).dsin().abs() < 0.08) as i32 as f64 * 0.4;
             let mut c = mix([0.50, 0.38, 0.24], [0.36, 0.26, 0.16], n + vein);
             if wet {
                 c = mix(c, [0.18, 0.20, 0.12], 0.6);

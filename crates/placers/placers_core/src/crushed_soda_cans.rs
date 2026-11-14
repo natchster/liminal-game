@@ -94,12 +94,12 @@ fn crushed_can_label(k: usize, flat: bool) -> Tex {
         ctx.move_to(0, h * 0.70);
         for i in 0..=32 {
             let x = i as f64 / 32.0 * w;
-            ctx.line_to(x, h * 0.70 + (x / w * PI * 4.0).sin() * 10.0);
+            ctx.line_to(x, h * 0.70 + (x / w * PI * 4.0).dsin() * 10.0);
         }
         ctx.line_to(w, h * 0.82);
         for i in (0..=32).rev() {
             let x = i as f64 / 32.0 * w;
-            ctx.line_to(x, h * 0.82 + (x / w * PI * 4.0 + 0.8).sin() * 8.0);
+            ctx.line_to(x, h * 0.82 + (x / w * PI * 4.0 + 0.8).dsin() * 8.0);
         }
         ctx.close_path();
         ctx.fill();
@@ -180,11 +180,11 @@ fn crushed_can_label(k: usize, flat: bool) -> Tex {
             for i in 0..=96 {
                 let u = i as f64 / 96.0;
                 let a = u * PI * 2.0;
-                let lag = 0.18 * (a + PH[0]).sin() + 0.08 * (2.0 * a + PH[1]).sin();
+                let lag = 0.18 * (a + PH[0]).dsin() + 0.08 * (2.0 * a + PH[1]).dsin();
                 let t = ((f as f64 - lag) / 3.0).clamp(0.0, 1.0);
                 let s = ((t - 0.3) / 0.7).clamp(0.0, 1.0);
                 let tilt = 0.157 * s * s * (3.0 - 2.0 * s);
-                let y = 0.011 * t - 0.033 * a.cos() * tilt.sin() + 0.0012 * (3.0 * a + PH[3]).sin() * (PI * t).sin();
+                let y = 0.011 * t - 0.033 * a.dcos() * tilt.dsin() + 0.0012 * (3.0 * a + PH[3]).dsin() * (PI * t).dsin();
                 let v = (y / 0.0162).clamp(0.0, 1.0);
                 let (x, yy) = (u * w, (1.0 - v) * h + (rnd() - 0.5) * 2.0);
                 if i == 0 {
@@ -204,7 +204,7 @@ fn crushed_can_label(k: usize, flat: bool) -> Tex {
             ctx.set_stroke_style(format!("rgba(196,198,200,{:.2})", 0.25 + rnd() * 0.5));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })

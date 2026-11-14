@@ -46,7 +46,7 @@ pub(crate) fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
         let sway_phase = rnd() * PI * 2.0;
         let clock2 = clock.clone();
         g.animate(move |_g, _dt, t| {
-            clock2.rotation().z = base_sway_z + (t * 0.2 * PI + sway_phase).sin() * 0.015;
+            clock2.rotation().z = base_sway_z + (t * 0.2 * PI + sway_phase).dsin() * 0.015;
         });
         // Track cracked clock position for periodic creak audio.
         g.pp.cracked_clock_positions.push(v3(cp.x, clock_height, cp.z));
@@ -66,7 +66,7 @@ pub(crate) fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
             shard.rotation().z = rnd() * PI * 2.0;
             let sh_ang = rnd() * PI * 2.0;
             let sh_rad = 0.10 + rnd() * 0.30;
-            shard.position().set(cp.x + sh_ang.cos() * sh_rad, 0.003, cp.z + sh_ang.sin() * sh_rad);
+            shard.position().set(cp.x + sh_ang.dcos() * sh_rad, 0.003, cp.z + sh_ang.dsin() * sh_rad);
             g.world.add(&shard);
         }
     }

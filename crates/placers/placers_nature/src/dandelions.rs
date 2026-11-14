@@ -25,8 +25,8 @@ pub(crate) fn place_dandelions(g: &mut Game, _dist: &[i32]) {
         let a = (i as f64 / 8.0) * PI * 2.0;
         let wisp = mesh(pg("Dandelions__wisp", cyl_geo!(0.0004, 0.0004, 0.010, 3)), &wisp_mat);
         // Radiate from the puff's centre: achene (-Y) 1 mm inside the puff, pappus (+Y) outward.
-        let el = -0.3 + 0.9 * (a * 0.5).sin();
-        let w_dir = v3(el.cos() * a.cos(), el.sin(), el.cos() * a.sin());
+        let el = -0.3 + 0.9 * (a * 0.5).dsin();
+        let w_dir = v3(el.dcos() * a.dcos(), el.dsin(), el.dcos() * a.dsin());
         wisp.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &w_dir);
         wisp.position().set(0, stem_h + 0.014, 0).add_scaled_vector(&w_dir, 0.024);
         dandelion.add(&wisp);
@@ -40,6 +40,6 @@ pub(crate) fn place_dandelions(g: &mut Game, _dist: &[i32]) {
     // Gentle dandelion sway animator.
     let phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
-        dandelion.rotation().z = base_z + (t * 0.35 + phase).sin() * 0.05;
+        dandelion.rotation().z = base_z + (t * 0.35 + phase).dsin() * 0.05;
     });
 }

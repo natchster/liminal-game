@@ -121,7 +121,7 @@ fn tub_tex(col: [f64; 3], salt: u32) -> Tex {
             ctx.set_line_width(0.6 + rnd() * 1.2);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -140,8 +140,8 @@ fn inside_tex(col: [f64; 3], water: bool, salt: u32) -> Tex {
             let d = v - lv - 0.01 * (fbm(seed ^ 2, u * 20.0, 0.5, 2) - 0.5);
             let below = sstep(0.004, -0.01, d);
             c = mix(c, [0.22, 0.2, 0.16], below * (0.55 + 0.25 * fbm(seed ^ 4, u * 40.0, v * 40.0, 2)));
-            c = mix(c, [0.14, 0.12, 0.09], (-(d / 0.006).powi(2)).exp() * 0.7);
-            c = mix(c, [0.5, 0.48, 0.42], (-((d - 0.012) / 0.008).powi(2)).exp() * 0.3);
+            c = mix(c, [0.14, 0.12, 0.09], (-(d / 0.006).dpowi(2)).dexp() * 0.7);
+            c = mix(c, [0.5, 0.48, 0.42], (-((d - 0.012) / 0.008).dpowi(2)).dexp() * 0.3);
             opaque(c)
         });
     })
@@ -183,10 +183,10 @@ fn water_tex(salt: u32) -> Tex {
             ctx.begin_path();
             ctx.move_to(x, y);
             ctx.quadratic_curve_to(
-                x + 6.0 * a.cos() + 4.0 * rnd(),
-                y + 6.0 * a.sin(),
-                x + 12.0 * a.cos(),
-                y + 12.0 * a.sin() + 3.0 * rnd(),
+                x + 6.0 * a.dcos() + 4.0 * rnd(),
+                y + 6.0 * a.dsin(),
+                x + 12.0 * a.dcos(),
+                y + 12.0 * a.dsin() + 3.0 * rnd(),
             );
             ctx.stroke();
         }

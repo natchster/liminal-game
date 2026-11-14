@@ -28,7 +28,7 @@ pub const SODIUM: [f64; 3] = [1.0, 0.42, 0.10];
 pub fn light_left(depth: i32) -> (f64, f64) {
     let d = (depth - 2).max(0) as f64;
     let night = (d / 5.0).clamp(0.0, 1.0);
-    (0.60 * 0.80f64.powf(d), night)
+    (0.60 * 0.80f64.dpowf(d), night)
 }
 
 /// The lamp's side of the track for window `w` (by its seed)
@@ -300,7 +300,7 @@ fn throw_light(g: &Game, i: usize, k: usize, night: f64) -> (Vec<[(f64, f64); 4]
                 let p = w.world(c.x, c.y + 0.004, c.z);
                 pos.extend_from_slice(&[p.x as f32, p.y as f32, p.z as f32]);
                 // the lamp's light on the floor: cos over distance squared
-                let d = ((c.x - lamp.x).powi(2) + lamp.y.powi(2) + (c.z - lamp.z).powi(2)).sqrt();
+                let d = ((c.x - lamp.x).dpowi(2) + lamp.y.dpowi(2) + (c.z - lamp.z).dpowi(2)).sqrt();
                 let e = lamp.y / (d * d * d);
                 col.extend_from_slice(&[e as f32; 3]);
                 let (sa, sb) = [(a, b), (a + 1, b), (a + 1, b + 1), (a, b + 1)][j];
@@ -367,7 +367,7 @@ fn shadow_mask(w: &Window, k: usize) -> Tex {
             let u = (i as f64 + 0.5) / S as f64;
             let t = (j as f64 + 0.5) / S as f64;
             // the edges soft (the lamp's head is a hand wide, not a point)
-            let soft = |x: f64| ((x / 0.07).clamp(0.0, 1.0)).powf(0.8);
+            let soft = |x: f64| ((x / 0.07).clamp(0.0, 1.0)).dpowf(0.8);
             let mut v: f64 = soft(u) * soft(1.0 - u) * soft(t) * soft(1.0 - t);
             if l.muntin && (u - 0.5).abs() < 0.016 {
                 v *= 0.15;

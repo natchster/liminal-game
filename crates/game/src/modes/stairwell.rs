@@ -411,7 +411,7 @@ impl Stairwell {
             g.add(&steps);
             // sloped slab under the flight (the ceiling of the flight below)
             let under = mesh(&under_geo, &slab_mat);
-            let ang = DROP.atan2(FL);
+            let ang = DROP.datan2(FL);
             under.position().set(flight_x(odd), -DROP / 2.0 - 0.34, FL / 2.0);
             under.rotation().x = if odd { -ang } else { ang };
             g.add(&under);
@@ -625,14 +625,14 @@ impl Stairwell {
                 let front = 0f64.max(v.z);
                 // brow ridge
                 let by = v.y - 0.32;
-                r += 0.012 * front * (-(by * by) / 0.006).exp();
+                r += 0.012 * front * (-(by * by) / 0.006).dexp();
                 // eye hollows: shallow, no eyes in them
                 let mut shade = 1.0;
                 for s in [-1.0f64, 1.0] {
                     let ex = v.x - s * 0.33;
                     let ey = v.y - 0.16;
                     let d2 = ex * ex + ey * ey * 1.6;
-                    let h = (-d2 / 0.012).exp() * front;
+                    let h = (-d2 / 0.012).dexp() * front;
                     r -= 0.02 * h;
                     shade -= 0.55 * h;
                 }
@@ -640,10 +640,10 @@ impl Stairwell {
                 for s in [-1.0f64, 1.0] {
                     let cx = v.x - s * 0.42;
                     let cy = v.y + 0.08;
-                    r += 0.008 * front * (-(cx * cx + cy * cy) / 0.01).exp();
+                    r += 0.008 * front * (-(cx * cx + cy * cy) / 0.01).dexp();
                 }
                 let my = v.y + 0.35;
-                r -= 0.006 * front * (-(v.x * v.x + my * my) / 0.02).exp();
+                r -= 0.006 * front * (-(v.x * v.x + my * my) / 0.02).dexp();
                 let back = 0f64.max(-v.z);
                 r *= 1.0 - 0.28 * (back * back); // flattened back
                 g.position[i * 3] = (v.x * r * 0.86) as f32;
@@ -878,10 +878,10 @@ impl Stairwell {
     pub fn update(&mut self, dt: f64, inp: &StairInput) -> StairOut {
         self.st.time += dt;
         // --- movement in plan, segment by segment ---
-        let fx = -inp.yaw.sin();
-        let fz = -inp.yaw.cos();
-        let rx = inp.yaw.cos();
-        let rz = -inp.yaw.sin();
+        let fx = -inp.yaw.dsin();
+        let fz = -inp.yaw.dcos();
+        let rx = inp.yaw.dcos();
+        let rz = -inp.yaw.dsin();
         let dx = (fx * inp.fwd + rx * inp.strafe) * inp.speed * dt;
         let dz = (fz * inp.fwd + rz * inp.strafe) * inp.speed * dt;
         if truthy(dx) || truthy(dz) {
@@ -952,7 +952,7 @@ impl Stairwell {
             to_face.sub_vectors(&face_pos, &cam_pos);
             let dist = to_face.length();
             let cam_dir = inp.camera_dir;
-            let in_view = to_face.normalized().dot(&cam_dir) > 0.5f64.cos();
+            let in_view = to_face.normalized().dot(&cam_dir) > 0.5f64.dcos();
             match f.kind {
                 FaceKind::Below => {
                     self.face.look_at(cam_pos.x, cam_pos.y, cam_pos.z);
@@ -999,7 +999,7 @@ impl Stairwell {
                     // round — more than 100° from the way you were facing when
                     // it arrived — it is thirty centimetres from your eyes.
                     let flat = Vec3::new(cam_dir.x, 0.0, cam_dir.z).normalized();
-                    if !f.seen && flat.dot(&f.armed) < (100.0 * PI / 180.0).cos() {
+                    if !f.seen && flat.dot(&f.armed) < (100.0 * PI / 180.0).dcos() {
                         f.seen = true;
                         f.shown_t = 0.0;
                         self.face.position().set(cam_pos.x + flat.x * 0.32, cam_pos.y - 0.02, cam_pos.z + flat.z * 0.32);

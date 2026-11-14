@@ -102,7 +102,7 @@ fn heard(g: &Game, ei: usize) -> Heard {
         let f = g.player.fwd();
         let (ux, uz) = ((p.x - g.player.pos.x) / d.max(1e-6), (p.z - g.player.pos.z) / d.max(1e-6));
         let toward = f.x * ux + f.z * uz;
-        let faces = -(e.yaw.sin() * ux + e.yaw.cos() * uz) > 0.3;
+        let faces = -(e.yaw.dsin() * ux + e.yaw.dcos() * uz) > 0.3;
         let eyes = g.player.flashlight_on && toward > 0.86 && d < 20.0 && faces && pc.line;
         let shape = toward > 0.5 && d < 20.0 && pc.line && pc.it_lit > 0.35;
         eyes || shape

@@ -96,20 +96,20 @@ fn tape_faces_tex(look: usize, salt: u32) -> Tex {
         for _ in 0..60 {
             let a = r.next() * PI * 2.0;
             let rr = 96.0 + r.next() * 32.0;
-            soft(ctx, (cx + a.cos() * rr, cy + a.sin() * rr), 3.0 + r.next() * 9.0, 0.6, a, (60.0, 50.0, 38.0), 0.15 + 0.3 * r.next());
+            soft(ctx, (cx + a.dcos() * rr, cy + a.dsin() * rr), 3.0 + r.next() * 9.0, 0.6, a, (60.0, 50.0, 38.0), 0.15 + 0.3 * r.next());
         }
         // lint: fibres and a hair caught on the glue
         ctx.set_line_width(0.6);
         for _ in 0..14 {
             let a = r.next() * PI * 2.0;
             let rr = 95.0 + r.next() * 30.0;
-            let (x, y) = (cx + a.cos() * rr, cy + a.sin() * rr);
+            let (x, y) = (cx + a.dcos() * rr, cy + a.dsin() * rr);
             let b = r.next() * PI * 2.0;
             let l = 4.0 + r.next() * 16.0;
             ctx.set_stroke_style(rgba(if r.next() < 0.5 { (70.0, 64.0, 58.0) } else { (190.0, 184.0, 172.0) }, 0.6));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.quadratic_curve_to(x + (b + 0.6).cos() * l * 0.6, y + (b + 0.6).sin() * l * 0.6, x + b.cos() * l, y + b.sin() * l);
+            ctx.quadratic_curve_to(x + (b + 0.6).dcos() * l * 0.6, y + (b + 0.6).dsin() * l * 0.6, x + b.dcos() * l, y + b.dsin() * l);
             ctx.stroke();
         }
         // and the floor's dust over the face it lay on its back on

@@ -105,7 +105,7 @@ impl Game {
             }
             let near = (1..=8)
                 .flat_map(|ring| (0..16).map(move |k| (ring as f64 * 0.2, k as f64 / 16.0 * PI * 2.0)))
-                .map(|(r, a)| (p.x + a.cos() * r, p.z + a.sin() * r))
+                .map(|(r, a)| (p.x + a.dcos() * r, p.z + a.dsin() * r))
                 .find(|&(x, z)| !self.circle_hits_wall(x, z, 0.25));
             // a tile the walls fill: the middle of the nearest clear open tile
             let spot = near.or_else(|| {
@@ -442,7 +442,7 @@ impl Game {
                         if let (false, Some(bb)) = (turned, &it.bb) {
                             // about its middle
                             let (cx, cz) = ((bb.min.x + bb.max.x) / 2.0 + mx, (bb.min.z + bb.max.z) / 2.0 + mz);
-                            let (sn, cs) = wall.phi().sin_cos();
+                            let (sn, cs) = wall.phi().dsin_cos();
                             let q = it.o.pos();
                             let (rx, rz) = (q.x - cx, q.z - cz);
                             {

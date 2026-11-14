@@ -32,7 +32,7 @@ pub(crate) fn place_shaker_pair(g: &mut Game, _dist: &[i32]) {
         let a = (i as f64 / 5.0) * PI * 2.0;
         let hole = mesh(circle_geo!(0.002, 4), lambert!({ color: 0x101010 }));
         hole.rotation().x = -PI / 2.0;
-        hole.position().set(-0.028 + a.cos() * 0.012, 0.073, a.sin() * 0.012);
+        hole.position().set(-0.028 + a.dcos() * 0.012, 0.073, a.dsin() * 0.012);
         pair.add(&hole);
     }
     let mill_body = mesh(pg("ShakerPair__mill", cyl_geo!(0.020, 0.024, 0.100, 10)), &wood_mat);

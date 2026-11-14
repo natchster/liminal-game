@@ -48,7 +48,7 @@ pub(crate) fn place_tarot_card_fans(g: &mut Game, _dist: &[i32]) {
         let mat = if i == 2 { &face_mat } else { &back_mat };
         let layer = if i == 2 { 5.0 } else { f64::from(i) };
         if let Some(m) = put(&cards, name, mat) {
-            m.position().set(a.sin() * r, layer * 0.0004, r - a.cos() * r);
+            m.position().set(a.dsin() * r, layer * 0.0004, r - a.dcos() * r);
             m.rotation().y = -a;
         }
     }
@@ -96,7 +96,7 @@ fn crackle(seed: u32, x: f64, y: f64, size: f64) -> (f64, f64) {
             let (ix, iy) = (cx + dx, cy + dy);
             let px = f64::from(ix) + 0.1 + 0.8 * hash(seed, ix, iy);
             let py = f64::from(iy) + 0.1 + 0.8 * hash(seed ^ 0x55, ix, iy);
-            let d = ((gx - px).powi(2) + (gy - py).powi(2)).sqrt();
+            let d = ((gx - px).dpowi(2) + (gy - py).dpowi(2)).sqrt();
             if d < d1 {
                 d2 = d1;
                 d1 = d;

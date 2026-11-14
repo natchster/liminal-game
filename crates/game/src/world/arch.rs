@@ -537,7 +537,7 @@ impl Game {
             if p.y < ceil - 0.05 {
                 rods.push((p.wx, p.wz, p.y, ceil));
             }
-            p.h_boost = (1f64.max(p.y / WALL_H)).powf(1.35);
+            p.h_boost = (1f64.max(p.y / WALL_H)).dpowf(1.35);
             let mut m = Mat4::IDENTITY;
             m.make_translation(p.wx, p.y - 0.04, p.wz);
             pm.set_matrix_at(i, &m);

@@ -17,7 +17,7 @@ pub fn make_leaf_shape(len: f64, wid: f64, color: u32, curl: f64) -> Obj {
         let n = gg.vertex_count();
         for i in 0..n {
             let y = gg.position[i * 3 + 1] as f64;
-            gg.position[i * 3 + 2] = (((y / len) * PI).sin() * curl * len) as f32;
+            gg.position[i * 3 + 2] = (((y / len) * PI).dsin() * curl * len) as f32;
         }
         gg.touch();
     }
@@ -47,7 +47,7 @@ pub fn build_potted_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
         // mid-height, leaning out with the wall; vertical at r 0.155 it stood 3 cm off
         seam.set_rotation_order(EulerOrder::YXZ);
         seam.rotation().set(0, -a, -0.142);
-        seam.position().set(a.cos() * 0.1415, 0.16, a.sin() * 0.1415);
+        seam.position().set(a.dcos() * 0.1415, 0.16, a.dsin() * 0.1415);
         pp.add(&seam);
     }
     let rim = mesh(pg("Props__pottedPlant_rim", cyl_geo!(0.17, 0.17, 0.03, 14)), &rim_mat);
@@ -71,12 +71,12 @@ pub fn build_potted_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
         let a = (i as f64 / blade_count as f64) * PI * 2.0 + rand2(-0.15, 0.15);
         let height = rand2(0.28, 0.55);
         let blade = mesh(pg_own("Props__pottedPlant_blade", box_geo!(0.022, height, 0.005)), lambert!({ color: choice(&leaf_colors) }));
-        let x = a.cos() * rand2(0.02, 0.09);
-        let z = a.sin() * rand2(0.02, 0.09);
+        let x = a.dcos() * rand2(0.02, 0.09);
+        let z = a.dsin() * rand2(0.02, 0.09);
         blade.position().set(x, 0.32 + height / 2.0 - 0.02, z);
         // splay outward from center
-        let rx = a.sin() * rand2(0.15, 0.4);
-        let rz = -a.cos() * rand2(0.15, 0.4);
+        let rx = a.dsin() * rand2(0.15, 0.4);
+        let rz = -a.dcos() * rand2(0.15, 0.4);
         blade.rotation().set(rx, a, rz);
         // taper by scaling top thinner
         blade.geo().translate(0, 0, 0);
@@ -88,8 +88,8 @@ pub fn build_potted_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
         let a = rand2(0.0, PI * 2.0);
         let (len, wid, color, curl) = (rand2(0.12, 0.20), rand2(0.05, 0.08), choice(&leaf_colors), rand2(0.12, 0.25));
         let leaf = make_leaf_shape(len, wid, color, curl);
-        let x = a.cos() * rand2(0.02, 0.08);
-        let z = a.sin() * rand2(0.02, 0.08);
+        let x = a.dcos() * rand2(0.02, 0.08);
+        let z = a.dsin() * rand2(0.02, 0.08);
         leaf.position().set(x, 0.33, z);
         let rx = rand2(0.2, 0.6);
         let rz = rand2(-0.3, 0.3);
@@ -119,7 +119,7 @@ pub fn build_potted_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
         for p in 0..5 {
             let petal = mesh(pg("Props__pottedPlant_petal", box_geo!(0.02, 0.008, 0.03)), lambert!({ color: 0xf8e0a0 }));
             let pa = (p as f64 / 5.0) * PI * 2.0;
-            petal.position().set(fc.x + pa.cos() * 0.02, fc.y, fc.z + pa.sin() * 0.02);
+            petal.position().set(fc.x + pa.dcos() * 0.02, fc.y, fc.z + pa.dsin() * 0.02);
             petal.rotation().y = PI / 2.0 - pa; // long (z) axis radial, like its offset
             pp.add(&petal);
         }
@@ -329,7 +329,7 @@ fn drac_pot_tex() -> Tex {
         let ph = rnd() * 6.3;
         for k in 0..=64 {
             let x = k as f64 / 64.0 * w;
-            let y = top - 3.0 * (x / w * 6.28 * 3.0 + ph).sin() - rnd() * 3.0;
+            let y = top - 3.0 * (x / w * 6.28 * 3.0 + ph).dsin() - rnd() * 3.0;
             ctx.line_to(x, y);
         }
         ctx.line_to(w, h);
@@ -341,7 +341,7 @@ fn drac_pot_tex() -> Tex {
         ctx.begin_path();
         for k in 0..=64 {
             let x = k as f64 / 64.0 * w;
-            let y = top - 3.0 * (x / w * 6.28 * 3.0 + ph).sin() - rnd() * 1.5;
+            let y = top - 3.0 * (x / w * 6.28 * 3.0 + ph).dsin() - rnd() * 1.5;
             if k == 0 {
                 ctx.move_to(x, y);
             } else {
@@ -371,12 +371,12 @@ fn drac_pot_tex() -> Tex {
             ctx.set_stroke_style(format!("rgba(120,118,112,{:.2})", 0.3 + 0.4 * rnd()));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // dust specks
         for _ in 0..500 {
-            let (x, y) = (rnd() * w, h * rnd().powf(1.6));
+            let (x, y) = (rnd() * w, h * rnd().dpowf(1.6));
             ctx.set_fill_style(format!("rgba(160,156,146,{:.2})", 0.25 + 0.4 * rnd()));
             ctx.begin_path();
             ctx.arc(x, y, 0.4 + rnd() * 0.9, 0, 7);
@@ -415,7 +415,7 @@ fn drac_soil_tex() -> Tex {
             ctx.set_line_width(2.0 + rnd() * 3.0);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })

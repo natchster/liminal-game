@@ -61,8 +61,8 @@ game::lazy_static_tex!(
             let a = PI * 0.75 + (PI * 1.5) * (i as f64 / 10.0);
             ctx.set_line_width(if i % 5 == 0 { 2 } else { 1 });
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * (r - 2.0), cy + a.sin() * (r - 2.0));
-            ctx.line_to(cx + a.cos() * (r - 6.0), cy + a.sin() * (r - 6.0));
+            ctx.move_to(cx + a.dcos() * (r - 2.0), cy + a.dsin() * (r - 2.0));
+            ctx.line_to(cx + a.dcos() * (r - 6.0), cy + a.dsin() * (r - 6.0));
             ctx.stroke();
         }
         // Needle at random reading in valid arc.
@@ -71,7 +71,7 @@ game::lazy_static_tex!(
         ctx.set_line_width(2);
         ctx.begin_path();
         ctx.move_to(cx, cy);
-        ctx.line_to(cx + needle_ang.cos() * (r - 4.0), cy + needle_ang.sin() * (r - 4.0));
+        ctx.line_to(cx + needle_ang.dcos() * (r - 4.0), cy + needle_ang.dsin() * (r - 4.0));
         ctx.stroke();
         // Center pin.
         ctx.set_fill_style("#2a1810");

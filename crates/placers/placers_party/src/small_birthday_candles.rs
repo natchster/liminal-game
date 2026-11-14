@@ -46,7 +46,7 @@ pub(crate) fn place_small_birthday_candles(g: &mut Game, _dist: &[i32]) {
         let flicker_rate = 6.0 + rnd() * 4.0;
         g.animate(move |_g, _dt, t| {
             let p = t * flicker_rate + flicker_phase;
-            let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3 + (p * 3.1).sin() * 0.2;
+            let wobble = p.dsin() * 0.5 + (p * 1.7).dsin() * 0.3 + (p * 3.1).dsin() * 0.2;
             flame_light.set_intensity(0.35 + wobble * 0.08);
             flame.scale().y = 1.0 + wobble * 0.12;
             halo.scale().set_scalar(1.0 + wobble * 0.15);

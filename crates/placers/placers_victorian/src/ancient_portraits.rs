@@ -26,7 +26,7 @@ pub(crate) fn place_ancient_portraits(g: &mut Game, _dist: &[i32]) {
     portrait.add(&nail);
     let foot = group();
     foot.position().y = -APEX - SIZE.1 / 2.0;
-    foot.rotation().x = (LEAN / SIZE.1).atan();
+    foot.rotation().x = (LEAN / SIZE.1).datan();
     nail.add(&foot);
     let body = group();
     body.position().y = SIZE.1 / 2.0;

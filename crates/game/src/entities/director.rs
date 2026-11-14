@@ -845,8 +845,8 @@ impl Game {
         let (dx, dy, dz) = (head.x - c.x, head.y - c.y, head.z - c.z);
         self.shake_t = (self.shake_t - dt).max(0.0);
         let shake = self.shake_t.max(0.25) * 0.05;
-        cam.rotation().y = (-dx).atan2(-dz) + rand2(-1.0, 1.0) * shake;
-        cam.rotation().x = dy.atan2(hypot2(dx, dz)) + rand2(-1.0, 1.0) * shake;
+        cam.rotation().y = (-dx).datan2(-dz) + rand2(-1.0, 1.0) * shake;
+        cam.rotation().x = dy.datan2(hypot2(dx, dz)) + rand2(-1.0, 1.0) * shake;
         cam.rotation().z = rand2(-1.0, 1.0) * shake * 0.6;
     }
 

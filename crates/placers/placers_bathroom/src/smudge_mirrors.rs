@@ -140,15 +140,15 @@ fn sm_film_tex(vary: u32) -> Tex {
                 ctx.set_line_width(lw);
                 let pt = |t: f64| {
                     let a = a0 + span * t;
-                    let rr = rad + off + 4.0 * (t * 9.0 + ph1).sin() + 2.5 * (t * 23.0 + ph2 + off * 0.1).sin();
-                    (cx + a.cos() * rr, cy + a.sin() * rr)
+                    let rr = rad + off + 4.0 * (t * 9.0 + ph1).dsin() + 2.5 * (t * 23.0 + ph2 + off * 0.1).dsin();
+                    (cx + a.dcos() * rr, cy + a.dsin() * rr)
                 };
                 for sg in 0..segs {
                     let (t0, t1) = (sg as f64 / segs as f64, (sg + 1) as f64 / segs as f64);
                     if t1 < t_in || t0 > t_out || (!broad && (t0 - gap).abs() < 0.04) {
                         continue;
                     }
-                    let env = (PI * ((t0 + t1) / 2.0 - t_in) / (t_out - t_in)).sin().max(0.0);
+                    let env = (PI * ((t0 + t1) / 2.0 - t_in) / (t_out - t_in)).dsin().max(0.0);
                     ctx.set_stroke_style(format!("rgba(216,214,206,{:.3})", a_k * env));
                     let (x0, y0) = pt(t0);
                     let (x1, y1) = pt(t1);
@@ -180,7 +180,7 @@ fn sm_film_tex(vary: u32) -> Tex {
         // the basin's splashes, dried, thickest low down
         for _ in 0..180 {
             let x = r.next() * w;
-            let y = h * (0.4 + 0.6 * r.next().powf(0.55));
+            let y = h * (0.4 + 0.6 * r.next().dpowf(0.55));
             let rr = 0.5 + r.next() * r.next() * 2.8;
             let a = 0.08 + 0.2 * r.next();
             ctx.set_fill_style(format!("rgba(208,205,196,{a:.3})"));

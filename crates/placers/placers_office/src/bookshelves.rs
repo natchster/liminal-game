@@ -157,10 +157,10 @@ fn bs_books(body: &Obj, books: &[BsBook], vary: u32) {
             // its top on the neighbour's shoulder (the neighbour's right face)
             let room = x1 - left;
             let want = 0.12 + l.abs() * 2.0;
-            let fit = ((room - t) / h).clamp(0.0, 0.5).asin();
+            let fit = ((room - t) / h).clamp(0.0, 0.5).dasin();
             lean = want.min(fit);
             let prev = placed[k - 1].1 + placed[k - 1].2;
-            pivot.position().x = prev + h * lean.sin();
+            pivot.position().x = prev + h * lean.dsin();
         }
         pivot.rotation().z = lean;
         let book = group();
@@ -198,7 +198,7 @@ fn bs_wood_tex(vary: u32, stain: [f64; 3], up: bool) -> Tex {
                 let d = (da * da * 4.0 + db * db * 40.0).sqrt();
                 warp += 0.25 / (d * 8.0 + 0.3);
             }
-            let ring = ((b * 38.0 + warp * 9.0).sin() * 0.5 + 0.5).powf(3.0);
+            let ring = ((b * 38.0 + warp * 9.0).dsin() * 0.5 + 0.5).dpowf(3.0);
             let fleck = fbm(seed ^ 9, a * 40.0, b * 300.0, 2);
             let k = 0.86 + 0.18 * fleck - 0.22 * ring;
             let mut o = stain.map(|c| c * k);

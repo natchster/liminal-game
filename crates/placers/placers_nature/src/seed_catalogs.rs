@@ -126,7 +126,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
         for k in 0..14 {
             let a = k as f64 / 14.0 * PI * 2.0;
             let rr = 70.0 - (k % 3) as f64 * 8.0;
-            let (lx, ly) = (cx + a.cos() * rr * 0.5, cy + a.sin() * rr * 0.4);
+            let (lx, ly) = (cx + a.dcos() * rr * 0.5, cy + a.dsin() * rr * 0.4);
             let gr = ctx.create_radial_gradient(lx - 10.0, ly - 12.0, 4, lx, ly, 52);
             gr.add_color_stop(0, &css(rgb(0x94b06a), 1.0));
             gr.add_color_stop(1, &css(rgb(0x34582a), 1.0));
@@ -149,12 +149,12 @@ fn seed_cover_tex(vary: u32) -> Tex {
         for k in 0..9 {
             let a = k as f64 / 9.0 * PI * 2.0 + 0.3;
             ctx.begin_path();
-            ctx.move_to(cx + a.cos() * 8.0, cy + a.sin() * 8.0);
+            ctx.move_to(cx + a.dcos() * 8.0, cy + a.dsin() * 8.0);
             ctx.quadratic_curve_to(
-                cx + (a + 0.3).cos() * 40.0,
-                cy + (a + 0.3).sin() * 34.0,
-                cx + (a + 0.2).cos() * 66.0,
-                cy + (a + 0.2).sin() * 52.0,
+                cx + (a + 0.3).dcos() * 40.0,
+                cy + (a + 0.3).dsin() * 34.0,
+                cx + (a + 0.2).dcos() * 66.0,
+                cy + (a + 0.2).dsin() * 52.0,
             );
             ctx.stroke();
         }
@@ -163,7 +163,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
             let (x0, y0) = (90.0 + k as f64 * 26.0, 470.0 + k as f64 * 10.0);
             let (x1, y1) = (x0 + 190.0, y0 + 40.0 - k as f64 * 6.0);
             let (nx, ny) = (-(y1 - y0), x1 - x0);
-            let l = nx.hypot(ny);
+            let l = nx.dhypot(ny);
             let (nx, ny) = (nx / l * 13.0, ny / l * 13.0);
             let gr = ctx.create_linear_gradient(x0 + nx, y0 + ny, x0 - nx, y0 - ny);
             gr.add_color_stop(0, &css(rgb(0xd8842e), 1.0));
@@ -193,7 +193,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
                 let a = PI + 0.9 + j as f64 * 0.12 + r.range(-0.05, 0.05);
                 ctx.begin_path();
                 ctx.move_to(x0, y0);
-                ctx.quadratic_curve_to(x0 + a.cos() * 30.0, y0 + a.sin() * 30.0 - 10.0, x0 + a.cos() * 60.0, y0 + a.sin() * 56.0);
+                ctx.quadratic_curve_to(x0 + a.dcos() * 30.0, y0 + a.dsin() * 30.0 - 10.0, x0 + a.dcos() * 60.0, y0 + a.dsin() * 56.0);
                 ctx.stroke();
             }
         }
@@ -213,7 +213,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
             // the calyx
             for j in 0..5 {
                 let a = j as f64 / 5.0 * PI * 2.0;
-                blob(ctx, tx + a.cos() * 7.0, ty - tr * 0.8 + a.sin() * 3.0, 7.0, 0.35, a, rgb(0x3f6a2e), 1.0);
+                blob(ctx, tx + a.dcos() * 7.0, ty - tr * 0.8 + a.dsin() * 3.0, 7.0, 0.35, a, rgb(0x3f6a2e), 1.0);
             }
             blob(ctx, tx - tr * 0.4, ty - tr * 0.45, tr * 0.25, 0.6, -0.5, [1.0, 0.95, 0.9], 0.6);
         }
@@ -229,7 +229,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
             outline(ctx);
             for j in 0..5 {
                 let t = 0.2 + j as f64 * 0.14;
-                blob(ctx, x0 + 110.0 * t, y0 - 12.0 * (1.0 - (2.0 * t - 1.0).powi(2)) - 2.0, 6.0, 1.0, 0.0, rgb(0xc2dc8c), 0.5);
+                blob(ctx, x0 + 110.0 * t, y0 - 12.0 * (1.0 - (2.0 * t - 1.0).dpowi(2)) - 2.0, 6.0, 1.0, 0.0, rgb(0xc2dc8c), 0.5);
             }
         }
         // the house's name at the foot
@@ -250,10 +250,10 @@ fn seed_cover_tex(vary: u32) -> Tex {
             let edge = sstep(0.09, 0.0, u.min(1.0 - u).min(v.min(1.0 - v)));
             o = mix(o, [0.5, 0.37, 0.22], edge * 0.6);
             for &(fx, fy, fr) in &fox {
-                let d = (u - fx).hypot((v - fy) * 1.5) / fr;
+                let d = (u - fx).dhypot((v - fy) * 1.5) / fr;
                 o = mix(o, [0.58, 0.42, 0.26], sstep(1.0, 0.3, d) * 0.6);
             }
-            let d = (u - tide.0).hypot(v - tide.1) / tide.2 + 0.2 * (fbm(seed ^ 6, u * 9.0, v * 9.0, 2) - 0.5);
+            let d = (u - tide.0).dhypot(v - tide.1) / tide.2 + 0.2 * (fbm(seed ^ 6, u * 9.0, v * 9.0, 2) - 0.5);
             o = mix(o, o.map(|k| k * 0.86), sstep(1.0, 0.96, d) * 0.4 + sstep(0.93, 1.0, d) * sstep(1.04, 1.0, d) * 0.5);
             o
         });

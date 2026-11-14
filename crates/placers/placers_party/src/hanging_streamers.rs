@@ -69,7 +69,7 @@ pub(crate) fn place_hanging_streamers(g: &mut Game, _dist: &[i32]) {
             let sway_period = 6.0 + rnd() * 6.0;
             let s = hang.clone();
             g.animate(move |_g, _dt, t| {
-                s.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.012;
+                s.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.012;
             });
         }
     }
@@ -97,7 +97,7 @@ fn crepe_tex() -> Tex {
         fill(ctx, w, h, |u, v| {
             let y = v * 0.5;
             // the creping: fine ridges, uneven, a shade darker in their folds
-            let r = (y * 520.0 + vn(11, u * 4.0, y * 60.0) * 2.0).sin() * 0.5 + 0.5;
+            let r = (y * 520.0 + vn(11, u * 4.0, y * 60.0) * 2.0).dsin() * 0.5 + 0.5;
             let mut c = 0.90 - 0.07 * r * (0.6 + 0.4 * vn(12, u * 8.0, y * 30.0));
             // faded pale in patches, a tide line where water ran down it
             c += 0.08 * sstep(0.55, 0.85, fbm(13, u * 2.0, y * 6.0, 3));

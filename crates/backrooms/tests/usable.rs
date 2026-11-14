@@ -2,6 +2,7 @@
 //! is, does what a hand does, once, and gives what the floor fixed for it.
 //!
 //!   cargo test --release -p backrooms --test usable -- --nocapture
+use engine::dmath::DMath;
 use game::Game;
 
 fn new_game() -> Game {
@@ -221,9 +222,9 @@ fn a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not() {
                 if c.brain.mode == Mode::Search {
                     let (x, z, _) = c.brain.mem.heard.expect("where it heard");
                     assert!(
-                        (x - at.x).hypot(z - at.z) < 4.5,
+                        (x - at.x).dhypot(z - at.z) < 4.5,
                         "seed {seed} L{l}: it went to look {:.1} m from the page",
-                        (x - at.x).hypot(z - at.z)
+                        (x - at.x).dhypot(z - at.z)
                     );
                     went = true;
                     break;

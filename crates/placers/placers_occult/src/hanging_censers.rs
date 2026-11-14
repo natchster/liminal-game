@@ -59,7 +59,7 @@ pub(crate) fn place_hanging_censers(g: &mut Game, _dist: &[i32]) {
     {
         let swing = swing.clone();
         g.animate(move |_g, _dt, t| {
-            swing.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.03;
+            swing.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).dsin() * 0.03;
         });
     }
     g.world.add(&censer);

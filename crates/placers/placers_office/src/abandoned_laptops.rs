@@ -56,7 +56,7 @@ pub(crate) fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
             let sm = screen_mat.clone();
             g.animate(move |_g, _dt, t| {
                 let phase = (t / flicker_period) * PI * 2.0 + flicker_phase;
-                let raw = phase.cos();
+                let raw = phase.dcos();
                 let dip = if raw > 0.85 { (raw - 0.85) / 0.15 } else { 0.0 };
                 let bright = 1.0 - dip * 0.55; // 100% down to 45% during dips
                 sm.m().color.set_rgb(bright, bright, bright);
@@ -133,7 +133,7 @@ pub(crate) fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
         // Position 0.35-0.55 m from laptop.
         let bc_ang = rnd() * PI * 2.0;
         let bc_dist = 0.35 + rnd() * 0.20;
-        bc.position().set(lp.x + bc_ang.cos() * bc_dist, 0, lp.z + bc_ang.sin() * bc_dist);
+        bc.position().set(lp.x + bc_ang.dcos() * bc_dist, 0, lp.z + bc_ang.dsin() * bc_dist);
         bc.rotation().y = rnd() * PI * 2.0;
         g.world.add(&bc);
     }
@@ -150,7 +150,7 @@ pub(crate) fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
         vcup.add(&vcoffee);
         let cup_ang = rnd() * PI * 2.0;
         let cup_dist = 0.30 + rnd() * 0.25;
-        vcup.position().set(lp.x + cup_ang.cos() * cup_dist, 0, lp.z + cup_ang.sin() * cup_dist);
+        vcup.position().set(lp.x + cup_ang.dcos() * cup_dist, 0, lp.z + cup_ang.dsin() * cup_dist);
         vcup.rotation().y = rnd() * PI * 2.0;
         g.world.add(&vcup);
     }

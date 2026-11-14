@@ -137,7 +137,7 @@ fn wood_tex(salt: u32, wood: usize, across: bool) -> Tex {
             // little waved, fine streaks
             let big = fbm(seed, a * 1.2, b * 4.0, 3);
             let warp = fbm(seed ^ 1, a * 3.0, b * 14.0, 3);
-            let lines = ((b * 300.0 + warp * 5.0).sin() * 0.5 + 0.5).powf(3.0);
+            let lines = ((b * 300.0 + warp * 5.0).dsin() * 0.5 + 0.5).dpowf(3.0);
             let fine = fbm(seed ^ 5, a * 12.0, b * 110.0, 2);
             let mut c = mix(ground, dark, 0.25 + 0.35 * (big - 0.5) + 0.30 * lines + 0.25 * (fine - 0.5));
             // the finish worn through to paler wood, and gone grey-dull
@@ -183,12 +183,12 @@ fn leather_tex(salt: u32, wood: usize) -> Tex {
             c = mix(c, [0.40, 0.37, 0.32], scuff * 0.5);
             // an ink blot, and a ring where a glass stood
             let (bx, by) = (0.10 + 0.20 * hash(seed, 1, 1), 0.06 + 0.10 * hash(seed, 1, 2));
-            let blot = ((x - bx).hypot((y - by) * 1.3) + 0.004 * vn(seed ^ 0xb, x * 300.0, y * 300.0)) < 0.009;
+            let blot = ((x - bx).dhypot((y - by) * 1.3) + 0.004 * vn(seed ^ 0xb, x * 300.0, y * 300.0)) < 0.009;
             if blot {
                 c = mix(c, [0.04, 0.04, 0.06], 0.85);
             }
             let (rx, ry) = (0.32 + 0.06 * hash(seed, 2, 1), 0.12 + 0.06 * hash(seed, 2, 2));
-            let rd = ((x - rx).hypot(y - ry) - 0.032).abs();
+            let rd = ((x - rx).dhypot(y - ry) - 0.032).abs();
             if rd < 0.0018 {
                 c = mix(c, [0.40, 0.38, 0.34], 0.35 * (1.0 - rd / 0.0018));
             }
@@ -241,8 +241,8 @@ fn note_tex(salt: u32) -> Tex {
                     if inw < wlen {
                         // a stroke: the loops of a running hand round the line's middle
                         let ph = x * 2.3 + 3.0 * hash(seed, li, word as i32);
-                        let mid = 4.6 + 1.4 * (ph * 0.7).sin() * (0.5 + hash(seed, li * 7 + word as i32, 6));
-                        let yy = mid + 1.6 * ph.sin();
+                        let mid = 4.6 + 1.4 * (ph * 0.7).dsin() * (0.5 + hash(seed, li * 7 + word as i32, 6));
+                        let yy = mid + 1.6 * ph.dsin();
                         let d = (in_line - yy).abs();
                         if d < 0.35 {
                             let ink = 0.55 + 0.25 * vn(seed ^ 9, x * 0.6, y * 0.6);

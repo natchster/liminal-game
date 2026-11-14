@@ -117,10 +117,10 @@ crate::lazy_static_tex!(skin_detail_tex, {
                 ctx.begin_path();
                 ctx.move_to(x, y);
                 ctx.quadratic_curve_to(
-                    x + a.cos() * l / 2.0 - a.sin() * bend,
-                    y + a.sin() * l / 2.0 + a.cos() * bend,
-                    x + a.cos() * l,
-                    y + a.sin() * l,
+                    x + a.dcos() * l / 2.0 - a.dsin() * bend,
+                    y + a.dsin() * l / 2.0 + a.dcos() * bend,
+                    x + a.dcos() * l,
+                    y + a.dsin() * l,
                 );
                 ctx.stroke();
             });
@@ -131,8 +131,8 @@ crate::lazy_static_tex!(skin_detail_tex, {
             let mut pts = vec![(x, y)];
             for _ in 0..9 {
                 a += (rnd() - 0.5) * 0.9;
-                x += a.cos() * 11.0;
-                y += a.sin() * 11.0;
+                x += a.dcos() * 11.0;
+                y += a.dsin() * 11.0;
                 pts.push((x, y));
             }
             ctx.set_line_width(1.6 + rnd());
@@ -245,8 +245,8 @@ fn make_watcher_cloth_tex() -> Tex {
             // fold-creases: a groove with a lit lip, mostly hanging downward
             let (x, y, a) = (rnd() * w, rnd() * h, PI / 2.0 + (rnd() - 0.5) * 1.6);
             let (l, bend, k) = (12.0 + rnd() * 40.0, (rnd() - 0.5) * 12.0, 0.5 + rnd() * 0.5);
-            let (ex, ey) = (x + a.cos() * l, y + a.sin() * l);
-            let (mx, my) = ((x + ex) / 2.0 - a.sin() * bend, (y + ey) / 2.0 + a.cos() * bend);
+            let (ex, ey) = (x + a.dcos() * l, y + a.dsin() * l);
+            let (mx, my) = ((x + ex) / 2.0 - a.dsin() * bend, (y + ey) / 2.0 + a.dcos() * bend);
             wrap_draw(ctx, w, h, |ctx: &mut Canvas| {
                 ctx.set_line_width(2.2);
                 ctx.set_stroke_style(format!("rgba(255,255,255,{})", 0.16 * k));

@@ -24,21 +24,21 @@ pub(crate) fn place_small_tiaras(g: &mut Game, _dist: &[i32]) {
     for i in 0..n_arcs {
         let a0 = -PI / 2.0 + (i as f64 / n_arcs as f64) * PI;
         let a1 = -PI / 2.0 + ((i + 1) as f64 / n_arcs as f64) * PI;
-        let (x0, z0) = (a0.cos() * radius, a0.sin() * radius);
-        let (x1, z1) = (a1.cos() * radius, a1.sin() * radius);
+        let (x0, z0) = (a0.dcos() * radius, a0.dsin() * radius);
+        let (x1, z1) = (a1.dcos() * radius, a1.dsin() * radius);
         let seg_len = hypot2(x1 - x0, z1 - z0);
         let seg = mesh(pg("SmallTiaras__band", cyl_geo!(0.004, 0.004, seg_len, 5)), &gold_mat);
         seg.position().set((x0 + x1) / 2.0, 0.006, (z0 + z1) / 2.0);
         seg.rotation().x = PI / 2.0;
         // With Euler XYZ this puts the rod axis along the arc tangent.
-        seg.rotation().z = -(x1 - x0).atan2(z1 - z0);
+        seg.rotation().z = -(x1 - x0).datan2(z1 - z0);
         tiara.add(&seg);
     }
     // 5 spike points along the crown top.
     for i in 0..5 {
         let a = -PI / 4.0 + (i as f64 / 4.0) * (PI / 2.0);
-        let ax = a.cos() * radius;
-        let az = a.sin() * radius;
+        let ax = a.dcos() * radius;
+        let az = a.dsin() * radius;
         let spike = mesh(pg("SmallTiaras__spike", cone_geo!(0.008, 0.030, 4)), &gold_mat);
         // Standing up on the band.
         spike.position().set(ax, 0.022, az);

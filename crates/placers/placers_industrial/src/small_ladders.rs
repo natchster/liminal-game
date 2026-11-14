@@ -35,7 +35,7 @@ pub(crate) fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
     // stand the feet far enough out that the rail tops just touch the wall.
     ladder.set_rotation_order(EulerOrder::YXZ);
     ladder.rotation().x = -0.20 - rnd() * 0.10;
-    let foot_out = r_h * (-ladder.rot().x).sin() + 0.012;
+    let foot_out = r_h * (-ladder.rot().x).dsin() + 0.012;
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - foot_out);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - foot_out);
     if c.dx.abs() == 1 {
@@ -85,7 +85,7 @@ pub(crate) fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
             let sp_ang = rnd() * PI * 2.0;
             let sp_rad = 0.20 + rnd() * 0.20;
             let pp = paint_bucket.pos();
-            spill.position().set(pp.x + sp_ang.cos() * sp_rad, 0.004, pp.z + sp_ang.sin() * sp_rad);
+            spill.position().set(pp.x + sp_ang.dcos() * sp_rad, 0.004, pp.z + sp_ang.dsin() * sp_rad);
             g.world.add(&spill);
         }
     }

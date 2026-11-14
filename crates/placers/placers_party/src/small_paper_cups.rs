@@ -78,8 +78,8 @@ pub(crate) fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
             // mouth toward -x, the axis rising to it (the parts themselves
             // turned: the placement measures a turned part by its turned
             // box, whose corner would dip into the floor and lift it)
-            let theta = CUP_CURL.1.atan2(CUP_CURL.0 - CUP_BASE);
-            one_cup(&cup, "Real__paperCup", &mats, Some((theta, CUP_BASE * theta.sin())));
+            let theta = CUP_CURL.1.datan2(CUP_CURL.0 - CUP_BASE);
+            one_cup(&cup, "Real__paperCup", &mats, Some((theta, CUP_BASE * theta.dsin())));
             // what was in it ran out of the mouth and dried into the floor
             let stain = mesh(
                 plane_geo!(0.20, 0.13),
@@ -200,13 +200,13 @@ fn print_tex(look: usize, salt: u32, used: bool) -> Tex {
             c = mix(c, [0.86, 0.84, 0.79], 0.22);
             // rubbed where a hand held it, and at the foot
             let du = ((u - held.0 + 0.5).rem_euclid(1.0) - 0.5) * around;
-            let rub = (1.0 - ((du / 0.020).powi(2) + ((y - held.1) / 0.016).powi(2))).max(0.0);
+            let rub = (1.0 - ((du / 0.020).dpowi(2) + ((y - held.1) / 0.016).dpowi(2))).max(0.0);
             let n = fbm(seed ^ 3, u * 40.0, v * 12.0, 3);
             c = mix(c, [0.76, 0.73, 0.67], rub * (0.3 + 0.5 * n));
             c = mix(c, [0.42, 0.39, 0.34], sstep(0.010, 0.0, y) * (0.35 + 0.35 * n));
             // the drink run down from the rim, dried
             for &(d0, len) in &drip {
-                let du = ((u - d0 + 0.5).rem_euclid(1.0) - 0.5) * around + 0.0012 * (y * 300.0).sin();
+                let du = ((u - d0 + 0.5).rem_euclid(1.0) - 0.5) * around + 0.0012 * (y * 300.0).dsin();
                 let top = CUP_OUT.0 - 0.001;
                 if y > top - len && y < top {
                     let wdt = 0.0022 * (1.0 + 0.5 * ((top - y) / len));
@@ -260,8 +260,8 @@ fn pattern(look: usize, xa: f64, x: f64, y: f64, seed: u32) -> [f64; 3] {
             let h = |k: u32| hash(seed ^ k, ci as i32, cj as i32);
             let (ox, oy, ang) = (0.3 + 0.4 * h(1), 0.3 + 0.4 * h(2), h(3) * PI);
             let (dx, dy) = ((fx - ox) * cell, (fy - oy) * cell);
-            let along = dx * ang.cos() + dy * ang.sin();
-            let across = -dx * ang.sin() + dy * ang.cos();
+            let along = dx * ang.dcos() + dy * ang.dsin();
+            let across = -dx * ang.dsin() + dy * ang.dcos();
             let dot = h(5) < 0.3;
             let ink = if dot { (dx * dx + dy * dy).sqrt() < 0.0011 } else { along.abs() < 0.0016 && across.abs() < 0.0006 };
             if ink && h(6) < 0.8 {
@@ -332,7 +332,7 @@ fn inside_tex(drink: usize, level: f64, salt: u32, how: Cup) -> Tex {
                 // while as it went down
                 for (i, step) in [0.0, 0.006, 0.013].iter().enumerate() {
                     let i = i as f64;
-                    let ty = level - step + 0.0006 * (u * PI * 6.0 + i).sin();
+                    let ty = level - step + 0.0006 * (u * PI * 6.0 + i).dsin();
                     c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.0007, 0.0, (y - ty).abs()) * (0.55 - 0.15 * i));
                 }
             }
@@ -366,7 +366,7 @@ fn bottom_tex(drink: usize, salt: u32, how: Cup) -> Tex {
             let mut c = mix([0.88, 0.86, 0.80], [0.78, 0.75, 0.69], 0.3 * n);
             match how {
                 Cup::Standing | Cup::Squeezed => {
-                    let cr = (1.0 - ((vn(seed ^ 4, x * 700.0, z * 700.0) - 0.5).abs() * 9.0).min(1.0)).powi(2);
+                    let cr = (1.0 - ((vn(seed ^ 4, x * 700.0, z * 700.0) - 0.5).abs() * 9.0).min(1.0)).dpowi(2);
                     c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.45), 0.85 * (0.8 + 0.2 * n));
                     c = mix(c, mix(dc, BOARD, 0.5), cr * 0.6);
                 }
@@ -393,7 +393,7 @@ fn spill_tex(drink: usize, salt: u32) -> Tex {
             let edge = 0.30 + 0.14 * sstep(0.0, 0.7, x) + 0.10 * (fbm(seed, u * 5.0, v * 5.0, 3) - 0.5);
             let reach = 0.85 + 0.1 * (fbm(seed ^ 2, v * 4.0, 0.3, 2) - 0.5);
             // a soft round end, not a box's
-            let d = ((y / edge).powi(2) + (x / reach).powi(4)).sqrt();
+            let d = ((y / edge).dpowi(2) + (x / reach).dpowi(4)).sqrt();
             if d >= 1.0 {
                 return [dc[0], dc[1], dc[2], 0.0];
             }
@@ -411,7 +411,7 @@ fn turned(geo: &Geo, theta: f64, lift: f64) -> Geo {
     let out = geo.duplicate();
     {
         let mut gg = out.g();
-        let (s, c) = (theta.sin() as f32, theta.cos() as f32);
+        let (s, c) = (theta.dsin() as f32, theta.dcos() as f32);
         let turn = |arr: &mut Vec<f32>, dy: f32| {
             for p in arr.chunks_mut(3) {
                 let (x, y) = (p[0], p[1]);
@@ -495,7 +495,7 @@ fn part_split(name: &str) -> Option<Geo> {
                 let (u, v, key) = if tri_cap {
                     (f[2] * 0.5, 0.5 + if up { f[0] } else { 1.0 - f[0] } * 0.5, u8::from(up))
                 } else {
-                    let mut u = ((f[0] * 2.0 - 1.0).atan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
+                    let mut u = ((f[0] * 2.0 - 1.0).datan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
                     let mut key = 2;
                     if let Some(m) = side_u.map(f64::from) {
                         if u - m > 0.5 {

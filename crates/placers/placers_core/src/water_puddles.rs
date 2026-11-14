@@ -82,7 +82,7 @@ pub(crate) fn place_water_puddles(g: &mut Game, _dist: &[i32]) {
             }
             ripple.set_visible(true);
             ripple.scale().set_scalar(r / r1);
-            ripple.mat().set_opacity(life.min(1.0).powf(1.5));
+            ripple.mat().set_opacity(life.min(1.0).dpowf(1.5));
         });
     }
     scatter(g, &puddle, x, z, 2.4);
@@ -132,7 +132,7 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
             (0..(rnd() * 3.0) as usize)
                 .map(|_| {
                     let (a, rr) = (rnd() * PI * 2.0, reach * (0.95 + 0.25 * rnd()));
-                    (a.cos() * rr, a.sin() * rr, reach * (0.08 + 0.12 * rnd()))
+                    (a.dcos() * rr, a.dsin() * rr, reach * (0.08 + 0.12 * rnd()))
                 })
                 .collect()
         } else {
@@ -143,7 +143,7 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
         // stops at every grain
         let fine = if hard { 0.06 } else { 0.02 };
         let outline = move |x: f64, y: f64, rr: f64, sd: u32| -> f64 {
-            let rho = x.hypot(y) / rr;
+            let rho = x.dhypot(y) / rr;
             let (cu, cv) = if rho > 1e-6 { (x / rr / rho, y / rr / rho) } else { (1.0, 0.0) };
             let lobe = 1.0
                 + 0.42 * (fbm(sd, cu * 1.2 + 4.0, cv * 1.2 + 4.0, 3) - 0.5)
@@ -160,7 +160,7 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
                 let mut px = Px::CLEAR;
                 let mut d = outline(x, y, reach, seed);
                 for &(qx, qz, qr) in &sats {
-                    d = smin(d, (x - qx).hypot(y - qz) - qr, 0.01);
+                    d = smin(d, (x - qx).dhypot(y - qz) - qr, 0.01);
                 }
                 if hard {
                     d += (vn(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.003;
@@ -171,7 +171,7 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
                     }
                     // the damp margin, the film, the dark line of its edge
                     if d > 0.0 {
-                        px.lay([0.11, 0.105, 0.1], 0.22 * (-d / 0.012).exp() * (0.6 + 0.4 * vn(seed ^ 0x5e, x * 50.0, y * 50.0)));
+                        px.lay([0.11, 0.105, 0.1], 0.22 * (-d / 0.012).dexp() * (0.6 + 0.4 * vn(seed ^ 0x5e, x * 50.0, y * 50.0)));
                     }
                     px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.36 + 0.08 * vn(seed ^ 0x3c, x * 25.0, y * 25.0)));
                     px.lay([0.035, 0.035, 0.04], tide(d, aa, 0.0015) * 0.35);
@@ -185,7 +185,7 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
                         + (fbm(seed ^ 0x77, x * 12.0, y * 12.0, 2) - 0.5) * 0.016
                         + (fbm(seed ^ 0x78, x * 45.0, y * 45.0, 2) - 0.5) * 0.01;
                     px.lay(wet, sstep(0.012, -0.024, dd) * (0.55 + 0.15 * vn(seed ^ 0x3c, x * 30.0, y * 30.0)));
-                    px.lay([0.09, 0.07, 0.05], 0.24 * (-(dd + 0.004).abs() / 0.007).exp());
+                    px.lay([0.09, 0.07, 0.05], 0.24 * (-(dd + 0.004).abs() / 0.007).dexp());
                 }
                 // never a square's edge
                 px.a *= sstep(0.0, 0.025, r - x.abs().max(y.abs()));
@@ -220,8 +220,8 @@ fn drip_ring_mat() -> Mat {
             let v = (j as f64 + 0.5) / ch - 0.5;
             for i in 0..n {
                 let u = (i as f64 + 0.5) / cw - 0.5;
-                let q = u.hypot(v);
-                let band = |at: f64, w: f64| (-((q - at) / w).powi(2)).exp();
+                let q = u.dhypot(v);
+                let band = |at: f64, w: f64| (-((q - at) / w).dpowi(2)).dexp();
                 let mut px = Px::CLEAR;
                 px.lay([0.04, 0.045, 0.05], 0.22 * band(DRIP_RING_AT - 0.035, 0.018) + 0.1 * band(DRIP_RING_AT - 0.14, 0.014));
                 px.lay([0.62, 0.64, 0.66], 0.42 * band(DRIP_RING_AT, 0.014) + 0.16 * band(DRIP_RING_AT - 0.1, 0.012));

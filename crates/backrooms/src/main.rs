@@ -3,6 +3,7 @@
 //! Usage: `backrooms [--fullscreen] [--width W --height H] [--flags 'nosound&scp=loop@2']
 //!                   [--screenshot out.png [--frames N] [--level L] [--seed S] [--play]]`
 use engine::app::{AppConfig, AppCtx, AppHandler, Input, run};
+use engine::dmath::DMath;
 use engine::render::{LocalLight, OBlend, OverlayImage, OverlayOp, RenderGlobals, Renderer};
 use game::Game;
 use game::ui::model::{HudLayer, LayerBlend};
@@ -1071,7 +1072,7 @@ fn level_check(o: &Options, dir: &str) {
                 }
                 // (and from where that view stands)
                 if let Some(f) = g.far_figure.as_ref() {
-                    let d = ((g.player.pos.x - f.at.x).powi(2) + (g.player.pos.z - f.at.z).powi(2)).sqrt();
+                    let d = ((g.player.pos.x - f.at.x).dpowi(2) + (g.player.pos.z - f.at.z).dpowi(2)).sqrt();
                     for (_, c) in g.far_figure_cameras(&[d]) {
                         cams.push((format!("figure_{seed}_L{l}_view"), c, false));
                     }

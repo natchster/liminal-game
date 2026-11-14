@@ -78,7 +78,7 @@ game::lazy_static_tex!(
                 let a = rnd() * PI * 2.0;
                 let r = rx.min(ry) * 0.4;
                 ctx.begin_path();
-                ctx.arc(cx + a.cos() * r * 1.4, cy + a.sin() * r * 1.4, r * 0.8, 0, PI * 2.0);
+                ctx.arc(cx + a.dcos() * r * 1.4, cy + a.dsin() * r * 1.4, r * 0.8, 0, PI * 2.0);
                 ctx.fill();
             }
         }

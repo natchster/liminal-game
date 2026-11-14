@@ -75,7 +75,7 @@ fn sieve_mesh_tex(kind: usize, salt: u32) -> Tex {
             let mut c = [wire[0] * shade, wire[1] * shade, wire[2] * shade];
             c = mix(c, [0.36, 0.33, 0.27], fbm(seed ^ 5, u * 4.0, v * 4.0, 3) * 0.4);
             let fill_c = mix([0.46, 0.43, 0.37], [0.26, 0.25, 0.18], dirt);
-            let a = (a_wire.powf(0.6) * 0.95 + 0.04).min(1.0);
+            let a = (a_wire.dpowf(0.6) * 0.95 + 0.04).min(1.0);
             let c = mix(c, fill_c, clog * (1.0 - a_wire * 0.5));
             [c[0], c[1], c[2], a.max(clog * 0.9)]
         });

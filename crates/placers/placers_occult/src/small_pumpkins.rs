@@ -41,7 +41,7 @@ pub(crate) fn place_small_pumpkins(g: &mut Game, _dist: &[i32]) {
         let flicker_phase = rnd() * PI * 2.0;
         let flicker_rate = 4.0 + rnd() * 3.0;
         g.animate(move |g, _dt, t| {
-            let wobble = (t * flicker_rate + flicker_phase).sin() * 0.5 + (t * flicker_rate * 1.7 + flicker_phase).sin() * 0.3;
+            let wobble = (t * flicker_rate + flicker_phase).dsin() * 0.5 + (t * flicker_rate * 1.7 + flicker_phase).dsin() * 0.3;
             glow.set_intensity(0.4 + wobble * 0.08);
             flame.scale().y = 1.0 + wobble * 0.18;
             let m = flame.matrix_world();
@@ -78,7 +78,7 @@ fn pumpkin_skin_tex(salt: u32) -> Tex {
             let mut c = mix([0.70, 0.42, 0.18], [0.60, 0.33, 0.14], n);
             // the grooves between the lobes
             let gr = ((u - 0.05) * 10.0 + 0.04 * vn(seed ^ 3, v * 8.0, 0.0)).rem_euclid(1.0);
-            let groove = (1.0 - ((gr - 0.5).abs() * 2.0)).powi(3);
+            let groove = (1.0 - ((gr - 0.5).abs() * 2.0)).dpowi(3);
             c = mix(c, [0.42, 0.25, 0.12], (1.0 - groove) * 0.0 + (1.0 - ((gr.min(1.0 - gr)) / 0.08).min(1.0)) * 0.45);
             // the rot: soft brown patches, more on the top and the bottom
             let rot = fbm(seed ^ 5, u * 6.0, v * 4.0, 5) + 0.25 * sstep(0.7, 1.0, v) + 0.2 * (1.0 - sstep(0.0, 0.25, v));
@@ -129,7 +129,7 @@ fn flame_tex() -> Tex {
             } else if t < 0.3 {
                 half * (t / 0.3).sqrt()
             } else {
-                half * ((1.0 - t) / 0.7).powf(1.2)
+                half * ((1.0 - t) / 0.7).dpowf(1.2)
             };
             let q = if hw > 1e-6 { u.abs() / hw } else { 9.0 };
             let body = 1.0 - sstep(0.55, 1.05, q);
@@ -140,7 +140,7 @@ fn flame_tex() -> Tex {
             let (r, g, b) = (r + (0.35 - r) * foot, g + (0.5 - g) * foot, b + (1.0 - b) * foot);
             let a = body * (1.0 - dark) * (1.0 - 0.45 * foot);
             let d = (q - 1.0).max(0.0) * hw.max(0.2) + (v0 - v).max(0.0) * 1.5 + (v - v1).max(0.0) * 1.2;
-            let halo = 0.14 * (-(d / 0.22).powi(2)).exp();
+            let halo = 0.14 * (-(d / 0.22).dpowi(2)).dexp();
             [r, g, b, a + halo * (1.0 - a)]
         });
     })

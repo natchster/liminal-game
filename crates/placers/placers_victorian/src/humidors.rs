@@ -95,7 +95,7 @@ pub(crate) fn place_humidors(g: &mut Game, _dist: &[i32]) {
     let mut laid: Vec<(f64, f64, f64, f64)> = vec![];
     for c in &cigars {
         let half = CG_L * 0.5 * c.scale;
-        let (ex, ez) = (c.yaw.cos().abs() * half + CG_R, c.yaw.sin().abs() * half + CG_R);
+        let (ex, ez) = (c.yaw.dcos().abs() * half + CG_R, c.yaw.dsin().abs() * half + CG_R);
         let (cx, cz, mut y) = if c.inside {
             let (iw, id) = (HU_W * 0.5 - HU_T - HU_LIN - 0.002, HU_D * 0.5 - HU_T - HU_LIN - 0.002);
             let cx = ((c.at.0 - 0.5) * (HU_W - 0.030)).clamp(-(iw - ex).max(0.0), (iw - ex).max(0.0));
@@ -165,7 +165,8 @@ const CG_R: f64 = 0.00825;
 
 /// Do two cigars (middle x, z, turn, half length) cross, seen from above?
 fn hu_cross(a: (f64, f64, f64, f64), b: (f64, f64, f64, f64)) -> bool {
-    let seg = |c: (f64, f64, f64, f64)| ((c.0 - c.2.cos() * c.3, c.1 + c.2.sin() * c.3), (c.0 + c.2.cos() * c.3, c.1 - c.2.sin() * c.3));
+    let seg =
+        |c: (f64, f64, f64, f64)| ((c.0 - c.2.dcos() * c.3, c.1 + c.2.dsin() * c.3), (c.0 + c.2.dcos() * c.3, c.1 - c.2.dsin() * c.3));
     let (p, q) = seg(a);
     let (r, s) = seg(b);
     // the closest the two segments come, sampled
@@ -176,7 +177,7 @@ fn hu_cross(a: (f64, f64, f64, f64), b: (f64, f64, f64, f64)) -> bool {
         for j in 0..=16 {
             let u = j as f64 / 16.0;
             let (x2, z2) = (r.0 + (s.0 - r.0) * u, r.1 + (s.1 - r.1) * u);
-            best = best.min(((x - x2).powi(2) + (z - z2).powi(2)).sqrt());
+            best = best.min(((x - x2).dpowi(2) + (z - z2).dpowi(2)).sqrt());
         }
     }
     best < 2.0 * CG_R
@@ -192,7 +193,7 @@ fn hu_veneer_tex(vary: u32, kind: usize) -> Tex {
         fill(ctx, w, h, |u, v| {
             let mut o = match kind {
                 0 => {
-                    let ribbon = ((u * 70.0 + fbm(seed, u * 3.0, v * 12.0, 3) * 5.0).sin() * 0.5 + 0.5).powf(2.0);
+                    let ribbon = ((u * 70.0 + fbm(seed, u * 3.0, v * 12.0, 3) * 5.0).dsin() * 0.5 + 0.5).dpowf(2.0);
                     [0.33, 0.15, 0.08].map(|c| c * (0.85 + 0.25 * ribbon))
                 }
                 1 => {
@@ -254,7 +255,7 @@ fn hu_leaf_tex(kind: usize, dry: f64) -> Tex {
         let seed = 0x1ea + kind as u32 * 17 + dry_k;
         let d = 0.15 * dry_k as f64;
         fill(ctx, w, h, |u, v| {
-            let vein = sstep(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).sin() * 0.5 + 0.5) * (0.25 + d);
+            let vein = sstep(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).dsin() * 0.5 + 0.5) * (0.25 + d);
             let n = fbm(seed ^ 3, u * 8.0, v * 24.0, 3);
             let mut o = tone.map(|c| c * (0.8 + 0.35 * n) * (1.0 - vein));
             o = o.map(|c| c * (1.0 - 0.25 * sstep(0.92, 0.99, v)));
@@ -367,7 +368,7 @@ fn hu_matchbook_tex(vary: u32) -> Tex {
 /// the figure, `base` its colour (sRGB)
 fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [f64; 3] {
     let warp = fbm(seed ^ 0x1d, u * along * 0.15, v * across * 0.05, 3);
-    let ring = ((v * across + warp * 6.0).sin() * 0.5 + 0.5).powf(3.0);
+    let ring = ((v * across + warp * 6.0).dsin() * 0.5 + 0.5).dpowf(3.0);
     let streak = fbm(seed, u * along * 0.2, v * across, 3);
     let fine = vn(seed ^ 3, u * along * 3.0, v * across * 6.0);
     base.map(|c| c * (0.82 + 0.28 * streak + 0.06 * fine - 0.14 * ring))

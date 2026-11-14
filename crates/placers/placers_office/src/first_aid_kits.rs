@@ -58,7 +58,7 @@ pub(crate) fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
             bottle.rotation().z = PI / 2.0;
             bottle.position().y = 0.022;
         }
-        let (fx, fz) = (k_rot_y.sin(), k_rot_y.cos()); // into the room (kit front +Z)
+        let (fx, fz) = (k_rot_y.dsin(), k_rot_y.dcos()); // into the room (kit front +Z)
         let bdist = 0.30 + rnd() * 0.40;
         let by = bottle.pos().y;
         bottle.position().set(kp.x + fx * bdist + (rnd() - 0.5) * 0.4, by, kp.z + fz * bdist + (rnd() - 0.5) * 0.4);
@@ -73,7 +73,7 @@ pub(crate) fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
                 let pill = mesh(pg("FirstAidKits__pill", cyl_geo!(0.006, 0.006, 0.004, 6)), &pill_mat);
                 let p_ang = rnd() * PI * 2.0;
                 let p_rad = 0.03 + rnd() * 0.10;
-                pill.position().set(bp.x + p_ang.cos() * p_rad, 0.003, bp.z + p_ang.sin() * p_rad);
+                pill.position().set(bp.x + p_ang.dcos() * p_rad, 0.003, bp.z + p_ang.dsin() * p_rad);
                 g.world.add(&pill);
             }
         }
@@ -94,7 +94,7 @@ pub(crate) fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
         plunger.rotation().z = PI / 2.0;
         plunger.position().x = -0.034;
         syringe.add(&plunger);
-        let (fx, fz) = (k_rot_y.sin(), k_rot_y.cos()); // into the room (kit front +Z)
+        let (fx, fz) = (k_rot_y.dsin(), k_rot_y.dcos()); // into the room (kit front +Z)
         let sdist = 0.20 + rnd() * 0.30;
         syringe.position().set(kp.x + fx * sdist + (rnd() - 0.5) * 0.3, 0.008, kp.z + fz * sdist + (rnd() - 0.5) * 0.3);
         syringe.rotation().y = rnd() * PI * 2.0;
@@ -116,7 +116,7 @@ pub(crate) fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
         let clip = mesh(pg("Clipboards__clip", box_geo!(0.06, 0.012, 0.02)), &clip_mat);
         clip.position().set(0, 0.014, -0.11);
         clipboard.add(&clip);
-        let (fx, fz) = (k_rot_y.sin(), k_rot_y.cos()); // into the room (kit front +Z)
+        let (fx, fz) = (k_rot_y.dsin(), k_rot_y.dcos()); // into the room (kit front +Z)
         let dist = 0.3 + rnd() * 0.4;
         clipboard.position().set(kp.x + fx * dist + (rnd() - 0.5) * 0.4, 0, kp.z + fz * dist + (rnd() - 0.5) * 0.4);
         clipboard.rotation().y = rnd() * PI * 2.0;
@@ -148,7 +148,7 @@ pub(crate) fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
         strap.position().set(0, 0.006, -0.030); // behind the rims (outer z −0.028)
         goggles.add(&strap);
         // kit front is local +Z: (sin, cos) of its yaw points into the room
-        let (gfx, gfz) = (k_rot_y.sin(), k_rot_y.cos());
+        let (gfx, gfz) = (k_rot_y.dsin(), k_rot_y.dcos());
         let g_dist = 0.35 + rnd() * 0.35;
         goggles.position().set(kp.x + gfx * g_dist + (rnd() - 0.5) * 0.4, 0, kp.z + gfz * g_dist + (rnd() - 0.5) * 0.4);
         goggles.rotation().y = rnd() * PI * 2.0;

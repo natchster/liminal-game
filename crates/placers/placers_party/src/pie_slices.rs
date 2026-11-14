@@ -56,7 +56,7 @@ pub(crate) fn place_pie_slices(g: &mut Game, _dist: &[i32]) {
         // The wedge's centre line is at (sin, cos) of its angle (the cylinder's theta
         // convention), 3 cm out where the slice is wide enough for the dollop.
         let ang = filling.rot().y + PI / 6.0;
-        cream.position().set(ang.sin() * 0.030, 0.006 + slice_h + 0.004, ang.cos() * 0.030);
+        cream.position().set(ang.dsin() * 0.030, 0.006 + slice_h + 0.004, ang.dcos() * 0.030);
         cream.scale().y = 0.7;
         pie.add(&cream);
     }

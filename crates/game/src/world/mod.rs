@@ -312,7 +312,7 @@ impl Game {
         let hit_tile = |x: i32, z: i32| {
             let cx = clamp(px, self.wx(x) - CELL / 2.0, self.wx(x) + CELL / 2.0);
             let cz = clamp(pz, self.wz(z) - CELL / 2.0, self.wz(z) + CELL / 2.0);
-            (px - cx).powi(2) + (pz - cz).powi(2) < r * r
+            (px - cx).dpowi(2) + (pz - cz).dpowi(2) < r * r
         };
         if let Some(s) = &self.solids {
             // (what is over a body's head counts from the floor it stands on)
@@ -485,7 +485,7 @@ impl Game {
                 if self.is_wall_tile(x + dx, z + dz) {
                     continue;
                 }
-                let d = (self.wx(x + dx) - px).powi(2) + (self.wz(z + dz) - pz).powi(2);
+                let d = (self.wx(x + dx) - px).dpowi(2) + (self.wz(z + dz) - pz).dpowi(2);
                 if d < bd {
                     bd = d;
                     best = Some((x + dx, z + dz));
@@ -511,8 +511,8 @@ impl Game {
     pub fn biased_spawn_angle(&self) -> f64 {
         let mut ang = rnd() * PI * 2.0;
         let yaw = if self.player.yaw.is_nan() { 0.0 } else { self.player.yaw };
-        let (dx, dz) = (ang.cos(), ang.sin());
-        let (fx, fz) = (-yaw.sin(), -yaw.cos());
+        let (dx, dz) = (ang.dcos(), ang.dsin());
+        let (fx, fz) = (-yaw.dsin(), -yaw.dcos());
         let dot = dx * fx + dz * fz;
         // dot > 0.5 → within ~60° of forward; reject 60% of the time by flipping
         if dot > 0.5 && rnd() < 0.6 {
@@ -526,7 +526,7 @@ impl Game {
         let d0 = (dx * dx + dz * dz).sqrt();
         let d = if d0 == 0.0 || d0.is_nan() { 1.0 } else { d0 };
         let yaw = if self.player.yaw.is_nan() { 0.0 } else { self.player.yaw };
-        let (rx, rz) = (yaw.cos(), -yaw.sin());
+        let (rx, rz) = (yaw.dcos(), -yaw.dsin());
         let pan = (dx * rx + dz * rz) / d;
         clamp(pan, -1.0, 1.0) * 0.85
     }
@@ -536,7 +536,7 @@ impl Game {
             let (dx, dz) = (x - self.player.pos.x, z - self.player.pos.z);
             entry.dist = Some((dx * dx + dz * dz).sqrt());
             // compass bearing — 0 rad = -Z is the player's "north"
-            let ang_deg = (dx.atan2(-dz) * 180.0 / PI + 360.0) % 360.0;
+            let ang_deg = (dx.datan2(-dz) * 180.0 / PI + 360.0) % 360.0;
             const DIRS: [&str; 8] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
             entry.bearing = Some(DIRS[(round_half_up(ang_deg / 45.0) as i64).rem_euclid(8) as usize].to_string());
         }
@@ -973,7 +973,7 @@ impl Game {
             pos: Vec3::new(self.wx(x) + fx * (CELL / 2.0 - 0.06), 0.0, self.wz(z) + fz * (CELL / 2.0 - 0.06)),
             // -dx of a 0 is -0 (it decides atan2's sign)
             normal: Vec3::new(-fx, 0.0, -fz),
-            yaw: (-fx).atan2(-fz),
+            yaw: (-fx).datan2(-fz),
         })
     }
 }

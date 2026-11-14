@@ -51,9 +51,9 @@ pub(crate) fn place_moon_globes(g: &mut Game, _dist: &[i32]) {
         let u = rnd() * PI * 2.0;
         let v = rnd() * (PI * 0.75) + PI * 0.125;
         let rr = globe_r * 1.005;
-        let mx = u.cos() * v.sin() * rr;
-        let my = v.cos() * rr;
-        let mz = u.sin() * v.sin() * rr;
+        let mx = u.dcos() * v.dsin() * rr;
+        let my = v.dcos() * rr;
+        let mz = u.dsin() * v.dsin() * rr;
         let maria = mesh(circle_geo!(0.015 + rnd() * 0.010, 8), &maria_mat);
         maria.position().set(mx, my, mz);
         maria.look_at(0, 0, 0);
@@ -69,9 +69,9 @@ pub(crate) fn place_moon_globes(g: &mut Game, _dist: &[i32]) {
         let u = rnd() * PI * 2.0;
         let v = rnd() * PI + 0.05;
         let rr = globe_r * 1.003;
-        let cx = u.cos() * v.sin() * rr;
-        let cy = v.cos() * rr;
-        let cz = u.sin() * v.sin() * rr;
+        let cx = u.dcos() * v.dsin() * rr;
+        let cy = v.dcos() * rr;
+        let cz = u.dsin() * v.dsin() * rr;
         let crater = mesh(circle_geo!(0.004 + rnd() * 0.006, 6), &crater_mat);
         crater.position().set(cx, cy, cz);
         crater.look_at(0, 0, 0);

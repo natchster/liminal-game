@@ -2,6 +2,7 @@
 //! would, and the floor stays whole round it.
 //!
 //!   cargo test --release -p backrooms --test barricades -- --nocapture
+use engine::dmath::DMath;
 use game::Game;
 
 fn new_game() -> Game {
@@ -160,7 +161,7 @@ fn where_barricades_stand() {
             let w = if b.along_x { b.z1 - b.z0 } else { b.x1 - b.x0 };
             assert!((0.9..=4.1).contains(&w), "seed {seed} L{l}: an opening {w:.2} m wide");
             assert!(
-                g.spawn_pos.x.hypot(0.0) >= 0.0 && (cx - g.spawn_pos.x).hypot(cz - g.spawn_pos.z) >= 6.0,
+                g.spawn_pos.x.dhypot(0.0) >= 0.0 && (cx - g.spawn_pos.x).dhypot(cz - g.spawn_pos.z) >= 6.0,
                 "seed {seed} L{l}: a barricade by the spawn"
             );
         }

@@ -97,7 +97,7 @@ pub(crate) fn place_gentle_rockers(g: &mut Game, _dist: &[i32]) {
         let rg2 = rock_group.clone();
         g.animate(move |_g, _dt, t| {
             // Very slow gentle rocking — 0.7 Hz, ±3° amplitude.
-            rg2.rotation().x = (t * 0.7 + rock_phase).sin() * 0.05;
+            rg2.rotation().x = (t * 0.7 + rock_phase).dsin() * 0.05;
         });
     }
     let px = g.wx(x) + (rnd() - 0.5) * 1.2;

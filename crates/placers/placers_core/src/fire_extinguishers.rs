@@ -42,7 +42,7 @@ pub(crate) fn place_fire_extinguishers(g: &mut Game, _dist: &[i32]) {
     // (local x −0.165): turn −X to the wall and put that plate on it
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.165);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.165);
-    extg.rotation().y = (c.dz as f64).atan2(-(c.dx as f64));
+    extg.rotation().y = (c.dz as f64).datan2(-(c.dx as f64));
     if c.dx.abs() == 1 {
         extg.position().set(wall_x, 0, wall_z + (rnd() - 0.5) * 1.2);
     } else {

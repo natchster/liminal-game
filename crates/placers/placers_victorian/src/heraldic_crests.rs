@@ -77,12 +77,12 @@ fn crest_in(x: f64, y: f64) -> f64 {
     let ax = x.abs();
     let side = if y > 0.0 {
         if ax > CREST_HW - CREST_RC && y > CREST_TOP - CREST_RC {
-            CREST_RC - ((ax - (CREST_HW - CREST_RC)).powi(2) + (y - (CREST_TOP - CREST_RC)).powi(2)).sqrt()
+            CREST_RC - ((ax - (CREST_HW - CREST_RC)).dpowi(2) + (y - (CREST_TOP - CREST_RC)).dpowi(2)).sqrt()
         } else {
             CREST_HW - ax
         }
     } else {
-        CREST_R - ((ax - CREST_CX).powi(2) + y * y).sqrt()
+        CREST_R - ((ax - CREST_CX).dpowi(2) + y * y).sqrt()
     };
     side.min(CREST_TOP - y)
 }
@@ -205,9 +205,9 @@ fn mullet(ctx: &mut Canvas, x: f64, y: f64, r: f64) {
         let a = -PI / 2.0 + k as f64 * PI / 5.0;
         let rr = if k % 2 == 0 { r } else { r * 0.40 };
         if k == 0 {
-            ctx.move_to(x + rr * a.cos(), y + rr * a.sin());
+            ctx.move_to(x + rr * a.dcos(), y + rr * a.dsin());
         } else {
-            ctx.line_to(x + rr * a.cos(), y + rr * a.sin());
+            ctx.line_to(x + rr * a.dcos(), y + rr * a.dsin());
         }
     }
     ctx.close_path();

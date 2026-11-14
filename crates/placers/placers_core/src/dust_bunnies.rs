@@ -94,7 +94,7 @@ game::lazy_static_tex!(
             ctx.begin_path();
             ctx.move_to(x, y);
             let bend = (rnd() - 0.5) * 1.6;
-            ctx.quadratic_curve_to(x + (a + bend).cos() * l * 0.5, y + (a + bend).sin() * l * 0.5, x + a.cos() * l, y + a.sin() * l);
+            ctx.quadratic_curve_to(x + (a + bend).dcos() * l * 0.5, y + (a + bend).dsin() * l * 0.5, x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
     })
@@ -126,7 +126,7 @@ game::lazy_static_tex!(
             ctx.begin_path();
             ctx.move_to(x, y);
             let bend = (rnd() - 0.5) * 1.2;
-            ctx.quadratic_curve_to(x + (a + bend).cos() * l * 0.5, y + (a + bend).sin() * l * 0.5, x + a.cos() * l, y + a.sin() * l);
+            ctx.quadratic_curve_to(x + (a + bend).dcos() * l * 0.5, y + (a + bend).dsin() * l * 0.5, x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // hairs, dark and long
@@ -138,7 +138,7 @@ game::lazy_static_tex!(
             ctx.set_line_width(0.6);
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.quadratic_curve_to(x + (a + 0.6).cos() * l * 0.5, y + (a + 0.6).sin() * l * 0.5, x + a.cos() * l, y + a.sin() * l);
+            ctx.quadratic_curve_to(x + (a + 0.6).dcos() * l * 0.5, y + (a + 0.6).dsin() * l * 0.5, x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // grit and the dark of the felt's hollows
@@ -170,7 +170,7 @@ fn dust_film_tex(spots: Vec<(f64, f64, f64)>, hard: bool, vary: u32) -> Tex {
                 let x = (i as f64 + 0.5) * s - side / 2.0;
                 let mut near = 0.0f64;
                 for &(bx, bz, r) in &spots2 {
-                    near += (-((x - bx).hypot(y - bz) / (r * 2.5 + 0.03)).powi(2)).exp();
+                    near += (-((x - bx).dhypot(y - bz) / (r * 2.5 + 0.03)).dpowi(2)).dexp();
                 }
                 let cloud = fbm(seed, x * 18.0, y * 18.0, 4);
                 let edge = sstep(0.0, 0.08, side / 2.0 - x.abs().max(y.abs()));
@@ -190,7 +190,7 @@ fn dust_film_tex(spots: Vec<(f64, f64, f64)>, hard: bool, vary: u32) -> Tex {
             let (bx, bz, r) = spots[k % spots.len()];
             let a = rnd() * PI * 2.0;
             let d = r * (0.6 + 2.5 * rnd() * rnd());
-            let (x, y) = (to_px(bx + a.cos() * d), to_px(bz + a.sin() * d));
+            let (x, y) = (to_px(bx + a.dcos() * d), to_px(bz + a.dsin() * d));
             let hair = k % 9 == 0;
             let l = if hair { 30.0 + rnd() * 40.0 } else { 5.0 + rnd() * 14.0 };
             let b = rnd() * PI * 2.0;
@@ -204,7 +204,7 @@ fn dust_film_tex(spots: Vec<(f64, f64, f64)>, hard: bool, vary: u32) -> Tex {
             ctx.begin_path();
             ctx.move_to(x, y);
             let bend = (rnd() - 0.5) * 1.6;
-            ctx.quadratic_curve_to(x + (b + bend).cos() * l * 0.5, y + (b + bend).sin() * l * 0.5, x + b.cos() * l, y + b.sin() * l);
+            ctx.quadratic_curve_to(x + (b + bend).dcos() * l * 0.5, y + (b + bend).dsin() * l * 0.5, x + b.dcos() * l, y + b.dsin() * l);
             ctx.stroke();
         }
     })

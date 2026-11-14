@@ -122,7 +122,7 @@ fn card_tex(board: u32, vary: u32) -> Tex {
             ctx.move_to(0, y0);
             let mut xx = 0.0;
             while xx <= w {
-                ctx.line_to(xx, y0 + (xx * 0.09).sin() * 2.0 + (rnd() - 0.5) * 2.0);
+                ctx.line_to(xx, y0 + (xx * 0.09).dsin() * 2.0 + (rnd() - 0.5) * 2.0);
                 xx += 8.0;
             }
             ctx.stroke();

@@ -77,7 +77,7 @@ pub(crate) fn place_wallets(g: &mut Game, _dist: &[i32]) {
         bill.add(&portrait);
         let ang = (rnd() - 0.5) * PI * 1.5;
         let rr = 0.08 + rnd() * 0.06;
-        bill.position().set(ang.cos() * rr, 0.0005 + i as f64 * 0.001, ang.sin() * rr);
+        bill.position().set(ang.dcos() * rr, 0.0005 + i as f64 * 0.001, ang.dsin() * rr);
         bill.rotation().y = rnd() * PI * 2.0;
         // Slight bend (rotate around random axis).
         bill.rotation().z = (rnd() - 0.5) * 0.2;

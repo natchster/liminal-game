@@ -1,5 +1,6 @@
 //! Value noise and the curves the placers paint with: a lattice hash, value noise, fractal sums of it, smooth steps, mixes.
 
+use engine::dmath::DMath;
 /// The distance between the nearest and next nearest of the tile's cell
 /// points (`n` cells across, repeating): small along the cells' edges
 pub fn cell_edge(seed: u32, u: f64, v: f64, n: i32) -> f64 {
@@ -12,7 +13,7 @@ pub fn cell_edge(seed: u32, u: f64, v: f64, n: i32) -> f64 {
             let (wi, wj) = (ci.rem_euclid(n), cj.rem_euclid(n));
             let fx = f64::from(ci) + 0.15 + 0.7 * hash(seed, wi, wj);
             let fy = f64::from(cj) + 0.15 + 0.7 * hash(seed ^ 0x5bd1, wi, wj);
-            let d = ((x - fx).powi(2) + (y - fy).powi(2)).sqrt();
+            let d = ((x - fx).dpowi(2) + (y - fy).dpowi(2)).sqrt();
             if d < d1 {
                 d2 = d1;
                 d1 = d;
@@ -34,7 +35,7 @@ pub fn crack(seed: u32, x: f64, y: f64) -> f64 {
             let (ix, iy) = (cx + dx, cy + dy);
             let px = f64::from(ix) + 0.1 + 0.8 * hash(seed, ix, iy);
             let py = f64::from(iy) + 0.1 + 0.8 * hash(seed ^ 0x55, ix, iy);
-            let d = ((x - px).powi(2) + (y - py).powi(2)).sqrt();
+            let d = ((x - px).dpowi(2) + (y - py).dpowi(2)).sqrt();
             if d < d1 {
                 d2 = d1;
                 d1 = d;
@@ -114,7 +115,7 @@ pub fn specks(seed: u32, x: f64, y: f64, cell: f64, like: f64, r0: f64, r1: f64,
         }
         let (px, py) = ((f64::from(ci) + hash(seed ^ 0x77, ci, cj)) * cell, (f64::from(cj) + hash(seed ^ 0x78, ci, cj)) * cell);
         let r = r0 + r1 * hash(seed ^ 0x79, ci, cj);
-        let cov = (0.5 - ((x - px).hypot(y - py) - r) / aa).clamp(0.0, 1.0);
+        let cov = (0.5 - ((x - px).dhypot(y - py) - r) / aa).clamp(0.0, 1.0);
         if cov > best {
             best = cov;
             hk = hash(seed ^ 0x7a, ci, cj);
@@ -133,7 +134,7 @@ pub fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
 /// one of its rims: sharp on its outside (over `aa`), what the water left
 /// there fading inward over `ew`
 pub fn tide(d: f64, aa: f64, ew: f64) -> f64 {
-    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
+    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).dexp()
 }
 
 /// Value noise in [0, 1]
@@ -167,7 +168,7 @@ pub fn worley(seed: u32, x: f64, y: f64) -> (f64, f64) {
             let (ii, jj) = (x.floor() as i32 + di, y.floor() as i32 + dj);
             let fx = ii as f64 + hash(seed, ii, jj);
             let fy = jj as f64 + hash(seed ^ 77, ii, jj);
-            let d = (fx - x).hypot(fy - y);
+            let d = (fx - x).dhypot(fy - y);
             if d < d1 {
                 d2 = d1;
                 d1 = d;

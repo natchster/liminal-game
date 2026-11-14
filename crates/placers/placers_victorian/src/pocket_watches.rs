@@ -96,13 +96,13 @@ pub(crate) fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
     let chain = group();
     pw.add(&chain);
     let (x0, x1, z1) = (PW_CHAIN_X, chain_end_x, chain_end_z);
-    let at = |t: f64| (x0 + t * (x1 - x0), t * z1 + (t * PI).sin() * 0.008);
+    let at = |t: f64| (x0 + t * (x1 - x0), t * z1 + (t * PI).dsin() * 0.008);
     // its length, then the links every 4.4 mm along it
     let mut len = 0.0;
     let mut prev = at(0.0);
     for i in 1..=64 {
         let p = at(i as f64 / 64.0);
-        len += ((p.0 - prev.0).powi(2) + (p.1 - prev.1).powi(2)).sqrt();
+        len += ((p.0 - prev.0).dpowi(2) + (p.1 - prev.1).dpowi(2)).sqrt();
         prev = p;
     }
     let links = (len / 0.0044).round().max(4.0) as usize;
@@ -113,22 +113,22 @@ pub(crate) fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
         let (bx, bz) = at((t - 0.01).max(0.0));
         let l = group();
         l.position().set(lx, if i % 2 == 0 { 0.0 } else { 0.0003 }, lz);
-        l.rotation().y = -(az - bz).atan2(ax - bx);
+        l.rotation().y = -(az - bz).datan2(ax - bx);
         put(&l, "Real__pocketWatchLink", &case);
         chain.add(&l);
     }
     // what hangs at its end: a T-bar (60%), a winding key (30%), or nothing
     let (ex, ez) = at(1.0);
     let (bx, bz) = at(0.98);
-    let dir = (ez - bz).atan2(ex - bx);
+    let dir = (ez - bz).datan2(ex - bx);
     let end = group();
     end.rotation().y = -dir;
     end.position().set(ex, 0, ez);
     if chain_end_roll < 0.60 {
-        end.position().set(ex + dir.cos() * 0.0040, 0, ez + dir.sin() * 0.0040);
+        end.position().set(ex + dir.dcos() * 0.0040, 0, ez + dir.dsin() * 0.0040);
         put(&end, "Real__pocketWatchTBar", &case);
     } else if chain_end_roll < 0.90 {
-        end.position().set(ex + dir.cos() * 0.0110, 0, ez + dir.sin() * 0.0110);
+        end.position().set(ex + dir.dcos() * 0.0110, 0, ez + dir.dsin() * 0.0110);
         put(&end, "Real__pocketWatchKey", &case);
     }
     pw.add(&end);
@@ -218,8 +218,8 @@ fn pw_dial_tex(vary: u32) -> Tex {
             let l = if k % 5 == 0 { 1.6 } else { 1.2 };
             ctx.set_line_width(if k % 5 == 0 { 1.4 } else { 0.7 });
             ctx.begin_path();
-            ctx.move_to(cx + a.sin() * 19.6 * mm, cy - a.cos() * 19.6 * mm);
-            ctx.line_to(cx + a.sin() * (19.6 - l) * mm, cy - a.cos() * (19.6 - l) * mm);
+            ctx.move_to(cx + a.dsin() * 19.6 * mm, cy - a.dcos() * 19.6 * mm);
+            ctx.line_to(cx + a.dsin() * (19.6 - l) * mm, cy - a.dcos() * (19.6 - l) * mm);
             ctx.stroke();
         }
         const NUM: [&str; 12] = ["XII", "I", "II", "III", "IIII", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
@@ -232,7 +232,7 @@ fn pw_dial_tex(vary: u32) -> Tex {
             }
             let a = k as f64 * PI / 6.0;
             ctx.save();
-            ctx.translate(cx + a.sin() * 15.3 * mm, cy - a.cos() * 15.3 * mm);
+            ctx.translate(cx + a.dsin() * 15.3 * mm, cy - a.dcos() * 15.3 * mm);
             ctx.rotate(a);
             ctx.scale(0.78, 1.0);
             ctx.fill_text(t, 0, 0);
@@ -254,8 +254,8 @@ fn pw_dial_tex(vary: u32) -> Tex {
                 0.5
             };
             ctx.begin_path();
-            ctx.move_to(sx + a.sin() * 5.0 * mm, sy - a.cos() * 5.0 * mm);
-            ctx.line_to(sx + a.sin() * (5.0 - l) * mm, sy - a.cos() * (5.0 - l) * mm);
+            ctx.move_to(sx + a.dsin() * 5.0 * mm, sy - a.dcos() * 5.0 * mm);
+            ctx.line_to(sx + a.dsin() * (5.0 - l) * mm, sy - a.dcos() * (5.0 - l) * mm);
             ctx.stroke();
         }
         ctx.set_font(&format!("{:.0}px Times New Roman", 1.7 * mm));

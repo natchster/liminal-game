@@ -14,6 +14,7 @@
 //! triangles, bounds); the test fails when it is out of date, and
 //! `REGEN=1 cargo test --release -p game --test asset_lint` rewrites it, so
 //! the diff of a mesh change is a readable table.
+use engine::dmath::DMath;
 use game::assets::creatures::{creature_part_info, creature_part_names, decode_creature};
 use game::assets::props::{decode, prop_part_info, prop_part_names};
 
@@ -139,7 +140,7 @@ fn script_budgets() -> ScriptBudgets {
 }
 
 fn budget_for(fmin: [f64; 3], fmax: [f64; 3]) -> usize {
-    let d = ((fmax[0] - fmin[0]).powi(2) + (fmax[1] - fmin[1]).powi(2) + (fmax[2] - fmin[2]).powi(2)).sqrt();
+    let d = ((fmax[0] - fmin[0]).dpowi(2) + (fmax[1] - fmin[1]).dpowi(2) + (fmax[2] - fmin[2]).dpowi(2)).sqrt();
     match d {
         d if d < 0.03 => 100,
         d if d < 0.12 => 280,

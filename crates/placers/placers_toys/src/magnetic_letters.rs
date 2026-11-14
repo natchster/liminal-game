@@ -114,7 +114,7 @@ fn fridge_letter_tex() -> Tex {
             ctx.set_stroke_style(if rnd() < 0.7 { "rgba(252,248,240,0.4)" } else { "rgba(44,38,32,0.3)" });
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         for _ in 0..90 {

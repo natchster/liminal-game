@@ -79,9 +79,9 @@ pub(crate) fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
     for i in 0..8 {
         let angle = (i as f64 / 8.0) * PI * 2.0;
         let strand = mesh(pg("ServantBellPulls__strand", cyl_geo!(0.001, 0.001, 0.055, 3)), &cord_mat);
-        strand.position().set(angle.cos() * 0.010, cord_bot_y - 0.065, 0.020 + angle.sin() * 0.010);
-        strand.rotation().x = angle.sin() * 0.15;
-        strand.rotation().z = -angle.cos() * 0.15;
+        strand.position().set(angle.dcos() * 0.010, cord_bot_y - 0.065, 0.020 + angle.dsin() * 0.010);
+        strand.rotation().x = angle.dsin() * 0.15;
+        strand.rotation().z = -angle.dcos() * 0.15;
         bp.add(&strand);
     }
     // Subtle sway animator on the cord + tassel + strands + braids.
@@ -102,11 +102,11 @@ pub(crate) fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
     }
     let sway_base_x: Vec<f64> = swayers.iter().map(|s| s.pos().x).collect();
     g.animate(move |_g, _dt, t| {
-        let sway_angle = (t * sway_freq + sway_phase).sin() * 0.020;
+        let sway_angle = (t * sway_freq + sway_phase).dsin() * 0.020;
         for i in 0..swayers.len() {
             let s = &swayers[i];
             let y_delta = s.pos().y - cord_top_y; // negative
-            s.position().x = sway_base_x[i] + -(sway_angle.sin() * y_delta);
+            s.position().x = sway_base_x[i] + -(sway_angle.dsin() * y_delta);
         }
         // The cord pivots at its top instead of sliding sideways off the spring.
         cord.rotation().z = sway_angle;

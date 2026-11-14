@@ -106,7 +106,7 @@ impl Flakes {
     /// How far the damp got, 0-1 (none by the plane's edges)
     pub fn env(&self, x: f64, y: f64) -> f64 {
         let (dx, dy) = ((x - self.mid.0) / self.reach.0, (y - self.mid.1) / self.reach.1);
-        let q = dx.hypot(dy) * (1.0 + 0.5 * (fbm(self.seed ^ 0x61, x * 7.0, y * 7.0, 3) - 0.5));
+        let q = dx.dhypot(dy) * (1.0 + 0.5 * (fbm(self.seed ^ 0x61, x * 7.0, y * 7.0, 3) - 0.5));
         sstep(1.0, 0.25, q) * sstep(0.0, 0.03, (self.pw / 2.0 - x.abs()).min(self.ph / 2.0 - y.abs()))
     }
 
@@ -135,7 +135,7 @@ impl Flakes {
         for (k, pt) in pts.iter_mut().enumerate() {
             let (i, j) = (gi + k as i32 % 3 - 1, gj + k as i32 / 3 - 1);
             let c = ((f64::from(i) + 0.15 + 0.7 * hash(s, i, j)) * cell, (f64::from(j) + 0.15 + 0.7 * hash(s ^ 0x5, i, j)) * cell);
-            let d = (q.0 - c.0).hypot(q.1 - c.1);
+            let d = (q.0 - c.0).dhypot(q.1 - c.1);
             *pt = (c, (i, j));
             if d < best.0 {
                 best = (d, k);
@@ -150,7 +150,7 @@ impl Flakes {
                 continue;
             }
             let (vx, vy) = (b.0 - a.0, b.1 - a.1);
-            let l = vx.hypot(vy).max(1e-9);
+            let l = vx.dhypot(vy).max(1e-9);
             let d = ((a.0 + b.0) / 2.0 - q.0) * vx / l + ((a.1 + b.1) / 2.0 - q.1) * vy / l;
             d_crack = d_crack.min(d);
             if d < d_edge && state(b, ij.0, ij.1) != ga {
@@ -218,11 +218,11 @@ impl Flakes {
         while out.len() < want && !found.is_empty() && tries < 60 {
             tries += 1;
             let (x, y, n) = found[(r.f() * found.len() as f64) as usize % found.len()];
-            if out.iter().any(|o| (o.0 - x).hypot(o.1 - y) < 0.05) {
+            if out.iter().any(|o| (o.0 - x).dhypot(o.1 - y) < 0.05) {
                 continue;
             }
             // the flake's free side (its +y) into the hole
-            let ang = (-n.0).atan2(n.1);
+            let ang = (-n.0).datan2(n.1);
             out.push((x, y, ang, (r.f() * 3.0) as usize % 3, 0.85 + 0.3 * r.f()));
         }
         out
@@ -263,7 +263,7 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
         .map(|&(x, y, ang, k, sc)| {
             let l = LEN[k] * sc;
             // the curl stands over the hole beside its foot; its shadow falls below it
-            let (nx, ny) = (-ang.sin(), ang.cos());
+            let (nx, ny) = (-ang.dsin(), ang.dcos());
             (x + nx * l * 0.35, y + ny * l * 0.35 - 0.004, l * 0.55)
         })
         .collect();
@@ -307,7 +307,7 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
             // where the edge is above it (and wider under a lifted edge)
             let below = (-h.n.1).max(0.0);
             let w = if h.lifted { 0.0035 } else { 0.0012 };
-            lay(&mut px, SHADE, (0.55 * below + 0.12) * (-h.d / w).exp() * sstep(-aa, 0.0, h.d));
+            lay(&mut px, SHADE, (0.55 * below + 0.12) * (-h.d / w).dexp() * sstep(-aa, 0.0, h.d));
         } else {
             // the film's broken edge catching the light where it faces up
             let up = h.n.1.max(0.0);
@@ -327,9 +327,9 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
         }
         // the curled flakes' shadows
         for &(sx, sy, sr) in &shadows {
-            let q = (x - sx).hypot((y - sy) * 1.4) / sr;
+            let q = (x - sx).dhypot((y - sy) * 1.4) / sr;
             if q < 1.5 {
-                lay(&mut px, SHADE, 0.32 * (-q * q * 2.0).exp());
+                lay(&mut px, SHADE, 0.32 * (-q * q * 2.0).dexp());
             }
         }
         px

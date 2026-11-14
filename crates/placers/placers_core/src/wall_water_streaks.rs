@@ -139,7 +139,7 @@ impl Run {
     /// it slowed and spread, narrowing again to the drop it ended in
     fn half(&self, y: f64) -> f64 {
         let t = ((y - self.y0) / (self.y1 - self.y0)).clamp(0.0, 1.0);
-        let grow = self.w0 + (self.w1 - self.w0) * (t / 0.45).min(1.0).powf(0.6);
+        let grow = self.w0 + (self.w1 - self.w0) * (t / 0.45).min(1.0).dpowf(0.6);
         grow * (1.0 - self.taper * sstep(0.45, 1.0, t)) * (0.6 + 0.8 * fbm(self.s ^ 0x2c1b, y * 7.0, 2.5, 2))
     }
 }
@@ -205,7 +205,7 @@ fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
             let (x, y) = ((i as f64 + 0.5) * sx, (j as f64 + 0.5) * sy);
             let wob = (vn(seed, x * 260.0, y * 90.0) - 0.5) * 0.0014 + (vn(seed ^ 0x77, x * 60.0, y * 14.0) - 0.5) * 0.004;
             // the wetted patch it came from, under the ceiling
-            let src = (((x - x0) / src_rx).hypot(y / src_ry) - 1.0) * src_ry + wob;
+            let src = (((x - x0) / src_rx).dhypot(y / src_ry) - 1.0) * src_ry + wob;
             let (mut fill_a, mut line_a, mut near) = (0.0f64, 0.0f64, f64::MAX);
             let mut add = |d: f64, strength: f64, fade: f64| {
                 near = near.min(d);
@@ -229,13 +229,13 @@ fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
             add(src, 1.0, 1.0);
             for (((r, strength), &(xc, hw)), &(bx, by, bw, bh)) in runs.iter().zip(&rows[j]).zip(&tips) {
                 let along = if y < r.y0 {
-                    (x - r.xs).hypot(y - r.y0) - r.w0
+                    (x - r.xs).dhypot(y - r.y0) - r.w0
                 } else if y <= by {
                     (x - xc).abs() - hw
                 } else {
                     1.0
                 };
-                let tip = (((x - bx) / bw).hypot((y - by) / bh) - 1.0) * bw;
+                let tip = (((x - bx) / bw).dhypot((y - by) / bh) - 1.0) * bw;
                 let d = smin(along, tip, 0.002) + wob;
                 // fainter as it ran thin, darker again where the drop dried
                 let t = ((y - r.y0) / (r.y1 - r.y0)).clamp(0.0, 1.0);
@@ -292,7 +292,7 @@ fn foot_ring_mat(r: f64, floor: u8) -> Mat {
         paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
-            let rho = u.hypot(v);
+            let rho = u.dhypot(v);
             if rho > 1.45 {
                 return [line[0], line[1], line[2], 0.0];
             }

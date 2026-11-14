@@ -21,6 +21,7 @@ use super::cues;
 use super::curve::{catmull, lerp, lerp_angle, look_angles, smooth, sway};
 use super::model::*;
 use crate::base::game::Game;
+use engine::dmath::DMath;
 use std::f64::consts::PI;
 
 /// Seconds the skip key is held to skip
@@ -106,7 +107,7 @@ impl Pose {
     }
     /// How far apart two poses are: metres, and the larger turn (radians)
     pub fn apart(a: &Pose, b: &Pose) -> (f64, f64) {
-        let d = ((a.pos[0] - b.pos[0]).powi(2) + (a.pos[1] - b.pos[1]).powi(2) + (a.pos[2] - b.pos[2]).powi(2)).sqrt();
+        let d = ((a.pos[0] - b.pos[0]).dpowi(2) + (a.pos[1] - b.pos[1]).dpowi(2) + (a.pos[2] - b.pos[2]).dpowi(2)).sqrt();
         let turn = super::curve::wrap(a.yaw - b.yaw).abs().max((a.pitch - b.pitch).abs()).max((a.roll - b.roll).abs());
         (d, turn)
     }
@@ -124,7 +125,7 @@ pub struct Frame {
 impl Frame {
     /// A point of the frame in the world
     pub fn at(&self, p: [f64; 3]) -> [f64; 3] {
-        let (s, c) = self.yaw.sin_cos();
+        let (s, c) = self.yaw.dsin_cos();
         [self.o[0] + p[0] * c + p[2] * s, self.o[1] + p[1], self.o[2] - p[0] * s + p[2] * c]
     }
     /// A thing's frame: `pos` its foot, `yaw` its turn (its front, +z, faces
@@ -364,9 +365,9 @@ impl Playing {
         if b.walk > 0.0 {
             let len = Pose::apart(&pa, &pb).0;
             let phase = e * len / STRIDE * PI;
-            let fade = (PI * e).sin() * b.walk * bob_k;
-            pos[1] += phase.sin().abs() * WALK_BOB * fade;
-            yaw += phase.sin() * WALK_SWAY * fade;
+            let fade = (PI * e).dsin() * b.walk * bob_k;
+            pos[1] += phase.dsin().abs() * WALK_BOB * fade;
+            yaw += phase.dsin() * WALK_SWAY * fade;
         }
         Pose {
             pos,
@@ -839,7 +840,7 @@ impl Game {
         let pp = self.player.pos;
         let near = |e: &crate::base::records::Entity| {
             let p = e.pos();
-            ((p.x - pp.x).powi(2) + (p.z - pp.z).powi(2)).sqrt() < DANGER_SEARCH
+            ((p.x - pp.x).dpowi(2) + (p.z - pp.z).dpowi(2)).sqrt() < DANGER_SEARCH
         };
         if self.entities.iter().any(|e| e.kind != "gone" && (e.state == "hunt" || e.state == "search" && near(e))) {
             return true;

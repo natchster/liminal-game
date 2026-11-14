@@ -33,7 +33,7 @@ pub(crate) fn place_kitchen_clocks(g: &mut Game, _dist: &[i32]) {
     for i in 0..4 {
         let a = (i as f64 / 4.0) * PI * 2.0 - PI / 2.0;
         let tick = mesh(pg("KitchenClocks__tick", box_geo!(0.006, 0.020, 0.003)), &hand_mat);
-        tick.position().set(a.cos() * 0.090, mount_y + a.sin() * 0.090, 0.014);
+        tick.position().set(a.dcos() * 0.090, mount_y + a.dsin() * 0.090, 0.014);
         tick.rotation().z = a + PI / 2.0; // radial baton (was tangential)
         clock.add(&tick);
     }

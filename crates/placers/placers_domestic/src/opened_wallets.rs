@@ -81,9 +81,9 @@ pub(crate) fn place_opened_wallets(g: &mut Game, _dist: &[i32]) {
         let card_angle = ang_t * fan_spread;
         let card_radius = 0.04 + i as f64 * 0.005; // Progressive outward stack.
         card.position().set(
-            fan_pivot_x + (card_angle - PI / 2.0).cos() * card_radius,
+            fan_pivot_x + (card_angle - PI / 2.0).dcos() * card_radius,
             0.006 + i as f64 * 0.0012,
-            fan_pivot_z + (card_angle - PI / 2.0).sin() * card_radius,
+            fan_pivot_z + (card_angle - PI / 2.0).dsin() * card_radius,
         );
         card.rotation().y = card_angle;
         wg.add(&card);

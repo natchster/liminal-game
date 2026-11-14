@@ -90,19 +90,20 @@ fn hull_of(mut pts: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
 }
 
 /// A convex outline cut to `n` corners: the corner that adds least to its
-/// area taken off, one at a time (it stays convex, inside the outline)
+/// area taken off, one at a time (it stays convex, inside the outline).
+/// Areas within a part in a billion of the least count as equal and the
+/// first of them goes, so a round outline, whose corners all tie, loses
+/// them in turn round it and keeps them spread, whatever the last bits of
+/// its points (left to those bits, the ties fell anywhere, and a side could
+/// span nine of a hundred points)
 fn fewer_corners(mut h: Vec<(f64, f64)>, n: usize) -> Vec<(f64, f64)> {
     let area = |a: (f64, f64), b: (f64, f64), c: (f64, f64)| ((b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0)).abs();
     while h.len() > n.max(3) {
         let k = h.len();
-        let least = (0..k)
-            .min_by(|&i, &j| {
-                let ai = area(h[(i + k - 1) % k], h[i], h[(i + 1) % k]);
-                let aj = area(h[(j + k - 1) % k], h[j], h[(j + 1) % k]);
-                ai.total_cmp(&aj)
-            })
-            .unwrap();
-        h.remove(least);
+        let areas: Vec<f64> = (0..k).map(|i| area(h[(i + k - 1) % k], h[i], h[(i + 1) % k])).collect();
+        let least = areas.iter().copied().fold(f64::INFINITY, f64::min);
+        let first = areas.iter().position(|&a| a <= least * (1.0 + 1e-9)).unwrap_or(0);
+        h.remove(first);
     }
     h
 }
@@ -271,10 +272,10 @@ impl Game {
                         let (p0, p1, p2) = (b.hull[(i + k - 1) % k], b.hull[i], b.hull[(i + 1) % k]);
                         let n0 = ((p1.1 - p0.1), -(p1.0 - p0.0));
                         let n1 = ((p2.1 - p1.1), -(p2.0 - p1.0));
-                        let l0 = n0.0.hypot(n0.1).max(1e-9);
-                        let l1 = n1.0.hypot(n1.1).max(1e-9);
+                        let l0 = n0.0.dhypot(n0.1).max(1e-9);
+                        let l1 = n1.0.dhypot(n1.1).max(1e-9);
                         let (nx, nz) = (n0.0 / l0 + n1.0 / l1, n0.1 / l0 + n1.1 / l1);
-                        let l = nx.hypot(nz).max(1e-9);
+                        let l = nx.dhypot(nz).max(1e-9);
                         (nx / l, nz / l)
                     })
                     .collect();
@@ -341,16 +342,39 @@ mod tests {
     fn a_round_footprint_keeps_sixteen_corners() {
         // a circle of 100 points: 16 corners, still round, still convex
         let pts: Vec<(f64, f64)> =
-            (0..100).map(|i| (i as f64 * 0.0628318).cos()).zip((0..100).map(|i| (i as f64 * 0.0628318).sin())).collect();
+            (0..100).map(|i| (i as f64 * 0.0628318).dcos()).zip((0..100).map(|i| (i as f64 * 0.0628318).dsin())).collect();
         let h = fewer_corners(hull_of(pts), MAX_CORNERS);
         assert_eq!(h.len(), MAX_CORNERS);
         let k = h.len();
         for i in 0..k {
             let (o, a, b) = (h[i], h[(i + 1) % k], h[(i + 2) % k]);
             assert!((a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0) > 0.0);
-            assert!((o.0.hypot(o.1) - 1.0).abs() < 1e-9, "a corner off the circle");
+            assert!((o.0.dhypot(o.1) - 1.0).abs() < 1e-9, "a corner off the circle");
             // no side much longer than the rest: the corners spread round it
-            assert!((a.0 - o.0).hypot(a.1 - o.1) < 0.55, "a side of {}", (a.0 - o.0).hypot(a.1 - o.1));
+            assert!((a.0 - o.0).dhypot(a.1 - o.1) < 0.55, "a side of {}", (a.0 - o.0).dhypot(a.1 - o.1));
+        }
+    }
+
+    #[test]
+    fn a_round_footprint_keeps_the_same_corners_whatever_its_last_bits() {
+        // the corners chosen must not hang on rounding: a circle and the
+        // same circle a bit off in its last place keep the same corners
+        for n in [24, 32, 48, 100] {
+            let step = std::f64::consts::TAU / n as f64;
+            let circle: Vec<(f64, f64)> = (0..n).map(|i| ((i as f64 * step).dcos(), (i as f64 * step).dsin())).collect();
+            let nudged: Vec<(f64, f64)> = circle
+                .iter()
+                .enumerate()
+                .map(|(i, &(x, y))| if i % 3 == 0 { (f64::from_bits(x.to_bits() ^ 1), y) } else { (x, y) })
+                .collect();
+            let at = |h: Vec<(f64, f64)>, of: &[(f64, f64)]| {
+                h.iter()
+                    .map(|p| of.iter().position(|q| (q.0 - p.0).abs() < 1e-12 && (q.1 - p.1).abs() < 1e-12).unwrap())
+                    .collect::<Vec<_>>()
+            };
+            let a = at(fewer_corners(hull_of(circle.clone()), MAX_CORNERS), &circle);
+            let b = at(fewer_corners(hull_of(nudged.clone()), MAX_CORNERS), &nudged);
+            assert_eq!(a, b, "{n} points: the corners moved with the last bits");
         }
     }
 }

@@ -46,7 +46,7 @@ pub(crate) fn place_ouija_boards(g: &mut Game, _dist: &[i32]) {
     let lx = (rnd() - 0.5) * 0.30 * 0.8;
     let lz = (rnd() - 0.5) * 0.15 * 0.9;
     let pturn = rnd() * PI * 2.0;
-    let (c, s) = (spin.cos(), spin.sin());
+    let (c, s) = (spin.dcos(), spin.dsin());
     let base_x = bx + lx * c + lz * s;
     let base_z = bz - lx * s + lz * c;
     let pl = group();
@@ -99,8 +99,8 @@ fn talk_board_tex(salt: u32) -> Tex {
             let a = f64::from(i) * PI / 8.0;
             let (r0, r1) = (14.0, if i % 2 == 0 { 22.0 } else { 19.0 });
             ctx.begin_path();
-            ctx.move_to(38.0 + a.cos() * r0, 40.0 + a.sin() * r0);
-            ctx.line_to(38.0 + a.cos() * r1, 40.0 + a.sin() * r1);
+            ctx.move_to(38.0 + a.dcos() * r0, 40.0 + a.dsin() * r0);
+            ctx.line_to(38.0 + a.dcos() * r1, 40.0 + a.dsin() * r1);
             ctx.stroke();
         }
         ctx.begin_path();
@@ -121,7 +121,7 @@ fn talk_board_tex(salt: u32) -> Tex {
             for (i, ch) in letters.chars().enumerate() {
                 let a = -span + 2.0 * span * i as f64 / (n - 1) as f64;
                 ctx.save();
-                ctx.translate(BOARD.0 / 2.0 + rad * a.sin(), cy - rad * a.cos());
+                ctx.translate(BOARD.0 / 2.0 + rad * a.dsin(), cy - rad * a.dcos());
                 ctx.rotate(a);
                 ctx.fill_text(&ch.to_string(), 0.0, 0.0);
                 ctx.restore();
@@ -165,8 +165,8 @@ fn talk_board_tex(salt: u32) -> Tex {
                 c = mix(c, [0.52, 0.42, 0.30], rub * 0.35 * sstep(0.55, 0.8, vn(seed ^ 7, x * 0.25, y * 0.9)));
                 for &(sx, sy, sa, sl) in &scratches {
                     let (dx, dy) = (x - sx, y - sy);
-                    let along = dx * sa.cos() + dy * sa.sin();
-                    let across = (-dx * sa.sin() + dy * sa.cos()).abs();
+                    let along = dx * sa.dcos() + dy * sa.dsin();
+                    let across = (-dx * sa.dsin() + dy * sa.dcos()).abs();
                     if along.abs() < sl / 2.0 && across < 0.45 {
                         c = mix(c, [0.78, 0.72, 0.60], 0.55 * (1.0 - across / 0.45));
                     }
@@ -177,15 +177,15 @@ fn talk_board_tex(salt: u32) -> Tex {
                     (1.0 - sstep(2.0, 26.0, edge)) * (0.4 + 0.4 * fbm(seed ^ 8, x * 0.08, y * 0.08, 2)) + sstep(255.0, 305.0, y) * 0.12;
                 c = mix(c, [0.24, 0.19, 0.13], grime);
                 // a tide line where water stood on its far left
-                let tq = ((x - 70.0).powi(2) / 1.6 + (y - 70.0).powi(2)).sqrt() / 92.0 + (vn(seed ^ 9, x * 0.05, y * 0.05) - 0.5) * 0.25;
+                let tq = ((x - 70.0).dpowi(2) / 1.6 + (y - 70.0).dpowi(2)).sqrt() / 92.0 + (vn(seed ^ 9, x * 0.05, y * 0.05) - 0.5) * 0.25;
                 c = mix(
                     c,
                     [0.46, 0.36, 0.24],
                     sstep(0.84, 0.97, tq) * (1.0 - sstep(0.97, 1.03, tq)) * 0.6 + (1.0 - sstep(0.0, 0.97, tq)) * 0.08,
                 );
                 // the knocked corner (near right): the face gone to the board
-                let cd =
-                    ((x - (BOARD.0 - 4.0)).powi(2) + (y - (BOARD.1 - 6.0)).powi(2)).sqrt() + (vn(seed ^ 10, x * 0.5, y * 0.5) - 0.5) * 5.0;
+                let cd = ((x - (BOARD.0 - 4.0)).dpowi(2) + (y - (BOARD.1 - 6.0)).dpowi(2)).sqrt()
+                    + (vn(seed ^ 10, x * 0.5, y * 0.5) - 0.5) * 5.0;
                 if cd < 12.0 {
                     c = mix(c, [0.33, 0.24, 0.15], 0.9);
                 }

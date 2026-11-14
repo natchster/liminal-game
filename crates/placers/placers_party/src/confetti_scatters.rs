@@ -26,7 +26,7 @@ pub(crate) fn place_confetti_scatters(g: &mut Game, _dist: &[i32]) {
         conf.rotation().z = rnd() * PI * 2.0;
         let c_ang = rnd() * PI * 2.0;
         let c_rad = rnd() * 0.35;
-        conf.position().set(cx + c_ang.cos() * c_rad, 0.003, cz + c_ang.sin() * c_rad);
+        conf.position().set(cx + c_ang.dcos() * c_rad, 0.003, cz + c_ang.dsin() * c_rad);
         g.world.add(&conf);
     }
 }

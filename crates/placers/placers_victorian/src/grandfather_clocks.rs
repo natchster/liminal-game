@@ -87,7 +87,7 @@ pub(crate) fn place_grandfather_clocks(g: &mut Game, _dist: &[i32]) {
         let ang = (i as f64 / 12.0) * PI * 2.0 - PI / 2.0;
         let is_major = i % 3 == 0;
         let tick = mesh(box_geo!(0.005, 0.001, if is_major { 0.012 } else { 0.006 }), &hand_mat);
-        tick.position().set(ang.cos() * face_r * 0.85, face_height + ang.sin() * face_r * 0.85, body_d / 2.0 + 0.005);
+        tick.position().set(ang.dcos() * face_r * 0.85, face_height + ang.dsin() * face_r * 0.85, body_d / 2.0 + 0.005);
         tick.rotation().set(PI / 2.0, ang + PI / 2.0, 0); // long axis radial on the dial, thin axis out
         gc.add(&tick);
     }
@@ -95,11 +95,11 @@ pub(crate) fn place_grandfather_clocks(g: &mut Game, _dist: &[i32]) {
     let hour_ang = rnd() * PI * 2.0 - PI / 2.0;
     let min_ang = rnd() * PI * 2.0 - PI / 2.0;
     let hour = mesh(pg("GrandfatherClocks__hour", box_geo!(0.008, 0.002, 0.045)), &hand_mat);
-    hour.position().set(hour_ang.cos() * 0.022, face_height + hour_ang.sin() * 0.022, body_d / 2.0 + 0.007);
+    hour.position().set(hour_ang.dcos() * 0.022, face_height + hour_ang.dsin() * 0.022, body_d / 2.0 + 0.007);
     hour.rotation().set(PI / 2.0, hour_ang + PI / 2.0, 0); // tip (+Z) radial, flat on the dial
     gc.add(&hour);
     let minute = mesh(pg("GrandfatherClocks__minute", box_geo!(0.005, 0.002, 0.068)), &hand_mat);
-    minute.position().set(min_ang.cos() * 0.034, face_height + min_ang.sin() * 0.034, body_d / 2.0 + 0.009);
+    minute.position().set(min_ang.dcos() * 0.034, face_height + min_ang.dsin() * 0.034, body_d / 2.0 + 0.009);
     minute.rotation().set(PI / 2.0, min_ang + PI / 2.0, 0);
     gc.add(&minute);
     // Center pivot dot.
@@ -113,11 +113,11 @@ pub(crate) fn place_grandfather_clocks(g: &mut Game, _dist: &[i32]) {
         let pg2 = pendulum_group.clone();
         g.animate(move |_g, _dt, t| {
             // Classic pendulum swing at ~0.5 Hz w/ ±0.07 rad amp.
-            pg2.rotation().z = (t * PI + swing_phase).sin() * 0.07;
+            pg2.rotation().z = (t * PI + swing_phase).dsin() * 0.07;
         });
     }
     gc.user().set("isSwinging", is_swinging);
-    gc.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
+    gc.rotation().y = (-(dx as f64)).datan2(-(dz as f64));
     // Position at wall — center against wall.
     let px = g.wx(x) + dx as f64 * (CELL * 0.5 - 0.150);
     let pz = g.wz(z) + dz as f64 * (CELL * 0.5 - 0.150);

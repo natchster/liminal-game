@@ -24,17 +24,17 @@ pub(crate) fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
         let ang = (i as f64 / 3.0) * PI * 2.0;
         let leg = mesh(pg("TripodTelescopes__leg", cyl_geo!(0.008, 0.010, tripod_h, 5)), &wood_mat);
         // Top leans in towards the axis; 0.245 rad from the foot at r 0.22 to the head's rim.
-        leg.rotation().z = ang.cos() * 0.245;
-        leg.rotation().x = -ang.sin() * 0.245;
+        leg.rotation().z = ang.dcos() * 0.245;
+        leg.rotation().x = -ang.dsin() * 0.245;
         leg.scale().y = 1.02;
-        leg.position().set(ang.cos() * 0.118, tripod_h / 2.0, ang.sin() * 0.118);
+        leg.position().set(ang.dcos() * 0.118, tripod_h / 2.0, ang.dsin() * 0.118);
         tt.add(&leg);
     }
     // Rubber foot caps at bottom of each leg.
     for i in 0..3 {
         let ang = (i as f64 / 3.0) * PI * 2.0;
         let foot = mesh(pg("TripodTelescopes__foot", cyl_geo!(0.012, 0.012, 0.008, 5)), lambert!({ color: 0x0a0a0a }));
-        foot.position().set(ang.cos() * 0.22, 0.004, ang.sin() * 0.22);
+        foot.position().set(ang.dcos() * 0.22, 0.004, ang.dsin() * 0.22);
         tt.add(&foot);
     }
     // Mount head — chunky block at top of tripod.
@@ -81,7 +81,7 @@ pub(crate) fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
     // Eyepiece lens: faces out along the eyepiece axis (0, cos .4, sin .4), on its top rim.
     let eyepiece_lens = mesh(circle_geo!(0.010, 8), &lens_mat);
     eyepiece_lens.rotation().x = 0.4 - PI / 2.0;
-    eyepiece_lens.position().set(-tube_l * 0.5, 0.030 + 0.0305 * (0.4f64).cos(), 0.025 + 0.0305 * (0.4f64).sin());
+    eyepiece_lens.position().set(-tube_l * 0.5, 0.030 + 0.0305 * (0.4f64).dcos(), 0.025 + 0.0305 * (0.4f64).dsin());
     tube_group.add(&eyepiece_lens);
     // Finder scope — smaller parallel telescope on top.
     let (finder_l, finder_r) = (0.16, 0.010);
@@ -114,10 +114,10 @@ pub(crate) fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
         let (mh, tg) = (mount_head.clone(), tube_group.clone());
         g.animate(move |_g, _dt, t| {
             // Pan the mount_head + tube_group subgroups (tt.rotation.y is the world orientation).
-            mh.rotation().y = (t * 0.3 + pan_phase).sin() * 0.06;
-            tg.rotation().y = (t * 0.3 + pan_phase).sin() * 0.06;
+            mh.rotation().y = (t * 0.3 + pan_phase).dsin() * 0.06;
+            tg.rotation().y = (t * 0.3 + pan_phase).dsin() * 0.06;
             // Slight elevation adjustment on tube itself.
-            tg.rotation().z = base_tube_z + (t * 0.2 + pan_phase * 1.3).sin() * 0.020;
+            tg.rotation().z = base_tube_z + (t * 0.2 + pan_phase * 1.3).dsin() * 0.020;
         });
     }
     tt.user().set("isTracking", is_tracking);

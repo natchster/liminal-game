@@ -47,7 +47,7 @@ pub(crate) fn place_spilled_backpacks(g: &mut Game, _dist: &[i32]) {
     for side in [-1.0, 1.0] {
         let strap = mesh(pg("SpilledBackpacks__strap", box_geo!(0.030, body_h * 1.1, 0.010)), &pack_mat);
         // On the leaning back face (body-local z -0.074), spanning its height.
-        strap.position().set(side * body_w * 0.30, body_h / 2.0 + 0.002 + 0.074 * (0.15f64).sin(), -0.074 * (0.15f64).cos());
+        strap.position().set(side * body_w * 0.30, body_h / 2.0 + 0.002 + 0.074 * (0.15f64).dsin(), -0.074 * (0.15f64).dcos());
         strap.scale().y = 0.9;
         strap.rotation().x = 0.15;
         sp.add(&strap);
@@ -79,7 +79,7 @@ pub(crate) fn place_spilled_backpacks(g: &mut Game, _dist: &[i32]) {
         // Position scattered near backpack opening.
         let ang = -0.3 + rnd() * 1.2;
         let rr = 0.15 + rnd() * 0.10;
-        book.position().set(ang.cos() * rr, 0.006 + i as f64 * 0.005, ang.sin() * rr * 0.7);
+        book.position().set(ang.dcos() * rr, 0.006 + i as f64 * 0.005, ang.dsin() * rr * 0.7);
         book.rotation().y = rnd() * PI * 2.0;
         book.rotation().z = (rnd() - 0.5) * 0.3;
         sp.add(&book);

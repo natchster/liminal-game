@@ -81,7 +81,7 @@ impl Stroke {
     }
     /// The arc's radius at angle q
     fn radius(rad: f64, p1: f64, p2: f64, q: f64) -> f64 {
-        rad + 9.0 * (2.0 * q + p1).sin() + 5.0 * (5.0 * q + p2).sin()
+        rad + 9.0 * (2.0 * q + p1).dsin() + 5.0 * (5.0 * q + p2).dsin()
     }
     /// The distance from (x, y) to the stroke (mm) and how far along it it
     /// is (0..1), given its polar coordinates about the decal's middle
@@ -100,8 +100,8 @@ impl Stroke {
                     // past an end: the distance to the nearer end
                     let (e0, e1) = (a0, a0 + span);
                     let (r0, r1) = (Stroke::radius(rad, p1, p2, e0), Stroke::radius(rad, p1, p2, e1));
-                    let d0 = ((x - r0 * e0.cos()).powi(2) + (y - r0 * e0.sin()).powi(2)).sqrt();
-                    let d1 = ((x - r1 * e1.cos()).powi(2) + (y - r1 * e1.sin()).powi(2)).sqrt();
+                    let d0 = ((x - r0 * e0.dcos()).dpowi(2) + (y - r0 * e0.dsin()).dpowi(2)).sqrt();
+                    let d1 = ((x - r1 * e1.dcos()).dpowi(2) + (y - r1 * e1.dsin()).dpowi(2)).sqrt();
                     Some(if d0 < d1 { (d0, 0.0) } else { (d1, 1.0) })
                 }
             }
@@ -110,9 +110,9 @@ impl Stroke {
                 let t = (rx * d.0 + ry * d.1) / l;
                 let perp = -rx * d.1 + ry * d.0;
                 let tc = t.clamp(t0, t1);
-                let off = bow * (PI * tc.clamp(0.0, 1.0)).sin();
+                let off = bow * (PI * tc.clamp(0.0, 1.0)).dsin();
                 let along = (tc - t0) / (t1 - t0);
-                let dist = (((t - tc) * l).powi(2) + (perp - off).powi(2)).sqrt();
+                let dist = (((t - tc) * l).dpowi(2) + (perp - off).dpowi(2)).sqrt();
                 if dist > 60.0 {
                     return None;
                 }
@@ -148,7 +148,7 @@ fn pentagram_tex(salt: u32) -> Tex {
             .map(|k| {
                 let q = top + f64::from(k) * 2.0 * PI / 5.0;
                 let rr = 572.0 + (r.f() - 0.5) * 16.0;
-                (rr * q.cos(), rr * q.sin())
+                (rr * q.dcos(), rr * q.dsin())
             })
             .collect();
         for k in 0..5 {
@@ -166,7 +166,7 @@ fn pentagram_tex(salt: u32) -> Tex {
         let mm_px = PENT_SIZE * 1000.0 / w;
         fill(ctx, w, h, move |u, v| {
             let (x, y) = ((u - 0.5) * PENT_SIZE * 1000.0, (v - 0.5) * PENT_SIZE * 1000.0);
-            let (rho, q) = ((x * x + y * y).sqrt(), y.atan2(x));
+            let (rho, q) = ((x * x + y * y).sqrt(), y.datan2(x));
             let mut a = 0.0f64;
             let mut haze = 0.0f64;
             for st in &strokes {
@@ -190,7 +190,7 @@ fn pentagram_tex(salt: u32) -> Tex {
                         let grain = sstep(-0.05, 0.3, k) * sstep(half + mm_px, half - mm_px, d);
                         a = a.max(grain * (0.45 + 0.55 * press) * (0.7 + 0.3 * edge));
                     }
-                    haze = haze.max(0.13 * (-d / 24.0).exp() * press * (0.6 + 0.4 * vn(seed ^ 0x12, x / 20.0, y / 20.0)));
+                    haze = haze.max(0.13 * (-d / 24.0).dexp() * press * (0.6 + 0.4 * vn(seed ^ 0x12, x / 20.0, y / 20.0)));
                 }
             }
             if a <= 0.0 && haze <= 0.004 {
@@ -200,7 +200,7 @@ fn pentagram_tex(salt: u32) -> Tex {
             let mut keep = 1.0;
             for &(sx, sy, sr, sa) in &scuffs {
                 let (dx, dy) = (x - sx, y - sy);
-                let (ex, ey) = (dx * sa.cos() + dy * sa.sin(), (-dx * sa.sin() + dy * sa.cos()) * 2.2);
+                let (ex, ey) = (dx * sa.dcos() + dy * sa.dsin(), (-dx * sa.dsin() + dy * sa.dcos()) * 2.2);
                 let q = (ex * ex + ey * ey).sqrt() / sr;
                 if q < 1.4 {
                     let n = fbm(seed ^ 0x51, x * 0.02, y * 0.02, 3);

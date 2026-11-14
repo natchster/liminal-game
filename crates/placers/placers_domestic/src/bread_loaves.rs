@@ -74,7 +74,7 @@ fn loaf_crust_tex(salt: u32) -> Tex {
         // mould colonies (px): a few big, many small, more at the cut end (u = 1)
         let cols: Vec<(f64, f64, f64)> = (0..10)
             .map(|k| {
-                let u = 1.0 - r.next().powf(2.2) * 0.8;
+                let u = 1.0 - r.next().dpowf(2.2) * 0.8;
                 let rad = if k < 2 { r.range(14.0, 26.0) } else { r.range(3.0, 9.0) };
                 (u * w, r.next() * h, rad)
             })
@@ -95,11 +95,11 @@ fn loaf_crust_tex(salt: u32) -> Tex {
                 // the slashes opened pale down their middles (the grooves
                 // themselves are modelled; their paint only near the crown,
                 // where the top's mapping is the crust's own)
-                let crown = (1.0 - (zz.abs() / 0.03).min(1.0)).powi(2);
+                let crown = (1.0 - (zz.abs() / 0.03).min(1.0)).dpowi(2);
                 for &(xs, ang) in &LOAF_SLASHES {
                     let (dx, dz) = (xx - (xs + LOAF_X0), zz);
-                    let along = dx * ang.cos() + dz * ang.sin();
-                    let pale = (-(along / 0.004).powi(2)).exp() * crown;
+                    let along = dx * ang.dcos() + dz * ang.dsin();
+                    let pale = (-(along / 0.004).dpowi(2)).dexp() * crown;
                     loaf_mix(&mut c, [176.0, 150.0, 108.0], pale * 0.45);
                 }
                 // stale: dull, greyed
@@ -124,7 +124,7 @@ fn loaf_crust_tex(salt: u32) -> Tex {
         ctx.put_image_data(&img, 0, 0);
         // black pin mould here and there
         for _ in 0..30 {
-            let (x, y) = (w * (1.0 - r.next().powf(1.4)), r.next() * h);
+            let (x, y) = (w * (1.0 - r.next().dpowf(1.4)), r.next() * h);
             ctx.set_fill_style("rgba(30,30,28,0.8)");
             ctx.begin_path();
             ctx.arc(x, y, r.range(0.5, 1.4), 0, PI * 2.0);
@@ -144,7 +144,7 @@ fn loaf_crumb_tex(salt: u32) -> Tex {
             .map(|k| {
                 let a = r.range(0.0, PI * 2.0);
                 let d = r.range(0.25, 0.48);
-                (w * (0.5 + a.cos() * d), h * (0.55 + a.sin() * d * 0.9), if k < 3 { r.range(18.0, 34.0) } else { r.range(5.0, 12.0) })
+                (w * (0.5 + a.dcos() * d), h * (0.55 + a.dsin() * d * 0.9), if k < 3 { r.range(18.0, 34.0) } else { r.range(5.0, 12.0) })
             })
             .collect();
         let n = w as usize;
@@ -180,7 +180,7 @@ fn loaf_crumb_tex(salt: u32) -> Tex {
         for _ in 0..24 {
             let a = r.range(0.0, PI * 2.0);
             let d = r.range(0.1, 0.5);
-            let (x, y) = (w * (0.5 + a.cos() * d), h * (0.55 + a.sin() * d));
+            let (x, y) = (w * (0.5 + a.dcos() * d), h * (0.55 + a.dsin() * d));
             ctx.set_fill_style("rgba(28,28,26,0.85)");
             ctx.begin_path();
             ctx.arc(x, y, r.range(0.5, 1.3), 0, PI * 2.0);
@@ -232,7 +232,7 @@ fn loaf_board_tex(salt: u32) -> Tex {
             ctx.set_line_width(r.range(0.5, 1.1));
             ctx.begin_path();
             ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.line_to(x + a.dcos() * l, y + a.dsin() * l);
             ctx.stroke();
         }
         // a water ring from a mug, long ago

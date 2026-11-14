@@ -55,9 +55,9 @@ pub(crate) fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
         // living plants barely lean; the dead lean out further
         let droop = if is_alive { 0.05 + rnd() * 0.15 } else { 0.4 + rnd() * 0.4 };
         let lean = if is_alive { droop * 0.6 } else { 0.12 + (droop - 0.4) * 0.7 };
-        let stem_dir = v3(ang.cos() * lean.sin(), lean.cos(), ang.sin() * lean.sin());
+        let stem_dir = v3(ang.dcos() * lean.dsin(), lean.dcos(), ang.dsin() * lean.dsin());
         // its foot 1-3 cm down in the soil (its surface 0.150), off the centre
-        let stem_foot = v3(ang.cos() * 0.03, SOIL_Y - 0.03 + (0.172 + rnd() * 0.02 - 0.172), ang.sin() * 0.03);
+        let stem_foot = v3(ang.dcos() * 0.03, SOIL_Y - 0.03 + (0.172 + rnd() * 0.02 - 0.172), ang.dsin() * 0.03);
         let spin = rnd() * PI;
         let k = s as usize % 3;
         let stem = group();
@@ -108,7 +108,7 @@ pub(crate) fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
             put(&leaf, "Real__deadPlantFallen", &leaf_mat);
             leaf.scale().set_scalar(0.85 + 0.3 * sw);
             leaf.rotation().y = turn;
-            leaf.position().set(pp.x + ang.cos() * rad, 0.0, pp.z + ang.sin() * rad);
+            leaf.position().set(pp.x + ang.dcos() * rad, 0.0, pp.z + ang.dsin() * rad);
             g.world.add(&leaf);
         }
     }
@@ -196,7 +196,7 @@ fn soil_tex(salt: u32) -> Tex {
             let grain = (vn(seed ^ 2, x * 900.0, y * 900.0) - 0.88).max(0.0) * 9.0;
             c = mix(c, [0.82, 0.8, 0.75], grain.min(1.0));
             // the gap at its edge, dark (the edge of the map)
-            let rho = ((u - 0.5).hypot(v - 0.5) * 2.0).min(1.0);
+            let rho = ((u - 0.5).dhypot(v - 0.5) * 2.0).min(1.0);
             c = mix(c, [0.08, 0.06, 0.05], sstep(0.9, 1.0, rho));
             opaque(c)
         });
@@ -210,8 +210,8 @@ fn leaf_tex(alive: bool, salt: u32) -> Tex {
         let seed = salt ^ if alive { 0x1eaf } else { 0xd1ef };
         fill(ctx, w, h, |u, v| {
             let (x, y) = (u - 0.5, v - 0.5);
-            let r = x.hypot(y);
-            let vein = (((y.atan2(x) * 7.0 / PI).fract() - 0.5).abs() * 2.0 - 0.85).max(0.0) * 6.0;
+            let r = x.dhypot(y);
+            let vein = (((y.datan2(x) * 7.0 / PI).fract() - 0.5).abs() * 2.0 - 0.85).max(0.0) * 6.0;
             let n = fbm(seed, u * 6.0, v * 6.0, 4);
             let c = if alive {
                 let mut c = mix([0.2, 0.3, 0.13], [0.26, 0.36, 0.17], n);

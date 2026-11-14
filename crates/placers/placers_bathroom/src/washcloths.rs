@@ -76,7 +76,7 @@ fn tex(kind: usize, band: bool, bb: [f64; 4], salt: u32) -> Tex {
             let z = bb[1] + (1.0 - v) * (bb[3] - bb[1]);
             let mut c = col;
             if band {
-                let weave = 0.5 + 0.5 * (x * 2400.0).sin() * (z * 2400.0).cos();
+                let weave = 0.5 + 0.5 * (x * 2400.0).dsin() * (z * 2400.0).dcos();
                 c = mix(c, [col[0] * 0.86, col[1] * 0.86, col[2] * 0.86], 0.3 + 0.25 * weave);
             } else {
                 // the loops: a texel's worth each, light tops and dark between
@@ -96,9 +96,9 @@ fn tex(kind: usize, band: bool, bb: [f64; 4], salt: u32) -> Tex {
             let speck = (vn(seed ^ 7, x * 700.0, z * 700.0) - 0.7).max(0.0) * 3.3;
             c = mix(c, [0.16, 0.17, 0.14], (cluster * speck).min(1.0) * 0.85);
             // a stain: something brown dried in it, darker at its edge
-            let d = ((x - 0.03 - sx) / 0.055).hypot((z + 0.05 - sz) / 0.04) + 0.8 * (fbm(seed ^ 8, x * 14.0, z * 14.0, 4) - 0.5);
+            let d = ((x - 0.03 - sx) / 0.055).dhypot((z + 0.05 - sz) / 0.04) + 0.8 * (fbm(seed ^ 8, x * 14.0, z * 14.0, 4) - 0.5);
             c = mix(c, [0.5, 0.4, 0.28], sstep(1.0, 0.6, d) * 0.28 * (0.6 + 0.4 * fbm(seed ^ 10, x * 60.0, z * 60.0, 2)));
-            c = mix(c, [0.4, 0.3, 0.2], (-((d - 0.92) / 0.08).powi(2)).exp() * 0.22);
+            c = mix(c, [0.4, 0.3, 0.2], (-((d - 0.92) / 0.08).dpowi(2)).dexp() * 0.22);
             opaque(c)
         });
     })

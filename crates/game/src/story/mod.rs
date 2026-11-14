@@ -588,7 +588,7 @@ impl Game {
         let Some(ft) = self.story.false_trails.get(k) else { return };
         let (ex, ez) = ft.end;
         let (dx, dz) = (ex - self.player.pos.x, ez - self.player.pos.z);
-        let d = dx.hypot(dz).max(0.5);
+        let d = dx.dhypot(dz).max(0.5);
         self.play_at(ex + dx / d * 1.5, 1.2, ez + dz / d * 1.5, 3.0, 1.4, |g| g.sfx_breath());
         self.director_lure();
     }

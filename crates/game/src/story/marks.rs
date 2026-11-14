@@ -137,7 +137,7 @@ impl PlanMark {
 
 /// The yaw of the way from (x, z) toward (tx, tz) (forward is (−sin, −cos))
 fn yaw_to(x: f64, z: f64, tx: f64, tz: f64) -> f64 {
-    (-(tx - x)).atan2(-(tz - z))
+    (-(tx - x)).datan2(-(tz - z))
 }
 
 /// The tile step from `a` to `b` (one of the four ways)
@@ -415,7 +415,7 @@ impl Game {
                 let Some(i) = marks.iter().position(|m| m.kind == kind) else { continue };
                 let m = &marks[i];
                 let (sx, sz) = m.seen_at();
-                let (fx, fz) = (-m.yaw.sin(), -m.yaw.cos());
+                let (fx, fz) = (-m.yaw.dsin(), -m.yaw.dcos());
                 // on the floor below it (a wall's mark), or a step short of it
                 let (x, z) =
                     if kind.on_wall() { (sx + m.normal.0 * 0.15, sz + m.normal.1 * 0.15) } else { (m.x - fx * 0.45, m.z - fz * 0.45) };

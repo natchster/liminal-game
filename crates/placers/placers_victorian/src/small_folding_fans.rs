@@ -71,9 +71,9 @@ fn motif(seed: u32, x: f64, z: f64, cell: f64, keep: f64) -> (f64, f64, f64) {
             let ox = cx as f64 + 0.15 + 0.7 * hash(seed ^ 0x51, cx, cz);
             let oz = cz as f64 + 0.15 + 0.7 * hash(seed ^ 0x93, cx, cz);
             let (dx, dz) = ((gx - ox) * cell, (gz - oz) * cell);
-            let d = dx.hypot(dz);
+            let d = dx.dhypot(dz);
             if d < best.0 {
-                best = (d, dz.atan2(dx) + hash(seed ^ 0x3c, cx, cz) * 6.283, hash(seed ^ 0x2d, cx, cz));
+                best = (d, dz.datan2(dx) + hash(seed ^ 0x3c, cx, cz) * 6.283, hash(seed ^ 0x2d, cx, cz));
             }
         }
     }
@@ -90,8 +90,8 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
         fill(ctx, w, h, |u, v| {
             let x = LEAF_X.0 + (LEAF_X.1 - LEAF_X.0) * u;
             let z = LEAF_Z.1 - (LEAF_Z.1 - LEAF_Z.0) * v;
-            let r = x.hypot(z);
-            let th = x.atan2(z);
+            let r = x.dhypot(z);
+            let th = x.datan2(z);
             let rr = ((r - LEAF_R.0) / (LEAF_R.1 - LEAF_R.0)).clamp(0.0, 1.0);
             let mut c;
             match design {
@@ -99,7 +99,7 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                     // cherry blossom on rose, flecks of gold
                     c = [0.52, 0.24, 0.27];
                     let (d, a, k) = motif(seed, x, z, 0.022, 0.75);
-                    let petal = 0.0075 * (0.62 + 0.38 * (2.5 * a).cos().abs());
+                    let petal = 0.0075 * (0.62 + 0.38 * (2.5 * a).dcos().abs());
                     let fl = 1.0 - sstep(petal * 0.85, petal, d);
                     c = mix(c, if k < 0.5 { [0.86, 0.76, 0.76] } else { [0.80, 0.62, 0.64] }, fl);
                     c = mix(c, [0.62, 0.28, 0.30], 1.0 - sstep(0.0012, 0.002, d));
@@ -115,7 +115,7 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                     let off = if (row as i64).rem_euclid(2) == 0 { 0.0 } else { 0.5 };
                     let cx = (gx + off).floor() - off + 0.5;
                     let (dx, dz) = ((gx - cx) * cell, (gz - row) * cell * 0.5);
-                    let d = dx.hypot(dz);
+                    let d = dx.dhypot(dz);
                     let ring = ((d / 0.0042).fract() - 0.5).abs();
                     let inside = 1.0 - sstep(0.0128, 0.0136, d);
                     c = mix(c, [0.70, 0.74, 0.80], (1.0 - sstep(0.16, 0.26, ring)) * inside * 0.85);
@@ -126,7 +126,7 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                     c = mix(c, [0.48, 0.38, 0.20], fbm(seed ^ 5, x * 60.0, z * 60.0, 3) * 0.6);
                     let (d, a, k) = motif(seed, x, z, 0.026, 0.6);
                     // a maple leaf: five pointed lobes
-                    let lobe = 0.0105 * (0.42 + 0.58 * (1.0 - (2.5 * a).sin().abs()).powi(2));
+                    let lobe = 0.0105 * (0.42 + 0.58 * (1.0 - (2.5 * a).dsin().abs()).dpowi(2));
                     let lf = 1.0 - sstep(lobe * 0.9, lobe, d);
                     c = mix(c, if k < 0.5 { [0.52, 0.18, 0.11] } else { [0.60, 0.30, 0.12] }, lf);
                 }
@@ -141,7 +141,7 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                         c = mix(c, [0.12, 0.20, 0.12], stalk * node);
                     }
                     let (d, a, _) = motif(seed, x, z, 0.02, 0.55);
-                    let leaf = (d * a.cos() / 0.011).powi(2) + (d * a.sin() / 0.0028).powi(2);
+                    let leaf = (d * a.dcos() / 0.011).dpowi(2) + (d * a.dsin() / 0.0028).dpowi(2);
                     c = mix(c, [0.20, 0.36, 0.20], 1.0 - sstep(0.8, 1.0, leaf));
                 }
                 4 => {
@@ -160,7 +160,7 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                             continue;
                         }
                         let across = ((th - tk) * r).abs();
-                        let wid = 0.0075 * (1.0 - along).powf(0.7) + 0.0012;
+                        let wid = 0.0075 * (1.0 - along).dpowf(0.7) + 0.0012;
                         m = m.max(1.0 - sstep(wid * 0.8, wid, across));
                     }
                     let floret = vn(seed ^ 7, x * 800.0, z * 800.0);
@@ -178,7 +178,7 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                     for (k, (base, hgt, ink)) in [(0.52f64, 0.34f64, 0.35f64), (0.22, 0.30, 0.72)].into_iter().enumerate() {
                         let f = 2.2 + k as f64 * 1.3;
                         let tri = 1.0 - (2.0 * (th * f + 0.37 * k as f64 + hash(seed, k as i32, 3)).rem_euclid(1.0) - 1.0).abs();
-                        let ridge = base + hgt * tri.powf(1.6) + 0.06 * (fbm(seed ^ (k as u32 * 13 + 1), th * 9.0, 0.5, 3) - 0.5);
+                        let ridge = base + hgt * tri.dpowf(1.6) + 0.06 * (fbm(seed ^ (k as u32 * 13 + 1), th * 9.0, 0.5, 3) - 0.5);
                         let wash = sstep(ridge - 0.32, ridge - 0.015, rr) * (1.0 - sstep(ridge - 0.015, ridge + 0.005, rr));
                         c = mix(c, [0.24, 0.24, 0.24], wash * ink);
                     }

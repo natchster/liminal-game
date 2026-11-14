@@ -108,7 +108,7 @@ fn rustic_board_tex(vary: u32) -> Tex {
                     let n = 40;
                     for k in 0..=n {
                         let xx = w * k as f64 / n as f64;
-                        let yy = yb + lift * (-((xx - cx) / sw).powi(2)).exp() + a1 * (xx * f1 + p1).sin();
+                        let yy = yb + lift * (-((xx - cx) / sw).dpowi(2)).dexp() + a1 * (xx * f1 + p1).dsin();
                         if k == 0 {
                             ctx.move_to(xx, yy);
                         } else {
@@ -176,7 +176,7 @@ fn rustic_board_tex(vary: u32) -> Tex {
                     let a = k as f64 / 10.0 * PI * 2.0;
                     let r = 1.6 + 0.6 * rnd();
                     ctx.set_fill_style("rgba(82,44,16,0.12)");
-                    ctx.fill_text(line, a.cos() * r, a.sin() * r);
+                    ctx.fill_text(line, a.dcos() * r, a.dsin() * r);
                 }
                 ctx.set_fill_style("rgba(48,26,10,0.85)");
                 ctx.fill_text(line, 0, 0);

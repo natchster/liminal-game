@@ -8,6 +8,7 @@
 //! charcoal about 0.02) and its saturation must stay below `MAX_SATURATION`.
 //!
 //! `--nocapture` prints the distribution and the worst offenders.
+use engine::dmath::DMath;
 use engine::material::MatKind;
 use game::Game;
 use std::collections::BTreeMap;
@@ -55,7 +56,7 @@ struct Seen {
 }
 
 fn srgb_to_linear(c: f64) -> f64 {
-    if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }
+    if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).dpowf(2.4) }
 }
 
 /// Mean linear colour of a texture (every 7th pixel; white without one) and

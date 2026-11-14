@@ -132,7 +132,7 @@ fn digit_at(d: &(f64, f64, f64, f64, f64, f64), t: f64) -> ((f64, f64), (f64, f6
     let (bx, bz, l, _, ang, bow) = *d;
     let am = ang + bow / l * t;
     let a = ang + bow / l * 2.0 * t;
-    ((bx + am.sin() * l * t, bz + am.cos() * l * t), (a.sin(), a.cos()))
+    ((bx + am.dsin() * l * t, bz + am.dcos() * l * t), (a.dsin(), a.dcos()))
 }
 
 /// A cloth's ground in colour `base`: knit wales, a canvas weave, a jersey's

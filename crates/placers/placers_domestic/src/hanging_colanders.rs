@@ -100,7 +100,7 @@ fn col_prof_at(s: f64) -> (f64, f64) {
     let mut left = s.max(0.0);
     for w in COL_PROF.windows(2) {
         let (a, b) = (w[0], w[1]);
-        let l = (b.0 - a.0).hypot(b.1 - a.1);
+        let l = (b.0 - a.0).dhypot(b.1 - a.1);
         if left <= l {
             let t = left / l;
             return (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
@@ -115,9 +115,9 @@ fn col_prof_at(s: f64) -> (f64, f64) {
 fn sphere_uv(p: (f64, f64, f64), lo: &Vec3, hi: &Vec3) -> (f64, f64) {
     let f = |v: f64, a: f64, b: f64| ((v - a) / (b - a).max(1e-9)) * 2.0 - 1.0;
     let (cx, cy, cz) = (f(p.0, lo.x, hi.x), f(p.1, lo.y, hi.y), f(p.2, lo.z, hi.z));
-    let u = (cz.atan2(-cx) / (2.0 * PI) + 1.0) % 1.0;
+    let u = (cz.datan2(-cx) / (2.0 * PI) + 1.0) % 1.0;
     let l = (cx * cx + cy * cy + cz * cz).sqrt().max(1e-9);
-    let v = 1.0 - (cy / l).clamp(-1.0, 1.0).acos() / PI;
+    let v = 1.0 - (cy / l).clamp(-1.0, 1.0).dacos() / PI;
     (u, v)
 }
 
@@ -193,8 +193,8 @@ fn colander_tex(kind: usize, salt: u32, holes: Option<(Vec3, Vec3)>, wear: &[f64
             let (r2, y2) = col_prof_at(s + hr);
             for j in 0..n {
                 let a = (j as f64 + 0.5 * (ring % 2) as f64) / n as f64 * 2.0 * PI;
-                let (u, v) = sphere_uv((r * a.cos(), y, r * a.sin()), &lo, &hi);
-                let (_, v2) = sphere_uv((r2 * a.cos(), y2, r2 * a.sin()), &lo, &hi);
+                let (u, v) = sphere_uv((r * a.dcos(), y, r * a.dsin()), &lo, &hi);
+                let (_, v2) = sphere_uv((r2 * a.dcos(), y2, r2 * a.dsin()), &lo, &hi);
                 let (rx, ry) = (hr / r / (2.0 * PI) * w, ((v2 - v).abs() * h).max(0.8));
                 for du in [-1.0, 0.0, 1.0] {
                     let cx = (u + du) * w;

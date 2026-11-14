@@ -42,7 +42,7 @@ game::lazy_static_tex!(
         for p in 0..5 {
             let a = (p as f64 / 5.0) * PI * 2.0;
             ctx.begin_path();
-            ctx.arc(cx + a.cos() * 12.0, cy + a.sin() * 12.0, 8, 0, PI * 2.0);
+            ctx.arc(cx + a.dcos() * 12.0, cy + a.dsin() * 12.0, 8, 0, PI * 2.0);
             ctx.fill();
         }
         // Center yellow dot.

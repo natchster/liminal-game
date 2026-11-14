@@ -4,6 +4,7 @@
 //!
 //! Level generation is seeded and bit-reproducible, so these are written to
 //! give the same bits on every run, not merely close results.
+use engine::dmath::DMath;
 pub use engine::math::{clamp, lerp, round_half_up, sign_of, to_i32, to_u32};
 
 /// The Euclidean norm of `v`, reproducible bit for bit: the magnitudes are
@@ -94,7 +95,7 @@ pub fn fmt_fixed(v: f64, d: usize) -> String {
     }
     let v = v.abs(); // -0 prints as 0
     // an exact tie: v·10^d·2 is an odd integer and the product is exact
-    let m = 10f64.powi(d as i32);
+    let m = 10f64.dpowi(d as i32);
     let y = v * m * 2.0;
     if y.fract() == 0.0 && y < 9.0e15 && (y as u64) % 2 == 1 && v.mul_add(m * 2.0, -y) == 0.0 {
         let n = (y as u64).div_ceil(2);
