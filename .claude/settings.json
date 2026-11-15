@@ -1,4 +1,19 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git -c user.name=\"Pavel Krivoruchko\" -c user.email=\"pavel@lilium.me\" commit *)",
+      "Bash(git push *)"
+    ],
+    "ask": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push * +*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
