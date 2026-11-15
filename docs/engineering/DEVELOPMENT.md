@@ -635,7 +635,13 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   go about (its walk); add `--death` to be killed by it 15 frames before
   the shot (the death scene). `--screen loop-figure` (or
   `loop-figure-near`) puts you in the Loop on the lap its seated man comes,
-  2.5 m (1.6 m) in front of him. Give it a floor of the
+  2.5 m (1.6 m) in front of him; `--screen loop-water` (`loop-battery`)
+  1.25 m from its first almond water on a desk (cell on a cabinet), out of
+  reach, looking down at it; `--screen put-away:<id>` (`yellow_water`,
+  `coin`, …: a thing put away, `secrets::SPECIAL`) sets it on the floor
+  1.2 m before you, a sealed almond water to its right, looked at, without
+  opening a hiding place. Give it
+  a floor of the
   rooms (`--level 4` or deeper): the Building's floors (1–3) have no
   creatures, and the arrival there stands high over y = 0.
 * The K key shows the in-game debug panel (positions, timers, the ambient

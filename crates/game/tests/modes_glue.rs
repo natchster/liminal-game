@@ -372,6 +372,14 @@ fn do_action(g: &mut Game, a: &Json) {
     }
 }
 
+/// Pickup lines reworded since the recording (the assets' review, A7: one
+/// said the bottle was there for you, which the canon never says; one told
+/// a story the brief leaves to the player): the same line, its new words
+const REWORDED: [(&str, &str); 2] = [
+    ("msg:ALMOND WATER — SOMEONE LEFT IT FOR YOU", "msg:ALMOND WATER — FAINTLY CLOUDY"),
+    ("msg:BATTERY — SOMEONE MEANT TO COME BACK FOR IT", "msg:BATTERY — HEAVIER THAN IT LOOKS"),
+];
+
 /// Compare one frame's calls. Returns the boundary they cross, if any.
 fn compare_calls(what: &str, rec: &[(String, Vec<f64>)], rust: &[TraceEntry], ctx: &mut Ctx, pick_stub: bool) {
     let names = |v: &[TraceEntry]| v.iter().map(|(n, _)| n.clone()).collect::<Vec<_>>();
@@ -384,6 +392,7 @@ fn compare_calls(what: &str, rec: &[(String, Vec<f64>)], rust: &[TraceEntry], ct
         names(rust)
     );
     for (i, ((jn, ja), (rn, ra))) in rec.iter().zip(rust.iter()).enumerate() {
+        let jn: &String = &REWORDED.iter().find(|(old, _)| jn == old).map_or_else(|| jn.clone(), |(_, new)| new.to_string());
         let after_pick = i > 0 && rec[i - 1].0.starts_with("pick_text:");
         if jn.starts_with("msg:") && after_pick && pick_stub {
             assert_eq!(rn, "msg:", "{what}: message from pick_text (stub)");

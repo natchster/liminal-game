@@ -3,15 +3,20 @@
 //! (`assets/src/props/<name>/placement.toml`) and compiled into the bundle
 //! embedded here (`assets/placement.json`, `cargo xtask asset write`).
 //!
-//! Once a floor has settled, the things the rules place (the floor's own
-//! almond water and batteries: `core_props::pickups`) are moved to spots
+//! Once a floor of the rooms has settled (level 4 and down: the Building's
+//! floors place their own), the things the rules place are moved to spots
 //! their rules allow: on what they may stand on, against a wall, in a
 //! corner, in the open; in a purpose a rule names and none it never fits;
 //! where a body can reach them from where you arrive, never behind a
-//! barricade, in a wall or in another thing. Which spot is chosen comes from
-//! a stream of its own (`SplitMix64`, seeded by the floor and the asset),
-//! never the level's: no floor's draws move. Each moved thing keeps which
-//! rule placed it (`user.s["rule"]`), so a test can hold it to it.
+//! barricade, in a wall or in another thing. A thing the rules place is
+//! any made with `user.s["by"] = "rules"` and its asset's name as its
+//! `kind` (the floor's own almond water and batteries:
+//! `core_props::pickups`); its maker decides how many (the rules drop any
+//! past `count`'s most), the rules decide where. Which spot is chosen comes
+//! from a stream of its own (`SplitMix64`, seeded by the floor and the
+//! asset's name), never the level's: no floor's draws move. Each moved thing
+//! keeps which rule placed it (`user.s["rule"]`), so a test can hold it to
+//! it.
 use super::N4;
 use crate::base::rng::SplitMix64;
 use crate::prelude::*;
@@ -29,13 +34,18 @@ pub const APART: f64 = 6.0;
 pub const APART_KINDS: f64 = 1.0;
 /// Nor nearer where you arrive (you would take it as you came in)
 const FROM_ARRIVAL: f64 = 4.0;
+/// How far round a thing set down on a surface must be flat under it (m):
+/// a bottle's radius, a cell's half length, and a little
+pub const FOOT: f64 = 0.045;
+/// The first floor the rules place on (the rooms'; the Building's floors
+/// place their own)
+pub const FIRST_LEVEL: i32 = 4;
 
-/// Where a rule puts a thing
+/// Where a rule puts a thing (on a wall, hung: not yet; `parse` refuses it)
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum On {
     Floor,
     Surface,
-    Wall,
 }
 /// Near what, on the floor
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -85,14 +95,16 @@ pub fn parse(text: &str) -> Result<Vec<AssetRules>, String> {
     let mut out = vec![];
     for (name, a) in v["assets"].as_object().ok_or("no assets")? {
         let count = pair(&a["count"], |x| x.as_u64().map(|n| n as usize)).ok_or(format!("{name}: count"))?;
-        let levels = pair(&a["levels"], |x| x.as_i64().map(|n| n as i32)).unwrap_or((1, 999));
+        let levels = pair(&a["levels"], |x| x.as_i64().map(|n| n as i32)).unwrap_or((FIRST_LEVEL, 999));
+        if levels.0 < FIRST_LEVEL {
+            return Err(format!("{name}: levels from {}: the rules place from level {FIRST_LEVEL} down", levels.0));
+        }
         let mut rules = vec![];
         for r in a["rule"].as_array().into_iter().flatten() {
             let on = match r["on"].as_str() {
                 Some("floor") => On::Floor,
                 Some("surface") => On::Surface,
-                Some("wall") => On::Wall,
-                o => return Err(format!("{name}: on {o:?}")),
+                o => return Err(format!("{name}: on {o:?}: \"floor\" or \"surface\" (hung on a wall: not yet)")),
             };
             let near = match r["near"].as_str() {
                 Some("wall") => Some(Near::Wall),
@@ -146,6 +158,129 @@ fn fits(purposes: &[String], label: &str) -> bool {
     purposes.iter().any(|p| p == "*" || p == label)
 }
 
+/// The level faces of `o`'s meshes, in the world (either way up: a face
+/// drawn from both sides): what a thing set on it could rest on. An
+/// instanced mesh's copies are not walked.
+pub fn level_faces(o: &Obj) -> Vec<[Vec3; 3]> {
+    o.update_matrix_world(false);
+    let mut out = vec![];
+    o.traverse(&mut |c| {
+        if c.instanced_bounding_box().is_some() {
+            return;
+        }
+        let Some(g) = c.try_geo() else { return };
+        let m = c.matrix_world();
+        let r = g.r();
+        let p = &r.position;
+        let v = |i: usize| {
+            let mut v = Vec3::new(p[i * 3] as f64, p[i * 3 + 1] as f64, p[i * 3 + 2] as f64);
+            v.apply_matrix4(&m);
+            v
+        };
+        let n = r.index.as_ref().map_or(p.len() / 3, |ix| ix.len());
+        for t in (0..n / 3).map(|t| t * 3) {
+            let (a, b, c) = match &r.index {
+                Some(ix) => (ix[t] as usize, ix[t + 1] as usize, ix[t + 2] as usize),
+                None => (t, t + 1, t + 2),
+            };
+            let (va, vb, vc) = (v(a), v(b), v(c));
+            let nrm = (vb - va).crossed(vc - va);
+            let len = nrm.length();
+            // level within about 6 degrees
+            if len > 1e-12 && nrm.y.abs() / len > 0.995 {
+                out.push([va, vb, vc]);
+            }
+        }
+    });
+    out
+}
+
+/// The highest of `faces` straight over or under (x, z): what a ray down
+/// from above meets first
+pub fn top_over(faces: &[[Vec3; 3]], x: f64, z: f64) -> Option<f64> {
+    let mut best: Option<f64> = None;
+    for [a, b, c] in faces {
+        let d = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z);
+        if d.abs() < 1e-14 {
+            continue;
+        }
+        let l1 = ((b.z - c.z) * (x - c.x) + (c.x - b.x) * (z - c.z)) / d;
+        let l2 = ((c.z - a.z) * (x - c.x) + (a.x - c.x) * (z - c.z)) / d;
+        let l3 = 1.0 - l1 - l2;
+        if l1 < -1e-9 || l2 < -1e-9 || l3 < -1e-9 {
+            continue;
+        }
+        let y = l1 * a.y + l2 * b.y + l3 * c.y;
+        if best.is_none_or(|h| y > h) {
+            best = Some(y);
+        }
+    }
+    best
+}
+
+/// Whether a thing set down at (x, y, z) on `faces` rests there: nothing
+/// of them above its base anywhere under it (`FOOT` round: it is not sunk
+/// into them), and their top at its base under most of it, on every side
+/// (a crate's slats and a box's seams leave gaps; an edge leaves a side
+/// with nothing under it)
+pub fn rests(faces: &[[Vec3; 3]], x: f64, y: f64, z: f64) -> bool {
+    const TOL: f64 = 0.004;
+    if top_over(faces, x, z).is_some_and(|h| h > y + TOL) {
+        return false;
+    }
+    let (mut held, mut sides) = (0, [false; 4]);
+    for ring in [0.5, 1.0] {
+        for k in 0..8 {
+            // (off the axes a little: a probe exactly on a seam is luck)
+            let a = (k as f64 + 0.3) * std::f64::consts::TAU / 8.0;
+            match top_over(faces, x + a.dcos() * FOOT * ring, z + a.dsin() * FOOT * ring) {
+                Some(h) if h > y + TOL => return false,
+                Some(h) if h > y - TOL => {
+                    held += 1;
+                    sides[k / 2] = true;
+                }
+                _ => {}
+            }
+        }
+    }
+    held * 10 >= 16 * 7 && sides.iter().all(|&s| s)
+}
+
+/// Where on `o` (its world box `bb`) a thing can be set down: the highest
+/// level face under it, on which it `rests`, nearest the middle of the
+/// box; and how high. None where it has no such top (a vase's mouth, a
+/// rim, a slope).
+pub fn rest_on(o: &Obj, bb: &Box3) -> Option<Vec3> {
+    let faces = level_faces(o);
+    let (cx, cz) = ((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
+    let step = 0.03;
+    let mut at = vec![];
+    let mut x = bb.min.x + FOOT;
+    while x <= bb.max.x - FOOT {
+        let mut z = bb.min.z + FOOT;
+        while z <= bb.max.z - FOOT {
+            at.push((x, z));
+            z += step;
+        }
+        x += step;
+    }
+    // (a stable sort: ties keep the grid's order)
+    at.sort_by(|a, b| (a.0 - cx).dhypot(a.1 - cz).partial_cmp(&(b.0 - cx).dhypot(b.1 - cz)).unwrap_or(std::cmp::Ordering::Equal));
+    at.into_iter().find_map(|(x, z)| {
+        // the highest level face under it (its middle may be over a gap)
+        let y = [(0.0, 0.0), (FOOT, 0.0), (-FOOT, 0.0), (0.0, FOOT), (0.0, -FOOT)]
+            .iter()
+            .filter_map(|&(dx, dz)| top_over(&faces, x + dx, z + dz))
+            .fold(None, |m: Option<f64>, h| Some(m.map_or(h, |m| m.max(h))))?;
+        rests(&faces, x, y, z).then_some(Vec3::new(x, y, z))
+    })
+}
+
+/// A name's own number (FNV-1a): an asset's stream
+fn name_hash(s: &str) -> u32 {
+    s.bytes().fold(0x811C_9DC5u32, |h, b| (h ^ b as u32).wrapping_mul(0x0100_0193))
+}
+
 impl Game {
     /// Whether (x, z) is in a region with no light of its own
     pub fn dark_at(&self, x: f64, z: f64) -> bool {
@@ -175,21 +310,22 @@ impl Game {
     }
 
     /// The things on the floor (top-level, made by a placer or the core
-    /// props), each with its kind and its world box
+    /// props), each with its kind and its world box; not those the rules
+    /// place (they are being moved)
     fn things_here(&self) -> Vec<(Obj, String, Box3)> {
         let mut out = vec![];
         for o in self.world.children() {
             let kind = {
                 let u = o.user();
+                if u.s.get("by").is_some_and(|b| b == "rules") {
+                    continue;
+                }
                 match (u.s.get("kind"), u.placer.as_deref()) {
                     (Some(k), _) => format!("core_{k}"),
                     (None, Some(p)) if !p.is_empty() => p.to_string(),
                     _ => continue,
                 }
             };
-            if kind == "core_almond_water" || kind == "core_battery" {
-                continue;
-            }
             let mut bb = Box3::empty();
             bb.set_from_object(&o);
             if !bb.is_empty() {
@@ -255,19 +391,22 @@ impl Game {
                         if !rule.of.iter().any(|k| k == kind) {
                             continue;
                         }
-                        let (cx, cz) = ((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
-                        let floor = self.floor_y_at(cx, cz);
-                        let top = bb.max.y;
                         let wide = (bb.max.x - bb.min.x).min(bb.max.z - bb.min.z);
-                        if !(0.25..=1.6).contains(&(top - floor)) || wide < 0.18 {
+                        if wide < 0.18 {
                             continue;
                         }
-                        if ok(cx, cz, rule) && clear_of_things(cx, top, cz, Some(o)) {
-                            out.push(Spot { at: Vec3::new(cx, top, cz), rule: ri });
+                        // on its own top where it is level and clear (not
+                        // its box's: a vase or a chair's back stands higher)
+                        let Some(at) = rest_on(o, bb) else { continue };
+                        if !(0.25..=1.6).contains(&(at.y - self.floor_y_at(at.x, at.z))) {
+                            continue;
+                        }
+                        if ok(at.x, at.z, rule) && clear_of_things(at.x, at.y, at.z, Some(o)) {
+                            out.push(Spot { at, rule: ri });
                         }
                     }
                 }
-                On::Floor | On::Wall => {
+                On::Floor => {
                     for tz in 0..self.h {
                         for tx in 0..self.w {
                             if self.is_wall_tile(tx, tz) || dist[self.t_idx(tx, tz)] < 0 {
@@ -330,36 +469,58 @@ impl Game {
         out
     }
 
-    /// The things the rules place (`user.s["by"] == "rules"`), moved to spots
-    /// their rules allow, after the floor has settled
+    /// The things the rules place (`user.s["by"] == "rules"`, their asset
+    /// their `kind`), moved to spots their rules allow, after the floor has
+    /// settled; any past their count's most, and any their rules allow
+    /// nowhere, are not on this floor (taken out of the world and the
+    /// pickups' lists). A thing marked with no rules for its kind stays
+    /// where it was made, its rule `"unruled"` (the rules test fails on it).
     pub fn place_by_rules(&mut self) {
-        let mut taken: Vec<(Vec3, &str)> = vec![];
         let mut gone: Vec<Obj> = vec![];
+        // each asset's things, in the order they were made
+        let mut kinds: Vec<(&'static AssetRules, Vec<Obj>)> = vec![];
+        // what else of those kinds lies here (her camp's): kept as far from
+        // as one the rules place
+        let mut taken: Vec<(Vec3, &str)> = vec![];
+        for o in self.world.children() {
+            let (by_rules, kind) = {
+                let u = o.user();
+                (u.s.get("by").is_some_and(|b| b == "rules"), u.s.get("kind").cloned())
+            };
+            let a = kind.as_deref().and_then(of);
+            match (by_rules, a) {
+                (true, Some(a)) => match kinds.iter_mut().find(|(k, _)| std::ptr::eq(*k, a)) {
+                    Some((_, v)) => v.push(o.clone()),
+                    None => kinds.push((a, vec![o.clone()])),
+                },
+                (true, None) => {
+                    o.user().s.insert("rule".into(), "unruled".into());
+                }
+                (false, Some(a)) => taken.push((o.pos(), a.name.as_str())),
+                (false, None) => {}
+            }
+        }
         // each asset's things, its spots and its own stream
         let mut queues = vec![];
-        for (list, name) in [(0, "almond_water"), (1, "battery")] {
-            let Some(a) = of(name) else { continue };
-            let objs: Vec<Obj> = if list == 0 {
-                self.almonds.iter().map(|p| p.g.clone()).collect()
-            } else {
-                self.battery_items.iter().map(|p| p.g.clone()).collect()
-            };
-            let objs: Vec<Obj> = objs.into_iter().filter(|o| o.user().s.get("by").is_some_and(|b| b == "rules")).collect();
-            if objs.is_empty() {
-                continue;
+        for (a, mut objs) in kinds {
+            if objs.len() > a.count.1 {
+                for o in objs.split_off(a.count.1) {
+                    o.user().s.insert("rule".into(), "none".into());
+                    gone.push(o);
+                }
             }
             let spots = self.rule_spots(a);
-            let r = SplitMix64::new(self.current_seed ^ (name.len() as u32).wrapping_mul(0x9E37_79B9), SALT);
-            queues.push((name, a, objs.into_iter(), spots, r));
+            let r = SplitMix64::new(self.current_seed ^ name_hash(&a.name).wrapping_mul(0x9E37_79B9), SALT);
+            queues.push((a, objs.into_iter(), spots, r));
         }
         // the assets in turn, a thing each, so where spots are few (the same
         // tops) each kind has its share
         loop {
             let mut any = false;
-            for (name, a, objs, spots, r) in queues.iter_mut() {
+            for (a, objs, spots, r) in queues.iter_mut() {
                 let Some(o) = objs.next() else { continue };
                 any = true;
-                let name: &str = name;
+                let name: &'static str = a.name.as_str();
                 let free: Vec<&Spot> = spots
                     .iter()
                     .filter(|s| {
@@ -391,14 +552,16 @@ impl Game {
                 let s = of_rule[((r.next() * of_rule.len() as f64) as usize).min(of_rule.len() - 1)];
                 o.position().set(s.at.x, s.at.y, s.at.z);
                 // a bottle on the floor was dropped: on its side; set down on
-                // something, it stands (the playtest: lying, it reads as dropped)
+                // something, it stands (the playtest: lying, it reads as
+                // dropped). The draw is every asset's; the pose, the bottle's
+                // builder's.
                 let lying = a.rules[ri].on != On::Surface && r.next() < 0.75;
                 if name == "almond_water" {
                     crate::core_props::pickups::lay(&o, lying);
                 }
                 o.update_world_matrix(true, true);
                 o.user().s.insert("rule".into(), ri.to_string());
-                taken.push((s.at, if name == "almond_water" { "almond_water" } else { "battery" }));
+                taken.push((s.at, name));
             }
             if !any {
                 break;

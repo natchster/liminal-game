@@ -17,7 +17,7 @@
           "shrine",
           "showroom"
         ],
-        "why": "nobody keeps their drink where they wash, a shrine is not for it, and the Showroom has its own stock"
+        "why": "nobody keeps their drink where they wash, a shrine is not for it, and the Showroom is spotless"
       },
       "rule": [
         {
@@ -92,7 +92,7 @@
           "shrine",
           "showroom"
         ],
-        "why": "nobody keeps a torch's spares where they wash, a shrine is not for it, and the Showroom has its own stock"
+        "why": "nobody keeps a torch's spares where they wash, a shrine is not for it, and the Showroom is spotless"
       },
       "rule": [
         {
@@ -137,7 +137,7 @@
             "storage hall"
           ],
           "weight": 1,
-          "why": "a spare dropped by someone going through the halls the building's own people walked with torches"
+          "why": "a spare dropped by whoever went round these maintenance runs and tunnels with a torch, keeping the place running"
         },
         {
           "dark": true,

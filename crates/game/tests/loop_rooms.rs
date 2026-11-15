@@ -162,7 +162,7 @@ fn loop_build_matches_reference() {
     assert_eq!(*log.borrow(), texs, "canvas_tex calls");
     assert_eq!(lp.group.name(), b.get("groupName").s());
     assert_eq!(lp.group.visible(), b.get("groupVisible").b());
-    let kids = lp.group.children();
+    let kids: Vec<_> = lp.group.children().into_iter().filter(|o| !is_part(&o.name())).collect();
     let jm = b.get("meshes").arr();
     assert_eq!(kids.len(), jm.len(), "group children");
     for (o, j) in kids.iter().zip(jm.iter()) {
@@ -174,25 +174,31 @@ fn loop_build_matches_reference() {
         }
         // (the seated figure's body is E9's, `bodies.bin` "seated", not the
         // recording's: its geometry is held by `tests/anomaly_bodies.rs`)
-        if name != "loop:figure" {
+        if name != "loop:figure" && name != "loop:almond" && name != "loop:battery" {
             assert_geo(&o.geo(), j.get("geo"), name);
+            assert_mat(&o.mat(), j.get("mat"), name);
+        } else if name == "loop:figure" {
+            assert_mat(&o.mat(), j.get("mat"), name);
         }
-        assert_mat(&o.mat(), j.get("mat"), name);
     }
     // the plain variants: no `canvas_tex`, no textures; and a wall only
     let bare = LoopMode::new(LoopDeps::default());
-    for (o, j) in bare.group.children().iter().zip(fx.get("build_plain").arr()) {
+    for (o, j) in bare.group.children().iter().filter(|o| !is_part(&o.name())).zip(fx.get("build_plain").arr()) {
         assert_eq!(o.name(), j.get("name").s());
-        assert_mat(&o.mat(), j.get("mat"), &format!("plain {}", o.name()));
+        if o.name() != "loop:almond" && o.name() != "loop:battery" {
+            assert_mat(&o.mat(), j.get("mat"), &format!("plain {}", o.name()));
+        }
     }
     let half = LoopMode::new(LoopDeps {
         canvas_tex: Some(game_canvas_tex()),
         rng: Box::new(game::base::rng::Mulberry32::new(1).into_fn()),
         textures: LoopTextures { wall: Some(dummy_tex()), ..Default::default() },
     });
-    for (o, j) in half.group.children().iter().zip(fx.get("build_half").arr()) {
+    for (o, j) in half.group.children().iter().filter(|o| !is_part(&o.name())).zip(fx.get("build_half").arr()) {
         assert_eq!(o.name(), j.get("name").s());
-        assert_mat(&o.mat(), j.get("mat"), &format!("half {}", o.name()));
+        if o.name() != "loop:almond" && o.name() != "loop:battery" {
+            assert_mat(&o.mat(), j.get("mat"), &format!("half {}", o.name()));
+        }
     }
 }
 
@@ -207,6 +213,30 @@ impl IntoFn for game::base::rng::Mulberry32 {
 
 fn counts_json(c: &[(&'static str, usize)]) -> Vec<(String, i64)> {
     c.iter().map(|(k, v)| (k.to_string(), *v as i64)).collect()
+}
+
+/// The Loop's pickups are the builders' own parts now (`core_props::pickups`,
+/// one instanced mesh a material) where the recording has one mesh each:
+/// each part after the first is folded into its first (drawn as often,
+/// held here), and its geometry and material are the parts' (held by the
+/// asset lint and the parts table), not the recording's
+const PARTS: [(&str, &str); 3] = [("almondBottle", "almond"), ("almondCap", "almond"), ("batteryEnds", "battery")];
+fn is_part(name: &str) -> bool {
+    let name = name.strip_prefix("loop:").unwrap_or(name);
+    PARTS.iter().any(|(p, _)| *p == name)
+}
+/// `counts()` as recorded: the parts folded into their firsts
+fn recorded_counts(lp: &LoopMode) -> Vec<(&'static str, usize)> {
+    let c = lp.counts();
+    let of = |n: &str| c.iter().find(|(k, _)| *k == n).map(|(_, v)| *v);
+    for (p, first) in PARTS {
+        assert_eq!(of(p), of(first), "{p}: drawn as often as {first}");
+    }
+    c.into_iter().filter(|(k, _)| !is_part(k)).collect()
+}
+/// `draw_calls()` as recorded: a pickup one draw
+fn recorded_draw_calls(lp: &LoopMode) -> usize {
+    lp.draw_calls() - lp.meshes.iter().filter(|(n, m)| is_part(n) && m.instance_count() > 0).count()
 }
 
 #[test]
@@ -236,9 +266,9 @@ fn loop_windows_match_reference() {
         assert_eq!(lp.lap() as i64, s.get("lap").i(), "{w}: reported lap");
         assert_eq!(lp.room() as i64, s.get("room").i(), "{w}: room");
         let want: Vec<(String, i64)> = s.get("counts").arr().iter().map(|c| (c.at(0).s().to_string(), c.at(1).i())).collect();
-        assert_eq!(counts_json(&lp.counts()), want, "{w}: counts");
-        assert_eq!(lp.draw_calls() as i64, s.get("drawCalls").i(), "{w}: draw_calls");
-        for (j, (name, m)) in s.get("inst").arr().iter().zip(lp.meshes.iter()) {
+        assert_eq!(counts_json(&recorded_counts(&lp)), want, "{w}: counts");
+        assert_eq!(recorded_draw_calls(&lp) as i64, s.get("drawCalls").i(), "{w}: draw_calls");
+        for (j, (name, m)) in s.get("inst").arr().iter().zip(lp.meshes.iter().filter(|(n, _)| !is_part(n))) {
             assert_eq!(format!("loop:{name}"), j.get("name").s());
             let (ms, cs) = instances(m);
             assert_eq!(ms.len() as i64, j.get("count").i(), "{w}: {name} count");
@@ -415,9 +445,9 @@ fn loop_scripted_walk_matches_reference() {
         }
         if rec.has("c") {
             let want: Vec<i64> = rec.get("c").arr().iter().map(|v| v.i()).collect();
-            let got: Vec<i64> = lp.counts().iter().map(|c| c.1 as i64).collect();
+            let got: Vec<i64> = recorded_counts(&lp).iter().map(|c| c.1 as i64).collect();
             assert_eq!(got, want, "{wh} counts");
-            assert_eq!(lp.draw_calls() as i64, rec.get("dc").i(), "{wh} draw_calls");
+            assert_eq!(recorded_draw_calls(&lp) as i64, rec.get("dc").i(), "{wh} draw_calls");
         }
         frame += 1;
     }

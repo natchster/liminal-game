@@ -28,7 +28,11 @@ const USAGE: &str =
 /// The brief's sections, in order
 pub const BRIEF: [&str; 5] = ["What it is", "How it came here", "How it fits", "What a hand does", "Where it would be found"];
 /// Where a rule puts a thing
-pub const ON: [&str; 3] = ["floor", "surface", "wall"];
+/// Where a rule may put a thing (hung on a wall: not yet, the game refuses it)
+pub const ON: [&str; 2] = ["floor", "surface"];
+/// The first floor the rules place on (`game::world::placement_rules::FIRST_LEVEL`:
+/// the rooms'; the Building's floors place their own)
+const FIRST_LEVEL: i64 = 4;
 /// Near what, on the floor
 pub const NEAR: [&str; 3] = ["wall", "corner", "open"];
 
@@ -164,6 +168,10 @@ fn problems_in(dir: &std::path::Path, name: &str) -> Vec<String> {
             let count = t.get("count").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect::<Vec<_>>());
             if !matches!(count.as_deref(), Some([a, b]) if 0 <= *a && a <= b) {
                 say("placement.toml: count = [least, most] a floor".into());
+            }
+            let levels = t.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect::<Vec<_>>());
+            if !matches!(levels.as_deref(), Some([a, b]) if FIRST_LEVEL <= *a && a <= b) {
+                say(format!("placement.toml: levels = [first, last], from {FIRST_LEVEL} down (the rules place on the rooms' floors)"));
             }
             let rules = t.get("rule").and_then(|v| v.as_array()).cloned().unwrap_or_default();
             if rules.is_empty() {
@@ -390,6 +398,16 @@ mod tests {
     fn the_dossiers_hold() {
         let bad: Vec<String> = names().iter().flat_map(|n| problems(n)).collect();
         assert!(bad.is_empty(), "{bad:#?}");
+    }
+
+    /// The game reads what the sources say: the bundle is the sources
+    /// compiled (a `placement.toml` changed without `cargo xtask asset
+    /// write` would be checked here and ignored there)
+    #[test]
+    fn the_bundle_is_its_sources() {
+        let want = serde_json::to_string_pretty(&compile().expect("the dossiers compile")).unwrap() + "\n";
+        let have = std::fs::read_to_string(root().join("crates/game/assets/placement.json")).expect("the bundle");
+        assert!(want == have, "crates/game/assets/placement.json is not its sources: cargo xtask asset write");
     }
 
     /// A dossier just started does not hold until it is written: the

@@ -124,18 +124,13 @@ pub static TEXT_POOLS: [(&str, &[&str]); 11] = [
             "ALMOND WATER — BOTTLED, UNOPENED",
             "ALMOND WATER — IT SLOSHES WHEN YOU WALK",
             "ALMOND WATER — SEALED, STILL COLD",
-            "ALMOND WATER — SOMEONE LEFT IT FOR YOU",
+            "ALMOND WATER — FAINTLY CLOUDY",
             "ALMOND WATER — YOU POCKET IT FOR LATER",
         ],
     ),
     (
         "batteryPickup",
-        &[
-            "BATTERY — WARM IN YOUR HAND",
-            "BATTERY — STILL HALF FULL",
-            "BATTERY — SOMEONE MEANT TO COME BACK FOR IT",
-            "BATTERY — YOU POCKET THE CELL",
-        ],
+        &["BATTERY — WARM IN YOUR HAND", "BATTERY — STILL HALF FULL", "BATTERY — HEAVIER THAN IT LOOKS", "BATTERY — YOU POCKET THE CELL"],
     ),
     (
         "snackEat",

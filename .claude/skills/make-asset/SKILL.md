@@ -42,11 +42,16 @@ commands and gates. One asset at a time: its dossier is
    rule a way it comes to be somewhere, with its `why`; what it stands on
    is a kind the game places. `cargo xtask asset check <name>`, then
    `cargo xtask asset write` (into `crates/game/assets/placement.json`).
-   The game places it by them after the floor settles
-   (`game::world::placement_rules`: a thing the game places by rules is
-   marked `by = "rules"` where it is made, like `core_props::pickups`);
-   `what_the_rules_place_keeps_its_rules` in `tests/usable.rs` holds every
-   placed one to its rules (add the asset to it).
+   The game places it by them after a floor of the rooms settles
+   (`game::world::placement_rules`): its maker makes it with
+   `user.s["by"] = "rules"` and the asset's name as its `kind`, like
+   `core_props::pickups`, and decides how many (the rules drop any past
+   `count`'s most); the rules decide where. `on` is `floor` or `surface`
+   (on a wall: not yet), `levels` from 4. Anything else that holds the
+   thing (a list of pickups) must let go of the ones the pass removes:
+   `place_by_rules` does it for the pickups' lists. The rules test
+   (`what_the_rules_place_keeps_its_rules`, `tests/usable.rs`) holds every
+   placed one to its rules, whatever its asset.
 8. **The playtest question.** `cargo xtask asset sheet <name>`: frames of
    it where the rules put it. Give them to a fresh agent playtester
    (general-purpose, `.claude/agents/placement-critic.md` as its brief: it

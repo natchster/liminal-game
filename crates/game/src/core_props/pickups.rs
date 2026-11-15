@@ -3,14 +3,17 @@
 //! `assets/src/props/almond_water/` and `assets/src/props/battery/`, hold
 //! every measurement's source). One builder each, for every place that makes
 //! one (the floor's own, a drawer's, a camp's, a machine's spill, a door's
-//! gift, the Building's): the real thing at its real size, still where it
+//! gift, the Building's, the Loop's instances, the yellowish one put
+//! away): the real thing at its real size, still where it
 //! lies (nothing floats or turns), in what it is made of (clear PET, its
 //! water faintly milky; a white HDPE cap; a D cell's printed film and nickel
 //! ends), nothing printed on the bottle (the canon: `VENDING.md`).
 //!
-//! What state one is in (sealed or drunk from, standing or on its side, an
-//! old cell's leak) is decided by where it lies, on a stream of its own
-//! (`SplitMix64`, never the level's: no floor's draws move).
+//! Every bottle is sealed and full (`LORE.md`, *Survival*): the one almond
+//! water opened is the yellowish one put away (`secrets::things`). What
+//! else one is like (standing or on its side, an old cell's leak, its turn)
+//! is decided by where it lies, on a stream of its own (`SplitMix64`, never
+//! the level's: no floor's draws move).
 use crate::assets::props::prop_part_as_modelled;
 use crate::base::rng::SplitMix64;
 use crate::placers::kit::canvas_tex_opt;
@@ -26,33 +29,29 @@ pub const CELL_R: f64 = 0.0166;
 pub const CELL_L: f64 = 0.061;
 const JACKET_L: f64 = 0.0585;
 
-/// How much is left in a bottle
+/// Whether a bottle was opened
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Fill {
-    /// sealed, its cap on and its band with it
+    /// sealed, its cap on and its band with it: every almond water
+    /// (`LORE.md`, *Survival*; what is said as one is picked up)
     Sealed,
-    /// opened and half drunk, its cap screwed back on, its band left on the neck
-    Half,
-    /// a last mouthful, its cap gone
-    Low,
+    /// its seal broken, the cap screwed back a little off true, its band left
+    /// on the neck: only the yellowish one put away (*What is put away*: its
+    /// tell)
+    Opened,
 }
 
-/// What a bottle or a cell lying at (x, z) is like: its fill, whether it
-/// lies on its side, an old cell's leak, and its turn; from its place alone
-pub fn state_at(x: f64, z: f64, salt: u64) -> (Fill, bool, bool, f64) {
-    let mut r = SplitMix64::new(((x * 100.0).round() as i64 as u64 ^ ((z * 100.0).round() as i64 as u64).rotate_left(29)) as u32, salt);
-    let f = r.next();
-    let fill = if f < 0.6 {
-        Fill::Sealed
-    } else if f < 0.85 {
-        Fill::Half
-    } else {
-        Fill::Low
-    };
+/// What a bottle or a cell lying at (x, z) is like: whether it lies on its
+/// side, an old cell's leak, and its turn; from its place alone (every bit
+/// of both, to the centimetre: things on the Building's 4 m grid differ)
+pub fn state_at(x: f64, z: f64, salt: u64) -> (bool, bool, f64) {
+    let (xi, zi) = ((x * 100.0).round() as i64 as u64, (z * 100.0).round() as i64 as u64);
+    let h = xi.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ zi.wrapping_mul(0xC2B2_AE3D_27D4_EB4F);
+    let mut r = SplitMix64::new((h ^ (h >> 32)) as u32, salt);
     let lying = r.next() < 0.25;
     let leaked = r.next() < 0.3;
     let turn = r.next() * std::f64::consts::TAU;
-    (fill, lying, leaked, turn)
+    (lying, leaked, turn)
 }
 const BOTTLE_SALT: u64 = 0xA1_0D_5A_7E_12_0B_07_71;
 const CELL_SALT: u64 = 0xBA_77_E2_1D_C3_11_0D_05;
@@ -60,6 +59,33 @@ const CELL_SALT: u64 = 0xBA_77_E2_1D_C3_11_0D_05;
 /// A part as modelled, or the box filling its frame when the parts are off
 fn part(name: &str) -> Geo {
     prop_part_as_modelled(name).unwrap_or_else(|| panic!("no prop part {name} (cargo xtask assets props)"))
+}
+
+/// The water, its own copy moved so its origin is its bottle's: the two tie
+/// on depth, and the water, made first, is drawn first (inside it), while
+/// both sort by depth with everything else (a render order would draw every
+/// bottle's water before every other see-through thing)
+fn water_geo() -> Geo {
+    let make = || {
+        let g = part("AlmondWater__liquidFull").duplicate();
+        g.translate(0.0, WATER_TOP / 2.0 + 0.003 - BOTTLE_H / 2.0, 0.0);
+        g
+    };
+    // one copy a thread, shared as the parts are (`prop_part_as_modelled`'s
+    // cache); with the parts off, a box made each time as theirs are
+    if !crate::assets::props::props_enabled() {
+        return make();
+    }
+    thread_local! {
+        static WATER: std::cell::OnceCell<Geo> = const { std::cell::OnceCell::new() };
+    }
+    WATER.with(|c| c.get_or_init(make).clone())
+}
+/// The water's top, in a full bottle
+const WATER_TOP: f64 = 0.165;
+/// The yellowish water of the one put away
+fn yellow() -> Mat {
+    phong!({ color: 0xd6c27a, transparent: true, opacity: 0.28, depthWrite: false, specular: 0x303030, shininess: 60 })
 }
 
 fn pet() -> Mat {
@@ -86,10 +112,11 @@ thread_local! {
 }
 
 /// A D cell's printed film, as its jacket's texture wraps it (u round it, v
-/// from the negative end up): a nobody's make (`VENDING.md`'s makers are
-/// nobody's), its metallised ground and a band of colour at the positive
-/// end, the size letter on the band, its type along it, the caution panel
-/// round the back, a lot code by the negative end, scuffed at the shoulders
+/// from the negative end up): a nobody's make, HALDEN (as the canon's makers
+/// are nobody's: `VENDING.md`), its metallised ground and a band of colour
+/// at the positive end, the size letter on the band, its type along it, the
+/// caution panel round the back, a lot code by the negative end (no date:
+/// the place keeps none), scuffed at the shoulders
 fn label_tex() -> Tex {
     LABEL.with(|c| {
         c.get_or_init(|| {
@@ -126,7 +153,7 @@ fn label_tex() -> Tex {
                 // the make and its type, along it
                 ctx.set_fill_style("#1f2a24");
                 ctx.set_font("bold 34px Helvetica");
-                ctx.fill_text("HOLLIS", w * 0.06, h * 0.55);
+                ctx.fill_text("HALDEN", w * 0.06, h * 0.55);
                 ctx.set_font("bold 22px Helvetica");
                 ctx.fill_text("ALKALINE", w * 0.06, h * 0.68);
                 ctx.set_font("18px Helvetica");
@@ -134,10 +161,10 @@ fn label_tex() -> Tex {
                 // the caution panel round the back
                 ctx.set_font("9px Helvetica");
                 for (k, line) in [
-                    "CAUTION: DO NOT RECHARGE, DISASSEMBLE",
-                    "OR DISPOSE OF IN FIRE. INSERT CORRECTLY.",
-                    "MAY EXPLODE OR LEAK AND CAUSE BURNS",
-                    "IF RECHARGED OR MIXED WITH USED CELLS.",
+                    "CAUTION: DO NOT RECHARGE.",
+                    "DO NOT DISPOSE OF IN FIRE.",
+                    "INSERT CORRECTLY: + AND -.",
+                    "REMOVE FROM A DEVICE STORED UNUSED.",
                 ]
                 .iter()
                 .enumerate()
@@ -147,7 +174,7 @@ fn label_tex() -> Tex {
                 ctx.set_font("bold 14px Helvetica");
                 ctx.fill_text("-", w * 0.3, h * 0.93);
                 ctx.set_font("10px Courier");
-                ctx.fill_text("L 2411 07", w * 0.80, h * 0.94);
+                ctx.fill_text("LOT 7G38", w * 0.78, h * 0.94);
                 // scuffs at both shoulders and along it
                 for k in 0..90 {
                     let y = if k % 3 == 0 {
@@ -193,17 +220,16 @@ impl Game {
         let g = group();
         let inner = group();
         let mid = BOTTLE_H / 2.0;
+        // full, whether sealed or not: the yellowish one put away was never
+        // drunk from, only opened (its tell); made before its bottle, drawn
+        // inside it (`water_geo`)
+        add(&inner, water_geo(), &if fill == Fill::Opened { yellow() } else { water() }, mid);
         add(&inner, part("AlmondWater__bottle"), &pet(), mid);
-        let (liquid, top) = match fill {
-            Fill::Sealed => ("AlmondWater__liquidFull", 0.165),
-            Fill::Half => ("AlmondWater__liquidHalf", 0.095),
-            Fill::Low => ("AlmondWater__liquidLow", 0.034),
-        };
-        // (the liquid drawn before its bottle: inside it)
-        let l = add(&inner, part(liquid), &water(), top / 2.0 + 0.003);
-        l.set_render_order(-1);
-        if fill != Fill::Low {
-            add(&inner, part("AlmondWater__cap"), &hdpe(), BOTTLE_H + CAP_H / 2.0 - 0.0094);
+        let cap = add(&inner, part("AlmondWater__cap"), &hdpe(), BOTTLE_H + CAP_H / 2.0 - 0.0094);
+        if fill == Fill::Opened {
+            // screwed back a little off true
+            cap.rotation().z = 0.07;
+            cap.position().x = 0.0012;
         }
         // the band: under the cap on a sealed bottle, on the neck's support
         // ring of an opened one
@@ -237,17 +263,72 @@ impl Game {
 
     /// The bottle a place gives at (x, z): its state from where it is
     pub fn almond_water_at(&self, x: f64, z: f64) -> Obj {
-        let (fill, lying, _, turn) = state_at(x, z, BOTTLE_SALT);
-        let g = self.almond_water(fill, lying);
+        let (lying, _, turn) = state_at(x, z, BOTTLE_SALT);
+        let g = self.almond_water(Fill::Sealed, lying);
         g.rotation().y = turn;
         g
     }
 
-    /// The cell a place gives at (x, z)
-    pub fn battery_at(&self, x: f64, z: f64) -> Obj {
-        let (_, _, leaked, turn) = state_at(x, z, CELL_SALT);
-        let g = self.battery(leaked);
+    /// The cell a place gives at (x, z); `fresh`, never an old one's leak
+    /// (a machine's stock)
+    pub fn battery_at(&self, x: f64, z: f64, fresh: bool) -> Obj {
+        let (_, leaked, turn) = state_at(x, z, CELL_SALT);
+        let g = self.battery(leaked && !fresh);
         g.rotation().y = turn;
         g
     }
+}
+
+/// Geometries already in place, as one
+fn merge(gs: &[Geo]) -> Geo {
+    let (mut pos, mut nrm, mut uv, mut idx) = (vec![], vec![], vec![], vec![]);
+    for geo in gs {
+        let g = geo.r();
+        let base = (pos.len() / 3) as u32;
+        let n = g.position.len() / 3;
+        pos.extend_from_slice(&g.position);
+        nrm.extend_from_slice(&g.normal);
+        if g.uv.len() >= n * 2 {
+            uv.extend_from_slice(&g.uv[..n * 2]);
+        } else {
+            uv.extend(std::iter::repeat_n(0.0, n * 2));
+        }
+        match &g.index {
+            Some(ix) => idx.extend(ix.iter().map(|&i| i + base)),
+            None => idx.extend((0..n as u32).map(|i| i + base)),
+        }
+    }
+    let out = Geo::new();
+    out.set_position(pos).set_normal(nrm).set_uv(uv).set_index(idx);
+    out.compute_bounding_box();
+    out.compute_bounding_sphere();
+    out
+}
+
+/// A sealed bottle standing and a fresh cell lying as the builders make
+/// them, each material's parts in one geometry of their own (copies, the
+/// caller's to dispose) in the thing's frame, in drawing order: for a place
+/// that draws many at once (the Loop's instances)
+pub fn instanced_parts() -> (Vec<(Geo, Mat)>, Vec<(Geo, Mat)>) {
+    let at = |name: &str, y: f64| {
+        let g = part(name).duplicate();
+        g.translate(0.0, y, 0.0);
+        g
+    };
+    let mid = BOTTLE_H / 2.0;
+    let white =
+        merge(&[at("AlmondWater__cap", BOTTLE_H + CAP_H / 2.0 - 0.0094), at("AlmondWater__tamperRing", BOTTLE_H - 0.0094 - BAND_H / 2.0)]);
+    let liquid = water_geo().duplicate();
+    liquid.translate(0.0, mid, 0.0);
+    let bottle = vec![(liquid, water()), (at("AlmondWater__bottle", mid), pet()), (white, hdpe())];
+    // the cell along x on its jacket, as `Game::battery` lays it
+    let lay = |g: Geo| {
+        g.rotate_z(-std::f64::consts::FRAC_PI_2);
+        g.translate(-CELL_L / 2.0, CELL_R, 0.0);
+        g
+    };
+    let jacket = lay(at("Battery__jacket", JACKET_L / 2.0));
+    let ends = lay(merge(&[at("Battery__negative", 0.0), at("Battery__positive", JACKET_L + 0.0011)]));
+    let cell = vec![(jacket, phong!({ map: label_tex(), specular: 0x505050, shininess: 70 })), (ends, nickel())];
+    (bottle, cell)
 }

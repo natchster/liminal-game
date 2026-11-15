@@ -296,7 +296,7 @@ impl Game {
         body.rotation().z = PI / 2.0;
         body.position().set(0, 0.020, 0);
         bottle.add(&body);
-        let cap = mesh(pg("CrushedWaterBottles__cap", cyl_geo!(0.010, 0.010, 0.008, 8)), lambert!({ color: 0x2050c0 }));
+        let cap = mesh(pg("CrushedWaterBottles__cap", cyl_geo!(0.010, 0.010, 0.008, 8)), lambert!({ color: 0xdedcd6 }));
         cap.rotation().z = -PI / 2.0;
         cap.position().set(-0.034, 0.020, 0);
         bottle.add(&cap);
@@ -307,7 +307,7 @@ impl Game {
     /// Almond water (`water`) or a battery she left, a pickup like any other.
     fn camp_pickup(&mut self, water: bool, x: f64, z: f64, r: &mut SplitMix64) {
         let base = self.floor_y_at(x, z);
-        let pg_ = if water { self.almond_water_at(x, z) } else { self.battery_at(x, z) };
+        let pg_ = if water { self.almond_water_at(x, z) } else { self.battery_at(x, z, false) };
         pg_.position().set(x, base, z);
         pg_.user().gameplay = true;
         self.world.add(&pg_);

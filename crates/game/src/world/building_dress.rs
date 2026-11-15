@@ -349,7 +349,7 @@ impl Game {
             // and on it, water or a battery in turn
             let water = i % 2 == 0;
             let base = on.y;
-            let gp = if water { self.almond_water_at(on.x, on.z) } else { self.battery_at(on.x, on.z) };
+            let gp = if water { self.almond_water_at(on.x, on.z) } else { self.battery_at(on.x, on.z, false) };
             gp.position().set(on.x, base, on.z);
             self.world.add(&gp);
             let p = crate::base::records::Pickup { g: gp, taken: false, base, phase: r.range(0.0, 7.0) };

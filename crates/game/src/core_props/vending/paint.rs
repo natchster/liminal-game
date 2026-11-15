@@ -295,24 +295,26 @@ fn paint_battery(ctx: &mut Canvas, c: [f64; 4]) {
     let [x, y, w, h] = c;
     ctx.set_fill_style("#1a1a1a");
     ctx.fill_rect(x, y, w, h);
-    ctx.set_fill_style("#c89820");
+    // the cells the floors have (`core_props::pickups`): HALDEN's green
+    ctx.set_fill_style("#2f4a3c");
     ctx.fill_rect(x, y, w, h * 0.16);
-    ctx.set_fill_style("#1a1a1a");
+    ctx.set_fill_style("#e8e4d6");
     ctx.set_text_align("center");
     ctx.set_text_baseline("middle");
     fit_text(ctx, "ALKALINE", x + w / 2.0, y + h * 0.08, w * 0.8, 16.0, "bold Helvetica");
-    // the cells under the blister
+    // the cells under the blister: their metallised film, the band of
+    // colour at the positive end
     for k in 0..2 {
         let cx = x + w * (0.3 + 0.4 * k as f64);
         let g = ctx.create_linear_gradient(cx - w * 0.14, 0, cx + w * 0.14, 0);
-        g.add_color_stop(0.0, "#6a5010");
-        g.add_color_stop(0.45, "#e0b840");
-        g.add_color_stop(1.0, "#5a400c");
+        g.add_color_stop(0.0, "#5c5c58");
+        g.add_color_stop(0.45, "#cfcfca");
+        g.add_color_stop(1.0, "#4c4c48");
         ctx.set_fill_style(&g);
         rr(ctx, cx - w * 0.14, y + h * 0.24, w * 0.28, h * 0.56, 6.0);
         ctx.fill();
-        ctx.set_fill_style("#222");
-        ctx.fill_rect(cx - w * 0.14, y + h * 0.60, w * 0.28, h * 0.20);
+        ctx.set_fill_style("#2f4a3c");
+        ctx.fill_rect(cx - w * 0.14, y + h * 0.28, w * 0.28, h * 0.17);
     }
     ctx.set_fill_style("#e8e0c0");
     fit_text(ctx, "2 PACK  D", x + w / 2.0, y + h * 0.90, w * 0.8, 14.0, "bold Helvetica");

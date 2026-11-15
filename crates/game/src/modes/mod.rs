@@ -594,6 +594,17 @@ impl Game {
         }
         self.update_loop(0.0);
     }
+    /// In the Loop, `dist` m before its first pickup of `kind`, looking down at it
+    pub fn debug_loop_pickup(&mut self, kind: PickupKind, dist: f64) {
+        self.enter_loop_now();
+        if let Some(lr) = self.loop_rooms.as_mut()
+            && let Some(at) = lr.face_pickup(kind, dist)
+        {
+            self.player.yaw = lr.state().yaw;
+            self.player.pitch = (at.y + 0.06 - EYE).datan2(dist);
+        }
+        self.update_loop(0.0);
+    }
     /// the body of `enter_loop`'s 900 ms timeout
     fn enter_loop_now(&mut self) {
         // plain yellowed paper from the game's own generator (the level's

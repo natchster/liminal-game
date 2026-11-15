@@ -13,22 +13,26 @@ shoulder, a five-footed still-water base round its gate, a PCO-1881 28 mm
 neck (ref 10) under a white HDPE screw cap, knurled, 31.5 by 15.4 mm, with
 a folded tamper band (ref 11). What is in it is water with a faint milky
 cloud. **Nothing is printed on it**: no label, no maker, no date (the
-canon: `docs/design/VENDING.md`). Most are sealed and full; some were
-opened, the band left on the neck, half drunk; now and then one has a last
-mouthful and no cap.
+canon: `docs/design/VENDING.md`). **Every one is sealed and full**: the one
+almond water opened, its seal broken, is the yellowish one put away
+(`LORE.md`, *What is put away*: its tell), and what is said as one is
+picked up ("BOTTLED, UNOPENED", "SEALED, STILL COLD") holds.
 
 ## How it came here
 
 The canon: "**Almond Water** restores stamina when you drink it. Carry it
 for when things get bad" (`docs/design/LORE.md`, *Survival*). The machines
 sell it, "plain, nothing printed on its bottles, as on the bottles found on
-the floors" (*The vending machine*), and what fills them stays unexplained.
-The ones lying out were set down by people who passed through before you:
-on what was at hand while they worked or rested, meaning to come back for
-it, or dropped where they sat with their backs to a wall. Who they were is
-never said. Offices keep water by the case for staff who must shelter at
-work (ref 5's places; ready.gov in the research); a filing cabinet's top,
-a stack of boxes, a desk are where a bottle is put down. Other ways it
+the floors" (*The vending machine*), and what fills them stays unexplained:
+"The bottles just... appear. Don't ask where" (torn note 1). Where it comes
+from is never said, and nothing here says it. What the place does is lay
+one where a person *would* have put a bottle down or let it fall, so that
+a player can tell themselves a story (someone working here set it on the
+cabinet; someone sat against this wall): offices keep water by the case
+for staff who must shelter at work (ref 5's places; ready.gov in the
+research), and a filing cabinet's top, a stack of boxes, a desk are where
+a bottle is put down. Which story is the player's; the game never tells
+one. Other ways it
 comes are the game's own and keep their own stories: a drawer
 (*Within reach*), a locker's jacket pocket, her camp (*M.'s descent*), a
 fallen machine's spill, a door on the Well that answers.
@@ -59,5 +63,6 @@ hall or a maintenance run; dropped on the floor against a wall, or pushed
 into a corner, in the same places and in the halls between them that are
 for nothing now. Never in washrooms or a pool hall (nobody keeps their
 drink where they wash: OSHA 1910.141(g), ref 12), never in a shrine, and
-not in the Showroom, which has its own stock. One to three a floor, below
+not in the Showroom, which is spotless (`LORE.md`, *The Showroom*: "It is
+spotless and brightly lit"). One to three a floor, below
 the Building, apart from each other and from where you come in.

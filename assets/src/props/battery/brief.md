@@ -9,8 +9,9 @@ An alkaline D cell (IEC LR20, 1.5 V), the cell a big hand torch takes
 (ref 6): 33.2 mm across and 61 mm long (refs 9, 10), a steel can under a
 printed plastic film rolled over both shoulders, its ends nickel-plated
 steel: a 9 mm nub standing 1.8 mm at the positive end, a flat disc in the
-crimped rim at the negative (refs 9, 11). Its film is a nobody's make
-(the canon's makers are nobody's: `docs/design/VENDING.md`), HOLLIS:
+crimped rim at the negative (refs 9, 11). Its film is a nobody's make, as
+the canon's makers are (`docs/design/VENDING.md`), HALDEN (its own: the
+canon's five are the machines' and their goods'):
 a metallised ground with a dark green band at the positive end, the size
 letter boxed on the band, ALKALINE and LR20 1.5V along it, the caution
 panel round the back, a lot code by the negative end (the layout real
@@ -24,8 +25,9 @@ The canon: "**Batteries** recharge the lamp. The lamp draws Smilers"
 (*The vending machine*). The ones lying out are the place's leftovers of
 what offices keep for their torches: an emergency kit's spares in a
 facilities room or under a desk, a torch's cells changed in the dark and
-the old ones dropped (refs 6, 7; ready.gov in the research). Who dropped
-them is never said. Other ways it comes keep their own stories: a drawer
+the old ones dropped (refs 6, 7; ready.gov in the research): stories a
+player can tell themselves where one lies; the game never tells one, and
+never where they come from. Other ways it comes keep their own stories: a drawer
 (*Within reach*), her camp, a fallen machine's spill, a door on the Well.
 
 ## How it fits
@@ -50,5 +52,5 @@ service tunnels or someone's rooms (where torches and kits are kept);
 dropped against a wall, or in a corner, in the same places and the halls
 between that are for nothing now. Never in washrooms or a pool hall
 (damp: and nobody keeps a torch's spares where they wash), never in a
-shrine, nor in the Showroom (its own stock). One to three a floor, below
+shrine, nor in the Showroom, which is spotless. One to three a floor, below
 the Building, apart from each other and from where you come in.

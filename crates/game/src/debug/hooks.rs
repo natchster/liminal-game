@@ -1045,6 +1045,34 @@ impl Game {
             self.debug_loop_figure(crate::modes::loop_rooms::LOOP::FIGURE_LAP, dist);
             return;
         }
+        // a thing put away (`secrets::things`), by its id, set down on the
+        // floor 1.2 m before you with a sealed almond water 0.25 m to its
+        // right (its size, and the yellowish one's tell, beside the
+        // ordinary), looked at: what a hiding place holds, without opening
+        // one (`--screen put-away:yellow_water`)
+        if let Some(id) = name.strip_prefix("put-away:") {
+            let Some(&t) = crate::secrets::SPECIAL.iter().find(|t| t.id() == id) else { return };
+            let (s, c) = (self.player.yaw.dsin(), self.player.yaw.dcos());
+            let (x, z) = (self.player.pos.x - s * 1.2, self.player.pos.z - c * 1.2);
+            let thing = self.make_thing(t, 0.37);
+            thing.position().set(x, self.floor_y_at(x, z), z);
+            thing.rotation().y = self.player.yaw + 0.6;
+            self.world.add(&thing);
+            let (rx, rz) = (x + c * 0.25, z - s * 0.25);
+            let ordinary = self.almond_water(crate::core_props::pickups::Fill::Sealed, false);
+            ordinary.position().set(rx, self.floor_y_at(rx, rz), rz);
+            self.world.add(&ordinary);
+            self.player.pitch = -(EYE - 0.1).datan2(1.2);
+            return;
+        }
+        // the Loop's pickups (`core_props::pickups`' parts, instanced): its
+        // first almond water on a desk, its first cell on a cabinet, 1.25 m
+        // off (out of reach: within 0.97 m it is taken)
+        if name == "loop-water" || name == "loop-battery" {
+            use crate::modes::loop_rooms::PickupKind;
+            self.debug_loop_pickup(if name == "loop-water" { PickupKind::Almond } else { PickupKind::Battery }, 1.25);
+            return;
+        }
         // a figure far across the void, looked at (`world::far_figures`)
         if name == "figure" && self.building.is_some() {
             self.show_far_figure();

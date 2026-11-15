@@ -92,10 +92,13 @@ asset pipeline; ask about two or three things they stopped at or picked
 up, never which were placed by rules):
 
 - That bottle / that battery / that thing on the desk: why could it be
-  there? Who left it, and when?
+  there?
 - Was there anything you could not think of a reason for? Where was it?
 - Did anything seem put there for you, by the game, rather than left by
   someone?
+- Did you walk past a bottle without seeing it (it is clear, a real one's
+  size)? Where? If they took a yellowish one from a hiding place: did it
+  look different from the others before they read its line?
 
 Experience (how did it feel?):
 

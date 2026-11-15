@@ -161,6 +161,24 @@ from before `03e4b80` benches out loud.
   triangles (4242 L5 224.4k → 223.4k, 7 L6 200.4k → 198.5k), 0–2 fewer
   draws. The builds and first frames held.
 
+- **The assets, A2-A7** (issue 13's milestones, after `5946106+`, the last
+  run recorded: no run recorded since, so written down before a step is
+  flagged). 208 placers gone, a pass that places things by their rules
+  after the floor settles, and the new almond water and battery (a bottle
+  about 6.8k triangles in four meshes, see-through). Measured on
+  2026-11-16 with two virtual machines running beside it (about 2.7 cores
+  and 40 GB between them), so in turn, three rounds, the order reversed
+  each round: `5946106`, A6 (`e7fd09e`) and A7's tree. On that machine
+  every binary's GPU p99 was 4-8 ms on the rooms' floors and the Well (the
+  old one's too: 6.9 ms on 7 L1, recorded at 2.4 the day before), over the
+  6 ms budget: the machine's, not the work's, and no run is recorded until
+  it is quiet. Against `5946106`, A7: GPU p50 the same within 0.1 ms;
+  builds -8 to -11% on 7 L4-L6 (fewer placers) and +6 to +10% on 4242
+  L5-L6 (the rules pass); peak triangles +26k on 4242 L5 (223k → 249k,
+  the bottles in view) and -7k on 4242 L4, far within the budget. Against
+  A6, A7 the same or lower on 11 of the 12 GPU p99s (one shared water
+  copy, no render order). Kept; record a run on a quiet machine.
+
 ## What the work found
 
 Each speed-up and measurement, as it was done: [`../plan/PERF.md`](../plan/PERF.md).

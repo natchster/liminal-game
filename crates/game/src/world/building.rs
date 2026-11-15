@@ -570,7 +570,7 @@ impl Game {
             let (px, pz) = (self.wx(tx) + rand2(-0.8, 0.8), self.wz(tz) + rand2(-0.8, 0.8));
             let water = i < waters;
             let base = self.floor_y_at(px, pz);
-            let gp = if water { self.almond_water_at(px, pz) } else { self.battery_at(px, pz) };
+            let gp = if water { self.almond_water_at(px, pz) } else { self.battery_at(px, pz, false) };
             gp.position().set(px, base, pz);
             self.world.add(&gp);
             let p = Pickup { g: gp, taken: false, base, phase: rand1(7.0) };
@@ -607,7 +607,7 @@ impl Game {
             let (px, pz) = (self.wx(tx), self.wz(tz));
             let water = k % 2 == 0;
             let base = self.floor_y_at(px, pz);
-            let gp = if water { self.almond_water_at(px, pz) } else { self.battery_at(px, pz) };
+            let gp = if water { self.almond_water_at(px, pz) } else { self.battery_at(px, pz, false) };
             gp.position().set(px, base, pz);
             self.world.add(&gp);
             let p = Pickup { g: gp, taken: false, base, phase: k as f64 * 0.9 };

@@ -27,7 +27,15 @@ impl Game {
             Thing::Medicine => medicine_bottle(),
             Thing::Cap => tweed_cap(),
             Thing::Coin => holed_coin(),
-            Thing::YellowWater => yellow_water(),
+            Thing::YellowWater => {
+                // almond water like any other (`core_props::pickups`), but
+                // faintly yellow, and its seal broken: the cap a little off
+                // true, its band left on the neck (a thing put away, not a
+                // pickup: no kind)
+                let b = self.almond_water(crate::core_props::pickups::Fill::Opened, false);
+                b.user().s.remove("kind");
+                b
+            }
             Thing::Envelope => red_envelope(),
             _ => group(),
         }
@@ -370,19 +378,6 @@ fn holed_coin() -> Obj {
         c.position().y = 0.0008;
         g.add(&c);
     }
-    g
-}
-
-/// An almond water bottle like any other, but faintly yellow, and its seal
-/// broken (the cap a little off true)
-fn yellow_water() -> Obj {
-    let (body, cap) = crate::core_props::vending::goods::bottle();
-    let g = group();
-    g.add(&mesh(&body, lambert!({ color: 0xcfc89a, transparent: true, opacity: 0.62 })));
-    let c = mesh(&cap, lambert!({ color: 0xc8c8c0 }));
-    c.rotation().z = 0.08;
-    c.position().set(0.002, 0.004, 0);
-    g.add(&c);
     g
 }
 

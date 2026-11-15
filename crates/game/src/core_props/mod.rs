@@ -374,14 +374,14 @@ fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo) {
                 let content_x = cp.x + fwd_x * content_local_z;
                 let content_z = cp.z + fwd_z * content_local_z;
                 if content_type == "battery" {
-                    let bg = g.battery_at(content_x, content_z);
+                    let bg = g.battery_at(content_x, content_z, false);
                     bg.position().set(content_x, drawer_floor_y, content_z);
                     g.world.add(&bg);
                     g.battery_items.push(Pickup { g: bg, taken: false, base: drawer_floor_y, phase: rand1(7.0) });
                     g.show_msg("A BATTERY INSIDE", 1.6);
                 } else if content_type == "almond" {
                     // lying in the drawer: it is shallower than a bottle is tall
-                    let ag = g.almond_water(crate::core_props::pickups::state_at(content_x, content_z, 0x0D_4A_3E).0, true);
+                    let ag = g.almond_water(crate::core_props::pickups::Fill::Sealed, true);
                     ag.position().set(content_x, drawer_floor_y, content_z);
                     g.world.add(&ag);
                     g.almonds.push(Pickup { g: ag, taken: false, base: drawer_floor_y, phase: rand1(7.0) });
@@ -723,7 +723,7 @@ impl Game {
             let Some(c) = cx.take(None) else { break };
             let px = g.wx(c.x) + rand2(-1.0, 1.0);
             let pz = g.wz(c.z) + rand2(-1.0, 1.0);
-            let bg = g.battery_at(px, pz);
+            let bg = g.battery_at(px, pz, false);
             bg.position().set(px, 0.0, pz);
             bg.user().s.insert("by".into(), "rules".into());
             g.world.add(&bg);

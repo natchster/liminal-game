@@ -24,8 +24,6 @@ prop	AlarmClocks__shell	cyl	394	560	-0.0600,-0.0245,-0.0600	0.0600,0.0250,0.0600
 prop	AlmondWater__bottle	cyl	2210	3584	-0.0325,-0.1015,-0.0325	0.0325,0.1015,0.0325
 prop	AlmondWater__cap	cyl	770	960	-0.0158,-0.0061,-0.0158	0.0158,0.0061,0.0158
 prop	AlmondWater__liquidFull	cyl	994	1856	-0.0320,-0.0795,-0.0320	0.0320,0.0795,0.0320
-prop	AlmondWater__liquidHalf	cyl	546	960	-0.0320,-0.0445,-0.0320	0.0320,0.0445,0.0320
-prop	AlmondWater__liquidLow	cyl	258	384	-0.0320,-0.0140,-0.0320	0.0320,0.0140,0.0320
 prop	AlmondWater__tamperRing	cyl	384	384	-0.0158,-0.0016,-0.0158	0.0158,0.0016,0.0158
 prop	AnalogClocks__hourHand	box	140	176	-0.0040,-0.0390,-0.0020	0.0040,0.0350,0.0020
 prop	AnalogClocks__minuteHand	box	124	160	-0.0026,-0.0526,-0.0020	0.0026,0.0500,0.0020

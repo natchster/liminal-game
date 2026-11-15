@@ -345,8 +345,8 @@ Unlike zones are usually separated by a wall with a few openings.
 
 **Every area has a purpose** (`world/purpose.rs`): what it was for before the
 place took it — an office wing, living quarters, a play area, a parlour,
-washrooms, an overgrown atrium, a maintenance run, a shrine, a party room, or
-nothing at all. The purpose decides what is left lying there, and its
+washrooms, an overgrown atrium, a maintenance run, a storage hall, service
+tunnels, a pool hall, a shrine, a party room, or nothing at all. The purpose decides what is left lying there, and its
 wallpaper, grime and darkness change at its walls. Most of the Lobby is for
 nothing.
 
@@ -408,7 +408,7 @@ Someone came this way before you, and you can follow her down.
   wall (on the Building's floors, in a cell): a bedroll with a blanket
   thrown over it, her pack, a candle lantern
   still burning (it lights its corner), empty
-  bottles, a count of days in chalk on the wall, and what she could spare:
+  bottles of almond water, a count of days in chalk on the wall, and what she could spare:
   almond water, and from level 3 a battery.
 - **Her notebook.** At each camp lies one page torn from it, for that floor:
   thirteen in all. Eight follow her down the ordinary floors in turn: the
@@ -810,8 +810,22 @@ plaque that says STAIRS. Behind it:
 ## Survival
 
 - **Almond Water** restores stamina when you drink it. Carry it for when things
-  get bad.
-- **Batteries** recharge the lamp. The lamp draws Smilers.
+  get bad. It is a plain clear bottle of half a litre, nothing printed on
+  it, its white cap sealed, its water faintly milky; the only one opened is
+  the yellowish one put away (*What is put away*). Below the Building a
+  floor's own lie where a person would have set one down or let it fall: on
+  a filing cabinet, a stack of boxes, a crate, a school desk or a side
+  table, standing; at the foot of a wall or in a corner, on its side; never
+  two within a few steps of each other, never where people wash, in a pool
+  hall or a shrine, and none in the Showroom, which is spotless. Where they
+  come from is never said.
+- **Batteries** recharge the lamp. The lamp draws Smilers. A battery is an
+  alkaline D cell, the cell a big hand torch takes, a nobody's make
+  (HALDEN), lying on its side; an old one has white crystals at its end.
+  A floor's own lie on what one would have been kept on; dropped, at a
+  wall's foot or in a corner only where it is dark, or along the walls of
+  the maintenance runs, the tunnels and the storage halls; never two near
+  each other, none in the Showroom.
 - **Paper** marks your path; boxes, bins and books below the Lobby give
   more (*Within reach*). Sometimes you find someone else's trail going the
   other way. Whatever reads in the office wings must stop for a sheet on the
@@ -1231,8 +1245,7 @@ cold was settled when the floor was made.
   and a lit set's hiss close by (*Within reach*); a candle blown out.
 - What burns or is hot is heard from where it is: a hearth's crackle and
   an iron's hiss close by, the bench's hum as you come near, a radiator's
-  hiss across a room; and now and then, close by, a teapot on its trivet
-  whistles as only a kettle on the boil should (*What still burns*).
+  hiss across a room (*What still burns*).
 
 ## Attribution and licensing
 

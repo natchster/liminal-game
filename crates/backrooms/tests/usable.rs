@@ -417,26 +417,32 @@ fn what_the_rules_place_keeps_its_rules() {
     let levels: Vec<i32> = (4..=12).collect();
     let floors = each_floor(&levels, |seed, l| {
         let g = floor(seed, l);
-        // the kinds of thing on the floor, and their boxes
-        let mut things: Vec<(String, engine::math::Box3)> = vec![];
+        // the kinds of thing on the floor, and each one (what the rules
+        // placed, apart)
+        let mut things: Vec<(String, engine::scene::Obj)> = vec![];
+        let mut ruled: Vec<engine::scene::Obj> = vec![];
         for o in g.world.children() {
             let kind = {
                 let u = o.user();
+                if u.s.get("by").is_some_and(|b| b == "rules") {
+                    assert!(u.s.get("kind").and_then(|k| pr::of(k)).is_some(), "seed {seed} L{l}: marked by rules, with none: {:?}", u.s);
+                    drop(u);
+                    ruled.push(o.clone());
+                    continue;
+                }
                 match (u.s.get("kind"), u.placer.as_deref()) {
                     (Some(k), _) => format!("core_{k}"),
                     (None, Some(p)) if !p.is_empty() => p.to_string(),
                     _ => continue,
                 }
             };
-            let mut bb = engine::math::Box3::empty();
-            bb.set_from_object(&o);
-            things.push((kind, bb));
+            things.push((kind, o.clone()));
         }
         let mut at: Vec<(f64, f64, &str)> = vec![];
         let reached = g.bfs_open(g.tx(g.spawn_pos.x), g.tz(g.spawn_pos.z));
-        for (name, list) in [("almond_water", &g.almonds), ("battery", &g.battery_items)] {
-            let a = pr::of(name).expect("its rules");
-            let mine: Vec<_> = list.iter().filter(|p| p.g.user().s.get("by").is_some_and(|b| b == "rules")).collect();
+        for a in pr::all() {
+            let name = a.name.as_str();
+            let mine: Vec<_> = ruled.iter().filter(|o| o.user().s.get("kind").is_some_and(|k| k == name)).collect();
             if g.building.is_some() || g.level_num < a.levels.0 {
                 continue;
             }
@@ -444,15 +450,15 @@ fn what_the_rules_place_keeps_its_rules() {
             // anywhere on the floor (the Showroom's, spotless, never)
             let least = if g.rule_spots(a).is_empty() { 0 } else { a.count.0 };
             assert!(mine.len() >= least && mine.len() <= a.count.1, "seed {seed} L{l} {:?}: {} {name}", g.level_scp, mine.len());
-            for p in mine {
-                let ri: usize =
-                    p.g.user()
-                        .s
-                        .get("rule")
-                        .and_then(|r| r.parse().ok())
-                        .unwrap_or_else(|| panic!("seed {seed} L{l}: a {name} no rule placed"));
+            for o in mine {
+                let ri: usize = o
+                    .user()
+                    .s
+                    .get("rule")
+                    .and_then(|r| r.parse().ok())
+                    .unwrap_or_else(|| panic!("seed {seed} L{l}: a {name} no rule placed"));
                 let r = &a.rules[ri];
-                let w = p.g.world_position();
+                let w = o.world_position();
                 let label = g.purpose_label_at(w.x, w.z);
                 let here = format!("seed {seed} L{l}: {name} at {:.2}, {:.2}, {:.2} ({label}, rule {ri})", w.x, w.y, w.z);
                 assert!(r.purposes.iter().any(|q| q == "*" || q == label) && !a.never.iter().any(|q| q == label), "{here}: not its place");
@@ -463,15 +469,44 @@ fn what_the_rules_place_keeps_its_rules() {
                 assert!(!r.dark || g.dark_at(w.x, w.z), "{here}: in the light, by a rule for the dark");
                 match r.on {
                     On::Surface => {
-                        let on = things.iter().any(|(k, bb)| {
-                            r.of.contains(k)
-                                && (bb.max.y - w.y).abs() < 0.01
-                                && (bb.min.x..=bb.max.x).contains(&w.x)
-                                && (bb.min.z..=bb.max.z).contains(&w.z)
+                        // resting on it: rays down on a grid under it meet
+                        // nothing of what it stands on above its base, and
+                        // that thing's level top at its base under at least
+                        // half of it (not the top of the thing's box: a vase or
+                        // a chair's back stands higher; a crate's slats leave gaps)
+                        let grid: Vec<(f64, f64)> =
+                            (0..25).map(|i| ((i % 5) as f64 * 0.015 - 0.03, (i / 5) as f64 * 0.015 - 0.03)).collect();
+                        let on = things.iter().any(|(k, t)| {
+                            if !r.of.contains(k) {
+                                return false;
+                            }
+                            let faces = pr::level_faces(t);
+                            let tops: Vec<Option<f64>> = grid.iter().map(|&(dx, dz)| pr::top_over(&faces, w.x + dx, w.z + dz)).collect();
+                            let held = tops.iter().filter(|h| h.is_some_and(|h| (h - w.y).abs() < 0.005)).count();
+                            tops.iter().all(|h| h.is_none_or(|h| h < w.y + 0.005)) && held * 2 >= grid.len()
                         });
-                        assert!(on, "{here}: on nothing it may stand on");
+                        // (what the rays met on those of its kinds under it)
+                        let met: Vec<String> = things
+                            .iter()
+                            .filter(|(k, t)| {
+                                let mut bb = engine::math::Box3::empty();
+                                bb.set_from_object(t);
+                                r.of.contains(k) && (bb.min.x..=bb.max.x).contains(&w.x) && (bb.min.z..=bb.max.z).contains(&w.z)
+                            })
+                            .map(|(k, t)| {
+                                let faces = pr::level_faces(t);
+                                let tops: Vec<String> = grid
+                                    .iter()
+                                    .map(|&(dx, dz)| {
+                                        pr::top_over(&faces, w.x + dx, w.z + dz).map_or("-".into(), |h| format!("{:+.3}", h - w.y))
+                                    })
+                                    .collect();
+                                format!("{k}: {}", tops.join(" "))
+                            })
+                            .collect();
+                        assert!(on, "{here}: not resting on anything it may stand on; under it {met:?}");
                     }
-                    On::Floor | On::Wall => {
+                    On::Floor => {
                         assert!((w.y - g.floor_y_at(w.x, w.z)).abs() < 1e-6, "{here}: off the floor");
                         if r.near != Some(Near::Open) {
                             assert!(g.circle_hits_wall(w.x, w.z, 0.2), "{here}: not at a wall's foot");
@@ -485,6 +520,15 @@ fn what_the_rules_place_keeps_its_rules() {
             for b in &at[i + 1..] {
                 let apart = if a.2 == b.2 { pr::APART } else { pr::APART_KINDS };
                 assert!((a.0 - b.0).dhypot(a.1 - b.1) > apart - 0.01, "seed {seed} L{l}: two at {a:?} and {b:?}");
+            }
+        }
+        // and as far from those of their kinds that others made (her camp's)
+        for (k, t) in &things {
+            let Some(kind) = k.strip_prefix("core_").filter(|k| pr::of(k).is_some()) else { continue };
+            let p = t.world_position();
+            for a in &at {
+                let apart = if a.2 == kind { pr::APART } else { pr::APART_KINDS };
+                assert!((a.0 - p.x).dhypot(a.1 - p.z) > apart - 0.01, "seed {seed} L{l}: {a:?} by a {kind} at {:.2}, {:.2}", p.x, p.z);
             }
         }
         (at.len(), things.into_iter().map(|(k, _)| k).collect::<std::collections::BTreeSet<String>>())

@@ -748,8 +748,9 @@ pub struct LoopMode {
     pub m_furn: Obj,
     pub m_chair: Obj,
     pub m_plant: Obj,
-    pub m_almond: Obj,
-    pub m_battery: Obj,
+    /// a bottle's water, bottle and cap; a cell's jacket and ends
+    pub m_almond: Vec<Obj>,
+    pub m_battery: Vec<Obj>,
     pub m_figure: Obj,
     pub m_door: Obj,
     pub m_sign: Obj,
@@ -868,7 +869,6 @@ impl LoopMode {
         let ceil_mat = lambert!({ map: tx.ceiling.clone() });
         let paint_mat = lambert!({ vertexColors: true });
         let panel_mat = basic_mat!({ map: tx.panel.clone(), color: if tx.panel.is_some() { 0xffffff } else { 0xfff4d8 } });
-        let pick_mat = lambert!({ vertexColors: true, emissive: 0x1a1a18 });
         let stain_tex = {
             let rr = rng.clone();
             tex(256.0, 128.0, &mut |ctx: &mut Canvas, w: f64, h: f64| {
@@ -936,7 +936,7 @@ impl LoopMode {
         });
         let sign_mat = basic_mat!({ map: sign_tex.clone(), color: if sign_tex.is_some() { 0xffffff } else { 0x0b8f3e } });
         let ghost_mat = lambert!({ color: 0xfff0b8, transparent: true, opacity: 0.1, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-        for m in [&wall_mat, &wall_dirty_mat, &floor_mat, &ceil_mat, &paint_mat, &panel_mat, &pick_mat, &stain_mat, &sign_mat, &ghost_mat] {
+        for m in [&wall_mat, &wall_dirty_mat, &floor_mat, &ceil_mat, &paint_mat, &panel_mat, &stain_mat, &sign_mat, &ghost_mat] {
             owned_mats.push(m.clone());
         }
 
@@ -1200,21 +1200,14 @@ impl LoopMode {
             b.build(og)
         };
         // the pickups, the same bottles and cells as on the levels
-        let almond_geo = {
-            let mut b = Builder::new();
-            b.add(cyl_geo!(0.075, 0.075, 0.24, 14), &mt(0.0, 0.12, 0.0), 0x9fc4d8);
-            b.add(cyl_geo!(0.04, 0.07, 0.05, 14), &mt(0.0, 0.265, 0.0), 0x9fc4d8);
-            b.add(cyl_geo!(0.035, 0.035, 0.04, 12), &mt(0.0, 0.305, 0.0), 0x8a8a86);
-            b.add(cyl_geo!(0.077, 0.077, 0.08, 14), &mt(0.0, 0.12, 0.0), 0xe6dfc8);
-            b.build(og)
-        };
-        let battery_geo = {
-            let mut b = Builder::new();
-            b.add(cyl_geo!(0.05, 0.05, 0.16, 14), &mt(0.0, 0.08, 0.0), 0xc79b3d);
-            b.add(cyl_geo!(0.051, 0.051, 0.05, 14), &mt(0.0, 0.135, 0.0), 0x2a2a28);
-            b.add(cyl_geo!(0.02, 0.02, 0.022, 10), &mt(0.0, 0.171, 0.0), 0xdad3c2);
-            b.build(og)
-        };
+        // (`core_props::pickups`): a sealed bottle standing, a fresh cell
+        // lying, each material an instanced mesh of its own (the water's
+        // first: drawn inside its bottle)
+        let (bottle_parts, cell_parts) = crate::core_props::pickups::instanced_parts();
+        for (g, m) in bottle_parts.iter().chain(&cell_parts) {
+            og.push(g.clone());
+            owned_mats.push(m.clone());
+        }
         // the seated figure: a man in office clothes with nothing where his
         // face should be, on an office chair of its own (`bodies.bin`
         // "seated", `assets/src/creatures/body_seated.py`: sat on this chair)
@@ -1257,8 +1250,9 @@ impl LoopMode {
         let m_furn = inst(&furn_geo, &paint_mat, NN, "furniture");
         let m_chair = inst(&chair_geo, &paint_mat, NN * 2, "chairs");
         let m_plant = inst(&plant_geo, &paint_mat, NN, "plant");
-        let m_almond = inst(&almond_geo, &pick_mat, NN, "almond");
-        let m_battery = inst(&battery_geo, &pick_mat, NN, "battery");
+        let m_almond: Vec<Obj> =
+            bottle_parts.iter().zip(["almond", "almondBottle", "almondCap"]).map(|((g, m), name)| inst(g, m, NN, name)).collect();
+        let m_battery: Vec<Obj> = cell_parts.iter().zip(["battery", "batteryEnds"]).map(|((g, m), name)| inst(g, m, NN, name)).collect();
         let m_figure = inst(&figure_geo, &paint_mat, NS + 1, "figure");
         let m_door = inst(&door_geo, &paint_mat, NN + 1, "doors");
         let m_sign = inst(&sign_geo, &sign_mat, NN, "exitSign");
@@ -1388,7 +1382,9 @@ impl LoopMode {
             {
                 let f = kind.spot();
                 let (x, y, v) = if lk.bare { (f.bx, f.by, f.bv) } else { (f.x, f.y, f.v) };
-                put1(if kind == PickupKind::Almond { &self.m_almond } else { &self.m_battery }, x, y, zc + v, 0.3);
+                for m in if kind == PickupKind::Almond { &self.m_almond } else { &self.m_battery } {
+                    put1(m, x, y, zc + v, 0.3);
+                }
             }
             if lk.exit && r == LOOP::EXIT_ROOM {
                 put1(&self.m_door, -W / 2.0, 0.0, zc + FURN.exit_door_v, PI / 2.0);
@@ -1503,6 +1499,24 @@ impl LoopMode {
     pub fn face_figure(&mut self, lap: i32, dist: f64) {
         let fz = LOOP::FIGURE_ROOM as f64 * P + P / 2.0 + FURN.figure.v;
         self.place(lap, fz - dist, FURN.figure.x, Some(PI));
+    }
+    /// Stand `dist` m before the first pickup of `kind` in a furnished room
+    /// (from the first lap with pickups on), facing it (tools); where it lies
+    pub fn face_pickup(&mut self, kind: PickupKind, dist: f64) -> Option<Vec3> {
+        let (l, r) = (LOOP::PICKUP_LAP..LOOP::PICKUP_LAP + 40)
+            .filter(|&l| !lap_look(l).bare)
+            .find_map(|l| (0..ROOMS).find(|&r| pickup_at(l, r) == Some(kind)).map(|r| (l, r)))?;
+        let f = kind.spot();
+        let z = r as f64 * P + P / 2.0 + f.v;
+        if kind == PickupKind::Battery {
+            // a cell lies along x: from its side (+z, facing -z), its film seen
+            self.place(l, z + dist, f.x, Some(0.0));
+        } else {
+            // from the room's middle side: facing -x (yaw π/2) or +x (-π/2)
+            let toward = if f.x < 0.0 { PI / 2.0 } else { -PI / 2.0 };
+            self.place(l, z, f.x - f.x.signum() * dist, Some(toward));
+        }
+        Some(Vec3::new(f.x, f.y, z))
     }
     /// Put the player at (lap, z, x) directly (tests, tools).
     pub fn place(&mut self, lap: i32, z: f64, x: f64, yaw: Option<f64>) {

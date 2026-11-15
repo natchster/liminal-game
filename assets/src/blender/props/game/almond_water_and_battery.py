@@ -14,9 +14,8 @@ AlmondWater__bottle       a plain 500 ml still-water PET bottle with nothing
                           gate, four grip bands low on the body, a plain
                           panel, five hoop ribs, a sloped shoulder, the
                           neck's support ring and thread
-AlmondWater__liquidFull   what is in it, sealed: up into the shoulder
-AlmondWater__liquidHalf   opened and half drunk
-AlmondWater__liquidLow    a last mouthful
+AlmondWater__liquidFull   what is in it: up into the shoulder (every bottle
+                          is full: LORE.md, Survival)
 AlmondWater__cap          the HDPE screw cap, 31.5 mm across, its skirt knurled
 AlmondWater__tamperRing   its tamper band: on the cap of a sealed bottle, left
                           on the neck of an opened one
@@ -38,7 +37,7 @@ B_R = 0.0325          # body radius (65 mm)
 B_H = 0.203           # base to the top of the neck finish
 B_GROOVE = 0.0306     # a grip band's groove
 B_RIB = 0.0313        # between two hoop ribs
-FILL = {'Full': 0.165, 'Half': 0.095, 'Low': 0.034}
+LIQUID_TOP = 0.165    # the water's top: up into the shoulder
 CAP_R, CAP_H, BAND_H = 0.01575, 0.0122, 0.0032
 
 
@@ -153,8 +152,7 @@ def auto(name, build, budget, smooth=40.0):
 
 
 auto('AlmondWater__bottle', bottle, 4400, smooth=50.0)
-for _k, _top in FILL.items():
-    auto(f'AlmondWater__liquid{_k}', lambda _top=_top: liquid(_top), 4000, smooth=50.0)
+auto('AlmondWater__liquidFull', lambda: liquid(LIQUID_TOP), 4000, smooth=50.0)
 auto('AlmondWater__cap', cap, 1400, smooth=30.0)
 auto('AlmondWater__tamperRing', tamper_ring, 400)
 auto('Battery__jacket', jacket, 1200, smooth=50.0)

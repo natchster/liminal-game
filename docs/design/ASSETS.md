@@ -30,8 +30,9 @@ which took out the 208 that did not):
   Smaller than that, it is not a kind of its own.
 - **It is one kind.** Two names for the same thing are one too many.
 - **Not a stage prop.** Nothing from a theme park, a Halloween shop or
-  another genre (a cauldron is kept only because a reviewer found it
-  odd but telling; a potion or a sheet ghost is not).
+  another genre that the canon does not keep: a carved pumpkin gone soft
+  in a shrine, a cauldron of stale water are the place's (`LORE.md`, *What
+  still burns*); a potion or a sheet ghost is not.
 
 ## An asset's dossier
 
@@ -88,45 +89,75 @@ Where a thing may lie, why, and how many: data an agent can read and write
 and the game obeys. Each rule is one way it comes to be somewhere.
 
 ```toml
-# assets/src/props/almond_water/placement.toml
-count = [3, 4]             # how many a floor (the game's own number decides within it)
-levels = [1, 99]           # from which floor down
+# assets/src/props/almond_water/placement.toml (as it is)
+count = [1, 3]
+levels = [4, 99]
 
 [[rule]]
-on = "surface"             # floor | surface | wall
-of = ["core_filing_cabinet", "place_hall_side_tables"]   # what it stands on (surface): kinds
-purposes = ["office wing", "living quarters", "storage hall"]
-weight = 3                 # how much likelier than the others
-why = "set down where someone worked or rested, and not come back for"
+on = "surface"
+of = ["core_filing_cabinet", "core_cardboard_stack", "place_school_desks", "place_hall_side_tables", "place_wooden_crates", "place_cardboard_boxes"]
+purposes = ["office wing", "living quarters", "storage hall", "maintenance", "play area", "parlour", "party room"]
+weight = 4
+why = "someone working or resting here set it down on what was at hand, meaning to come back for it"
 
 [[rule]]
 on = "floor"
-near = "wall"              # wall | corner | open
-purposes = ["*"]
-dark = true                # only where the place has no light of its own
+near = "wall"
+purposes = ["office wing", "living quarters", "storage hall", "maintenance", "service tunnels", "play area", "parlour", "party room", "overgrown atrium", "empty"]
+weight = 2
+why = "dropped where someone sat with their back to the wall, or rolled to it"
+
+[[rule]]
+on = "floor"
+near = "corner"
+purposes = ["office wing", "living quarters", "storage hall", "maintenance", "service tunnels", "empty"]
 weight = 1
-why = "dropped or rolled to the wall"
+why = "pushed into a corner out of the way by someone who slept there"
 
 [never]
-purposes = ["empty"]
-why = "the emptiness is the content (PILLARS 1)"
+purposes = ["washrooms", "pool hall", "shrine", "showroom"]
+why = "nobody keeps their drink where they wash, a shrine is not for it, and the Showroom is spotless"
 ```
 
+- **A rule may hold only in the dark** (`dark = true`): where the place
+  has no light of its own (the battery's floor rules: a cell dropped while
+  a torch was changed by feel).
 - **Every rule has its why.** A rule without one fails `cargo xtask asset
   check`; a why is the story a player could tell, not the mechanism.
 - **What it stands on is a kind the game places** (`core_<kind>` or a
   placer's name), checked to exist; a purpose is one of `world::purpose`'s.
+- **`on` is `floor` or `surface`.** Hung on a wall is not placed yet: the
+  check and the game refuse it.
+- **`levels` start at 4 at the least.** The rules place on the rooms'
+  floors; the Building's (1-3) place their own things.
+- **`count` is how many a floor, made by its maker.** The rules never make
+  a thing: whatever makes it (for the pickups, `core_props::pickups`)
+  decides how many, and the rules drop any past the most. Where the floor
+  allows anywhere, at least the least are there (the rules test holds it).
+- **What the game places by them** is any thing made with `user.s["by"]
+  = "rules"` and the asset's name as its `kind`: one pass for every asset,
+  each on a stream seeded by its name. A thing marked with no rules for its
+  kind fails the rules test.
 - **The game places by them after the floor has settled**
-  (`game::world::placement_rules`): every spot the rules allow (on a
-  thing's top; at a wall's foot or in a corner, a lone pillar no wall; only
-  in the dark where a rule says `dark`), in a purpose a rule names and none
-  the asset never fits, reachable from where you arrive, never behind a
-  barricade, in a wall or in another thing; chosen on a stream of its own
-  (`SplitMix64`, never the level's: no floor's draws move), the assets in
-  turn, no two of a kind within 6 m (two in one view read as a trail laid).
-  A thing its rules allow nowhere is not on that floor. Each keeps the rule
-  that placed it, and `what_the_rules_place_keeps_its_rules`
-  (`tests/usable.rs`) holds every one to it on 36 floors.
+  (`game::world::placement_rules`). It looks at every spot the rules allow:
+  - on a thing's own top: the highest level face of it, flat under the
+    whole of what is set down, nearest its middle (not its box's top: a
+    vase or a chair's back stands higher);
+  - at a wall's foot or in a corner (a lone pillar is no wall);
+  - only in the dark where a rule says `dark`.
+
+  The spot must be in a purpose a rule names and in none the asset never
+  fits, reachable from where you arrive, and never behind a barricade, in
+  a wall or in another thing. It is chosen on a stream of its own
+  (`SplitMix64`, never the level's: no floor's draws move). The assets
+  take turns. No two of a kind lie within 6 m (two in one view read as a
+  trail laid), nor within 6 m of one that something else made (her camp's).
+  A thing its rules allow nowhere is not on that floor. Each keeps the
+  rule that placed it, and `what_the_rules_place_keeps_its_rules`
+  (`tests/usable.rs`) holds every one to it on 36 floors: resting on what
+  it stands on (a ray down meets its top there), apart, in its counts.
+- **The bundle is its sources.** `the_bundle_is_its_sources` (xtask)
+  fails when a `placement.toml` changed without `cargo xtask asset write`.
 - **For agents making places**: the rules of every asset are one table
   (`cargo xtask asset rules` prints them); a place is dressed from the
   things whose rules allow it, in their counts, for their reasons.

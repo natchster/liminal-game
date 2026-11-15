@@ -75,7 +75,7 @@
     "placement.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask asset write (TOML sources, every field written out)",
-      "fingerprint": "1c3cd80ad29a7ba9",
+      "fingerprint": "77da94b1cc9fba78",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",
@@ -88,7 +88,7 @@
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "Blender headless: props.py runs every batch module in assets/src/blender/props/ (propkit shapes, seeded noise, weighted normals); packed by cargo xtask assets props, the frozen parts kept as stored",
-      "fingerprint": "cbaafaa459bc02bf",
+      "fingerprint": "60eac05ecedb6915",
       "frozen_parts": [
         "Acorns__cap",
         "Backpacks__body",
@@ -218,7 +218,7 @@
       "generative_model": null,
       "generator": "procedural bpy scripts",
       "licence": "MIT",
-      "parts": 4012,
+      "parts": 4010,
       "rebuild": "cargo xtask assets props [--write]; Blender 5.2.2 reproduces every part but the frozen ones exactly",
       "rebuilt_with": "Blender 5.2.2 LTS",
       "sources": [

@@ -890,7 +890,8 @@ impl Game {
         }
         for _ in 0..battery.min(2) {
             let Some(p) = at.next() else { break };
-            let bg = self.battery_at(p.x, p.z);
+            // (a machine's stock: fresh, never an old one's leak)
+            let bg = self.battery_at(p.x, p.z, true);
             bg.position().set(p.x, 0.0, p.z);
             self.world.add(&bg);
             self.battery_items.push(crate::base::records::Pickup { g: bg, taken: false, base: 0.0, phase: p.z });

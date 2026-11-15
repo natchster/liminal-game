@@ -1411,6 +1411,11 @@ fn level_check(o: &Options, dir: &str) {
             g.sim_frozen = false;
             print!(" (+png)");
             if o.views {
+                // every view is a tool's eye, taking nothing (a bottle by a
+                // view's camera was taken, its line laid over the next views,
+                // and gone from them)
+                let was = g.tool_eye;
+                g.tool_eye = true;
                 // one frame from inside each zone (the creatures stay where they are)
                 let views = g.zone_views();
                 for &(zi, x, z, yaw) in &views {
@@ -1465,12 +1470,6 @@ fn level_check(o: &Options, dir: &str) {
                     g.fixed_step_dt = 1.0 / 60.0;
                     g.frame(1.0 / 60.0);
                     g.fixed_step_dt = 0.0;
-                    // (no toast of a thing picked up where the camera stands)
-                    if name.starts_with("room") {
-                        g.msg_t = 0.0;
-                        g.ui.msg.set_opacity(0.0);
-                        g.ui.msg.set_text("");
-                    }
                     g.sim_frozen = true;
                     let cb = draw(&mut g, &mut r, t, w, h);
                     cb.commit();
@@ -1481,6 +1480,7 @@ fn level_check(o: &Options, dir: &str) {
                     g.player.flashlight_on = false;
                     print!(" (+{name} view{})", if lamp { ", by the lamp" } else { "" });
                 }
+                g.tool_eye = was;
                 let lean: Vec<String> = g.lean_views(8).iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" ({} leaning, lean views: \"{}\")", g.angled.len(), lean.join(";"));
                 let vend: Vec<String> = g.vending_views().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
