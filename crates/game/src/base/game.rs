@@ -27,8 +27,10 @@ pub struct RecMark {
     /// the game's clock (ms) when the recording being made began
     pub since_ms: Option<f64>,
     /// a recording just written: when (ms), and what to say ("Saved …", or
-    /// that it was not)
+    /// that it was not; or that the disk had no room for one)
     pub saved: Option<(f64, String)>,
+    /// how long that is said (ms; 0: four seconds), longer for a warning
+    pub hold_ms: f64,
 }
 
 pub struct Game {

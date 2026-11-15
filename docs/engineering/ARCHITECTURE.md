@@ -31,7 +31,9 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
     CoreAudio through cpal, or offline on demand
     (`AudioContext::new_offline`, `render_offline`; `wav` writes the result);
   * `render`: the Metal renderer (below); `app`: the winit window, the
-    CAMetalLayer, raw mouse input and pointer capture; `png`: PNG encoding.
+    CAMetalLayer, raw mouse input and pointer capture; `png`: PNG encoding;
+    `disk`: how much of a disk is free (`statvfs`), for the recordings
+    (`REPLAYS.md`, *Room on the disk*).
 * **`game`** is the game itself, with no platform code: it runs headless,
   which is how every test drives it.
 * **`placers_<theme>`** hold the ~650 decoration placers (`place_*`

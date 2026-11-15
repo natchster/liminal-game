@@ -6,6 +6,7 @@ use engine::app::{AppConfig, AppCtx, AppHandler, Input, run};
 use engine::dmath::DMath;
 use engine::render::{LocalLight, OBlend, OverlayImage, OverlayOp, RenderGlobals, Renderer};
 use game::Game;
+use game::replay::disk::{self, Disk};
 use game::ui::model::{HudLayer, LayerBlend};
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
@@ -35,7 +36,7 @@ struct Options {
     showcase_walk: bool,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
-    /// `--screen pause|leave|settings|brightness|controls|replay-settings|recording|recording-paused|replays|replay|replay-bar|title|dead|ending|notebook|notebook-typed`:
+    /// `--screen pause|leave|settings|brightness|controls|replay-settings|recording|recording-refused|recording-stopped|recording-paused|replays|replay|replay-bar|title|dead|ending|notebook|notebook-typed`:
     /// with `--play`, that list or card goes up 45 frames before the shot (`Game::debug_screen`)
     screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
@@ -603,6 +604,11 @@ struct App {
     writer: replays::Writer,
     /// when the recording being made was last copied to its file
     copied: std::time::Instant,
+    /// when the disk is looked at while a recording runs (issue #9)
+    disk: game::replay::disk::DiskGuard,
+    /// a recording the disk ended: its file, and what the mark says of it
+    /// (kept when the writer reports it saved)
+    disk_stopped: Option<(std::path::PathBuf, String)>,
     /// a replay being watched (`--replay`, or from the Replays screen)
     replaying: Option<Replaying>,
     /// the look and the wheel rounded where they enter, with their carry
@@ -796,13 +802,21 @@ impl App {
                 self.writer.send(path, f, true);
             }
             g.rec_mark = game::base::game::RecMark::default();
+            self.disk.stop();
         } else {
             let path = replays::new_path(&save_path(), g.level_num);
+            // always looked at as a recording begins (issue #9)
+            let free = engine::disk::free_share(path.parent().unwrap_or(std::path::Path::new(".")));
+            if let Disk::Low(f) = self.disk.start(free, g.settings.replay_free_pct, g.now_ms) {
+                eprintln!("not recording: {:.1}% of the disk free", f * 100.0);
+                g.rec_mark = game::base::game::RecMark { since_ms: None, saved: Some((g.now_ms, disk::refused(f))), hold_ms: 8000.0 };
+                return;
+            }
             println!("recording to {}", path.display());
             log.start_recording();
             self.recording = Some((path, replays::header(&g.launch_flags, g.level_num)));
             self.copied = std::time::Instant::now();
-            g.rec_mark = game::base::game::RecMark { since_ms: Some(g.now_ms), saved: None };
+            g.rec_mark = game::base::game::RecMark { since_ms: Some(g.now_ms), ..Default::default() };
         }
     }
 }
@@ -828,9 +842,20 @@ impl AppHandler for App {
             let flags = self.g.launch_flags.clone();
             let mut log = game::replay::Recorder::session(seed, &flags, storage, &self.g);
             if let Some(p) = record {
-                log.start_recording();
-                self.recording = Some((p.into(), replays::header(&flags, self.g.level_num)));
-                self.g.rec_mark.since_ms = Some(self.g.now_ms);
+                let p = std::path::PathBuf::from(p);
+                let free = engine::disk::free_share(p.parent().unwrap_or(std::path::Path::new(".")));
+                match self.disk.start(free, self.g.settings.replay_free_pct, self.g.now_ms) {
+                    Disk::Low(f) => {
+                        eprintln!("not recording {}: {:.1}% of the disk free", p.display(), f * 100.0);
+                        self.g.rec_mark.saved = Some((self.g.now_ms, disk::refused(f)));
+                        self.g.rec_mark.hold_ms = 8000.0;
+                    }
+                    Disk::Room => {
+                        log.start_recording();
+                        self.recording = Some((p, replays::header(&flags, self.g.level_num)));
+                        self.g.rec_mark.since_ms = Some(self.g.now_ms);
+                    }
+                }
             }
             self.log = Some(log);
         }
@@ -847,10 +872,30 @@ impl AppHandler for App {
             self.writer.send(path.clone(), log.snapshot(header.clone()), false);
             self.copied = std::time::Instant::now();
         }
+        // while a recording runs, the disk every so often: too little room
+        // ends it, kept as it stands (issue #9)
+        if let Some((path, _)) = &self.recording
+            && self.disk.due(self.g.settings.replay_check_min, self.g.now_ms)
+        {
+            let free = engine::disk::free_share(path.parent().unwrap_or(std::path::Path::new(".")));
+            if let Disk::Low(f) = self.disk.check(free, self.g.settings.replay_free_pct, self.g.now_ms) {
+                eprintln!("recording stopped: {:.1}% of the disk free", f * 100.0);
+                let (path, said) = (path.clone(), disk::stopped(f));
+                self.toggle_recording();
+                self.g.rec_mark.saved = Some((self.g.now_ms, said.clone()));
+                self.g.rec_mark.hold_ms = 8000.0;
+                self.disk_stopped = Some((path, said));
+            }
+        }
         // a recording written: the mark says so, or that it was not
         for (path, r) in self.writer.written() {
             let name = path.file_stem().map_or_default(|s| s.to_string_lossy().to_string());
             let said = match r {
+                // (the disk ended it: the mark keeps saying why)
+                Ok(()) if self.disk_stopped.as_ref().is_some_and(|(p, _)| *p == path) => {
+                    println!("recording saved to {}", path.display());
+                    self.disk_stopped.take().map(|(_, said)| said).unwrap_or_default()
+                }
                 Ok(()) => {
                     println!("recording saved to {}", path.display());
                     format!("Saved {name}")
@@ -1965,6 +2010,8 @@ fn main() {
             recording: None,
             writer: replays::Writer::new(),
             copied: std::time::Instant::now(),
+            disk: Default::default(),
+            disk_stopped: None,
             replaying,
             quant: game::replay::Quantizer::default(),
             frames: 0,

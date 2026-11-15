@@ -1120,6 +1120,13 @@ impl Game {
             }
             return;
         }
+        // a recording the disk had no room for (issue #9): the mark's
+        // warning, as F9 on a disk 3.4% free of a 5% line leaves it
+        if name == "recording-refused" || name == "recording-stopped" {
+            let said = if name == "recording-refused" { crate::replay::disk::refused(0.034) } else { crate::replay::disk::stopped(0.034) };
+            self.rec_mark = crate::base::game::RecMark { since_ms: None, saved: Some((self.now_ms, said)), hold_ms: 8000.0 };
+            return;
+        }
         // the death card and her last card, as they stand over black
         if name == "dead" || name == "ending" {
             self.ui.fade.set_style("background", if name == "dead" { "#000" } else { "#050403" });

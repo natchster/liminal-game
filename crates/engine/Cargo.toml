@@ -18,6 +18,7 @@ winit = { workspace = true }
 raw-window-handle = { workspace = true }
 cpal = { workspace = true }
 miniz_oxide = { workspace = true }
+libc = { workspace = true }
 rustfft = { workspace = true }
 core-math = { workspace = true }
 

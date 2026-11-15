@@ -51,7 +51,8 @@ or **Stop recording** ends it after the frame it is pressed in, its
 **out-point**. While one is made the log keeps every segment from the one
 its in-point is in, and a small red **● REC 1:23** stands at the top right
 over every screen; when it ends, the file's name stands there for four
-seconds once its file is written (or that it was not). The key works on
+seconds once its file is written (or that it was not; or that the disk
+had no room, *Room on the disk*). The key works on
 every screen and card (as Mute does). The file holds the segment its
 in-point is in and every one after; its header names the in- and
 out-points. It goes to `~/Library/Application
@@ -67,6 +68,28 @@ ends (it asks the app: `Game::want_record`), so a replay of a session in
 which the key was pressed runs as play did; the REC mark and the pause
 list's words are the app's (`Game::rec_mark`), drawn and never read by
 play.
+
+### Room on the disk
+
+A recording needs room on the disk (GitHub issue #9). As one begins (F9,
+Record, `--record`) the app measures the disk the replays folder is on
+(`engine::disk::free_share`: `statvfs`, what the game may still write
+over the whole volume, at the nearest folder that exists), and while it
+runs it measures again every so often; the game's guard says when, and
+what the share means (`game::replay::disk::DiskGuard`). With less free
+than the line, a recording does not begin, and the mark says so for
+eight seconds ("Not recording: 3% of the disk free"); one that runs
+ends, kept as it stands (written as any ended recording is), and the
+mark says why ("Recording stopped: 3% of the disk free") instead of its
+name. The line and the interval are the player's (Settings › Replays:
+5% of the disk, from 1% to 20%; every minute, up to every 30); the look
+as a recording begins is always made. A disk that cannot be measured
+refuses nothing. The interval runs on the game's clock, as the mark's
+own time does, and nothing of it is read by play, so a replay never
+depends on the disk. The guard's tests pretend to see the disk (40%,
+3.4%) and run minutes of the clock in a moment (`replay::disk`'s unit
+tests); `engine::disk`'s measure the real one; `--screen
+recording-refused` and `recording-stopped` show the mark's warnings.
 
 ## Watching
 

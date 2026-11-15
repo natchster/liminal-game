@@ -39,6 +39,8 @@ winit = "0.30"
 raw-window-handle = "0.6"
 cpal = "0.18"
 miniz_oxide = "0.9"
+# statvfs: how much of the disk is free (engine::disk)
+libc = "0.2"
 rustfft = "6"
 # correctly rounded math (CORE-MATH): the same result on every system (engine::dmath)
 core-math = "1.4"

@@ -1388,13 +1388,14 @@ fn paint_rec(f: &mut Frame, g: &Game) {
         let secs = ((g.now_ms - s) / 1000.0).max(0.0) as u64;
         format!("● REC {}:{:02}", secs / 60, secs % 60)
     });
-    let saved = m.saved.as_ref().filter(|(at, _)| (0.0..4000.0).contains(&(g.now_ms - at))).map(|(_, said)| said.clone());
+    let hold = if m.hold_ms > 0.0 { m.hold_ms } else { 4000.0 };
+    let saved = m.saved.as_ref().filter(|(at, _)| (0.0..hold).contains(&(g.now_ms - at))).map(|(_, said)| said.clone());
     let op = f.tr("rec", if running.is_some() || saved.is_some() { 1.0 } else { 0.0 }, 0.3, Ease::Ease);
     let Some(text) = running.or(saved) else { return };
     let dark = parse_shadows("0 0 4px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.6)");
     let tb = TextBlock::plain(&text, col("#e0483c"), &dark, 0.0, Font::sans(12.0).bold(), Ws::NoWrap, None, None);
     let w = f.w;
-    text_layer(f, "rec", tb, w - 24.0 - 240.0, 40.0, 240.0, "right", op * 0.9);
+    text_layer(f, "rec", tb, w - 24.0 - 360.0, 40.0, 360.0, "right", op * 0.9);
 }
 
 /// The line under a replay being watched (`Game::playback`, set by the

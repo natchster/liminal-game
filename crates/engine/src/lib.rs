@@ -14,6 +14,7 @@ pub mod audio;
 pub mod canvas;
 pub mod cg;
 pub mod css;
+pub mod disk;
 pub mod dmath;
 pub mod earcut;
 pub mod geometry;
