@@ -1,0 +1,3397 @@
+{
+"sheet001": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"odd",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"odd",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"unseen"
+],
+"7": [
+"yes",
+"none",
+"unseen"
+],
+"8": [
+"odd",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"none",
+"unseen"
+]
+},
+"sheet002": {
+"1": [
+"yes",
+"high",
+"plain"
+],
+"10": [
+"no",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"high",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"none",
+"unseen"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"odd",
+"high",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"cartoon"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet003": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"real"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"real"
+],
+"8": [
+"odd",
+"some",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet004": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"unseen"
+],
+"7": [
+"yes",
+"some",
+"unseen"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet005": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"odd",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"odd",
+"some",
+"unseen"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"unseen"
+],
+"8": [
+"yes",
+"some",
+"unseen"
+],
+"9": [
+"no",
+"some",
+"plain"
+]
+},
+"sheet006": {
+"1": [
+"yes",
+"high",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"no",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"odd",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"high",
+"plain"
+]
+},
+"sheet007": {
+"1": [
+"yes",
+"high",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"odd",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"unseen"
+]
+},
+"sheet008": {
+"1": [
+"odd",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"high",
+"plain"
+]
+},
+"sheet009": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"odd",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"high",
+"plain"
+],
+"2": [
+"odd",
+"some",
+"plain"
+],
+"3": [
+"odd",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet010": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"odd",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet011": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"odd",
+"high",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet012": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"high",
+"plain"
+],
+"11": [
+"odd",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet013": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"real"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet014": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"odd",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"unseen"
+],
+"5": [
+"odd",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"some",
+"plain"
+]
+},
+"sheet015": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"high",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"unseen"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"unseen"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"odd",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"cartoon"
+],
+"8": [
+"yes",
+"some",
+"unseen"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet016": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"odd",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"real"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet017": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"some",
+"unseen"
+],
+"3": [
+"odd",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet018": {
+"1": [
+"odd",
+"some",
+"plain"
+],
+"10": [
+"odd",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"unseen"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"some",
+"unseen"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet019": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"odd",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"real"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"unseen"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet020": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"odd",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet021": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"odd",
+"some",
+"plain"
+],
+"11": [
+"odd",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"unseen"
+],
+"2": [
+"yes",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"high",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"odd",
+"some",
+"cartoon"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet022": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"odd",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"no",
+"some",
+"cartoon"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"some",
+"cartoon"
+]
+},
+"sheet023": {
+"1": [
+"odd",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"real"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"real"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"unseen"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet024": {
+"1": [
+"odd",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"odd",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"odd",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"odd",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet025": {
+"1": [
+"odd",
+"none",
+"unseen"
+],
+"10": [
+"odd",
+"none",
+"cartoon"
+],
+"11": [
+"yes",
+"high",
+"plain"
+],
+"12": [
+"odd",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"odd",
+"none",
+"plain"
+],
+"4": [
+"odd",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet026": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"high",
+"cartoon"
+],
+"12": [
+"odd",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet027": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"odd",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet028": {
+"1": [
+"yes",
+"some",
+"real"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"odd",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"unseen"
+],
+"3": [
+"odd",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"odd",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"unseen"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet029": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"unseen"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"real"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"unseen"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet030": {
+"1": [
+"odd",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"high",
+"plain"
+],
+"5": [
+"odd",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"real"
+]
+},
+"sheet031": {
+"1": [
+"odd",
+"some",
+"plain"
+],
+"10": [
+"odd",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"odd",
+"none",
+"unseen"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"high",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet032": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"odd",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"high",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet033": {
+"1": [
+"odd",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"odd",
+"none",
+"plain"
+],
+"2": [
+"odd",
+"none",
+"unseen"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"no",
+"some",
+"cartoon"
+],
+"5": [
+"odd",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"cartoon"
+]
+},
+"sheet034": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"unseen"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"high",
+"plain"
+],
+"2": [
+"odd",
+"none",
+"plain"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"none",
+"unseen"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet035": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"odd",
+"none",
+"unseen"
+],
+"6": [
+"no",
+"none",
+"unseen"
+],
+"7": [
+"odd",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet036": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"odd",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"none",
+"unseen"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"odd",
+"high",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet037": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"unseen"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"odd",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"none",
+"unseen"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"high",
+"plain"
+]
+},
+"sheet038": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"odd",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"unseen"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"odd",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet039": {
+"1": [
+"yes",
+"high",
+"real"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"cartoon"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet040": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"high",
+"plain"
+],
+"12": [
+"odd",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"unseen"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"none",
+"unseen"
+]
+},
+"sheet041": {
+"1": [
+"yes",
+"none",
+"cartoon"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"some",
+"unseen"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"cartoon"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet042": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"odd",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"high",
+"real"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"odd",
+"none",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"unseen"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet043": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"odd",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"odd",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet044": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"no",
+"some",
+"cartoon"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"unseen"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"real"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet045": {
+"1": [
+"odd",
+"none",
+"plain"
+],
+"10": [
+"odd",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"odd",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"unseen"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"odd",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet046": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"high",
+"plain"
+],
+"11": [
+"yes",
+"none",
+"unseen"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"high",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"high",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"odd",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet047": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"odd",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"odd",
+"none",
+"unseen"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet048": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"odd",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"odd",
+"some",
+"plain"
+],
+"7": [
+"odd",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet049": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"high",
+"plain"
+],
+"12": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"none",
+"plain"
+],
+"4": [
+"odd",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"none",
+"unseen"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"none",
+"plain"
+]
+},
+"sheet050": {
+"1": [
+"yes",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"unseen"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"some",
+"plain"
+],
+"5": [
+"yes",
+"high",
+"plain"
+],
+"6": [
+"yes",
+"some",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"real"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"odd",
+"none",
+"plain"
+]
+},
+"sheet051": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"10": [
+"yes",
+"none",
+"plain"
+],
+"11": [
+"yes",
+"some",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"unseen"
+],
+"3": [
+"odd",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"high",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"unseen"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"yes",
+"high",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"plain"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet052": {
+"1": [
+"odd",
+"none",
+"plain"
+],
+"10": [
+"odd",
+"none",
+"unseen"
+],
+"11": [
+"yes",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"odd",
+"none",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"unseen"
+],
+"6": [
+"odd",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"unseen"
+],
+"9": [
+"yes",
+"some",
+"plain"
+]
+},
+"sheet053": {
+"1": [
+"yes",
+"none",
+"unseen"
+],
+"10": [
+"yes",
+"high",
+"plain"
+],
+"11": [
+"odd",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"some",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"unseen"
+],
+"5": [
+"odd",
+"none",
+"cartoon"
+],
+"6": [
+"yes",
+"high",
+"plain"
+],
+"7": [
+"yes",
+"some",
+"plain"
+],
+"8": [
+"odd",
+"none",
+"unseen"
+],
+"9": [
+"odd",
+"none",
+"unseen"
+]
+},
+"sheet054": {
+"1": [
+"odd",
+"none",
+"plain"
+],
+"10": [
+"yes",
+"some",
+"plain"
+],
+"11": [
+"odd",
+"none",
+"plain"
+],
+"12": [
+"yes",
+"none",
+"plain"
+],
+"2": [
+"yes",
+"high",
+"plain"
+],
+"3": [
+"odd",
+"high",
+"plain"
+],
+"4": [
+"yes",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"none",
+"plain"
+],
+"6": [
+"odd",
+"some",
+"plain"
+],
+"7": [
+"odd",
+"some",
+"plain"
+],
+"8": [
+"yes",
+"none",
+"unseen"
+],
+"9": [
+"yes",
+"none",
+"unseen"
+]
+},
+"sheet055": {
+"1": [
+"yes",
+"some",
+"plain"
+],
+"2": [
+"yes",
+"none",
+"plain"
+],
+"3": [
+"yes",
+"some",
+"plain"
+],
+"4": [
+"odd",
+"none",
+"plain"
+],
+"5": [
+"yes",
+"some",
+"plain"
+],
+"6": [
+"yes",
+"none",
+"plain"
+],
+"7": [
+"yes",
+"none",
+"plain"
+],
+"8": [
+"yes",
+"some",
+"unseen"
+],
+"9": [
+"odd",
+"some",
+"plain"
+]
+}
+}

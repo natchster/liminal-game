@@ -1,0 +1,696 @@
+# kind	theme	floors (of 272)	belongs	interest	made	score	sheet-cell	duplicate	decision
+core_baby_doll	core	247	yes	high	plain	5	sheet001-5		keep
+core_balloon	core	272	yes	high	plain	5	sheet016-5		keep
+core_barricades	core	166	yes	high	plain	5	sheet023-2		keep
+core_book_stack	core	259	yes	some	plain	4	sheet038-6		keep
+core_broken_elevator	core	136	yes	high	plain	5	sheet040-2		keep
+core_cardboard_stack	core	270	yes	high	real	6	sheet039-1		keep
+core_chairs	core	272	yes	some	plain	4	sheet016-4		keep
+core_coat_rack	core	251	yes	some	plain	4	sheet029-1		keep
+core_crt_tv	core	272	yes	high	plain	5	sheet002-1		keep
+core_elevators	core	272	yes	high	plain	5	sheet047-5		keep
+core_exit_door	core	269	yes	high	plain	5	sheet015-10		keep
+core_filing_cabinet	core	266	yes	some	plain	4	sheet055-1		keep
+core_fire_extinguisher	core	263	yes	some	real	5	sheet028-1		keep
+core_floor_hole	core	83	yes	high	plain	5	sheet005-5		keep
+core_floor_plant	core	249	yes	some	plain	4	sheet050-3		keep
+core_fluorescent_tube	core	249	yes	some	plain	4	sheet038-1		keep
+core_graffiti	core	176	yes	high	plain	5	sheet032-3		keep
+core_light_switches	core	272	yes	some	plain	4	sheet027-10		keep
+core_locker	core	265	yes	some	plain	4	sheet046-3		keep
+core_lore_notes	core	272	yes	high	plain	5	sheet040-11		keep
+core_mannequin	core	272	yes	high	plain	5	sheet002-11		keep
+core_paper_piles	core	209	yes	some	plain	4	sheet033-6		keep
+core_payphone	core	272	yes	high	plain	5	sheet021-3		keep
+core_pickups	core	272	yes	some	plain	4	sheet013-7		keep
+core_pile	core	264	yes	none	plain	3	sheet038-9		keep
+core_plant_zone	core	272	yes	high	plain	5	sheet054-2		keep
+core_pool_room	core	272	yes	high	plain	5	sheet007-7		keep
+core_potted_plant	core	251	yes	some	plain	4	sheet006-8		keep
+core_robot_vacuum	core	272	yes	high	plain	5	sheet017-6		keep
+core_rubber_duck	core	201	odd	none	unseen	1	sheet006-4		keep
+core_safe_room	core	165	yes	high	plain	5	sheet029-6		keep
+core_suitcase	core	253	yes	some	plain	4	sheet011-9		keep
+core_tableaux	core	272	yes	high	plain	5	sheet013-6		keep
+core_traffic_cone	core	257	yes	some	plain	4	sheet046-12		keep
+core_trash_can	core	260	yes	some	plain	4	sheet011-5		keep
+core_tv_on_floor	core	259	yes	some	plain	3	sheet011-7	dupe	keep
+core_vending	core	216	yes	high	real	6	sheet042-4		keep
+core_wall_clock	core	270	yes	some	unseen	4	sheet019-8		keep
+core_wall_mirrors	core	272	yes	some	plain	4	sheet036-5		keep
+core_weather_extras	core	204	yes	some	unseen	4	sheet004-7		keep
+core_wet_floor_sign	core	271	yes	some	unseen	4	sheet005-8		keep
+core_wheelchair	core	249	yes	high	plain	5	sheet010-6		keep
+place_8_track_tapes	office	16	yes	none	plain	3	sheet019-6		keep
+place_abandoned_laptops	office	27	yes	some	plain	4	sheet010-7		keep
+place_abstract_landscapes	domestic	7	yes	some	real	5	sheet003-3		keep
+place_abstract_paintings	domestic	5	yes	none	plain	3	sheet023-4		keep
+place_acorns	nature	0	-	-	-	-	-		remove
+place_action_figures	toys	5	yes	some	plain	4	sheet044-3		keep
+place_air_fresheners	bathroom	20	yes	none	plain	3	sheet026-8		keep
+place_alarm_bells	domestic	13	yes	some	plain	4	sheet026-5		keep
+place_alarm_clocks	office	23	yes	some	plain	4	sheet049-12		keep
+place_analog_clocks	office	5	yes	some	plain	3	sheet004-4	dupe	keep
+place_anatomy_charts	office	1	odd	some	plain	3	sheet021-10		keep
+place_ancient_book_stacks	victorian	5	yes	some	unseen	3	sheet014-4		keep
+place_ancient_portraits	victorian	2	yes	high	real	6	sheet050-7		keep
+place_antique_maps	victorian	2	yes	some	real	5	sheet013-12		keep
+place_aquariums	victorian	0	-	-	-	-	-		remove
+place_ashtrays	domestic	30	yes	none	plain	2	sheet011-4	dupe	keep
+place_baby_bottles	toys	2	yes	some	plain	4	sheet044-4		keep
+place_baby_crib_fragments	toys	1	yes	high	plain	5	sheet006-1		keep
+place_baby_photos	domestic	6	yes	some	plain	4	sheet037-8		keep
+place_baby_rattles	toys	8	yes	none	plain	3	sheet019-7		keep
+place_backpacks	domestic	48	yes	some	plain	4	sheet040-3		keep
+place_barometers	victorian	5	yes	none	plain	2	sheet016-11	dupe	remove
+place_bath_mats	bathroom	8	odd	none	plain	2	sheet045-10		remove
+place_bathroom_mirrors	bathroom	7	odd	none	cartoon	1	sheet025-10		remove
+place_bellows	victorian	0	-	-	-	-	-		remove
+place_bellows_cameras	victorian	2	odd	high	plain	4	sheet002-4		keep
+place_biohazard_signs	industrial	10	odd	some	plain	3	sheet043-11		keep
+place_bird_baths	bathroom	5	odd	some	plain	3	sheet034-3		keep
+place_bird_feeders	nature	4	odd	none	plain	2	sheet026-7		remove
+place_bird_nests	nature	4	odd	none	plain	2	sheet001-4		remove
+place_birdcages	victorian	1	yes	some	unseen	3	sheet034-10		keep
+place_birth_announcements	domestic	4	yes	none	plain	3	sheet019-1		keep
+place_birthday_hats	party	3	yes	some	plain	4	sheet012-5		keep
+place_bitten_donuts	party	2	yes	some	plain	4	sheet026-2		keep
+place_bobby_pins	bathroom	12	yes	none	unseen	2	sheet003-11		remove
+place_bookshelves	office	8	yes	some	plain	4	sheet036-8		keep
+place_boot_trays	domestic	7	yes	none	cartoon	2	sheet039-4		remove
+place_botanical_prints	victorian	1	yes	none	real	4	sheet030-9		keep
+place_botanicals	nature	0	-	-	-	-	-		remove
+place_bottle_caps	core	65	yes	none	unseen	2	sheet001-9		keep
+place_brandy_snifters	victorian	3	yes	none	unseen	2	sheet017-10		remove
+place_brass_candlesticks	occult	1	yes	some	plain	4	sheet053-2		keep
+place_brass_sconces	victorian	2	yes	some	plain	4	sheet034-1		keep
+place_bread_loaves	domestic	11	odd	none	plain	2	sheet052-1		remove
+place_briefcases	office	39	yes	some	plain	4	sheet001-12		keep
+place_broken_bottles	domestic	10	yes	none	unseen	2	sheet018-3		remove
+place_broken_flashlights	domestic	16	yes	some	plain	4	sheet023-12		keep
+place_broken_light_switches	core	19	yes	none	plain	3	sheet018-2		keep
+place_broken_pens	office	22	yes	none	plain	3	sheet016-12		keep
+place_broken_picture_frames	domestic	13	yes	none	plain	3	sheet051-10		keep
+place_broken_sunglasses	domestic	17	yes	none	unseen	2	sheet039-12		keep
+place_broken_wall_clocks	office	13	yes	some	unseen	4	sheet051-2		keep
+place_broken_whole_dolls	toys	2	yes	some	plain	4	sheet020-12		keep
+place_broken_window_frames	core	42	odd	some	plain	3	sheet023-1		keep
+place_brooms_and_dustpans	domestic	12	yes	none	plain	3	sheet010-5		keep
+place_building_blocks	toys	20	yes	none	unseen	2	sheet003-4		keep
+place_bulletin_boards	office	97	yes	some	plain	4	sheet027-12		keep
+place_business_cards	office	20	yes	none	unseen	2	sheet024-5		keep
+place_butterfly_wings	nature	2	odd	none	unseen	1	sheet042-7		remove
+place_c_ds	office	16	yes	none	plain	3	sheet032-2		keep
+place_cabinet_doors	office	51	yes	none	plain	3	sheet022-7		keep
+place_cake_stands	party	5	yes	high	plain	5	sheet053-6		keep
+place_calculators	office	12	yes	none	unseen	2	sheet037-6		remove
+place_candle_clusters	occult	2	yes	high	plain	5	sheet021-2		keep
+place_candle_lanterns	victorian	2	yes	high	plain	5	sheet008-9		keep
+place_candy_corn_scatters	party	5	-	-	-	-	-		keep
+place_car_keys	office	19	yes	none	unseen	1	sheet038-12	dupe	remove
+place_card_readers	core	9	yes	none	plain	3	sheet015-12		keep
+place_cardboard_boxes	industrial	71	yes	some	plain	4	sheet012-1		keep
+place_cassette_tapes	office	16	yes	none	plain	3	sheet007-3		keep
+place_cassettes	office	13	yes	none	unseen	1	sheet006-3	dupe	remove
+place_cast_iron_door_stops	victorian	3	odd	none	plain	2	sheet028-12		remove
+place_cast_iron_kettles	victorian	2	odd	none	plain	2	sheet049-4		remove
+place_cast_iron_ladles	domestic	8	odd	none	plain	2	sheet047-12		remove
+place_cast_iron_pans	domestic	11	yes	some	plain	4	sheet014-10		keep
+place_caution_tapes	industrial	10	yes	none	plain	3	sheet030-6		keep
+place_ceiling_cables	core	40	yes	some	plain	4	sheet016-7		keep
+place_ceiling_cobwebs	core	70	yes	none	unseen	2	sheet004-10		keep
+place_ceiling_cracks	core	67	yes	none	plain	3	sheet037-4		keep
+place_ceiling_fans	core	12	odd	some	plain	3	sheet020-10		keep
+place_ceiling_pipes	industrial	14	yes	some	unseen	4	sheet055-8		keep
+place_ceiling_speakers	core	68	yes	none	plain	3	sheet040-10		keep
+place_ceiling_stains	core	261	yes	none	unseen	3	sheet026-4		keep
+place_cell_phones	office	12	yes	none	unseen	1	sheet035-4	dupe	remove
+place_ceramic_bowls	domestic	25	yes	none	cartoon	2	sheet041-1		keep
+place_ceramic_mugs	office	26	yes	none	plain	3	sheet009-11		keep
+place_chair_arm_books	victorian	1	yes	some	plain	4	sheet044-1		keep
+place_chalk_arrows	core	10	yes	high	plain	5	sheet014-6		keep
+place_chalk_marks	core	188	yes	none	plain	3	sheet047-8		keep
+place_cheese_wedges	domestic	17	odd	none	unseen	1	sheet035-5		remove
+place_chess_boards	office	9	yes	some	plain	4	sheet014-3		keep
+place_chess_side_stands	victorian	0	-	-	-	-	-		remove
+place_chestnuts	nature	4	odd	none	plain	2	sheet012-7		remove
+place_child_drawings	toys	1	yes	some	plain	4	sheet019-11		keep
+place_children_shoes	toys	11	yes	high	plain	5	sheet008-5		keep
+place_childrens_books	toys	5	yes	some	plain	4	sheet045-5		keep
+place_childrens_tea_sets	toys	5	yes	some	unseen	3	sheet021-12		keep
+place_cigarette_butts	core	122	-	-	-	-	-		keep
+place_cigarette_packs	domestic	19	yes	none	plain	3	sheet055-7		keep
+place_claw_marks	core	10	yes	high	plain	5	sheet031-4		keep
+place_cleaning_mop_buckets	industrial	8	yes	some	plain	4	sheet039-7		keep
+place_clipboards	office	73	yes	some	plain	4	sheet046-6		keep
+place_clock_radios	office	24	yes	some	plain	4	sheet034-7		keep
+place_coat_hook_rows	domestic	42	yes	some	plain	3	sheet055-3	dupe	keep
+place_coat_hooks	domestic	16	yes	none	plain	2	sheet030-2	dupe	remove
+place_coat_hooks_pair	domestic	10	yes	none	plain	2	sheet012-6	dupe	remove
+place_coat_racks	domestic	7	yes	some	real	4	sheet023-3	dupe	keep
+place_coffee_cups	core	177	yes	some	plain	4	sheet025-2		keep
+place_coffee_mugs	office	10	yes	none	plain	2	sheet016-3	dupe	remove
+place_coin_clusters	domestic	21	yes	none	unseen	2	sheet023-11		keep
+place_coin_scatters	domestic	22	yes	none	unseen	2	sheet002-2		keep
+place_coloring_books	toys	4	yes	some	plain	4	sheet035-8		keep
+place_conductor_batons	toys	4	odd	none	unseen	1	sheet048-9		remove
+place_confetti_scatters	party	7	yes	none	unseen	2	sheet038-5		remove
+place_constellation_embroidery	domestic	5	yes	none	plain	3	sheet047-10		keep
+place_contact_lens_cases	bathroom	9	yes	none	unseen	2	sheet001-7		remove
+place_cookie_tins	domestic	13	yes	some	plain	4	sheet040-6		keep
+place_cornbread_muffins	party	2	odd	none	plain	2	sheet029-9		remove
+place_correspondence_cards	victorian	3	yes	some	plain	4	sheet052-9		keep
+place_cotton_balls	bathroom	6	yes	none	unseen	2	sheet008-10		remove
+place_cotton_pads	bathroom	11	yes	none	unseen	2	sheet028-2		remove
+place_cotton_swabs	bathroom	9	-	-	-	-	-		keep
+place_cracked_mirrors	core	11	yes	some	plain	3	sheet008-6	dupe	keep
+place_cracked_wall_holes	core	97	yes	some	unseen	4	sheet004-6		keep
+place_crayon_graffiti	toys	3	yes	high	plain	5	sheet006-9		keep
+place_crayons	toys	9	yes	none	unseen	1	sheet046-1	dupe	remove
+place_cross_stitch_samplers	domestic	5	yes	some	plain	3	sheet050-6	dupe	keep
+place_cross_stitches	domestic	12	yes	some	plain	4	sheet006-2		keep
+place_crumpled_receipts	office	16	yes	none	unseen	1	sheet037-5	dupe	remove
+place_crumpled_tissues	domestic	18	yes	none	unseen	2	sheet036-3		keep
+place_crushed_soda_cans	core	50	yes	none	unseen	2	sheet003-5		keep
+place_crushed_water_bottles	core	35	yes	none	plain	3	sheet052-11		keep
+place_crystal_chandeliers	victorian	2	odd	none	unseen	1	sheet003-9		remove
+place_crystal_skulls	occult	3	no	none	unseen	0	sheet006-12		remove
+place_cuckoo_clocks	victorian	3	yes	some	plain	4	sheet048-11		keep
+place_cutting_boards	domestic	14	yes	none	plain	3	sheet008-7		keep
+place_dandelions	nature	5	odd	none	unseen	1	sheet025-4		remove
+place_dead_ceiling_lights	core	43	yes	some	plain	4	sheet037-1		keep
+place_dead_flower_vases	nature	2	yes	none	plain	2	sheet020-9	dupe	remove
+place_dead_moths	domestic	7	yes	none	unseen	2	sheet043-4		remove
+place_dead_plants	nature	11	yes	none	plain	2	sheet020-7	dupe	remove
+place_dead_potted_plants	nature	6	yes	some	plain	4	sheet020-6		keep
+place_deer_head_mounts	victorian	3	odd	high	plain	4	sheet011-11		keep
+place_deflated_balls	toys	9	yes	some	plain	4	sheet051-9		keep
+place_dice_clusters	office	12	odd	none	plain	1	sheet040-12	dupe	remove
+place_digital_wall_clocks	office	36	yes	high	plain	5	sheet007-1		keep
+place_diplomas	office	3	yes	some	plain	4	sheet049-2		keep
+place_dirt_clods	nature	2	odd	none	plain	2	sheet024-9		remove
+place_dog_leashes	domestic	8	yes	none	plain	3	sheet005-3		keep
+place_doll_body_parts	toys	6	odd	high	plain	4	sheet024-2		keep
+place_doll_heads	toys	5	yes	some	plain	4	sheet007-6		keep
+place_donuts	party	7	yes	some	plain	4	sheet019-3		keep
+place_drawing_papers	toys	11	yes	high	plain	5	sheet037-9		keep
+place_dress_forms	occult	1	yes	high	plain	5	sheet050-5		keep
+place_dropped_cell_phones	office	14	yes	none	plain	3	sheet030-3		keep
+place_dropped_clipboards	office	12	yes	some	plain	4	sheet003-2		keep
+place_dropped_gloves	domestic	20	yes	some	plain	4	sheet009-9		keep
+place_dropped_mail_scatters	office	20	yes	some	plain	4	sheet002-9		keep
+place_dropped_shoes	core	135	yes	some	plain	3	sheet036-10	dupe	keep
+place_dust_bunnies	core	23	yes	none	plain	3	sheet022-2		keep
+place_easel_chalkboards	office	6	yes	some	plain	4	sheet026-3		keep
+place_elevator_buttons	core	7	odd	some	plain	3	sheet046-7		keep
+place_elevator_panels	core	10	odd	some	plain	3	sheet013-3		keep
+place_embroidery_hoops	domestic	10	yes	none	plain	2	sheet008-8	dupe	remove
+place_emergency_lanterns	industrial	5	yes	none	plain	3	sheet039-9		keep
+place_emergency_lights	core	50	odd	some	plain	3	sheet031-3		keep
+place_emergency_phones	core	11	yes	some	unseen	4	sheet038-4		keep
+place_emergency_strobes	core	7	yes	none	plain	3	sheet008-4		keep
+place_empty_painting_outlines	victorian	0	-	-	-	-	-		remove
+place_envelopes	office	21	yes	some	plain	4	sheet028-8		keep
+place_exit_arrow_signs	core	15	odd	some	plain	3	sheet054-7		keep
+place_exit_signs	core	76	yes	some	plain	4	sheet001-2		keep
+place_extension_cords	industrial	38	yes	none	plain	3	sheet051-12		keep
+place_extinguisher_cabinets	core	28	yes	some	plain	3	sheet027-6	dupe	keep
+place_eyeshadow_palettes	bathroom	4	yes	none	unseen	2	sheet018-11		remove
+place_fallen_ceiling_tiles	industrial	41	yes	some	plain	4	sheet054-10		keep
+place_family_photos	domestic	4	yes	some	plain	4	sheet051-11		keep
+place_family_portraits	victorian	1	yes	some	plain	4	sheet025-5		keep
+place_feathers	nature	3	odd	none	unseen	2	sheet036-12		remove
+place_ferns	nature	0	-	-	-	-	-		remove
+place_fertilizer_spikes	nature	3	odd	none	unseen	1	sheet045-8		remove
+place_fire_alarm_pulls	core	10	yes	some	plain	4	sheet031-7		keep
+place_fire_alarms	core	72	yes	none	plain	3	sheet055-2		keep
+place_fire_extinguishers	core	208	yes	some	plain	3	sheet050-4	dupe	keep
+place_fire_hose_reels	industrial	12	yes	some	plain	4	sheet047-11		keep
+place_fire_tool_sets	victorian	1	odd	some	plain	3	sheet003-8		keep
+place_fireplaces	victorian	2	odd	some	plain	3	sheet014-9		keep
+place_firewood_stacks	industrial	13	odd	none	plain	2	sheet045-1		remove
+place_first_aid_kits	office	49	yes	some	plain	4	sheet013-10		keep
+place_floor_books	office	46	yes	none	plain	3	sheet029-10		keep
+place_floor_drain_grates	industrial	44	odd	some	plain	3	sheet009-10		keep
+place_floor_globes	victorian	0	-	-	-	-	-		remove
+place_floor_kettles	domestic	11	yes	some	plain	4	sheet043-9		keep
+place_floor_newspapers	office	45	yes	none	plain	2	sheet024-8	dupe	keep
+place_floor_puddles	core	43	yes	some	plain	4	sheet037-7		keep
+place_floor_rugs	domestic	32	yes	none	plain	3	sheet030-10		keep
+place_floor_stains	core	272	yes	none	unseen	3	sheet021-4		keep
+place_floppy_disks	office	14	yes	none	plain	3	sheet007-8		keep
+place_floss_containers	bathroom	10	yes	none	unseen	2	sheet028-4		remove
+place_flower_stems	nature	4	yes	some	plain	4	sheet010-4		keep
+place_folded_maps	office	12	odd	none	plain	2	sheet028-3		remove
+place_folded_umbrellas	domestic	14	yes	none	plain	3	sheet005-6		keep
+place_forgotten_wristwatches	domestic	12	yes	none	unseen	1	sheet023-8	dupe	remove
+place_formal_diplomas	office	6	yes	none	plain	2	sheet049-10	dupe	remove
+place_framed_maps	office	6	yes	none	plain	3	sheet044-6		keep
+place_framed_newspapers	office	5	yes	none	plain	2	sheet027-9	dupe	remove
+place_framed_photos	office	7	yes	some	plain	4	sheet010-12		keep
+place_framed_recipes	domestic	8	yes	none	plain	3	sheet045-2		keep
+place_frosted_windows	core	9	yes	some	plain	4	sheet032-4		keep
+place_fuse_boxes	industrial	11	yes	some	plain	4	sheet013-2		keep
+place_gameboys	toys	7	yes	none	unseen	2	sheet046-11		remove
+place_gameplay_r1_trigger	domestic	272	odd	some	plain	3	sheet031-1		keep
+place_garden_aprons	nature	3	odd	some	plain	3	sheet019-10		keep
+place_garden_gnomes	nature	2	no	some	cartoon	1	sheet033-4		remove
+place_garden_hoes	nature	2	odd	none	plain	2	sheet018-10		remove
+place_garden_hoses	nature	4	yes	some	plain	4	sheet001-3		keep
+place_garden_rakes	nature	0	-	-	-	-	-		remove
+place_garden_shovels	nature	1	odd	some	plain	3	sheet038-2		keep
+place_gardening_gloves	nature	2	yes	none	unseen	2	sheet048-1		remove
+place_gentle_rockers	victorian	2	yes	some	plain	4	sheet047-2		keep
+place_glass_shards	domestic	10	yes	none	unseen	2	sheet015-4		remove
+place_glasses_cases	domestic	8	yes	none	plain	3	sheet021-1		keep
+place_graduation_photos	domestic	8	yes	some	plain	4	sheet048-5		keep
+place_grandfather_clocks	victorian	1	yes	some	plain	4	sheet033-11		keep
+place_grass_clumps	nature	5	odd	none	unseen	1	sheet009-3		remove
+place_gum_ball_dispensers	domestic	5	odd	some	plain	3	sheet043-7		keep
+place_hair_brushes	bathroom	9	yes	none	plain	2	sheet054-5	dupe	remove
+place_hair_claws	bathroom	5	yes	none	unseen	2	sheet034-6		remove
+place_hair_dryers	bathroom	4	yes	some	plain	4	sheet003-1		keep
+place_hair_ties	bathroom	10	yes	none	unseen	2	sheet040-4		remove
+place_hairbrushes	bathroom	7	yes	none	plain	2	sheet011-2	dupe	remove
+place_hairdryers	bathroom	5	yes	none	plain	3	sheet043-6		keep
+place_half_wall_partitions	core	66	yes	some	unseen	4	sheet052-5		keep
+place_hall_side_tables	domestic	9	yes	some	plain	4	sheet026-1		keep
+place_hand_dryers	bathroom	22	odd	none	plain	2	sheet032-12		remove
+place_hand_mirrors	bathroom	12	yes	none	plain	2	sheet015-6	dupe	remove
+place_hand_towel_bars	bathroom	2	yes	some	plain	4	sheet039-5		keep
+place_hand_towel_dispensers	bathroom	5	yes	some	plain	4	sheet042-11		keep
+place_handbaskets	office	26	yes	some	plain	4	sheet043-10		keep
+place_handrails	core	107	yes	none	plain	3	sheet014-1		keep
+place_hanging_balloon_bundles	party	4	yes	some	plain	4	sheet050-11		keep
+place_hanging_bats	occult	1	no	some	cartoon	1	sheet022-4		remove
+place_hanging_brass_lanterns	victorian	0	-	-	-	-	-		remove
+place_hanging_censers	occult	0	-	-	-	-	-		remove
+place_hanging_colanders	domestic	9	odd	none	plain	2	sheet054-11		remove
+place_hanging_light_bulbs	industrial	11	yes	some	plain	4	sheet016-10		keep
+place_hanging_plants	nature	3	yes	some	plain	4	sheet047-1		keep
+place_hanging_streamers	party	4	yes	some	plain	4	sheet019-2		keep
+place_hard_hats	industrial	16	yes	some	plain	4	sheet042-10		keep
+place_hat_racks	domestic	3	yes	some	plain	4	sheet044-5		keep
+place_heraldic_crests	victorian	0	-	-	-	-	-		remove
+place_herb_bundles	nature	3	odd	some	plain	3	sheet011-3		keep
+place_herb_sieves	domestic	7	yes	none	plain	3	sheet015-9		keep
+place_hobby_horses	toys	5	yes	some	plain	4	sheet017-5		keep
+place_hopscotch_chalks	toys	1	yes	some	unseen	3	sheet007-9		keep
+place_horseshoes	victorian	4	odd	some	plain	3	sheet009-2		keep
+place_hospital_crosses	domestic	8	yes	some	plain	4	sheet041-7		keep
+place_house	?	23	odd	some	cartoon	2	sheet021-6		keep
+place_humidors	victorian	0	-	-	-	-	-		remove
+place_inkwell_letters	victorian	3	odd	some	plain	3	sheet018-1		keep
+place_inspirational_posters	office	9	yes	some	plain	4	sheet053-3		keep
+place_ironing_boards	domestic	4	yes	some	plain	4	sheet010-3		keep
+place_jewelry_boxes	domestic	13	yes	some	plain	4	sheet020-4		keep
+place_jump_ropes	toys	2	odd	none	plain	2	sheet030-8		remove
+place_junction_boxes	industrial	49	yes	none	plain	3	sheet046-5		keep
+place_keycard_readers	core	70	yes	none	plain	3	sheet048-8		keep
+place_keychain_keys	office	17	yes	none	unseen	1	sheet053-1	dupe	remove
+place_keyring_with_keys	office	13	yes	none	unseen	1	sheet054-8	dupe	remove
+place_kids_drawings	toys	3	yes	some	unseen	2	sheet015-11	dupe	remove
+place_kitchen_calendars	office	7	yes	none	plain	2	sheet041-4	dupe	remove
+place_kitchen_clocks	domestic	7	yes	some	plain	3	sheet036-6	dupe	keep
+place_kneeling_pads	nature	2	yes	none	plain	3	sheet008-12		keep
+place_knitting_baskets	domestic	12	yes	some	plain	4	sheet039-10		keep
+place_lanyards	office	22	yes	some	plain	4	sheet018-6		keep
+place_laundry_baskets	domestic	6	yes	some	plain	4	sheet023-6		keep
+place_leaf_litter	nature	1	odd	none	unseen	1	sheet052-10		remove
+place_leaning_frames	core	35	yes	some	plain	4	sheet031-6		keep
+place_lego_bricks	toys	7	yes	none	plain	3	sheet054-12		keep
+place_letters	office	12	yes	some	plain	4	sheet038-3		keep
+place_lipsticks	bathroom	22	yes	none	unseen	1	sheet037-3	dupe	remove
+place_log_baskets	victorian	1	odd	none	plain	2	sheet031-10		remove
+place_magnetic_letters	toys	10	yes	none	plain	3	sheet018-9		keep
+place_mail_slots	office	10	odd	none	plain	2	sheet002-7		remove
+place_makeup_brushes	bathroom	10	yes	none	plain	3	sheet038-11		keep
+place_makeup_compacts	bathroom	9	yes	none	unseen	2	sheet041-3		remove
+place_makeup_sponges	bathroom	7	yes	none	unseen	2	sheet036-1		remove
+place_marble_scatters	toys	5	odd	none	unseen	0	sheet026-12	dupe	remove
+place_marbles	toys	6	odd	none	unseen	1	sheet033-5		remove
+place_mascaras	bathroom	13	yes	none	unseen	2	sheet028-7		remove
+place_mason_jars	domestic	19	odd	none	plain	2	sheet045-3		remove
+place_matchbooks	domestic	30	yes	none	unseen	2	sheet022-5		keep
+place_memorial_shrines	occult	0	-	-	-	-	-		remove
+place_metal_buckets	industrial	9	yes	none	plain	2	sheet011-12	dupe	remove
+place_metal_lockers	office	8	yes	some	plain	4	sheet035-1		keep
+place_miniature_portrait_clusters	victorian	1	yes	some	plain	3	sheet027-8	dupe	keep
+place_missing_photo_hooks	core	65	yes	high	plain	5	sheet053-10		keep
+place_mission_patches	office	5	odd	none	plain	2	sheet053-11		remove
+place_mixing_bowls	domestic	15	odd	none	plain	2	sheet055-4		remove
+place_mold_patches	core	12	yes	some	real	5	sheet023-5		keep
+place_moon_globes	victorian	1	odd	some	plain	2	sheet024-1	dupe	remove
+place_mop_buckets	industrial	10	yes	some	plain	4	sheet020-5		keep
+place_mops	industrial	70	yes	some	plain	4	sheet027-2		keep
+place_moss_patches	nature	4	yes	none	plain	3	sheet009-7		keep
+place_motion_detector_domes	core	14	yes	none	unseen	2	sheet022-1		remove
+place_motion_sensors	core	88	yes	none	plain	3	sheet049-7		keep
+place_mounted_antlers	victorian	2	odd	some	plain	3	sheet025-12		keep
+place_mounted_fish	victorian	2	odd	some	plain	3	sheet054-6		keep
+place_mouse_traps	domestic	12	yes	none	unseen	2	sheet016-1		remove
+place_mushrooms	nature	2	yes	some	unseen	3	sheet017-2		keep
+place_music_sheets	toys	10	yes	none	plain	3	sheet052-2		keep
+place_nail_clippers	bathroom	7	yes	none	unseen	2	sheet003-10		remove
+place_nail_files	bathroom	8	yes	none	unseen	2	sheet054-9		remove
+place_nail_polish	bathroom	8	yes	none	unseen	1	sheet041-10	dupe	remove
+place_nail_polishes	bathroom	14	yes	none	plain	3	sheet044-12		keep
+place_newspaper_stacks	office	15	yes	some	plain	3	sheet039-8	dupe	keep
+place_newspapers	office	17	yes	some	real	5	sheet029-5		keep
+place_no_smoking_signs	office	30	yes	none	plain	3	sheet052-4		keep
+place_off_hook_phones	office	13	yes	high	plain	5	sheet034-12		keep
+place_old_crtt_vs	domestic	7	yes	some	plain	3	sheet003-6	dupe	keep
+place_open_diaries	domestic	9	yes	high	plain	5	sheet009-12		keep
+place_open_journals	victorian	3	yes	some	plain	4	sheet050-2		keep
+place_opened_suitcases	domestic	5	yes	high	plain	4	sheet009-5	dupe	keep
+place_opened_wallets	domestic	12	yes	some	plain	4	sheet043-3		keep
+place_ornate_cuckoo_clocks	victorian	1	yes	some	plain	4	sheet034-4		keep
+place_ornate_music_boxes	victorian	2	yes	some	plain	4	sheet047-4		keep
+place_ornate_wall_mirrors	victorian	1	yes	some	plain	3	sheet036-11	dupe	keep
+place_orrery_models	victorian	0	-	-	-	-	-		remove
+place_ottomans	victorian	2	yes	none	plain	3	sheet014-8		keep
+place_ouija_boards	occult	0	-	-	-	-	-		remove
+place_overflowing_ashtrays	domestic	14	yes	none	plain	3	sheet055-6		keep
+place_overturned_buckets	industrial	26	yes	none	plain	3	sheet009-6		keep
+place_overturned_chair	core	42	yes	high	plain	5	sheet006-7		keep
+place_overturned_chairs	core	15	yes	some	plain	4	sheet014-2		keep
+place_overturned_tricycles	toys	4	yes	high	plain	5	sheet012-10		keep
+place_overturned_wastebaskets	core	27	yes	some	plain	3	sheet041-9	dupe	keep
+place_pacifiers	toys	5	yes	none	unseen	2	sheet001-1		remove
+place_packed_suitcases	domestic	9	yes	high	plain	4	sheet030-4	dupe	keep
+place_pagers	office	19	yes	none	unseen	2	sheet034-5		keep
+place_paper_airplanes	domestic	11	yes	some	plain	4	sheet025-6		keep
+place_paper_garlands	party	2	yes	none	plain	3	sheet013-11		keep
+place_paper_towel_dispensers	bathroom	30	yes	none	plain	3	sheet004-3		keep
+place_paperback_books	office	15	yes	none	plain	3	sheet007-5		keep
+place_paperclip_clusters	office	20	-	-	-	-	-		keep
+place_parchment_scrolls	victorian	2	odd	none	plain	2	sheet015-5		remove
+place_peacock_feather_vases	victorian	1	yes	some	plain	4	sheet010-1		keep
+place_pebbles	nature	4	odd	none	unseen	1	sheet001-11		remove
+place_peeled_paint_patches	core	19	yes	none	plain	3	sheet044-8		keep
+place_peeling_wallpapers	core	15	yes	some	plain	4	sheet055-5		keep
+place_pencil_eyeliners	bathroom	9	yes	none	unseen	2	sheet023-7		remove
+place_pentagram_chalks	occult	0	-	-	-	-	-		remove
+place_perfume_bottles	bathroom	8	yes	none	plain	3	sheet043-1		keep
+place_perfumes	bathroom	5	yes	some	plain	4	sheet045-11		keep
+place_periodic_tables	office	1	odd	none	plain	2	sheet052-3		remove
+place_pet_bowls	domestic	6	yes	some	plain	4	sheet053-7		keep
+place_pet_portraits	victorian	1	yes	some	plain	4	sheet051-8		keep
+place_pet_toys	toys	3	yes	none	unseen	2	sheet011-1		remove
+place_pie_slices	party	5	yes	some	plain	4	sheet034-9		keep
+place_pill_bottles	bathroom	2	yes	none	unseen	2	sheet021-5		remove
+place_pine_cones	nature	0	-	-	-	-	-		remove
+place_pine_needles	nature	3	odd	none	unseen	1	sheet033-2		remove
+place_pinned_photos	core	25	yes	none	plain	3	sheet039-2		keep
+place_pizza_boxes	domestic	15	yes	some	plain	4	sheet004-12		keep
+place_playing_cards	office	21	yes	none	unseen	2	sheet049-5		keep
+place_plush_bears	toys	5	yes	high	plain	5	sheet004-2		keep
+place_pocket_watches	victorian	0	-	-	-	-	-		remove
+place_poker_chips	office	8	odd	none	unseen	1	sheet001-8		remove
+place_porcelain_cup_saucers	domestic	16	odd	none	plain	2	sheet050-9		remove
+place_post_it_stacks	office	26	yes	none	plain	3	sheet007-12		keep
+place_potted_plants	nature	2	yes	none	plain	3	sheet048-12		keep
+place_pressed_flowers	nature	1	yes	none	plain	3	sheet005-2		keep
+place_propaganda_posters	office	5	odd	some	plain	3	sheet035-7		keep
+place_pruning_shears	nature	6	odd	none	unseen	1	sheet021-11		remove
+place_puzzle_pieces	toys	11	yes	none	plain	3	sheet017-4		keep
+place_radiators	industrial	56	yes	some	plain	4	sheet017-11		keep
+place_reading_glasses_and_books	office	13	yes	some	plain	4	sheet052-7		keep
+place_receipts	office	14	yes	none	plain	2	sheet020-3	dupe	remove
+place_record_stacks	victorian	2	yes	some	plain	3	sheet023-9	dupe	keep
+place_religious_triptychs	occult	4	yes	some	real	5	sheet016-6		keep
+place_reliquary_boxes	occult	0	-	-	-	-	-		remove
+place_remotes	office	12	yes	none	plain	2	sheet053-12	dupe	remove
+place_restroom_signs	bathroom	15	yes	some	plain	4	sheet015-1		keep
+place_rocking_chairs	victorian	3	yes	high	plain	5	sheet002-6		keep
+place_rolled_carpets	industrial	38	yes	none	plain	3	sheet035-9		keep
+place_rolling_pin_stands	domestic	9	odd	none	plain	2	sheet005-10		remove
+place_rolling_pins	domestic	9	odd	none	plain	2	sheet048-7		remove
+place_rotary_phones	office	35	yes	some	plain	4	sheet024-3		keep
+place_rubber_balls	toys	18	yes	some	plain	4	sheet022-10		keep
+place_rubber_ducks	toys	9	odd	none	plain	2	sheet025-3		remove
+place_rubiks_cubes	toys	0	-	-	-	-	-		remove
+place_rust_stain_streaks	industrial	13	yes	some	plain	4	sheet010-2		keep
+place_rusted_hammers	industrial	15	yes	none	unseen	2	sheet009-1		remove
+place_rusted_nails	industrial	21	yes	none	unseen	2	sheet036-2		keep
+place_rusted_pipes	industrial	86	yes	none	plain	3	sheet046-8		keep
+place_rusted_tin_cans	industrial	16	yes	none	plain	3	sheet017-1		keep
+place_rustic_signs	industrial	14	no	some	plain	2	sheet005-9		remove
+place_safety_cones	industrial	12	yes	none	plain	2	sheet052-12	dupe	remove
+place_safety_glasses	industrial	23	yes	none	plain	3	sheet024-11		keep
+place_safety_vests	industrial	14	yes	none	plain	3	sheet008-2		keep
+place_sandwiches	party	2	yes	some	plain	4	sheet006-6		keep
+place_scattered_pages	core	24	yes	some	plain	4	sheet034-11		keep
+place_school_desks	office	13	odd	some	plain	3	sheet029-3		keep
+place_scrap_papers	core	272	yes	none	plain	2	sheet035-2	dupe	keep
+place_secretary_desks	victorian	0	-	-	-	-	-		remove
+place_secrets	?	80	yes	some	plain	4	sheet031-11		keep
+place_seed_catalogs	nature	1	odd	none	plain	2	sheet014-7		remove
+place_seed_packets	nature	1	odd	none	unseen	1	sheet027-5		remove
+place_seedlings	nature	1	odd	none	unseen	1	sheet053-8		remove
+place_servant_bell_pulls	victorian	1	odd	none	plain	2	sheet004-9		remove
+place_servant_hall_bell_racks	victorian	1	odd	some	plain	3	sheet013-8		keep
+place_sewing_baskets	domestic	8	yes	some	cartoon	3	sheet022-9		keep
+place_sewing_machines	domestic	5	yes	some	plain	3	sheet037-11	dupe	keep
+place_shaker_pair	domestic	10	yes	none	plain	3	sheet042-2		keep
+place_shampoo_shelves	bathroom	7	yes	some	plain	4	sheet048-3		keep
+place_shattered_eyeglasses	domestic	8	yes	some	plain	4	sheet030-11		keep
+place_shattered_vases	domestic	14	yes	none	unseen	2	sheet017-12		remove
+place_sheet_covered_furniture	victorian	2	yes	high	plain	5	sheet051-4		keep
+place_shoe_boxes	domestic	12	yes	none	plain	3	sheet027-4		keep
+place_shoe_pairs	domestic	12	yes	some	plain	3	sheet043-12	dupe	keep
+place_shower_caps	bathroom	6	yes	none	plain	3	sheet019-4		keep
+place_silhouette_portraits	victorian	0	-	-	-	-	-		remove
+place_silver_trays	victorian	3	yes	some	plain	4	sheet002-3		keep
+place_single_boots	domestic	20	yes	some	plain	3	sheet039-11	dupe	keep
+place_single_child_shoes	toys	5	yes	some	unseen	2	sheet041-6	dupe	remove
+place_single_earrings	bathroom	6	yes	none	unseen	2	sheet028-11		remove
+place_single_gloves	domestic	13	yes	high	plain	5	sheet018-7		keep
+place_single_socks	core	56	yes	none	plain	3	sheet031-12		keep
+place_sink_faucets	bathroom	3	yes	none	plain	3	sheet005-1		keep
+place_sippy_cups	toys	5	yes	none	plain	3	sheet004-11		keep
+place_skipping_ropes	toys	7	yes	none	unseen	2	sheet042-3		remove
+place_skull_plaques	occult	0	-	-	-	-	-		remove
+place_skull_stacks	occult	4	-	-	-	-	-		keep
+place_small_abacuses	victorian	1	odd	none	plain	2	sheet011-8		remove
+place_small_balloons	party	4	yes	some	plain	4	sheet035-3		keep
+place_small_birthday_candles	party	8	odd	some	plain	3	sheet048-6		keep
+place_small_black_cats	occult	2	odd	some	plain	3	sheet038-7		keep
+place_small_brooms	occult	3	yes	none	unseen	2	sheet012-3		remove
+place_small_candelabras	occult	2	yes	high	plain	5	sheet051-6		keep
+place_small_candles	occult	2	yes	some	plain	4	sheet027-1		keep
+place_small_card_stacks	office	20	yes	none	unseen	2	sheet005-7		keep
+place_small_castanets	toys	6	odd	none	plain	2	sheet012-11		remove
+place_small_cauldrons	occult	1	odd	some	plain	3	sheet014-12		keep
+place_small_chain_links	occult	1	odd	none	plain	2	sheet048-10		remove
+place_small_chalk_sticks	core	30	yes	none	unseen	2	sheet040-8		keep
+place_small_chess_pieces	office	14	yes	some	plain	4	sheet003-12		keep
+place_small_compacts	bathroom	13	yes	none	unseen	2	sheet048-4		remove
+place_small_compasses	victorian	6	yes	none	unseen	2	sheet020-11		remove
+place_small_crayons	toys	6	yes	none	unseen	1	sheet018-5	dupe	remove
+place_small_crows	occult	3	odd	high	plain	4	sheet016-2		keep
+place_small_crystal_balls	occult	0	-	-	-	-	-		remove
+place_small_cupcake_wrappers	party	2	yes	none	unseen	2	sheet049-6		remove
+place_small_darts	office	19	yes	none	unseen	2	sheet017-8		keep
+place_small_dice_pairs	office	31	yes	none	unseen	2	sheet012-4		keep
+place_small_dolls	toys	8	yes	some	unseen	3	sheet018-4		keep
+place_small_dominoes	office	24	odd	none	unseen	1	sheet025-9		remove
+place_small_feather_boas	party	1	-	-	-	-	-		keep
+place_small_folding_fans	victorian	3	odd	none	unseen	1	sheet031-9		remove
+place_small_ghost_sheets	occult	1	no	some	cartoon	1	sheet044-11		remove
+place_small_gift_boxes	party	3	yes	some	plain	4	sheet033-7		keep
+place_small_globes	victorian	2	yes	none	plain	3	sheet033-8		keep
+place_small_hairbrushes	bathroom	12	yes	none	plain	3	sheet049-9		keep
+place_small_hand_mirrors	bathroom	14	yes	some	plain	4	sheet037-12		keep
+place_small_handbells	victorian	4	odd	none	unseen	1	sheet046-9		remove
+place_small_hats	domestic	24	yes	some	plain	4	sheet007-4		keep
+place_small_hourglasses	occult	2	odd	none	plain	2	sheet017-3		remove
+place_small_hula_hoops	toys	5	odd	none	cartoon	1	sheet053-5		remove
+place_small_jacks	toys	8	yes	none	unseen	2	sheet050-10		remove
+place_small_jewelry_boxes	domestic	17	yes	none	plain	2	sheet028-10	dupe	keep
+place_small_kazoos	party	4	yes	none	unseen	2	sheet019-5		remove
+place_small_keys	office	61	yes	none	unseen	2	sheet015-2		keep
+place_small_kites	toys	5	odd	none	plain	2	sheet022-11		remove
+place_small_ladders	industrial	30	yes	some	plain	4	sheet002-8		keep
+place_small_lipsticks	bathroom	9	yes	none	plain	3	sheet033-10		keep
+place_small_magnifying_glasses	domestic	18	yes	none	plain	3	sheet023-10		keep
+place_small_maracas	toys	9	-	-	-	-	-		keep
+place_small_masks	occult	1	odd	some	unseen	2	sheet005-4		remove
+place_small_metronomes	toys	4	odd	some	plain	3	sheet037-2		keep
+place_small_music_boxes	victorian	0	-	-	-	-	-		remove
+place_small_nail_polishes	bathroom	10	yes	none	unseen	1	sheet024-12	dupe	remove
+place_small_opera_glasses	victorian	1	odd	none	unseen	1	sheet034-8		remove
+place_small_owls	occult	1	odd	some	plain	3	sheet042-12		keep
+place_small_pacifiers	toys	8	odd	none	unseen	1	sheet047-3		remove
+place_small_padlock_keys	domestic	27	yes	none	unseen	2	sheet029-7		keep
+place_small_paper_crowns	party	3	yes	none	plain	3	sheet012-2		keep
+place_small_paper_cups	party	9	yes	none	plain	3	sheet044-10		keep
+place_small_paper_napkins	party	10	yes	none	plain	3	sheet020-8		keep
+place_small_paper_plates	party	7	yes	none	plain	3	sheet020-2		keep
+place_small_party_banners	party	4	yes	some	unseen	3	sheet007-10		keep
+place_small_party_horns	party	2	yes	none	plain	3	sheet032-6		keep
+place_small_perfumes	bathroom	7	yes	none	unseen	1	sheet032-10	dupe	remove
+place_small_phonographs	victorian	2	yes	some	plain	4	sheet015-3		keep
+place_small_piggy_banks	toys	8	odd	none	plain	2	sheet052-6		remove
+place_small_pinatas	party	3	yes	some	plain	4	sheet028-6		keep
+place_small_pinwheels	toys	12	odd	some	plain	3	sheet010-11		keep
+place_small_pocket_watches	victorian	5	yes	none	unseen	2	sheet029-2		remove
+place_small_poker_chips	office	21	yes	none	unseen	2	sheet051-5		keep
+place_small_pool_balls	office	13	odd	none	plain	2	sheet042-9		remove
+place_small_pool_cues	office	11	odd	none	plain	2	sheet033-1		remove
+place_small_potions	occult	4	no	none	unseen	0	sheet035-6		remove
+place_small_princess_wands	toys	3	yes	none	unseen	2	sheet045-6		remove
+place_small_pumpkins	occult	3	odd	high	plain	4	sheet036-7		keep
+place_small_radios	office	18	yes	some	plain	4	sheet032-7		keep
+place_small_recorders	toys	7	odd	none	plain	2	sheet030-1		remove
+place_small_remote_controls	office	19	yes	none	plain	3	sheet050-1		keep
+place_small_ribbons	domestic	21	yes	none	unseen	2	sheet049-1		keep
+place_small_rotary_phones	office	12	yes	some	plain	3	sheet012-9	dupe	keep
+place_small_scales	victorian	1	odd	none	unseen	1	sheet028-5		remove
+place_small_sewing_machines	domestic	13	yes	some	plain	4	sheet026-9		keep
+place_small_skateboards	toys	8	yes	some	cartoon	3	sheet002-5		keep
+place_small_skeleton_hands	occult	1	odd	some	plain	3	sheet016-8		keep
+place_small_skulls	occult	2	odd	high	plain	4	sheet007-2		keep
+place_small_spiders	occult	1	yes	none	unseen	2	sheet001-6		remove
+place_small_spinning_tops	toys	3	yes	none	unseen	2	sheet022-8		remove
+place_small_suitcases	domestic	21	yes	high	plain	5	sheet051-7		keep
+place_small_tambourines	toys	5	odd	none	plain	2	sheet021-9		remove
+place_small_telegraph_keys	victorian	6	odd	none	unseen	1	sheet040-7		remove
+place_small_telescopes	victorian	4	odd	none	plain	2	sheet024-4		remove
+place_small_tiaras	party	3	yes	none	unseen	2	sheet022-3		remove
+place_small_tombstones	occult	1	no	some	plain	2	sheet002-10		remove
+place_small_toy_boats	toys	5	odd	none	plain	2	sheet032-8		remove
+place_small_toy_dinos	toys	2	yes	none	unseen	2	sheet043-8		remove
+place_small_toy_microphones	toys	9	yes	none	plain	3	sheet017-7		keep
+place_small_toy_phones	toys	3	yes	none	unseen	2	sheet053-4		remove
+place_small_toy_pianos	toys	1	yes	some	plain	4	sheet050-8		keep
+place_small_toy_planes	toys	6	yes	none	plain	3	sheet013-9		keep
+place_small_toy_robots	toys	2	yes	none	unseen	2	sheet005-12		remove
+place_small_toy_swords	toys	8	yes	none	plain	3	sheet009-8		keep
+place_small_treat_pails	occult	1	odd	some	plain	3	sheet033-3		keep
+place_small_triangles	toys	8	odd	none	unseen	1	sheet025-1		remove
+place_small_trophies	victorian	7	yes	some	plain	4	sheet051-1		keep
+place_small_trumpets	party	5	odd	none	plain	2	sheet010-9		remove
+place_small_typewriters	office	8	yes	none	plain	2	sheet032-9	dupe	remove
+place_small_witch_hats	occult	1	odd	none	plain	2	sheet042-6		remove
+place_small_xylophones	toys	5	yes	some	plain	4	sheet047-7		keep
+place_small_yo_yos	toys	9	yes	none	plain	3	sheet043-2		keep
+place_smoke_detectors	core	19	yes	none	plain	3	sheet042-5		keep
+place_smoking_ashtrays	domestic	7	yes	some	plain	4	sheet004-1		keep
+place_smudge_mirrors	bathroom	3	yes	some	plain	3	sheet005-11	dupe	keep
+place_snail_shells	nature	3	odd	none	unseen	1	sheet019-9		remove
+place_soap_bars	bathroom	10	yes	none	plain	3	sheet009-4		keep
+place_soap_dispensers	bathroom	10	yes	none	plain	3	sheet040-1		keep
+place_soil_bags	nature	3	odd	none	plain	2	sheet033-12		remove
+place_specimen_domes	victorian	3	odd	none	unseen	1	sheet031-2		remove
+place_spider_webs	nature	3	yes	some	plain	4	sheet048-2		keep
+place_spilled_backpacks	domestic	13	yes	high	plain	5	sheet025-11		keep
+place_spilled_pill_bottles	bathroom	6	yes	none	plain	3	sheet029-4		keep
+place_spoon_rests	domestic	16	odd	none	unseen	1	sheet053-9		remove
+place_spray_bottles	bathroom	8	yes	none	plain	3	sheet024-7		keep
+place_sprinkler_heads	core	38	yes	none	unseen	3	sheet040-9		keep
+place_stained_glass_windows	occult	0	-	-	-	-	-		remove
+place_stall_walls	bathroom	4	odd	none	plain	2	sheet034-2		remove
+place_standing_mirrors	bathroom	9	yes	none	plain	3	sheet021-7		keep
+place_still_lifes	domestic	7	yes	some	real	5	sheet019-12		keep
+place_store	?	23	yes	high	plain	5	sheet049-11		keep
+place_story	?	242	yes	high	plain	5	sheet046-10		keep
+place_stuffed_elephants	toys	2	yes	some	unseen	3	sheet015-8		keep
+place_stuffed_rabbits	toys	3	yes	some	plain	4	sheet042-8		keep
+place_suitcases	domestic	16	yes	high	real	5	sheet044-7	dupe	keep
+place_switch_plates	core	15	yes	none	plain	3	sheet045-7		keep
+place_table_lamps	domestic	33	odd	some	plain	3	sheet055-9		keep
+place_tall_floor_lamps	domestic	10	yes	some	plain	4	sheet036-9		keep
+place_tape_rolls	office	21	yes	none	unseen	2	sheet018-8		keep
+place_tarnished_mirrors	victorian	1	yes	some	plain	4	sheet049-8		keep
+place_tarot_card_fans	occult	0	-	-	-	-	-		remove
+place_teacups	domestic	18	yes	none	plain	2	sheet010-10	dupe	keep
+place_teapots	domestic	8	odd	none	plain	2	sheet054-1		remove
+place_teddy_bears	toys	2	yes	high	plain	4	sheet026-6	dupe	keep
+place_teddy_paws	toys	6	odd	none	unseen	1	sheet014-5		remove
+place_teething_rings	toys	5	yes	none	unseen	2	sheet008-11		remove
+place_thermometers	office	12	yes	none	plain	3	sheet030-12		keep
+place_thermostats	core	51	yes	none	plain	2	sheet014-11	dupe	keep
+place_tissue_boxes	office	22	yes	none	plain	3	sheet027-11		keep
+place_toilet_paper_dispensers	bathroom	4	yes	none	plain	3	sheet032-11		keep
+place_tool_pegboards	industrial	9	yes	some	plain	4	sheet027-3		keep
+place_toothbrush_holders	bathroom	12	yes	some	plain	4	sheet041-2		keep
+place_torn_photographs	domestic	10	yes	some	unseen	3	sheet052-8		keep
+place_tote_bags	domestic	5	yes	none	cartoon	2	sheet041-8		remove
+place_towel_bars	bathroom	7	yes	none	plain	3	sheet006-5		keep
+place_toy_cars	toys	16	yes	none	unseen	2	sheet041-5		keep
+place_toy_dinosaurs	toys	3	yes	none	unseen	2	sheet050-12		remove
+place_toy_drums	toys	5	yes	some	plain	4	sheet045-12		keep
+place_traffic_cones	industrial	32	yes	some	plain	3	sheet011-6	dupe	keep
+place_trash_cans	core	67	yes	some	plain	3	sheet044-9	dupe	keep
+place_travel_documents	domestic	11	yes	none	plain	3	sheet026-10		keep
+place_travel_posters	office	7	yes	some	plain	4	sheet025-8		keep
+place_tripod_telescopes	victorian	2	odd	high	plain	4	sheet054-3		keep
+place_trowels	nature	1	yes	none	plain	3	sheet029-11		keep
+place_turntables	victorian	2	yes	some	plain	4	sheet030-7		keep
+place_tweezers	bathroom	5	yes	none	unseen	2	sheet035-10		remove
+place_twigs	nature	6	odd	none	unseen	1	sheet008-1		remove
+place_twine_balls	nature	2	yes	none	plain	3	sheet004-5		keep
+place_typewriters	office	25	yes	high	plain	5	sheet046-2		keep
+place_umbrella_stands	domestic	7	yes	some	plain	4	sheet031-8		keep
+place_umbrellas	domestic	56	yes	some	plain	4	sheet039-3		keep
+place_unrolled_tp_rolls	domestic	15	odd	none	plain	2	sheet030-5		remove
+place_vacuum_cleaners	domestic	9	yes	high	plain	5	sheet046-4		keep
+place_vent_grates	industrial	11	yes	none	plain	2	sheet045-9	dupe	remove
+place_victorian_hall_stands	victorian	1	yes	some	unseen	3	sheet037-10		keep
+place_vintage_ads	office	6	yes	some	plain	4	sheet035-11		keep
+place_vintage_cameras	office	29	yes	some	plain	4	sheet013-4		keep
+place_vintage_maps	domestic	9	yes	none	plain	3	sheet007-11		keep
+place_vintage_postcards	domestic	6	yes	none	plain	3	sheet022-6		keep
+place_vintage_typewriters	office	6	yes	high	plain	5	sheet025-7		keep
+place_vinyl_record_discs	domestic	21	yes	some	plain	3	sheet017-9	dupe	keep
+place_vinyl_records	domestic	38	yes	some	plain	4	sheet038-8		keep
+place_wagon_wheels	victorian	0	-	-	-	-	-		remove
+place_walkie_talkies	office	25	yes	some	plain	4	sheet045-4		keep
+place_wall_aprons	domestic	11	yes	some	plain	4	sheet035-12		keep
+place_wall_barometers	victorian	6	yes	some	plain	4	sheet008-3		keep
+place_wall_brooms	domestic	15	yes	none	plain	3	sheet020-1		keep
+place_wall_calendars	office	96	yes	some	plain	4	sheet039-6		keep
+place_wall_chalkboards	office	11	yes	some	plain	4	sheet006-10		keep
+place_wall_clock	office	50	yes	some	plain	3	sheet040-5	dupe	keep
+place_wall_coat_hooks	domestic	29	yes	none	plain	2	sheet054-4	dupe	keep
+place_wall_crucifixes	occult	0	-	-	-	-	-		remove
+place_wall_doors	core	16	yes	high	cartoon	4	sheet026-11		keep
+place_wall_drain_grates	industrial	11	yes	none	plain	3	sheet027-7		keep
+place_wall_flashlights	office	22	yes	none	plain	3	sheet013-5		keep
+place_wall_gauges	office	35	odd	none	cartoon	1	sheet033-9		remove
+place_wall_handprints	core	19	yes	high	plain	5	sheet043-5		keep
+place_wall_intercoms	core	8	yes	none	plain	3	sheet049-3		keep
+place_wall_mirrors	domestic	36	yes	some	plain	3	sheet042-1	dupe	keep
+place_wall_outlets	core	16	yes	none	plain	3	sheet013-1		keep
+place_wall_pay_phones	office	10	yes	high	plain	5	sheet032-5		keep
+place_wall_phones	office	36	yes	some	plain	4	sheet011-10		keep
+place_wall_pipe_leaks	industrial	12	yes	some	plain	4	sheet016-9		keep
+place_wall_sockets	core	198	yes	none	plain	3	sheet038-10		keep
+place_wall_stains	core	272	yes	none	cartoon	2	sheet015-7		keep
+place_wall_thermostats	core	63	yes	none	plain	3	sheet022-12		keep
+place_wall_vents	core	141	yes	none	plain	3	sheet047-9		keep
+place_wall_watches	office	22	yes	none	plain	3	sheet029-8		keep
+place_wall_water_streaks	core	58	yes	none	plain	3	sheet031-5		keep
+place_wallets	domestic	13	yes	none	plain	2	sheet021-8	dupe	remove
+place_washcloths	bathroom	11	yes	none	plain	3	sheet001-10		keep
+place_water_fountains	office	32	yes	some	plain	4	sheet032-1		keep
+place_water_puddles	core	23	yes	none	plain	2	sheet041-11	dupe	keep
+place_watercolors	domestic	9	yes	none	unseen	3	sheet012-12		keep
+place_watering_cans	nature	1	yes	some	plain	4	sheet012-8		keep
+place_weathered_posters	domestic	85	odd	some	plain	3	sheet051-3		keep
+place_wedding_photos	domestic	3	yes	some	unseen	4	sheet018-12		keep
+place_wedding_rings	domestic	11	yes	none	unseen	2	sheet002-12		remove
+place_wet_floor_signs	core	65	-	-	-	-	-		keep
+place_whisks	domestic	13	yes	none	unseen	2	sheet004-8		remove
+place_wide_bookshelves	office	7	yes	some	plain	4	sheet029-12		keep
+place_window_signs	core	28	yes	some	plain	4	sheet047-6		keep
+place_wine_bottles	domestic	8	yes	none	plain	3	sheet010-8		keep
+place_wine_glasses	domestic	16	yes	some	plain	4	sheet024-10		keep
+place_wingback_armchairs	victorian	2	yes	some	plain	4	sheet006-11		keep
+place_wooden_brooms	domestic	36	yes	none	plain	3	sheet028-9		keep
+place_wooden_buckets	industrial	13	odd	some	plain	3	sheet024-6		keep
+place_wooden_crates	industrial	60	yes	some	real	5	sheet003-7		keep
+place_worn_teddy_bears	toys	2	yes	some	plain	3	sheet041-12	dupe	keep
+place_wristwatches	domestic	16	yes	none	unseen	2	sheet036-4		keep
+place_yoyos	toys	4	yes	none	unseen	1	sheet044-2	dupe	remove
