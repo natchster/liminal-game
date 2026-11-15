@@ -620,3 +620,356 @@ intensity = 0.5
 use = "dark"
 levels = [1, 99]
 takes = 4
+
+# ---- GitHub issue #10: more of what you say to yourself (reviewed by the
+# lore-keeper before they were made)
+
+# the run's first creature, whatever its kind (`met`): what you see of it, never what it is
+
+[[line]]
+id = "met_moving"
+text = "It moved. It's moving."
+emotion = "startled"
+intensity = 0.6
+use = "met"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "met_god_help"
+text = "God help me."
+emotion = "dread"
+intensity = 0.55
+use = "met"
+levels = [4, 99]
+takes = 4
+
+# a kind after the first (`sighted`, said with a kind's own lines)
+
+[[line]]
+id = "sighted_more_of_them"
+text = "There's more of them?"
+emotion = "dread"
+intensity = 0.5
+use = "sighted"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "sighted_how_many"
+text = "How many things live here?"
+emotion = "dread"
+intensity = 0.5
+use = "sighted"
+levels = [5, 99]
+takes = 4
+
+# a thing out of place, come upon (`odd`: the first of a floor)
+
+[[line]]
+id = "odd_pool_swims"
+text = "Who swims in a place like this?"
+emotion = "wary"
+intensity = 0.4
+use = "odd"
+subject = "pool"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_pool_still"
+text = "That water's too still."
+emotion = "dread"
+intensity = 0.4
+use = "odd"
+subject = "pool"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_occult_wrong"
+text = "All of that is wrong."
+emotion = "dread"
+intensity = 0.45
+use = "odd"
+subject = "occult"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_occult_skin"
+text = "My skin's crawling."
+emotion = "dread"
+intensity = 0.45
+use = "odd"
+subject = "occult"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_cones_drives"
+text = "As if anything drives through here."
+emotion = "wary"
+intensity = 0.35
+use = "odd"
+subject = "cones"
+levels = [5, 99]
+takes = 8
+
+[[line]]
+id = "odd_cones_inside"
+text = "Those don't belong inside."
+emotion = "wary"
+intensity = 0.35
+use = "odd"
+subject = "cones"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_toys_had_one"
+text = "I used to have one of those."
+emotion = "wary"
+intensity = 0.35
+use = "odd"
+subject = "toys"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_toys_brought"
+text = "Who brought toys in here?"
+emotion = "wary"
+intensity = 0.4
+use = "odd"
+subject = "toys"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_party_celebrate"
+text = "Who'd celebrate in here?"
+emotion = "wary"
+intensity = 0.4
+use = "odd"
+subject = "party"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "odd_party_balloons"
+text = "Balloons. Still floating."
+emotion = "wary"
+intensity = 0.4
+use = "odd"
+subject = "party"
+levels = [5, 99]
+takes = 4
+
+# a thing come upon (`noticed`): a window, the vacuum, the door, the lifts
+
+[[line]]
+id = "noticed_window_outside"
+text = "There's an outside?"
+emotion = "wary"
+intensity = 0.4
+use = "noticed"
+subject = "window"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "noticed_window_streetlamp"
+text = "Fog, and a street lamp."
+emotion = "wary"
+intensity = 0.35
+use = "noticed"
+subject = "window"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "noticed_vacuum_little"
+text = "Hey, little guy."
+emotion = "resolve"
+direction = "softly, with a tired, fond half-smile, as to a small harmless thing at your feet; relieved"
+intensity = 0.25
+use = "noticed"
+subject = "vacuum"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "noticed_vacuum_you_and_me"
+text = "You and me, then."
+emotion = "resolve"
+direction = "softly, with a tired, fond half-smile, as to a small harmless thing at your feet; relieved"
+intensity = 0.25
+use = "noticed"
+subject = "vacuum"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "noticed_exit_there"
+text = "There you are."
+emotion = "resolve"
+intensity = 0.4
+use = "noticed"
+subject = "exit"
+levels = [1, 99]
+takes = 4
+
+[[line]]
+id = "noticed_exit_finally"
+text = "Finally. Oh, finally."
+emotion = "resolve"
+intensity = 0.45
+use = "noticed"
+subject = "exit"
+levels = [1, 99]
+takes = 4
+
+[[line]]
+id = "noticed_lift_works"
+text = "It still works?"
+emotion = "wary"
+intensity = 0.4
+use = "noticed"
+subject = "lift"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "noticed_lift_lit"
+text = "Thank god, it's lit."
+emotion = "resolve"
+intensity = 0.4
+use = "noticed"
+subject = "lift"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "noticed_lift_broken_no"
+text = "No. Absolutely not."
+emotion = "dread"
+intensity = 0.45
+use = "noticed"
+subject = "lift_broken"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "noticed_lift_broken_stomach"
+text = "My stomach just dropped."
+emotion = "dread"
+intensity = 0.45
+use = "noticed"
+subject = "lift_broken"
+levels = [5, 99]
+takes = 4
+
+# a thing used (`used`): the phone answered, the first coin, a dead lift's button
+
+[[line]]
+id = "used_phone_ring"
+text = "Why would it ring for me?"
+emotion = "dread"
+intensity = 0.45
+use = "used"
+subject = "phone"
+levels = [4, 99]
+takes = 8
+
+[[line]]
+id = "used_phone_wrong_number"
+text = "Wrong number. Has to be."
+emotion = "resolve"
+intensity = 0.35
+use = "used"
+subject = "phone"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "used_vending_stuck"
+text = "Of course it's stuck."
+emotion = "resolve"
+intensity = 0.35
+use = "used"
+subject = "vending"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "used_vending_unbelievable"
+text = "Unbelievable."
+emotion = "resolve"
+intensity = 0.35
+use = "used"
+subject = "vending"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "used_lift_dead_like"
+text = "Dead, like everything else."
+emotion = "resolve"
+intensity = 0.35
+use = "used"
+subject = "lift_dead"
+levels = [5, 99]
+takes = 4
+
+[[line]]
+id = "used_lift_dead_worth"
+text = "Worth a try."
+emotion = "resolve"
+intensity = 0.3
+use = "used"
+subject = "lift_dead"
+levels = [5, 99]
+takes = 8
+
+# a note picked up, a Showroom bed come upon (`found`)
+
+[[line]]
+id = "found_note_somebody"
+text = "Somebody was down here too."
+emotion = "wary"
+intensity = 0.4
+use = "found"
+subject = "note"
+levels = [1, 99]
+takes = 4
+
+[[line]]
+id = "found_note_not_first"
+text = "Not the first, then."
+emotion = "wary"
+intensity = 0.35
+use = "found"
+subject = "note"
+levels = [1, 99]
+takes = 4
+
+[[line]]
+id = "found_bed_week"
+text = "I could sleep for a week."
+emotion = "resolve"
+intensity = 0.35
+use = "found"
+subject = "bed"
+levels = [5, 99]
+takes = 8
+
+[[line]]
+id = "found_bed_when"
+text = "When did I last sleep?"
+emotion = "resolve"
+intensity = 0.35
+use = "found"
+subject = "bed"
+levels = [5, 99]
+takes = 4

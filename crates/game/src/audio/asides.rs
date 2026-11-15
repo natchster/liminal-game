@@ -81,8 +81,10 @@ pub enum Use {
     Arrive,
     /// A sudden sound near you
     Startle,
-    /// The first sight of a kind of creature
+    /// The first sight of a kind of creature (after the run's first)
     Sighted,
+    /// The first creature of a run, whatever its kind (GitHub issue #10)
+    Met,
     /// The first touch of one throws you down
     Knocked,
     /// The relief after a close call
@@ -95,18 +97,25 @@ pub enum Use {
     Answered,
     /// The place does something back
     Uncanny,
-    /// Someone else's camp
+    /// Someone else's camp, a note, a bed
     Found,
+    /// A thing that has no business in an office: at most one a floor
+    Odd,
+    /// You come upon a thing: a window, the vacuum, the door, a lift
+    Noticed,
+    /// You use a thing: the phone, a vending machine, a dead lift's button
+    Used,
     /// Your nerve near its end
     Nerve,
     /// The lamp's battery runs out
     Dark,
 }
 
-pub const USES: [Use; 12] = [
+pub const USES: [Use; 16] = [
     Use::Arrive,
     Use::Startle,
     Use::Sighted,
+    Use::Met,
     Use::Knocked,
     Use::Aftermath,
     Use::Siren,
@@ -114,6 +123,9 @@ pub const USES: [Use; 12] = [
     Use::Answered,
     Use::Uncanny,
     Use::Found,
+    Use::Odd,
+    Use::Noticed,
+    Use::Used,
     Use::Nerve,
     Use::Dark,
 ];
@@ -137,6 +149,7 @@ impl Use {
             Use::Arrive => "arrive",
             Use::Startle => "startle",
             Use::Sighted => "sighted",
+            Use::Met => "met",
             Use::Knocked => "knocked",
             Use::Aftermath => "aftermath",
             Use::Siren => "siren",
@@ -144,6 +157,9 @@ impl Use {
             Use::Answered => "answered",
             Use::Uncanny => "uncanny",
             Use::Found => "found",
+            Use::Odd => "odd",
+            Use::Noticed => "noticed",
+            Use::Used => "used",
             Use::Nerve => "nerve",
             Use::Dark => "dark",
         }
@@ -197,8 +213,19 @@ impl Use {
             // machine's flap and the print on its glass, a lift's car going
             // by, a candle's two notes, a window's pane ticking
             Use::Uncanny => &["knock_back", "figure", "hole", "flap", "lift", "candle", "pane"],
-            // someone else's camp, the first time you come near one
-            Use::Found => &["camp"],
+            // someone else's camp, the first time you come near one; a note
+            // picked up; one of the Showroom's beds come upon
+            Use::Found => &["camp", "note", "bed"],
+            // a thing out of place, come upon (at most one a floor, the first):
+            // the pool, a shrine's things, cones, toys, a party's (not the
+            // garden's: trowels and seed packets, no word is true of them all)
+            Use::Odd => &["pool", "occult", "cones", "toys", "party"],
+            // a thing come upon: a window, the vacuum, the door, the working
+            // lift, the broken one
+            Use::Noticed => &["window", "vacuum", "exit", "lift", "lift_broken"],
+            // a thing used: the phone answered, the first coin in a machine, a
+            // dead lift's button that brings nothing
+            Use::Used => &["phone", "vending", "lift_dead"],
             _ => &[],
         }
     }
@@ -207,10 +234,13 @@ impl Use {
     pub fn chance(self) -> f64 {
         match self {
             Use::Arrive | Use::Knocked | Use::Siren => 0.9,
+            Use::Met => 0.9,
             Use::Sighted | Use::Uncanny => 0.85,
             Use::Aftermath | Use::Answered | Use::Found | Use::Dark => 0.8,
-            Use::Startle | Use::Held => 0.7,
-            Use::Nerve => 0.6,
+            Use::Used => 0.75,
+            Use::Startle | Use::Held | Use::Noticed => 0.7,
+            // (things out of place are many: a word for few of them)
+            Use::Nerve | Use::Odd => 0.6,
         }
     }
     /// What each line already said about the same subject leaves of the
@@ -226,15 +256,15 @@ impl Use {
     pub fn priority(self) -> u8 {
         match self {
             Use::Knocked => 5,
-            Use::Sighted | Use::Uncanny => 4,
+            Use::Sighted | Use::Met | Use::Uncanny => 4,
             Use::Aftermath | Use::Startle | Use::Siren | Use::Held => 3,
-            Use::Answered | Use::Found | Use::Dark => 2,
-            Use::Arrive | Use::Nerve => 1,
+            Use::Answered | Use::Found | Use::Dark | Use::Used => 2,
+            Use::Arrive | Use::Nerve | Use::Noticed | Use::Odd => 1,
         }
     }
     /// Said `GAP_URGENT` after a lesser aside, not `GAP`
     pub fn urgent(self) -> bool {
-        matches!(self, Use::Knocked | Use::Sighted | Use::Uncanny)
+        matches!(self, Use::Knocked | Use::Sighted | Use::Met | Use::Uncanny)
     }
     /// A blow's grunt is not chosen: it cuts in over a line of yours that
     /// is playing, and keeps no gap
@@ -256,7 +286,9 @@ impl Use {
     pub fn moment(self) -> (f64, f64, f64) {
         match self {
             Use::Startle => (0.35, 0.9, 2.0),
-            Use::Sighted => (0.4, 1.0, 2.5),
+            Use::Sighted | Use::Met => (0.4, 1.0, 2.5),
+            // a thing come upon: said as you take it in, while you are still by it
+            Use::Noticed | Use::Odd => (0.6, 1.4, 6.0),
             Use::Knocked => (1.2, 1.8, 4.0),
             // the relief: said once the breath is let go, while it lasts
             Use::Aftermath => (1.5, 3.5, 14.0),

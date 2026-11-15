@@ -37,15 +37,43 @@ you_aside	arrive_works_ceiling	arrive	works	3	3	0.35	wary	How far up does that g
 you_aside	arrive_works_for	arrive	works	3	3	0.35	wary	What was all this for?
 you_aside	dark_lamp	dark		1	99	0.55	startled	Not the lamp.
 you_aside	dark_so	dark		1	99	0.5	dread	It's so dark.
+you_aside	found_bed_week	found	bed	5	99	0.35	resolve	I could sleep for a week.
+you_aside	found_bed_when	found	bed	5	99	0.35	resolve	When did I last sleep?
+you_aside	found_note_not_first	found	note	1	99	0.35	wary	Not the first, then.
+you_aside	found_note_somebody	found	note	1	99	0.4	wary	Somebody was down here too.
 you_aside	found_whose	found	camp	1	12	0.4	wary	Whose things are these?
 you_aside	held_clear_legs	held	clear	1	3	0.45	shaken	My legs are shaking.
 you_aside	held_knock_door	held	knock	1	3	0.55	dread	Please, not the door.
 you_aside	knocked_breathing	knocked		4	99	0.5	pain	Still breathing.
 you_aside	knocked_get_up	knocked		4	99	0.6	pain	Get up. Come on.
+you_aside	met_god_help	met		4	99	0.55	dread	God help me.
+you_aside	met_moving	met		4	99	0.6	startled	It moved. It's moving.
 you_aside	nerve_lose	nerve		4	99	0.5	resolve	Don't lose it.
 you_aside	nerve_together	nerve		4	99	0.45	resolve	Keep it together.
+you_aside	noticed_exit_finally	noticed	exit	1	99	0.45	resolve	Finally. Oh, finally.
+you_aside	noticed_exit_there	noticed	exit	1	99	0.4	resolve	There you are.
+you_aside	noticed_lift_broken_no	noticed	lift_broken	5	99	0.45	dread	No. Absolutely not.
+you_aside	noticed_lift_broken_stomach	noticed	lift_broken	5	99	0.45	dread	My stomach just dropped.
+you_aside	noticed_lift_lit	noticed	lift	4	99	0.4	resolve	Thank god, it's lit.
+you_aside	noticed_lift_works	noticed	lift	4	99	0.4	wary	It still works?
+you_aside	noticed_vacuum_little	noticed	vacuum	4	99	0.25	resolve	Hey, little guy.
+you_aside	noticed_vacuum_you_and_me	noticed	vacuum	4	99	0.25	resolve	You and me, then.
+you_aside	noticed_window_outside	noticed	window	5	99	0.4	wary	There's an outside?
+you_aside	noticed_window_streetlamp	noticed	window	5	99	0.35	wary	Fog, and a street lamp.
+you_aside	odd_cones_drives	odd	cones	5	99	0.35	wary	As if anything drives through here.
+you_aside	odd_cones_inside	odd	cones	5	99	0.35	wary	Those don't belong inside.
+you_aside	odd_occult_skin	odd	occult	5	99	0.45	dread	My skin's crawling.
+you_aside	odd_occult_wrong	odd	occult	5	99	0.45	dread	All of that is wrong.
+you_aside	odd_party_balloons	odd	party	5	99	0.4	wary	Balloons. Still floating.
+you_aside	odd_party_celebrate	odd	party	5	99	0.4	wary	Who'd celebrate in here?
+you_aside	odd_pool_still	odd	pool	5	99	0.4	dread	That water's too still.
+you_aside	odd_pool_swims	odd	pool	5	99	0.4	wary	Who swims in a place like this?
+you_aside	odd_toys_brought	odd	toys	5	99	0.4	wary	Who brought toys in here?
+you_aside	odd_toys_had_one	odd	toys	5	99	0.35	wary	I used to have one of those.
 you_aside	sighted_corner	sighted	corner	4	99	0.45	dread	Why is it standing like that?
 you_aside	sighted_hound	sighted	hound	4	99	0.5	dread	Something's crawling.
+you_aside	sighted_how_many	sighted		5	99	0.5	dread	How many things live here?
+you_aside	sighted_more_of_them	sighted		5	99	0.5	dread	There's more of them?
 you_aside	sighted_oh_no	sighted		4	99	0.6	startled	Oh no.
 you_aside	sighted_please_no	sighted		4	99	0.55	dread	Please, no.
 you_aside	sighted_reader	sighted	reader	4	99	0.45	dread	What is it reading?
@@ -65,3 +93,9 @@ you_aside	uncanny_hole	uncanny	hole	2	99	0.6	startled	I felt that.
 you_aside	uncanny_knock_back	uncanny	knock_back	1	3	0.55	dread	That was my knock.
 you_aside	uncanny_lift	uncanny	lift	5	99	0.45	wary	Where is it going?
 you_aside	uncanny_pane	uncanny	pane	5	99	0.5	startled	The window ticked.
+you_aside	used_lift_dead_like	used	lift_dead	5	99	0.35	resolve	Dead, like everything else.
+you_aside	used_lift_dead_worth	used	lift_dead	5	99	0.3	resolve	Worth a try.
+you_aside	used_phone_ring	used	phone	4	99	0.45	dread	Why would it ring for me?
+you_aside	used_phone_wrong_number	used	phone	4	99	0.35	resolve	Wrong number. Has to be.
+you_aside	used_vending_stuck	used	vending	5	99	0.35	resolve	Of course it's stuck.
+you_aside	used_vending_unbelievable	used	vending	5	99	0.35	resolve	Unbelievable.
