@@ -33,6 +33,7 @@ a study's, never a design's (`tests/structure.rs` fails on one).
 | [`design/VENDING.md`](design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it) |
 | [`design/WINDOWS.md`](design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass |
 | [`design/VOICES.md`](design/VOICES.md) | the voices: who speaks (personas), what is said and when (your asides and the director that chooses them), and how the pipeline's models are chosen: licensed for sale, run here |
+| [`design/ASSETS.md`](design/ASSETS.md) | what earns a prop its place, and the pipeline that makes one: brief, references, model and surfaces, placement rules the game reads, the playtest's "why could this be here?" |
 | [`design/CUTSCENES.md`](design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline |
 
 **Engineering**

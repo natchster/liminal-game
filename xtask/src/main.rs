@@ -21,6 +21,7 @@
 //! ```
 #![expect(clippy::disallowed_methods, reason = "tools that build and measure, not the game: their numbers decide no level or frame")]
 mod ab;
+mod asset;
 mod assets;
 mod bench;
 mod bodies;
@@ -71,6 +72,10 @@ const USAGE: &str = "usage: cargo xtask <task>
   voice doctor [--smoke] | voice fetch [--only ID,…]
                              the voice-over pipeline (docs/design/VOICES.md): its toolchain
                              and models
+  asset new NAME | check [NAME] | refs NAME | write | rules | sheet NAME [--seeds …] [--levels …]
+                             the asset pipeline (docs/design/ASSETS.md): an asset's dossier
+                             (brief, references, placement rules, playtest), its rules compiled
+                             into the game, frames of it where it lies for the playtest
   cutscene check | write | list
                              the cutscene pipeline (docs/design/CUTSCENES.md): the sources,
                              the compiled bundle and the game's rules
@@ -100,6 +105,7 @@ fn main() -> ExitCode {
         Some("ab") => ab::ab(rest),
         Some("calibrate") => calibrate::calibrate(rest),
         Some("assets") => assets::assets(rest),
+        Some("asset") => asset::asset(rest),
         Some("bench") => bench::bench(rest),
         Some("heatmap") => heatmap::heatmap(rest),
         Some("drift") => drift::drift(rest),

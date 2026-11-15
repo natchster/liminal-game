@@ -1,0 +1,4 @@
+{
+  "about": "Where each asset may lie and why, compiled by `cargo xtask asset write` from assets/src/props/*/placement.toml. Do not edit: change the source and write it again (docs/design/ASSETS.md).",
+  "assets": {}
+}

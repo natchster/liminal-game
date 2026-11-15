@@ -72,6 +72,16 @@
         "assets/src/cutscenes/way_in.toml"
       ]
     },
+    "placement.json": {
+      "authors": "written by coding agents under the developer's direction",
+      "built_with": "cargo xtask asset write (TOML sources, every field written out)",
+      "fingerprint": "4054cded66401c54",
+      "generative_model": null,
+      "generator": "written by hand, compiled by scripts",
+      "licence": "MIT",
+      "rebuild": "cargo xtask asset write",
+      "sources": []
+    },
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "Blender headless: props.py runs every batch module in assets/src/blender/props/ (propkit shapes, seeded noise, weighted normals); packed by cargo xtask assets props, the frozen parts kept as stored",

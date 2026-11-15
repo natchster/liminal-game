@@ -1,0 +1,18 @@
+# Where NAME may lie, and why (docs/design/ASSETS.md, *Placement rules*).
+# Every rule is one way it comes to be somewhere; its `why` is the story a
+# player could tell.
+
+count = [0, 0]   # how many a floor: least, most
+levels = [5, 99] # from which floor down
+
+[[rule]]
+on = "floor"           # floor | surface | wall
+near = "wall"          # (floor) wall | corner | open
+# of = ["core_filing_cabinet"]   # (surface) the kinds it stands on
+purposes = ["*"]       # the zone purposes it fits, "*" any
+weight = 1
+why = ""
+
+[never]
+purposes = ["empty"]
+why = "the emptiness is the content (PILLARS 1)"

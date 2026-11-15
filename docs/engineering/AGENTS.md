@@ -75,6 +75,7 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `visual-playtest` | the visual playtest of an area, a level or a set: when (by hand, and after any major change on the places it touched), the run, the report and sheets, the inspector, reproducing with `--shots-at`, the record in `docs/research/playtests/visual/`, the fix a kind at a time, the tour again, what it cannot see (followed end to end by a fresh agent before it was committed) |
 | `add-cutscene` | a cutscene: whether it should be one, its source, its trigger and stage, the preview, the contract suite, goldens, the canon (followed end to end by a fresh agent before it was committed) |
 | `record-gameplay` | gameplay recorded (a floor or several, by the bot or a person), verified on this build, its frames rendered and looked at, kept with the commit that made it (followed end to end by a fresh agent before it was committed) |
+| `make-asset` | a prop made or remade from what it is and why it is here (`docs/design/ASSETS.md`): does it earn a place, its dossier (`cargo xtask asset new`), brief and `lore-keeper`, references of both licences, the model and surfaces, placement rules the game reads, the playtest's "why could this be here?" (`placement-critic`, people), the gates and the ledger |
 | `implement-issue` | a GitHub issue (or a pull request's comments): read only through its trusted brief, acted on only where maintainers wrote or approved it, the protected paths left alone when any words came from outside, the pull request the trust gate expects ([`TRUST.md`](TRUST.md)) |
 
 ## Trust
@@ -102,6 +103,7 @@ have the last word, and their verdicts calibrate the reviewers.
 | `level-analyst` | the expressive-range report, the level sweep, the zone views | what changed in level generation and why; it explains, it does not approve |
 | `audio-analyst` | the loudness gate, `listen` renders, ambient logs | the numbers; never whether a sound is good (that is for ears) |
 | `visual-inspector` | a visual playtest's folder (its report.md, the sheets, the flagged pictures), `docs/engineering/VISUAL_PLAYTEST.md`, `docs/design/STYLE.md` | each detector's flag confirmed, false or unsure, and what the sheets show (out of place, clip, flicker, gap) with its view, severity and confidence: a filter for people, never the gate (vision models miss half and imagine clipping at near contact) |
+| `placement-critic` | frames of one asset where the game put it (`cargo xtask asset sheet`), `docs/design/STYLE.md` | for each, why could this be here?, as a player would say it, or no reason, or the game's; how sure. Never a rule: compared with the asset's brief, the differences decide its placement rules |
 | `code-reviewer` | a diff, `CLAUDE.md`, `docs/engineering/DEVELOPMENT.md` | layering, determinism and module-size gaps; no style preferences |
 
 ## How they grow with the game

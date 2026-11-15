@@ -1,0 +1,23 @@
+# The references of NAME (docs/design/ASSETS.md). `class`: "free" (CC0,
+# public domain, CC BY with its attribution: may be sampled into a texture;
+# give its SHA-1) or "limited" (fair use: looked at and measured, never
+# sampled, never committed). `cargo xtask asset refs NAME` fetches them.
+
+[[ref]]
+url = "TODO"
+page = "TODO"
+shows = "TODO: the thing, a place with it in, a maker's sheet, a measurement"
+class = "free"
+licence = "TODO: CC0-1.0, public domain, CC BY 4.0 (author), all rights reserved"
+sha1 = ""
+notes = ""
+
+# [[measure]]
+# what = "height"
+# value = "0.21 m"
+# ref = 1
+
+# [[palette]]
+# what = "PET, clear"
+# srgb = [200, 210, 215]
+# ref = 1

@@ -33,6 +33,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/design/ROOMS.md`](docs/design/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid |
 | [`docs/design/ENTITIES.md`](docs/design/ENTITIES.md) | the creatures: five rules, one brain, fairness, bodies, how each is beaten ([`docs/research/`](docs/research/README.md) for the research) |
 | [`docs/design/PROPS.md`](docs/design/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use |
+| [`docs/design/ASSETS.md`](docs/design/ASSETS.md) | what earns a prop its place, and the pipeline that makes or remakes one: its brief (what it is, how it came here, what a hand does), references (free and limited), model and surfaces, the placement rules the game reads and agents use to make places, the playtest's "why could this be here?" |
 | [`docs/design/SECRETS.md`](docs/design/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you) |
 | [`docs/design/VENDING.md`](docs/design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it) |
 | [`docs/design/WINDOWS.md`](docs/design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass |
@@ -93,6 +94,7 @@ cargo xtask voice build --persona P [--model M]  # every take of P's lines (text
 cargo xtask voice eval --persona P [--model M]   # words, emotion, tone of voice, voice: report.md and the gate
 cargo xtask voice write --persona P              # the chosen takes into crates/game/assets/voice/ and MANIFEST.json
 cargo xtask voice selftest                       # the evaluation against known answers
+cargo xtask asset new|check|refs|write|rules|sheet NAME   # an asset's dossier (docs/design/ASSETS.md): brief, references, placement rules, playtest frames
 cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
 cargo xtask cutscene preview ID [--stage S]     # the sources as they stand, played on each stage: frames, a contact sheet, timeline, contract (target/xtask/cutscene/ID/)
 cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--area x0,z0,x1,z1] [--from-save FILE]   # by hand, never in check: the edges toured, gaps, flicker, clip, plain, coplanar; report.md, sheets (target/xtask/playtest/visual/)
@@ -222,7 +224,10 @@ source, trigger, stage, preview, contract and goldens), and
 `visual-playtest` (the edges of an area, a level or a set toured: gaps,
 flicker, clipping, things out of place; reproduced, recorded, fixed, toured
 again), and `record-gameplay` (a floor or several recorded, by the bot or a
-person, verified on this build, its frames rendered and looked at). Each ends in its gates, evidence and a `docs/plan/content.json` entry
+person, verified on this build, its frames rendered and looked at), and
+`make-asset` (a prop made or remade from what it is and why it is here:
+its brief, references, model and surfaces, placement rules, and the
+playtest's "why could this be here?"). Each ends in its gates, evidence and a `docs/plan/content.json` entry
 (the playtest in `docs/research/playtests/visual/`).
 
 GitHub issues go through `implement-issue`: read an issue only through its
@@ -236,6 +241,8 @@ Never grade your own work. The reviewers (`.claude/agents/`) are read-only
 and see only their evidence: `art-critic` (blind A/B pairs from
 `cargo xtask ab prepare`, scored with `cargo xtask ab score`), `lore-keeper`,
 `level-analyst`, `audio-analyst`, `code-reviewer`, `visual-inspector` (a
-visual playtest's report and sheets: a filter, never the gate). Fear, sound quality and
+visual playtest's report and sheets: a filter, never the gate),
+`placement-critic` (frames of an asset where it lies: why could this be
+here?, as a player would answer). Fear, sound quality and
 taste are finally decided by people: `docs/research/PLAYTEST.md` is the session
 script, and their verdicts calibrate the reviewers.

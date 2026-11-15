@@ -87,6 +87,16 @@ Hands and screen (did the controls and the screens get out of the way?):
 - One word each for the title, the pause and the death screen.
 - Did you change a setting? Which, and why?
 
+Why could this be here? (`docs/design/ASSETS.md`: the props made by the
+asset pipeline; ask about two or three things they stopped at or picked
+up, never which were placed by rules):
+
+- That bottle / that battery / that thing on the desk: why could it be
+  there? Who left it, and when?
+- Was there anything you could not think of a reason for? Where was it?
+- Did anything seem put there for you, by the game, rather than left by
+  someone?
+
 Experience (how did it feel?):
 
 - When were you most afraid? What made it stop?
@@ -274,7 +284,10 @@ does not flip with the order.
    - problems become entries under *Open* in `QUALITY.md` and, where a
      gate could have caught them, a new test, lint or band (the steering
      loop);
-   - the ledger entries the session covered get `last_human_review`.
+   - the ledger entries the session covered get `last_human_review`;
+   - each answer to *why could this be here?* goes into that asset's
+     `assets/src/props/<name>/playtest.md`, beside the brief's story;
+     where it differs, the asset's placement rules change (`make-asset`).
 3. After the round: a short summary in `docs/research/playtests/` (what most players did,
    said and felt; what changes), and the grade changes it justifies in
    `QUALITY.md` (*History*).
