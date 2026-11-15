@@ -112,9 +112,11 @@ impl Viewer {
     /// 16: a window that falls behind slows the replay, it does not race).
     /// False once the recording is done.
     pub fn frame(&mut self, g: &mut Game, dt: f64, budget: Duration) -> bool {
+        // (the device's mute is the viewer's alone: the game's M is its own
+        // master gain)
         let quiet = self.quiet();
         if let Some(ac) = g.ac.as_ref().filter(|_| quiet != self.hushed) {
-            ac.set_muted(quiet || g.muted);
+            ac.set_muted(quiet);
             self.hushed = quiet;
         }
         if let Some((_, to)) = self.seeking {
@@ -125,12 +127,12 @@ impl Viewer {
                     return false;
                 }
                 // what the seek made is cut as it goes (a minute of
-                // footsteps would sound at once)
+                // footsteps would sound at once); the budget looked at often
                 if self.player.frame.is_multiple_of(120) {
                     cut(g);
-                    if t0.elapsed() > budget {
-                        return true;
-                    }
+                }
+                if self.player.frame.is_multiple_of(8) && t0.elapsed() > budget {
+                    return true;
                 }
             }
             cut(g);
@@ -164,6 +166,10 @@ impl Viewer {
     pub fn jump(&mut self, g: &mut Game, by: f64, make: impl FnOnce(&str) -> Game) -> Result<(), String> {
         let here = self.timeline.seconds(self.player.frame);
         let target = self.timeline.frame_at(here + by).clamp(self.from, self.to.saturating_sub(1).max(self.from));
+        // (on at the end: nowhere to go, and no going back to get there)
+        if by > 0.0 && target <= self.player.frame {
+            return Ok(());
+        }
         if target < self.player.frame {
             let seg = self.player.file.segments.iter().rposition(|s| s.first_frame <= target).unwrap_or(0);
             let (fresh, player) = Player::start(self.player.file.clone(), seg, make)?;
@@ -177,16 +183,27 @@ impl Viewer {
     }
 
     /// To `at` seconds from the in-point, wholly (headless: a seek in one
-    /// go), back or on.
+    /// go), back or on (from wherever the player stands, even before the
+    /// in-point, as it does when just opened).
     pub fn seek_to(&mut self, g: &mut Game, at: f64, make: impl FnOnce(&str) -> Game) -> Result<(), String> {
-        let by = at - self.bar().at;
+        let by = self.timeline.seconds(self.from) + at - self.timeline.seconds(self.player.frame);
         self.jump(g, by, make)?;
+        self.settle(g);
+        Ok(())
+    }
+
+    /// A seek under way.
+    pub fn seeking(&self) -> bool {
+        self.seeking.is_some()
+    }
+
+    /// The seek under way run to its end at once (headless).
+    pub fn settle(&mut self, g: &mut Game) {
         while self.seeking.is_some() {
             if !self.frame(g, 0.0, Duration::MAX) {
                 break;
             }
         }
-        Ok(())
     }
 
     /// The recording as a save that resumes where the replay is (`cut`).

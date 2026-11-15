@@ -2,7 +2,8 @@
 //!
 //! Play enters a new floor in one place, `Game::enter_level`, always from a
 //! scheduled step at the start of a frame (the door, the lift, a fall, the
-//! Stairwell's door, the end of her story). Entering, it takes an anchor:
+//! Stairwell's door, the end of her story, waking after a death, Continue
+//! from a save). Entering, it takes an anchor:
 //! everything about the game that the new floor and the frames after it
 //! read and that a fresh game would not already have. Nothing is left
 //! pending from the floor before (its scheduled steps are dropped), so a
@@ -283,16 +284,20 @@ impl Game {
     /// A fresh game put where `anchor_state` found play (before the floor is
     /// entered: `start_from_anchor` enters it).
     pub fn restore_anchor_state(&mut self, v: &Value) -> Result<(), String> {
+        // what it cannot do without, read before anything is changed: an
+        // anchor that fails leaves the game as it was
         let save = SaveData::from_json(&v["save"]).ok_or("an anchor without its save")?;
+        let n = v["native"].as_array().ok_or("an anchor without its stream")?;
+        let word = |i: usize| n.get(i).and_then(Value::as_u64).ok_or("an anchor's stream is short");
+        let (stream, draws) = ([word(0)?, word(1)?], word(2)?);
+        let clock = v["clock_ticks"].as_u64().ok_or("an anchor without its clock")?;
         if save.run_seed > 0 {
             self.run_seed = save.run_seed;
         }
         self.level_num = save.level_num;
         self.apply_saved(&save);
-        let n = v["native"].as_array().ok_or("an anchor without its stream")?;
-        let word = |i: usize| n.get(i).and_then(Value::as_u64).ok_or("an anchor's stream is short");
-        set_native_state([word(0)?, word(1)?], word(2)?);
-        self.clock_ticks = v["clock_ticks"].as_u64().ok_or("an anchor without its clock")?;
+        set_native_state(stream, draws);
+        self.clock_ticks = clock;
         self.settings = crate::session::settings::Settings::from_json(&v["settings"]);
         if let Some([w, h, s]) = v["view"].as_array().map(|a| a.iter().filter_map(unbits).collect::<Vec<_>>()).as_deref() {
             // (the camera's aspect with it, and the pixels a point takes)
@@ -303,14 +308,22 @@ impl Game {
         if let Some(fov) = unbits(&v["fov"]) {
             self.camera.camera().fov = fov;
         }
+        // (a field an older build did not keep is left as the game has it: an
+        // older save still continues; a replay from it says where it leaves)
         for (k, f) in F64S {
-            *f(self) = unbits(&v["f64"][*k]).ok_or_else(|| format!("an anchor without {k}"))?;
+            if let Some(x) = unbits(&v["f64"][*k]) {
+                *f(self) = x;
+            }
         }
         for (k, f) in BOOLS {
-            *f(self) = v["bool"][*k].as_bool().ok_or_else(|| format!("an anchor without {k}"))?;
+            if let Some(b) = v["bool"][*k].as_bool() {
+                *f(self) = b;
+            }
         }
         for c in crate::audio::ambient::CADENCES.iter().filter(|c| c.run) {
-            *(c.timer)(self) = unbits(&v["rare"][c.tag]).ok_or_else(|| format!("an anchor without the cadence {}", c.tag))?;
+            if let Some(x) = unbits(&v["rare"][c.tag]) {
+                *(c.timer)(self) = x;
+            }
         }
         self.keys = strings(&v["keys"]).into_iter().collect();
         self.player.hide_eye = unbits(&v["hide_eye"]);
@@ -440,6 +453,9 @@ impl Game {
                 self.show_level_card("");
                 self.scp_arrival();
                 self.want_pointer_lock = Some(true);
+                // the medals earned, shown again (as the save's putting back
+                // asked, before this entry let go of what was pending)
+                self.schedule(400.0, |g| g.replay_medal_highlight());
             }
         }
     }

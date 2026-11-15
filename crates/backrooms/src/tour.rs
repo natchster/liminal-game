@@ -30,7 +30,7 @@
 //! where its wall was), `fight` stands two squares on one plane in front of
 //! its eye, each cut differently (they fight for the same depth).
 use crate::sheet::{self, Tile};
-use crate::{Options, draw_with, game_from_save, make_game};
+use crate::{Options, draw_with, tool_game};
 use engine::dmath::DMath;
 use engine::math::{Box3, Vec3};
 use engine::render::Renderer;
@@ -61,32 +61,13 @@ pub fn tour(o: &Options, dir: &str) {
     let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     let mut r = Renderer::new(device);
-    // (from a save: its run, and its floor built again with her progress read)
-    let from_save = game_from_save(o);
-    let saved_floor = from_save.as_ref().map(|g| g.level_num);
-    let seed = from_save.as_ref().map_or(o.seed.unwrap_or(4242), |g| g.run_seed);
-    let mut g = from_save.unwrap_or_else(|| {
-        let mut g = make_game(o);
-        g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
-        g.view_width = o.width;
-        g.view_height = o.height;
-        g.scale_factor = o.scale;
-        g.quality.max_pr = o.scale.min(2.0);
-        g.quality.pr = g.quality.max_pr;
-        g.boot();
-        g.start_new_game();
-        g
-    });
+    // (a new run, or a save's floor built again with her progress read)
+    let (mut g, seed, levels) = tool_game(o);
     // the film grain settled as if the game had run a second (as `--dump-level`)
     for _ in 0..60 {
         g.update_grain(1.0 / 60.0);
     }
     let t = r.offscreen_target(w, h);
-    let levels = match saved_floor {
-        Some(l) => vec![l],
-        None if o.levels.is_empty() => vec![o.level.unwrap_or(1)],
-        None => o.levels.clone(),
-    };
     for &l in &levels {
         g.load_level(l);
         // the tour's views (every stand's with `--tour-all`, else the eyes'),
@@ -222,7 +203,7 @@ pub fn tour(o: &Options, dir: &str) {
             format!("{ldir}/meta.tsv"),
             format!(
                 "seed\t{}\nlevel\t{l}\nviews\t{}\neyes\t{}\nlooked\t{looked}\nof\t{all}\nbudget\t{}\narea\t{:?}\nsize\t{w}x{h}\nflag_px\t{}\n",
-                o.seed.unwrap_or(4242),
+                seed,
                 views.len(),
                 views.iter().filter(|v| is_eye(v)).count(),
                 o.tour_budget,

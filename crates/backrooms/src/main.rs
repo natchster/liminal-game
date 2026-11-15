@@ -90,7 +90,7 @@ struct Options {
     /// recording and replaying a session cost (`cargo xtask bench`)
     bench_replay: Option<String>,
     /// `--record-bot DIR`: with `--seed`, `--levels` and `--bot-seconds`, a
-    /// floor a file, each a session the restless bot played
+    /// floor a file, each a session the wanderer played
     record_bot: Option<String>,
     bot_seconds: f64,
     /// `--replay-frames FILE`: with `--sheet DIR` and `--every S`, a
@@ -342,7 +342,7 @@ fn parse_args() -> Options {
                 println!("          [--dump-replay FILE]   a recording as JSON on stdout");
                 println!("          [--bench-replay FILE --seed S --bench-frames N]   what recording and replaying a bot's session cost");
                 println!(
-                    "          [--record-bot DIR --seed S --levels 1,2 [--bot-seconds 60]]   a recording a floor, each a session the restless bot plays"
+                    "          [--record-bot DIR --seed S --levels 1,2 [--bot-seconds 60]]   a recording a floor, each a session the wanderer plays"
                 );
                 println!(
                     "          [--replay-frames FILE --sheet DIR [--every 5]]   a recording's frames rendered headless every S seconds, and their sheet"
@@ -438,11 +438,7 @@ fn game_from_save(o: &Options) -> Option<Game> {
         eprintln!("{p}: {e}");
         std::process::exit(1);
     });
-    while v.bar().seeking.is_some() {
-        if !v.frame(&mut g, 0.0, std::time::Duration::MAX) {
-            break;
-        }
-    }
+    v.settle(&mut g);
     if let Some(d) = &v.player.diverged {
         eprintln!("{p}: the replay left its recording at frame {} in {:?}: this is not the save's place", d.frame, d.parts);
     }
@@ -450,6 +446,28 @@ fn game_from_save(o: &Options) -> Option<Game> {
     g.quality.pr = g.quality.max_pr;
     println!("from {p}: run {}, floor {}", g.run_seed, g.level_num);
     Some(g)
+}
+
+/// The game a headless floor tool works on (the dumps, the tour), its run's
+/// seed and its floors: a new run as New Game makes one (`--seed`,
+/// `--levels`), or a save's floor of its run (`--from-save`).
+fn tool_game(o: &Options) -> (Game, u32, Vec<i32>) {
+    if let Some(g) = game_from_save(o) {
+        let (seed, floor) = (g.run_seed, g.level_num);
+        return (g, seed, vec![floor]);
+    }
+    let seed = o.seed.unwrap_or(4242);
+    let mut g = make_game(o);
+    g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
+    g.view_width = o.width;
+    g.view_height = o.height;
+    g.scale_factor = o.scale;
+    g.quality.max_pr = o.scale.min(2.0);
+    g.quality.pr = g.quality.max_pr;
+    g.boot();
+    g.start_new_game(); // as New Game from the menu
+    let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
+    (g, seed, levels)
 }
 
 /// The game a replay plays in (`game::replay::Player`, which boots it): a
@@ -590,13 +608,15 @@ struct App {
     /// the look and the wheel rounded where they enter, with their carry
     quant: game::replay::Quantizer,
     frames: u64,
-    /// the launch flags a session is made with (again, after a replay)
-    flags: String,
     /// Command is held (a replay's own keys are the recording's)
     meta: bool,
     /// where play's save is written (`saves/<name>.ocsave`), if play may
-    /// write one (not a `--record` playtest, not from a save for a tool)
+    /// write one (not a `--record` playtest, not from a save for a tool, not
+    /// a run taken over from the Replays screen), and the player's own
     save_slot: Option<std::path::PathBuf>,
+    home_slot: Option<std::path::PathBuf>,
+    /// how the app was started: a session after a replay is made as it was
+    opts: Options,
 }
 
 /// A replay being watched.
@@ -617,11 +637,13 @@ struct Replaying {
 }
 
 impl App {
-    /// Before quitting: the recording being made, written now (and any
-    /// written before it), and a replay's tension marks.
+    /// Before quitting: the save play made and the recording being made,
+    /// written now (after any sent before them), and a replay's tension
+    /// marks. A replay's game writes nothing of the player's.
     fn save(&mut self) {
         self.writer.finish();
-        if let (Some(f), Some(slot)) = (self.g.save_written.take(), &self.save_slot)
+        if self.replaying.is_none()
+            && let (Some(f), Some(slot)) = (self.g.save_written.take(), &self.save_slot)
             && let Err(e) = replays::write(slot, &f)
         {
             eprintln!("save not written: {e}");
@@ -632,39 +654,56 @@ impl App {
         {
             eprintln!("recording not saved: {e}");
         }
+        self.write_trace();
+    }
+
+    /// `--replay`'s tension marks, beside its file.
+    fn write_trace(&self) {
         if let Some(rp) = self.replaying.as_ref().filter(|rp| !rp.from_menu) {
             let frames = rp.viewer.player.file.frame_count();
             let _ = std::fs::write(&rp.trace, serde_json::json!({ "recording_frames": frames, "marks": rp.marks }).to_string());
         }
     }
 
-    /// The Replays screen's list, read again from the folder.
+    /// The Replays screen's list, read from the folder (none for a
+    /// `--record` playtest: a fresh install has none). It comes from outside
+    /// the game, so it reaches play as an input, through the log: the
+    /// title's rows in a replay are play's.
     fn list_replays(&mut self) {
-        self.g.replays = replays::list(&replays::folder(&save_path()));
-        self.g.replays_changed();
+        if self.replaying.is_some() || self.opts.record.is_some() {
+            return;
+        }
+        let lines = replays::list(&replays::folder(&save_path()));
+        if lines == self.g.replays {
+            return;
+        }
+        let e = game::replay::InputEvent::Listed(lines);
+        if let Some(r) = self.log.as_mut() {
+            r.push(e.clone());
+        }
+        self.g.apply_event(&e);
     }
 
     /// A recording chosen on the Replays screen: the session's game makes
     /// way for the replay's (the recording being made, if one is, ends).
+    /// One that cannot be opened leaves the session as it was.
     fn watch(&mut self, path: &std::path::Path, ctx: &mut AppCtx) {
         if self.recording.is_some() {
             self.toggle_recording();
         }
-        let opened = replays::read(&path.to_string_lossy()).and_then(|file| {
-            let note = replays::other_build(&file).unwrap_or_default();
-            game::replay::viewer::Viewer::open(file, replay_game).map(|(g, viewer)| (g, viewer, note))
-        });
-        match opened {
-            Ok((g, viewer, note)) => {
+        // (opening seeds or sets the per-frame stream before it can fail)
+        let (stream, draws) = game::base::rng::native_state();
+        match open_replay(&path.to_string_lossy()) {
+            Ok((g, viewer, note, _)) => {
                 println!("watching {}", path.display());
                 self.g = g;
                 self.log = None;
-                self.replaying =
-                    Some(Replaying { viewer, trace: String::new(), marks: vec![], told: false, note, from_menu: true, take: false });
+                self.replaying = Some(Replaying::new(viewer, note, String::new(), true, false));
                 ctx.set_pointer_lock(false);
             }
             Err(e) => {
-                eprintln!("{}: {e}", path.display());
+                game::base::rng::set_native_state(stream, draws);
+                eprintln!("{e}");
                 self.g.rec_mark.saved = Some((self.g.now_ms, "That recording could not be opened".into()));
             }
         }
@@ -674,43 +713,75 @@ impl App {
     /// from here, the replay's game now the player's, its log what the
     /// recording held up to here (a save made here is the same file).
     fn take_control(&mut self, ctx: &mut AppCtx) {
+        self.write_trace();
         let Some(rp) = self.replaying.take() else { return };
         let at = rp.viewer.player.frame;
         println!("playing on from frame {at}");
-        self.log = Some(game::replay::Recorder::resume(&rp.viewer.player.file, at, &self.g));
+        // what the replay left that is the recording's, not play's: the
+        // floor it last entered, its saves, what it asked of the save file
+        self.g.entered = None;
+        self.g.save_written = None;
+        self.g.save_cleared = false;
+        // (a run taken over from the Replays screen keeps its saves in
+        // memory: the player's own save is not the recording's run)
+        if rp.from_menu {
+            self.save_slot = None;
+        }
+        let mut log = game::replay::Recorder::resume(&rp.viewer.player.file, at, &self.g);
+        // the keys the recording held, let go as play's own first input (in
+        // their names' order: a set has none of its own)
+        let mut held: Vec<String> = self.g.keys.iter().cloned().collect();
+        held.sort();
+        for k in held {
+            let e = game::replay::InputEvent::Up(k);
+            log.push(e.clone());
+            self.g.apply_event(&e);
+        }
+        self.log = Some(log);
         self.g.playback = None;
         self.g.build_stamp = replays::build();
+        // (the device's mute was the viewer's)
         if let Some(ac) = &self.g.ac {
-            ac.set_muted(self.g.muted);
+            ac.set_muted(false);
         }
-        ctx.set_pointer_lock(true);
+        ctx.set_pointer_lock(self.g.pointer_locked);
     }
 
     /// Out of a replay watched from the Replays screen: a fresh session at
-    /// the title, as the game starts (its log, its storage read again).
+    /// the title, as the game starts (its log, its storage and save read
+    /// again).
     fn back_to_the_title(&mut self, ctx: &mut AppCtx) {
         self.replaying = None;
+        self.save_slot.clone_from(&self.home_slot);
         let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64);
         game::base::rng::seed_native(seed);
-        let mut g = session_game(&self.flags);
+        let mut g = make_game(&self.opts);
         g.saved = self.save_slot.as_deref().and_then(replays::read_save);
         g.build_stamp = replays::build();
         let storage = g.storage.clone();
         g.boot_in_view(Some([ctx.width, ctx.height, ctx.scale_factor]));
-        self.log = Some(game::replay::Recorder::session(seed, &self.flags, storage, &g));
+        self.log = Some(game::replay::Recorder::session(seed, &self.opts.flags, storage, &g));
         self.g = g;
         self.list_replays();
         ctx.set_pointer_lock(false);
     }
 }
 
-/// A session's game as the app makes one (the player's storage read).
-fn session_game(flags: &str) -> Game {
-    let mut g = Game::new_bare();
-    g.launch_flags = flags.to_string();
-    g.storage_load(save_path());
-    placers::register_all(&mut g.placers);
-    g
+/// A recording (or a save) opened to be watched or played on from: its game
+/// at its first segment's start, seeking to its in-point; what the player
+/// should know first (another build made it); the view it was made in.
+fn open_replay(path: &str) -> Result<(Game, game::replay::viewer::Viewer, String, Option<[f64; 3]>), String> {
+    let file = replays::read(path)?;
+    let view = replays::view_of(&file);
+    let note = replays::other_build(&file).unwrap_or_default();
+    let (g, viewer) = game::replay::viewer::Viewer::open(file, replay_game).map_err(|e| format!("{path}: {e}"))?;
+    Ok((g, viewer, note, view))
+}
+
+impl Replaying {
+    fn new(viewer: game::replay::viewer::Viewer, note: String, trace: String, from_menu: bool, take: bool) -> Replaying {
+        Replaying { viewer, trace, marks: vec![], told: false, note, from_menu, take }
+    }
 }
 
 impl App {
@@ -767,7 +838,7 @@ impl AppHandler for App {
     }
     fn frame(&mut self, ctx: &mut AppCtx, dt: f64) -> Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>> {
         self.frames += 1;
-        if self.g.want_quit {
+        if self.g.want_quit && self.replaying.is_none() {
             self.save();
         } else if self.copied.elapsed().as_secs() >= 60
             && let (Some(log), Some((path, header))) = (&self.log, &self.recording)
@@ -790,17 +861,19 @@ impl AppHandler for App {
                 }
             };
             self.g.rec_mark.saved = Some((self.g.now_ms, said));
+            self.list_replays();
         }
         if let Some(rp) = self.replaying.as_mut() {
             // the recording's frames the window's time reaches (or a slice of
             // a seek); the window's own input is the viewer's keys
             // (a recorded press of the Record key records nothing here)
             self.g.want_record = false;
+            self.g.want_quit = false;
             // (a replay's saves are its own: never the player's file)
             self.g.save_written = None;
             self.g.save_cleared = false;
             let more = rp.viewer.frame(&mut self.g, dt, std::time::Duration::from_millis(10));
-            if rp.take && rp.viewer.bar().seeking.is_none() {
+            if rp.take && !rp.viewer.seeking() {
                 self.take_control(ctx);
                 let target = ctx.drawable?;
                 let (w, h) = (target.width(), target.height());
@@ -862,11 +935,10 @@ impl AppHandler for App {
             }
         }
         // the Replays screen: a recording to watch, or to delete
-        if let Some(path) = self.g.want_delete.take() {
-            if let Err(e) = std::fs::remove_file(&path) {
-                eprintln!("{}: {e}", path.display());
-            }
-            self.list_replays();
+        if let Some(path) = self.g.want_delete.take()
+            && let Err(e) = std::fs::remove_file(&path)
+        {
+            eprintln!("{}: {e}", path.display());
         }
         if let Some(path) = self.g.want_replay.take() {
             self.watch(&path, ctx);
@@ -913,7 +985,7 @@ impl AppHandler for App {
                         rp.marks.push(serde_json::json!({ "t": self.g.perf_t, "frame": rp.viewer.player.frame, "level": self.g.level_num, "tension": dir }));
                     }
                     "Escape" if !rep => leave = true,
-                    "Enter" | "NumpadEnter" if !rep && rp.viewer.bar().seeking.is_none() => take = true,
+                    "Enter" | "NumpadEnter" if !rep && !rp.viewer.seeking() => take = true,
                     _ => {}
                 },
                 Input::KeyUp(code) if code.starts_with("Meta") => self.meta = false,
@@ -1260,33 +1332,13 @@ fn level_check(o: &Options, dir: &str) {
     let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     let mut r = Renderer::new(device);
-    // (from a save: its run, and its floor built again with her progress read)
-    let from_save = game_from_save(o);
-    let saved_floor = from_save.as_ref().map(|g| g.level_num);
-    let seed = from_save.as_ref().map_or(o.seed.unwrap_or(4242), |g| g.run_seed);
-    let mut g = from_save.unwrap_or_else(|| {
-        let mut g = make_game(o);
-        g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
-        g.view_width = o.width;
-        g.view_height = o.height;
-        g.scale_factor = o.scale;
-        g.quality.max_pr = o.scale.min(2.0);
-        g.quality.pr = g.quality.max_pr;
-        g.boot();
-        g.start_new_game(); // as New Game from the menu
-        g
-    });
+    let (mut g, seed, levels) = tool_game(o);
     // let the film grain (repainted every 55 ms, opacity eased) settle as if the
     // game had been running for a second
     for _ in 0..60 {
         g.update_grain(1.0 / 60.0);
     }
     std::fs::create_dir_all(dir).expect("create dump dir");
-    let levels = match saved_floor {
-        Some(l) => vec![l],
-        None if o.levels.is_empty() => vec![o.level.unwrap_or(1)],
-        None => o.levels.clone(),
-    };
     let shots = o.screenshot.is_some();
     let target = if shots { Some(r.offscreen_target(w, h)) } else { None };
     for &l in &levels {
@@ -1852,29 +1904,22 @@ fn main() {
     // says, before its game is made
     let (mut session, mut replaying, mut made, mut size) = (None, None, None, (o.width, o.height));
     if let Some(p) = &o.replay {
-        let file = replays::read(p).unwrap_or_else(|e| {
+        let (g, viewer, note, view) = open_replay(p).unwrap_or_else(|e| {
             eprintln!("{e}");
             std::process::exit(1);
         });
-        if let Some(v) = replays::view_of(&file) {
+        if let Some(v) = view {
             size = (v[0], v[1]);
         }
-        let note = replays::other_build(&file).unwrap_or_default();
         if !note.is_empty() {
             println!("{note}");
         }
         println!(
-            "replaying {p}: {} frames; Space pauses, ← → move 10 s, − + the speed, ↑ ↓ mark tension rising / falling, Escape stops",
-            file.out_point() - file.in_point()
+            "replaying {p}: {}; Space pauses, ← → move 10 s, − + the speed, Enter plays on, ↑ ↓ mark tension rising / falling, Escape stops",
+            game::replay::viewer::clock(viewer.bar().total)
         );
-        // (it seeks to its in-point in the window, a slice a frame, unheard)
-        let (g, viewer) = game::replay::viewer::Viewer::open(file, replay_game).unwrap_or_else(|e| {
-            eprintln!("{p}: {e}");
-            std::process::exit(1);
-        });
         made = Some(g);
-        replaying =
-            Some(Replaying { viewer, trace: format!("{p}.trace.json"), marks: vec![], told: false, note, from_menu: false, take: false });
+        replaying = Some(Replaying::new(viewer, note, format!("{p}.trace.json"), false, false));
     } else {
         let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64);
         game::base::rng::seed_native(seed);
@@ -1887,22 +1932,17 @@ fn main() {
     }
     // `--from-save`: the save opened as a replay, control taken at its place
     if let Some(p) = o.from_save.as_ref().filter(|_| replaying.is_none()) {
-        let file = replays::read(p).unwrap_or_else(|e| {
+        let (g, viewer, note, view) = open_replay(p).unwrap_or_else(|e| {
             eprintln!("{e}");
             std::process::exit(1);
         });
-        if let Some(v) = replays::view_of(&file) {
+        if let Some(v) = view {
             size = (v[0], v[1]);
         }
-        let (g, viewer) = game::replay::viewer::Viewer::open(file, replay_game).unwrap_or_else(|e| {
-            eprintln!("{p}: {e}");
-            std::process::exit(1);
-        });
         println!("playing on from {p}");
         made = Some(g);
         session = None;
-        replaying =
-            Some(Replaying { viewer, trace: String::new(), marks: vec![], told: false, note: String::new(), from_menu: false, take: true });
+        replaying = Some(Replaying::new(viewer, note, String::new(), false, true));
     }
     // play's save: read before the boot (the title offers Continue from it),
     // written as play makes them; a playtest's (`--record`) and a tool's run
@@ -1928,9 +1968,10 @@ fn main() {
             replaying,
             quant: game::replay::Quantizer::default(),
             frames: 0,
-            flags: o.flags.clone(),
             meta: false,
+            home_slot: save_slot.clone(),
             save_slot,
+            opts: o,
         },
     );
 }

@@ -80,13 +80,23 @@ written first); Escape gives back a fresh session at the title. A
 `--replay` is the same viewer in a window of its own, and quits at the
 end.
 
+The list is read from the folder at a session's start and again when a
+recording is written, and it reaches play as an input (`Listed`, through
+the log), since it comes from outside the game: a replay of a session
+has the title's rows play had. Deleting takes the line out in play
+(the app removes the file). A `--record` playtest lists none.
+
 A **`Viewer`** (`replay::viewer`) plays a recording by the window's
 clock, not a recorded frame per window frame: a recording made at 120 Hz
 plays at its own pace on a 60 Hz window. Space pauses; − and + step the
 speed (¼, ½, 1, 2, 4); ← and → move ten seconds; Enter takes control:
 play goes on from where the replay is, its log what the recording held up
 to there (`Recorder::resume`; the same file is a save there,
-`ReplayFile::cut`, `docs/engineering/SAVES.md`). On is simulated from
+`ReplayFile::cut`, `docs/engineering/SAVES.md`), the keys the recording
+held let go as play's first input, the device's mute (the viewer's)
+lifted. A run taken over from the Replays screen keeps its saves in
+memory (the player's own save is not the recording's run); one taken
+over from `--replay` or `--from-save` writes as that launch says. On is simulated from
 where it is; back starts a fresh game at the anchor before the place (the
 session's start, or a floor's) and simulates to it. A seek runs a slice
 of each window frame (10 ms), so the window stays alive and the line at
@@ -100,8 +110,8 @@ A replay starts at the file's first segment and reaches its in-point by
 game's: that is play's state), the one-shots it makes cut as it goes
 (`AudioContext::cut_one_shots`: a minute of footsteps would otherwise
 sound at once; nothing in play listens for a sound's end), then plays to
-the out-point. `--replay`
-says how far the seek has come on the terminal; a seek simulates about 85
+the out-point. The line at the foot of the window says how far a seek has
+come (*Watching*); a seek simulates about 85
 times faster than play (`PERF.md`, *Recording and replaying*). `--replay-verify` prints one line a segment and fails if any
 leaves the recording; a file made by another build is said first (it may
 not repeat: see *What makes it repeat*). `tests/replay.rs` records a
@@ -218,18 +228,20 @@ reading only.
 ### A segment's start (`ANCR`)
 
 ```json
-{ "first_frame": 0, "start": { "kind": "session", "native_seed": 12648430, "flags": "…", "storage": { "settings": "{…}", "opencarole.backrooms.save.v2": "{…}" }, "settings": {…}, "view": [<u64>, <u64>, <u64>] } }
+{ "first_frame": 0, "start": { "kind": "session", "native_seed": 12648430, "flags": "…", "storage": { "settings": "{…}" }, "saved": "4f435245504c4159…", "settings": {…}, "view": [<u64>, <u64>, <u64>] } }
 { "first_frame": 1328, "start": { "kind": "floor", "anchor": { "level": 4, "how": "door", "ticks": 1092, "state": {…} } } }
 ```
 
 - `session`: a fresh process. The per-frame stream is seeded with
   `native_seed`; the game is made with `flags`, its storage filled with
-  `storage` (what the app read from disk before booting: empty for a
-  fresh install), booted in `view` (width and height in points, scale
-  factor) as the window boots it (`Game::boot_in_view`), and given
-  `settings` (`Settings::to_json`). A replay writes nothing to disk.
+  `storage` (what the app read from disk before booting, the settings:
+  empty for a fresh install), handed `saved` (the bytes of the save it
+  read, `SAVES.md`, as hex; none for a fresh install), booted in `view`
+  (width and height in points, scale factor) as the window boots it
+  (`Game::boot_in_view`), and given `settings` (`Settings::to_json`). A
+  replay writes nothing to disk.
 - `floor`: a floor's anchor. `how` is the way in (`door`, `lift`, `fall`,
-  `stairwell`, `ending`); `ticks` is the interval of the frame it was
+  `stairwell`, `ending`, `wake`, `continue`); `ticks` is the interval of the frame it was
   entered in (a replay from it first runs the rest of that frame); `state`
   is `Game::anchor_state` (`session/anchor.rs`).
 
@@ -260,6 +272,7 @@ per frame:
 | 8 | wheel, off the grid | f64 bits |
 | 9 | hover a menu row | string index |
 | 10 | the view changed | width, height, scale as f64 bits |
+| 11 | the recordings listed (the Replays screen's lines, from outside the game) | a count (varint), then each line's path, label and detail (string indices) |
 
 A varint is 7 bits a byte, low first, the high bit set on every byte but
 the last; zigzag maps 0, −1, 1, −2… to 0, 1, 2, 3…. Keys are the window's
@@ -311,7 +324,7 @@ work after a frame about 0.1 µs (`cargo xtask bench`, `PERF.md`).
 | Where | What |
 |---|---|
 | `crates/game/src/replay/file.rs` | the format: `ReplayFile`, `Segment`, `Start`, `encode`, `decode`, `Quantizer` |
-| `crates/game/src/replay/mod.rs` | `InputEvent`, `FrameInput`, `Recorder` (the log: frames, hashes, segments at each floor, telemetry; a recording's in-point, letting go of floors no recording needs), `Player` (a segment to the end, checking; `seek`), `StateHash`, `Game::boot_in_view` |
+| `crates/game/src/replay/mod.rs` | `InputEvent`, `FrameInput`, `Recorder` (the log: frames, hashes, segments at each floor, telemetry; a recording's in-point, letting go of floors no recording needs), `Player` (a segment to the end, checking; a replay keeps no floor anchor of its own), `StateHash`, `Game::boot_in_view` |
 | `crates/game/src/session/anchor.rs` | the anchor: `Game::enter_level`, `anchor_state`, `start_from_anchor` |
 | `crates/backrooms/src/replays.rs` | the build a recording keeps, where recordings go and the thread that writes them, `--replay-verify`, `--dump-replay`, `--bench-replay` |
 | `crates/backrooms/src/main.rs` | the log of play (the window's input, rounded, into it), F9 and the pause list's Record (`toggle_recording`), `--record`, `--replay` and its seek |

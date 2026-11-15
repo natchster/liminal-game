@@ -35,7 +35,11 @@ effects, the lens).
   it).
 - **Read** before the boot, since the title's Continue (its floor, her last
   line) and New descent's question read it. A save made by another
-  build is used: it holds no frames that must repeat.
+  build is used: it holds no frames that must repeat, and a field a later
+  build added that it lacks is left as the game has it. One that cannot
+  be put back (no stream, no clock, no progress) is kept, and Continue
+  leaves the player at the title with their settings as they were: the
+  anchor is read whole before anything is changed.
 - **Continue** (`continue_game`) puts the save's state back, keeping what
   is the player's now (the settings, the window's view, the keys held), and
   begins its floor again at the start of the next frame's step: a way into
@@ -59,8 +63,9 @@ effects, the lens).
 - **More than one.** `--save NAME` reads and writes `saves/NAME.ocsave`;
   the player is offered only the default one. A `--record` playtest, a
   replay and a run `--from-save` (without `--save`) keep their saves in
-  memory: the player's is never written by a tool. Headless runs write
-  none.
+  memory: the player's is never written by a tool, and a run taken over
+  from the Replays screen (Enter) keeps its saves in memory too. Headless
+  runs write none.
 
 ## V0: the storage file (no longer read)
 
@@ -117,7 +122,7 @@ is not read.)
 | `asides` | your asides: `said`, `about`, `weighed`, `owed`, `events` (`AsideMemory`) | the same |
 | `took` | what you took: `[what, floor, place]` each (`secrets::keeps`) | |
 | `secrets` | the places emptied: key → uses | |
-| `savedAt` | when, in ms since 1970 (`save_game` adds it) | not read |
+| `savedAt` | when, in ms since 1970 (V0's `save_game` added it; V1's header has `created_ms`) | not read |
 
 ### What V0 left out
 

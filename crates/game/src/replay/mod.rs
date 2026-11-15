@@ -30,6 +30,9 @@ pub enum InputEvent {
     Hover(String),
     /// the window's view changed: its width, height and scale factor
     View(f64, f64, f64),
+    /// the recordings the Replays screen lists, as the app read them: from
+    /// outside the game, so an input like the keys (its rows are play's)
+    Listed(Vec<viewer::ReplayLine>),
 }
 
 /// One frame's input.
@@ -63,6 +66,7 @@ impl FrameInput {
                     InputEvent::Wheel(d) => json!(["w", d]),
                     InputEvent::Hover(h) => json!(["h", h]),
                     InputEvent::View(w, h, s) => json!(["v", w, h, s]),
+                    InputEvent::Listed(lines) => json!(["r", lines.iter().map(|l| json!([l.path, l.label, l.detail])).collect::<Vec<_>>()]),
                 })
                 .collect(),
         )
@@ -318,6 +322,9 @@ impl Player {
     /// Runs the next recorded frame (for a floor's start, first the rest of
     /// the frame it was entered in); false once the recording is done.
     pub fn step(&mut self, g: &mut Game) -> bool {
+        // (a floor a replay enters is the recording's: only play's log reads
+        // `entered`, and play taking over must not find it)
+        g.entered = None;
         if let Some(dt) = self.entry.take() {
             g.frame(dt);
             return true;
@@ -342,22 +349,6 @@ impl Player {
             self.seg += 1;
             self.i = 0;
         }
-    }
-
-    /// Simulates up to `to` (the next frame to run is then `to`), calling
-    /// `progress` with the game and the share done now and then; false if
-    /// the recording ends first.
-    pub fn seek(&mut self, g: &mut Game, to: u64, mut progress: impl FnMut(&mut Game, f64)) -> bool {
-        let (from, n) = (self.frame, to.saturating_sub(self.frame).max(1));
-        while self.frame < to || self.entry.is_some() {
-            if !self.step(g) {
-                return false;
-            }
-            if (self.frame - from).is_multiple_of(600) {
-                progress(g, (self.frame - from) as f64 / n as f64);
-            }
-        }
-        true
     }
 }
 
@@ -440,6 +431,10 @@ impl Game {
                 }
             }
             InputEvent::View(w, h, s) => self.set_view(*w, *h, *s),
+            InputEvent::Listed(lines) => {
+                self.replays.clone_from(lines);
+                self.replays_changed();
+            }
         }
     }
 

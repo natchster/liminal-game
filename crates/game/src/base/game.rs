@@ -1432,11 +1432,6 @@ impl Game {
         self.storage.insert(k.to_string(), v.to_string());
         self.storage_flush();
     }
-    /// Removes a stored value (persisted to the save file)
-    pub fn storage_remove(&mut self, k: &str) {
-        self.storage.remove(k);
-        self.storage_flush();
-    }
     fn storage_flush(&self) {
         if let Some(p) = &self.storage_path {
             let mut s = String::new();

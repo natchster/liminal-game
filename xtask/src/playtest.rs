@@ -98,23 +98,13 @@ fn visual(args: &[String]) -> Result<(), String> {
     if !flag(args, "--no-build") {
         run(cargo().args(["build", "--release", "-p", "backrooms"]))?;
     }
-    // `--from-save FILE`: the save's floor of its run, as the save left it
-    // (`docs/engineering/SAVES.md`); the game says which ("run 7, floor 5")
-    let from_save = opt(args, "--from-save");
-    let (mut seeds, mut levels): (Vec<String>, String) = (
-        opt(args, "--seeds").unwrap_or("4242").split(',').map(String::from).collect(),
-        opt(args, "--levels").unwrap_or("1,2,3").to_string(),
-    );
-    if from_save.is_some() {
-        seeds = vec!["save".into()];
-    }
     let out = make_out(&out)?;
     let t0 = std::time::Instant::now();
-    for seed in seeds.clone() {
-        let seed = seed.as_str();
-        let dir = out.join(format!("s{seed}"));
+    // one tour: a seed's floors, or (`--from-save FILE`) the save's floor of
+    // its run as the save left it (`docs/engineering/SAVES.md`); what it says
+    let tour = |dir: &Path, seed: &str, levels: &str| -> Result<String, String> {
         let mut c = std::process::Command::new(root().join("target/release/backrooms"));
-        c.args(["--tour"]).arg(&dir).args(["--seed", seed, "--levels", &levels, "--tour-budget", budget, "--width", w, "--height", h]);
+        c.args(["--tour"]).arg(dir).args(["--seed", seed, "--levels", levels, "--tour-budget", budget, "--width", w, "--height", h]);
         // every stand for the detectors (minutes a floor) unless --quick: the eyes' sample only
         if !flag(args, "--quick") {
             c.arg("--tour-all");
@@ -122,23 +112,34 @@ fn visual(args: &[String]) -> Result<(), String> {
         if let Some(a) = opt(args, "--area") {
             c.args(["--tour-area", a]);
         }
-        if let Some(f) = from_save {
+        if let Some(f) = opt(args, "--from-save") {
             c.args(["--from-save", f]);
         }
         let o = c.output().map_err(|e| e.to_string())?;
-        let said = String::from_utf8_lossy(&o.stdout);
+        let said = String::from_utf8_lossy(&o.stdout).to_string();
         print!("{said}");
         if !o.status.success() {
             return Err(format!("backrooms --tour on seed {seed}: {}", String::from_utf8_lossy(&o.stderr).trim()));
         }
-        // a save's run and floor, as the game read them: the report's
-        if let Some(rest) = said.lines().find_map(|l| l.split_once(": run ").map(|x| x.1)).filter(|_| from_save.is_some()) {
-            let (run, floor) = rest.split_once(", floor ").ok_or("the tour did not say the save's floor")?;
-            std::fs::rename(&dir, out.join(format!("s{}", run.trim()))).map_err(|e| e.to_string())?;
-            (seeds, levels) = (vec![run.trim().to_string()], floor.trim().to_string());
-            break;
+        Ok(said)
+    };
+    let (seeds, levels): (Vec<String>, String) = if opt(args, "--from-save").is_some() {
+        // the save's run and floor, as the game read them ("run 7, floor 5")
+        let dir = out.join("from-save");
+        let said = tour(&dir, "0", "1")?;
+        let rest = said.lines().find_map(|l| l.split_once(": run ").map(|x| x.1)).ok_or("the tour did not say the save's run")?;
+        let (run, floor) = rest.split_once(", floor ").ok_or("the tour did not say the save's floor")?;
+        let (run, floor) = (run.trim().to_string(), floor.trim().to_string());
+        std::fs::rename(&dir, out.join(format!("s{run}"))).map_err(|e| e.to_string())?;
+        (vec![run], floor)
+    } else {
+        let seeds: Vec<String> = opt(args, "--seeds").unwrap_or("4242").split(',').map(String::from).collect();
+        let levels = opt(args, "--levels").unwrap_or("1,2,3").to_string();
+        for seed in &seeds {
+            tour(&out.join(format!("s{seed}")), seed, &levels)?;
         }
-    }
+        (seeds, levels)
+    };
     let levels = levels.as_str();
     let report = report(&out, &seeds, levels, budget, args)?;
     std::fs::write(out.join("report.md"), report).map_err(|e| e.to_string())?;

@@ -694,12 +694,14 @@ impl Game {
         self.close_menu();
         self.schedule(0.0, move |g| {
             let (settings, view, keys) = (g.settings.clone(), [g.view_width, g.view_height, g.scale_factor], g.keys.clone());
+            // (a save that cannot be put back is kept, and the title stays)
             if let Err(e) = g.restore_anchor_state(&a.state) {
                 eprintln!("the save could not be read: {e}");
-                return g.start_new_game();
+                return g.open_menu(crate::ui::menu::Screen::Title);
             }
             g.settings = settings;
             g.set_view(view[0], view[1], view[2]);
+            g.quality.pr = g.quality.max_pr;
             g.keys = keys;
             g.enter_level(a.level, How::Continue);
         });

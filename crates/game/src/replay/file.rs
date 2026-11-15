@@ -282,6 +282,15 @@ fn put_event(out: &mut Vec<u8>, e: &InputEvent, strings: &mut Strings) {
                 out.extend_from_slice(&v.to_bits().to_le_bytes());
             }
         }
+        InputEvent::Listed(lines) => {
+            out.push(11);
+            varint(out, lines.len() as u64);
+            for l in lines {
+                for s in [l.path.to_string_lossy().as_ref(), &l.label, &l.detail] {
+                    varint(out, strings.of(s));
+                }
+            }
+        }
     }
 }
 
@@ -303,6 +312,15 @@ fn get_event(r: &mut Reader, strings: &[String]) -> Result<InputEvent, String> {
         8 => InputEvent::Wheel(r.f64()?),
         9 => InputEvent::Hover(s(r)?),
         10 => InputEvent::View(r.f64()?, r.f64()?, r.f64()?),
+        11 => {
+            let n = r.varint()?;
+            let mut lines = vec![];
+            for _ in 0..n {
+                let (path, label, detail) = (s(r)?, s(r)?, s(r)?);
+                lines.push(super::viewer::ReplayLine { path: path.into(), label, detail });
+            }
+            InputEvent::Listed(lines)
+        }
         op => return Err(format!("an input op {op} this game does not know")),
     })
 }
@@ -361,34 +379,32 @@ impl Start {
 
 // ------------------------------------------------------------- the file
 
-/// The header alone, from the start of a file (its magic, version and
-/// first chunk; the rest need not be there): what a list of recordings
-/// shows without reading them whole. Also the bytes it needed.
-pub fn peek_header(bytes: &[u8]) -> Result<(Value, usize), String> {
-    let mut r = Reader { b: bytes, at: 0 };
-    if r.bytes(8)? != MAGIC {
+/// The header alone, read from the start of a file (its magic, version and
+/// first chunk; nothing after it is read): what a list of recordings shows
+/// without reading them whole.
+pub fn peek_header(mut f: impl std::io::Read) -> Result<Value, String> {
+    let mut head = [0u8; 24];
+    f.read_exact(&mut head).map_err(|_| "a replay cut short")?;
+    if &head[..8] != MAGIC {
         return Err("not a replay (no OCREPLAY)".into());
     }
-    let version = u16::from_le_bytes(r.bytes(2)?.try_into().unwrap_or_default());
+    let version = u16::from_le_bytes([head[8], head[9]]);
     if version > VERSION {
         return Err(format!("a replay of format {version}, newer than this game's {VERSION}"));
     }
-    r.bytes(2)?;
-    if r.bytes(4)? != b"HEAD" {
+    if &head[12..16] != b"HEAD" {
         return Err("a replay that does not begin with its header".into());
     }
-    let len = r.u32()? as usize;
-    let crc = r.u32()?;
-    let z = r.bytes(len)?;
-    if crc32(z) != crc {
+    let len = u32::from_le_bytes([head[16], head[17], head[18], head[19]]) as usize;
+    let crc = u32::from_le_bytes([head[20], head[21], head[22], head[23]]);
+    let mut z = vec![0u8; len.min(CHUNK_LIMIT)];
+    f.read_exact(&mut z).map_err(|_| "a replay cut short")?;
+    if crc32(&z) != crc {
         return Err("the chunk HEAD is damaged".into());
     }
-    let body = miniz_oxide::inflate::decompress_to_vec_with_limit(z, CHUNK_LIMIT).map_err(|e| format!("the chunk HEAD: {e:?}"))?;
-    Ok((serde_json::from_slice(&body).map_err(|e| format!("HEAD: {e}"))?, r.at))
+    let body = miniz_oxide::inflate::decompress_to_vec_with_limit(&z, CHUNK_LIMIT).map_err(|e| format!("the chunk HEAD: {e:?}"))?;
+    serde_json::from_slice(&body).map_err(|e| format!("HEAD: {e}"))
 }
-
-/// The bytes before a file's header chunk's body, and where its length is.
-pub const HEAD_PREFIX: usize = 24;
 
 impl ReplayFile {
     /// How many frames the recording holds (from its first segment's start).

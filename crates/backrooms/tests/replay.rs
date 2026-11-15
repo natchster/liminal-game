@@ -405,7 +405,7 @@ fn a_replay_is_watched_by_the_clock_and_moved_either_way() {
                 assert!(g.state_hash() == states[k], "{what}: frame {k} is not play's, in {:?}", states[k].diff(&g.state_hash()));
             };
             let settle = |g: &mut Game, v: &mut Viewer| {
-                while v.bar().seeking.is_some() {
+                while v.seeking() {
                     v.frame(g, 1.0 / 60.0, Duration::from_millis(10));
                 }
             };
@@ -523,7 +523,7 @@ fn a_save_at_any_frame_of_a_replay_goes_on_as_the_run_went() {
         .stack_size(256 << 20)
         .spawn(move || {
             let (mut g, mut v) = Viewer::open(save, app_game).unwrap();
-            while v.bar().seeking.is_some() {
+            while v.seeking() {
                 v.frame(&mut g, 1.0 / 60.0, std::time::Duration::from_secs(1));
             }
             assert_eq!(v.player.frame, at);
@@ -614,4 +614,209 @@ fn waking_is_a_floor_start_a_replay_stands_on() {
         file.segments.iter().position(|s| matches!(&s.start, game::replay::Start::Floor(a) if a.how == game::session::anchor::How::Wake));
     let seg = woke.expect("waking began a segment");
     replays_as_played(&file, seg, &p);
+}
+
+/// Taking control of a replay (Enter) after it entered a floor by itself
+/// (here, a Continue): that floor's anchor is the recording's, never a new
+/// start in play's log (whose first segment stays the cut's), the keys the
+/// recording held are let go as play's first input, and the log taken over
+/// replays as it was played.
+#[test]
+fn taking_control_after_a_floor_plays_on_cleanly() {
+    use game::replay::viewer::Viewer;
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(|| {
+            // a session: a save of floor 3, the title, Continue, a walk
+            let p = play_session("seed=77&level=3&nosound", &[], false, &bot_inputs(600, 77), &[]);
+            let (mut g, mut pl) = Player::start(p.log.snapshot(json!({})), 0, app_game).unwrap();
+            while pl.step(&mut g) {}
+            g.save_game();
+            let native = 0x5A7F;
+            game::base::rng::seed_native(native);
+            let mut h = app_game("nosound");
+            h.saved = g.saved.clone();
+            h.boot_in_view(Some([1280.0, 800.0, 2.0]));
+            let mut log = Recorder::session(native, "nosound", Default::default(), &h);
+            log.start_recording();
+            let ticks = game::base::game::clock_ticks(1.0 / 60.0);
+            let bot = bot_inputs(900, 5);
+            for k in 0..900 {
+                let i = if k == 0 {
+                    FrameInput { events: vec![game::replay::InputEvent::Click("menu:continue".into())] }
+                } else {
+                    bot[k].clone()
+                };
+                for e in &i.events {
+                    log.push(e.clone());
+                }
+                h.apply_input(&i);
+                let dt = h.advance_clock(ticks);
+                h.frame(dt);
+                log.end_frame(&mut h, ticks);
+            }
+            let file = log.snapshot(json!({ "flags": "nosound" }));
+            let continued = file.segments[1].first_frame;
+            // watched, and taken over ten seconds after the Continue
+            let (mut g, mut v) = Viewer::open(file.clone(), app_game).unwrap();
+            v.seek_to(&mut g, continued as f64 / 60.0 + 10.0, app_game).unwrap();
+            assert_eq!(g.entered, None, "a replay keeps no floor of its own");
+            let at = v.player.frame;
+            let mut log = Recorder::resume(&file, at, &g);
+            let mut held: Vec<String> = g.keys.iter().cloned().collect();
+            held.sort();
+            for k in held {
+                let e = game::replay::InputEvent::Up(k);
+                log.push(e.clone());
+                g.apply_event(&e);
+            }
+            assert!(g.keys.is_empty(), "the recording's keys let go");
+            let mut states = vec![];
+            for i in bot_inputs(300, 9) {
+                for e in &i.events {
+                    log.push(e.clone());
+                }
+                g.apply_input(&i);
+                let dt = g.advance_clock(ticks);
+                g.frame(dt);
+                log.end_frame(&mut g, ticks);
+                states.push(g.state_hash());
+            }
+            assert_eq!(log.segments.len(), 1);
+            assert_eq!(log.segments[0].first_frame, continued, "play's log starts at the Continue the recording made");
+            let (mut r, mut pl) = Player::start(log.snapshot(json!({ "flags": "nosound" })), 0, app_game).unwrap();
+            while pl.frame < at || pl.pending_entry() {
+                pl.step(&mut r);
+            }
+            for (k, want) in states.iter().enumerate() {
+                assert!(pl.step(&mut r), "the log ends early");
+                assert!(r.state_hash() == *want, "frame {k} after taking control is not play's");
+            }
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// A seek to S seconds lands S seconds after the in-point, whatever the
+/// recording begins with (`--save-from-replay` on a recording begun mid-floor).
+#[test]
+fn a_seek_counts_from_the_in_point() {
+    use game::replay::viewer::Viewer;
+    let flags = "seed=77&level=3&nosound";
+    let p = play_session(flags, &[], false, &bot_inputs(2400, 77), &[(900, Do::Door), (1100, Do::Record)]);
+    let file = p.log.snapshot(json!({ "flags": flags }));
+    assert!(file.in_point() > file.segments[0].first_frame);
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(move || {
+            let (mut g, mut v) = Viewer::open(file, app_game).unwrap();
+            v.seek_to(&mut g, 5.0, app_game).unwrap();
+            assert!((v.bar().at - 5.0).abs() < 0.05, "at {}", v.bar().at);
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// The recordings the title lists come from outside the game, so they reach
+/// play as an input (`Listed`): a session that went down the title past the
+/// Replays line replays to the same screen.
+#[test]
+fn the_title_s_rows_replay_as_played() {
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(|| {
+            let native = 0x7171;
+            game::base::rng::seed_native(native);
+            let mut g = app_game("nosound");
+            g.boot_in_view(Some([1280.0, 800.0, 1.0]));
+            let mut log = Recorder::session(native, "nosound", Default::default(), &g);
+            log.start_recording();
+            let line = |n: usize| game::replay::viewer::ReplayLine {
+                path: format!("r{n}.ocreplay").into(),
+                label: format!("Floor {n}"),
+                detail: String::new(),
+            };
+            let listed = game::replay::InputEvent::Listed(vec![line(1), line(2)]);
+            let keys = ["ArrowDown", "ArrowDown", "Enter"];
+            let ticks = game::base::game::clock_ticks(1.0 / 60.0);
+            for k in 0..20 {
+                let mut i = FrameInput::default();
+                if k == 0 {
+                    i.events.push(listed.clone());
+                }
+                if let Some(key) = keys.get(k / 4).filter(|_| k % 4 == 2) {
+                    i.down(key);
+                    i.up(key);
+                }
+                for e in &i.events {
+                    log.push(e.clone());
+                }
+                g.apply_input(&i);
+                let dt = g.advance_clock(ticks);
+                g.frame(dt);
+                log.end_frame(&mut g, ticks);
+            }
+            // New descent, Replays, Settings, Quit: two down is Settings
+            assert_eq!(g.live_menu(), Some(game::ui::menu::Screen::Settings));
+            let file = ReplayFile::decode(&log.snapshot(json!({})).encode()).unwrap();
+            let (mut r, mut pl) = Player::start(file, 0, app_game).unwrap();
+            while pl.step(&mut r) {}
+            assert_eq!(r.replays.len(), 2, "the list came with the recording");
+            assert_eq!(r.live_menu(), g.live_menu(), "the replay went down the same rows");
+            assert!(r.state_hash() == g.state_hash());
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// A save that cannot be put back is kept, and the title stays, the
+/// player's settings untouched; one an older build made, without a field
+/// added since, continues.
+#[test]
+fn a_save_that_cannot_be_read_is_kept() {
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(|| {
+            let p = play_session("seed=4242&level=2&nosound", &[], false, &bot_inputs(300, 1), &[]);
+            let (mut g, mut pl) = Player::start(p.log.snapshot(json!({})), 0, app_game).unwrap();
+            while pl.step(&mut g) {}
+            g.save_game();
+            let good = g.saved.clone().unwrap();
+            let with = |drop: &str| {
+                let mut f = good.clone();
+                if let game::replay::Start::Floor(a) = &mut f.segments[0].start {
+                    let (part, key) = drop.split_once('.').unwrap_or((drop, ""));
+                    let s = a.state.as_object_mut().unwrap();
+                    if key.is_empty() {
+                        s.remove(part);
+                    } else {
+                        s[part].as_object_mut().unwrap().remove(key);
+                    }
+                }
+                f
+            };
+            // the stream gone: kept, the title stays, the settings untouched
+            let mut h = app_game("nosound");
+            h.boot_in_view(Some([1280.0, 800.0, 1.0]));
+            h.settings.fov = 101.0;
+            h.saved = Some(with("native"));
+            h.continue_game();
+            h.run_scheduled();
+            assert_eq!(h.live_menu(), Some(game::ui::menu::Screen::Title), "the title stays");
+            assert!(h.saved.is_some() && !h.save_cleared, "the save is kept");
+            assert_eq!(h.settings.fov, 101.0, "the player's settings untouched");
+            // a field added since (the grain's clock): it continues
+            let mut h = app_game("nosound");
+            h.boot_in_view(Some([1280.0, 800.0, 1.0]));
+            h.saved = Some(with("f64.grain_t"));
+            h.continue_game();
+            h.run_scheduled();
+            assert_eq!((h.state.as_str(), h.level_num), ("playing", 2), "an older save continues");
+        })
+        .unwrap()
+        .join()
+        .unwrap();
 }

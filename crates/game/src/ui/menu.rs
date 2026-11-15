@@ -430,9 +430,14 @@ impl Game {
             }
             "menu:replay-watch" => self.want_replay = self.chosen_replay(),
             "menu:replay-delete" => self.open_menu(Screen::ConfirmDelete),
+            // (the line goes in play, as the app removes its file: the list
+            // is play's, so a replay of this has the same rows)
             "menu:replay-delete-yes" => {
                 self.want_delete = self.chosen_replay();
-                self.open_menu(Screen::Replays);
+                if let Some(k) = self.replay_chosen.take().filter(|k| *k < self.replays.len()) {
+                    self.replays.remove(k);
+                }
+                self.replays_changed();
             }
             // back into play, the app starting or ending the recording
             "menu:record" => {

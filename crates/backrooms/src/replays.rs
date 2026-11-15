@@ -120,18 +120,8 @@ pub fn local_day(ms: u64) -> String {
 /// them: the floor each began on, when, how long, and whether another
 /// build made it. Only each header is read.
 pub fn list(folder: &Path) -> Vec<game::replay::viewer::ReplayLine> {
-    use std::io::Read;
     let here = build()["exe"].clone();
-    let head = |p: &Path| -> Option<Value> {
-        let mut f = std::fs::File::open(p).ok()?;
-        let mut b = vec![0u8; game::replay::file::HEAD_PREFIX];
-        f.read_exact(&mut b).ok()?;
-        let len = u32::from_le_bytes(b[16..20].try_into().ok()?) as usize;
-        let mut body = vec![0u8; len.min(16 << 20)];
-        f.read_exact(&mut body).ok()?;
-        b.extend(body);
-        game::replay::file::peek_header(&b).ok().map(|(h, _)| h)
-    };
+    let head = |p: &Path| game::replay::file::peek_header(std::io::BufReader::new(std::fs::File::open(p).ok()?)).ok();
     let mut found: Vec<(u64, game::replay::viewer::ReplayLine)> = std::fs::read_dir(folder)
         .into_iter()
         .flatten()
