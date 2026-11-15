@@ -32,6 +32,12 @@ when it is current, so an edit never waits on cargo's build lock).
 | on stop | `cargo xtask check --fast` when the code changed since the last passing check; a failure sends the agent back with its `ERROR` lines (at most three times in a row) |
 | after compaction | recent commits, uncommitted files and the roadmap's progress re-injected |
 
+The same file allows `git add`, `git commit` (also in the project
+identity's form, `CLAUDE.md`, *Commits*) and `git push` without a prompt,
+in every checkout and worktree (a worktree checks out committed files
+only, never a gitignored `settings.local.json`); a force push (`--force`,
+`-f`, a `+refspec`) still asks.
+
 ## Rules
 
 `.claude/rules/*.md` load only when an agent touches the files their
