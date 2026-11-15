@@ -883,25 +883,17 @@ impl Game {
         let mut at = spots.into_iter();
         for _ in 0..almond.min(2) {
             let Some(p) = at.next() else { break };
-            let ag = group();
-            ag.position().set(p.x, 0.15, p.z);
-            ag.add(&mesh(pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10)), lambert!({ color: 0x9fc4d8, emissive: 0x16323e })));
-            let cap = mesh(pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8)), &self.mats.metal);
-            cap.position().y = 0.18;
-            ag.add(&cap);
+            let ag = self.almond_water_at(p.x, p.z);
+            ag.position().set(p.x, 0.0, p.z);
             self.world.add(&ag);
-            self.almonds.push(crate::base::records::Pickup { g: ag, taken: false, base: 0.15, phase: p.x });
+            self.almonds.push(crate::base::records::Pickup { g: ag, taken: false, base: 0.0, phase: p.x });
         }
         for _ in 0..battery.min(2) {
             let Some(p) = at.next() else { break };
-            let bg = group();
-            bg.position().set(p.x, 0.11, p.z);
-            bg.add(&mesh(pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10)), lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 })));
-            let tip = mesh(pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8)), lambert!({ color: 0xdad3c2 }));
-            tip.position().y = 0.105;
-            bg.add(&tip);
+            let bg = self.battery_at(p.x, p.z);
+            bg.position().set(p.x, 0.0, p.z);
             self.world.add(&bg);
-            self.battery_items.push(crate::base::records::Pickup { g: bg, taken: false, base: 0.11, phase: p.z });
+            self.battery_items.push(crate::base::records::Pickup { g: bg, taken: false, base: 0.0, phase: p.z });
         }
     }
 

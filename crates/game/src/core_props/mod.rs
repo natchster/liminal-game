@@ -20,6 +20,7 @@ macro_rules! kind {
 pub mod barricade;
 pub mod builders;
 pub mod graffiti;
+pub mod pickups;
 pub mod seam;
 pub mod tail;
 pub mod usable;
@@ -332,7 +333,7 @@ fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: 
 /// One `[E] OPEN DRAWER` per drawer
 /// (the drawer group slides out along the cabinet's +z and reveals its
 /// content), then registers the cabinet in `g.drawer_props`.
-fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo, bat_tip_geo: &Geo, bat_tip_mat: &Mat) {
+fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo) {
     // only the filing cabinet (the one builder with drawers) registers, and it always has its three
     let SpotInfo { px, pz, yaw, normal } = *si;
     let fwd_x = match normal {
@@ -351,8 +352,6 @@ fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo, bat_tip_
         let d_en = d.clone();
         let d_use = d.clone();
         let cabinet = built.g.clone();
-        let tip_geo = bat_tip_geo.clone();
-        let tip_mat = bat_tip_mat.clone();
         g.interact(
             use_pos,
             1.0,
@@ -375,31 +374,17 @@ fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo, bat_tip_
                 let content_x = cp.x + fwd_x * content_local_z;
                 let content_z = cp.z + fwd_z * content_local_z;
                 if content_type == "battery" {
-                    let bg = group();
-                    bg.position().set(content_x, drawer_floor_y + 0.06, content_z);
-                    let body =
-                        mesh(pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10)), lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 }));
-                    body.rotation().z = PI / 2.0;
-                    bg.add(&body);
-                    // + terminal on the body's +Y end (at -x once laid down), shared tip geometry
-                    let tip = mesh(&tip_geo, &tip_mat);
-                    tip.rotation().z = PI / 2.0;
-                    tip.position().x = -0.105;
-                    bg.add(&tip);
+                    let bg = g.battery_at(content_x, content_z);
+                    bg.position().set(content_x, drawer_floor_y, content_z);
                     g.world.add(&bg);
-                    g.battery_items.push(Pickup { g: bg, taken: false, base: drawer_floor_y + 0.06, phase: rand1(7.0) });
+                    g.battery_items.push(Pickup { g: bg, taken: false, base: drawer_floor_y, phase: rand1(7.0) });
                     g.show_msg("A BATTERY INSIDE", 1.6);
                 } else if content_type == "almond" {
-                    let ag = group();
-                    ag.position().set(content_x, drawer_floor_y + 0.15, content_z);
-                    let b_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
-                    let b = mesh(pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10)), &b_mat);
-                    ag.add(&b);
-                    let cap = mesh(pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8)), &g.mats.metal);
-                    cap.position().y = 0.18;
-                    ag.add(&cap);
+                    // lying in the drawer: it is shallower than a bottle is tall
+                    let ag = g.almond_water(crate::core_props::pickups::state_at(content_x, content_z, 0x0D_4A_3E).0, true);
+                    ag.position().set(content_x, drawer_floor_y, content_z);
                     g.world.add(&ag);
-                    g.almonds.push(Pickup { g: ag, taken: false, base: drawer_floor_y + 0.15, phase: rand1(7.0) });
+                    g.almonds.push(Pickup { g: ag, taken: false, base: drawer_floor_y, phase: rand1(7.0) });
                     g.show_msg("ALMOND WATER INSIDE", 1.6);
                 } else if content_type == "paper" {
                     let mut dummy = PropsCtx::default();
@@ -526,7 +511,7 @@ impl Game {
         }
 
         kind!(g, "exit_door", g.props_exit_door(&mut cx));
-        let (bat_tip_geo, bat_tip_mat) = kind!(g, "pickups", g.props_pickups(&mut cx));
+        kind!(g, "pickups", g.props_pickups(&mut cx));
         kind!(g, "chairs", g.props_chairs(&mut cx));
         kind!(g, "crt_tv", g.props_crt_tv(&mut cx));
         kind!(g, "wall_clock", g.props_wall_clock(&mut cx));
@@ -536,7 +521,7 @@ impl Game {
 
         // place each prop type with random counts, sometimes stacked absurdly;
         // each kind keeps to the places it belongs in, a few side by side
-        let reg = move |g: &mut Game, built: &Built, si: &SpotInfo| register_cabinet_drawers(g, built, si, &bat_tip_geo, &bat_tip_mat);
+        let reg = move |g: &mut Game, built: &Built, si: &SpotInfo| register_cabinet_drawers(g, built, si);
         let wall = |off: f64, home: Home, row: i32, spacing: f64| ScatterOpts {
             wall: true,
             wall_offset: Some(off),
@@ -718,48 +703,32 @@ impl Game {
         );
     }
 
-    /// almond water (restores stamina) and batteries (recharge the flashlight).
-    /// Returns the battery tip geometry/material the drawer contents reuse.
-    fn props_pickups(&mut self, cx: &mut PropsCtx) -> (Geo, Mat) {
+    /// almond water (restores stamina) and batteries (recharge the lamp),
+    /// the floor's own (`core_props::pickups`): where they first fall here
+    /// (the draws as they were), then where their placement rules put them
+    /// once the floor has settled (`world::placement_rules`)
+    fn props_pickups(&mut self, cx: &mut PropsCtx) {
         let g = self;
-        // --- almond water (restores stamina) ---
-        let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
-        let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
-        let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));
         for _i in 0..3 {
             let Some(c) = cx.take(None) else { break };
-            let ag = group();
             let px = g.wx(c.x) + rand2(-1.0, 1.0);
             let pz = g.wz(c.z) + rand2(-1.0, 1.0);
-            ag.position().set(px, 0.15, pz);
-            let b = mesh(&bottle_geo, &bottle_mat);
-            ag.add(&b);
-            let cap = mesh(&cap_geo, &g.mats.metal);
-            cap.position().y = 0.18;
-            ag.add(&cap);
+            let ag = g.almond_water_at(px, pz);
+            ag.position().set(px, 0.0, pz);
+            ag.user().s.insert("by".into(), "rules".into());
             g.world.add(&ag);
-            g.almonds.push(Pickup { g: ag, taken: false, base: 0.15, phase: rand1(7.0) });
+            g.almonds.push(Pickup { g: ag, taken: false, base: 0.0, phase: rand1(7.0) });
         }
-        // --- batteries (recharge flashlight) ---
-        let bat_body_geo = pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10));
-        let bat_tip_geo = pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8));
-        let bat_body_mat = lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 });
-        let bat_tip_mat = lambert!({ color: 0xdad3c2 });
         for _i in 0..3 {
             let Some(c) = cx.take(None) else { break };
-            let bg = group();
             let px = g.wx(c.x) + rand2(-1.0, 1.0);
             let pz = g.wz(c.z) + rand2(-1.0, 1.0);
-            bg.position().set(px, 0.11, pz);
-            let body = mesh(&bat_body_geo, &bat_body_mat);
-            bg.add(&body);
-            let tip = mesh(&bat_tip_geo, &bat_tip_mat);
-            tip.position().y = 0.105;
-            bg.add(&tip);
+            let bg = g.battery_at(px, pz);
+            bg.position().set(px, 0.0, pz);
+            bg.user().s.insert("by".into(), "rules".into());
             g.world.add(&bg);
-            g.battery_items.push(Pickup { g: bg, taken: false, base: 0.11, phase: rand1(7.0) });
+            g.battery_items.push(Pickup { g: bg, taken: false, base: 0.0, phase: rand1(7.0) });
         }
-        (bat_tip_geo, bat_tip_mat)
     }
 
     /// chairs (office / dining variants) — one is knocked over

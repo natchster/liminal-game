@@ -562,13 +562,6 @@ impl Game {
         // there would lay a note in the wall; the draws above are kept, so
         // only such floors change)
         spots.retain(|&t| holds(self, t));
-        let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
-        let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
-        let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));
-        let bat_body_geo = pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10));
-        let bat_tip_geo = pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8));
-        let bat_body_mat = lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 });
-        let bat_tip_mat = lambert!({ color: 0xdad3c2 });
         let (waters, batteries) = (irand(2, 3) as usize, irand(1, 2) as usize);
         let mut used = 0usize;
         for i in 0..waters + batteries {
@@ -576,20 +569,9 @@ impl Game {
             used += 1;
             let (px, pz) = (self.wx(tx) + rand2(-0.8, 0.8), self.wz(tz) + rand2(-0.8, 0.8));
             let water = i < waters;
-            let base = self.floor_y_at(px, pz) + if water { 0.15 } else { 0.11 };
-            let gp = group();
+            let base = self.floor_y_at(px, pz);
+            let gp = if water { self.almond_water_at(px, pz) } else { self.battery_at(px, pz) };
             gp.position().set(px, base, pz);
-            if water {
-                gp.add(&mesh(&bottle_geo, &bottle_mat));
-                let cap = mesh(&cap_geo, &self.mats.metal);
-                cap.position().y = 0.18;
-                gp.add(&cap);
-            } else {
-                gp.add(&mesh(&bat_body_geo, &bat_body_mat));
-                let tip = mesh(&bat_tip_geo, &bat_tip_mat);
-                tip.position().y = 0.105;
-                gp.add(&tip);
-            }
             self.world.add(&gp);
             let p = Pickup { g: gp, taken: false, base, phase: rand1(7.0) };
             if water {
@@ -624,20 +606,9 @@ impl Game {
         for (k, &(tx, tz)) in spots.iter().enumerate().take(ends).skip(used) {
             let (px, pz) = (self.wx(tx), self.wz(tz));
             let water = k % 2 == 0;
-            let base = self.floor_y_at(px, pz) + if water { 0.15 } else { 0.11 };
-            let gp = group();
+            let base = self.floor_y_at(px, pz);
+            let gp = if water { self.almond_water_at(px, pz) } else { self.battery_at(px, pz) };
             gp.position().set(px, base, pz);
-            if water {
-                gp.add(&mesh(&bottle_geo, &bottle_mat));
-                let cap = mesh(&cap_geo, &self.mats.metal);
-                cap.position().y = 0.18;
-                gp.add(&cap);
-            } else {
-                gp.add(&mesh(&bat_body_geo, &bat_body_mat));
-                let tip = mesh(&bat_tip_geo, &bat_tip_mat);
-                tip.position().y = 0.105;
-                gp.add(&tip);
-            }
             self.world.add(&gp);
             let p = Pickup { g: gp, taken: false, base, phase: k as f64 * 0.9 };
             if water {

@@ -1,0 +1,32 @@
+# Where almond_water may lie, and why (docs/design/ASSETS.md, *Placement
+# rules*). The floor's own (`core_props::pickups`) are placed by these;
+# a drawer's, a locker's, her camp's, a machine's spill and a door's gift
+# keep their own stories (the brief).
+
+count = [1, 3]
+levels = [4, 99]
+
+[[rule]]
+on = "surface"
+of = ["core_filing_cabinet", "core_cardboard_stack", "place_school_desks", "place_hall_side_tables", "place_wooden_crates", "place_cardboard_boxes"]
+purposes = ["office wing", "living quarters", "storage hall", "maintenance", "play area", "parlour", "party room"]
+weight = 4
+why = "someone working or resting here set it down on what was at hand, meaning to come back for it"
+
+[[rule]]
+on = "floor"
+near = "wall"
+purposes = ["office wing", "living quarters", "storage hall", "maintenance", "service tunnels", "play area", "parlour", "party room", "overgrown atrium", "empty"]
+weight = 2
+why = "dropped where someone sat with their back to the wall, or rolled to it"
+
+[[rule]]
+on = "floor"
+near = "corner"
+purposes = ["office wing", "living quarters", "storage hall", "maintenance", "service tunnels", "empty"]
+weight = 1
+why = "pushed into a corner out of the way by someone who slept there"
+
+[never]
+purposes = ["washrooms", "pool hall", "shrine", "showroom"]
+why = "nobody keeps their drink where they wash, a shrine is not for it, and the Showroom has its own stock"

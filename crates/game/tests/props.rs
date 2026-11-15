@@ -7,6 +7,16 @@ use game::base::numeric::*;
 
 const TOL: f64 = 1e-5;
 
+/// Recorded parts taken out of the game since, each with the change that
+/// did it: their records are read and passed over (any other part gone
+/// still fails)
+const RETIRED: &[(&str, &str)] = &[
+    ("Props__almond_bottle", "issue #13: almond water made real, AlmondWater__*"),
+    ("Props__almond_cap", "issue #13: almond water made real, AlmondWater__*"),
+    ("Props__battery_body", "issue #13: the battery made real, Battery__*"),
+    ("Props__battery_tip", "issue #13: the battery made real, Battery__*"),
+];
+
 /// The engine primitive built from these recorded constructor parameters.
 fn primitive(ty: &str, p: &[f64]) -> Geo {
     match ty {
@@ -97,7 +107,10 @@ fn props_match_reference() {
         let (pn, pt, nv, ni) = (r.u32() as usize, r.u32() as usize, r.u32() as usize, r.u32() as usize);
         let sums = [r.f64(), r.f64(), r.f64(), r.f64()];
         let _ = i;
-        let m = prop_part_info(&name).unwrap_or_else(|| panic!("{name}: a recorded part is gone"));
+        if prop_part_info(&name).is_none() && RETIRED.iter().any(|(n, _)| *n == name) {
+            continue;
+        }
+        let m = prop_part_info(&name).unwrap_or_else(|| panic!("{name}: a recorded part is gone (retired? list it in RETIRED with why)"));
         assert_eq!((m.frame.as_str(), m.n, m.t), (frame.as_str(), pn, pt), "{name}: metadata");
         let fb = Geo::new();
         fb.set_position([m.fmin, m.fmax].iter().flat_map(|a| a.iter().map(|&x| x as f32)).collect());

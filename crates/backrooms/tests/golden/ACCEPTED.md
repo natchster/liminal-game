@@ -195,3 +195,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-15, on top of a000cea: frames: 4242_L7_spawn. Reason: issue #11: the walls' writing is baked into the walls as they are built, so its old planes no longer stand among the props when they are settled; a small thing at the far end of the hall stands a few pixels over
 
 - 2026-11-15, on top of cc825af: frames: 9 shots. Reason: issue #13 A2: 208 placers removed (docs/research/assets-census.md); every placer after a removed one draws otherwise, so the stains and grime laid on walls and floors and a few small things moved (looked at: the same scenes; the error maps faint on the walls' stains, two specks on the play area's floor, the shadow and spawn frames' worst tiles at most 0.004)
+
+- 2026-11-15, on top of 622f8f6: frames: 4242_L7_living_quarters. Reason: issue #13 A4-A6: almond water and the battery made real and placed by their rules: the old oversized bottle that stood in the open far down this hall (a speck at the frame's middle) is now at a wall's foot or on something, out of this view (looked at: one speck in the error map, nothing else)

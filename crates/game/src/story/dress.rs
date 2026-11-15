@@ -306,20 +306,9 @@ impl Game {
 
     /// Almond water (`water`) or a battery she left, a pickup like any other.
     fn camp_pickup(&mut self, water: bool, x: f64, z: f64, r: &mut SplitMix64) {
-        let pg_ = group();
-        let base = self.floor_y_at(x, z) + if water { 0.15 } else { 0.11 };
+        let base = self.floor_y_at(x, z);
+        let pg_ = if water { self.almond_water_at(x, z) } else { self.battery_at(x, z) };
         pg_.position().set(x, base, z);
-        if water {
-            pg_.add(&mesh(pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10)), lambert!({ color: 0x9fc4d8, emissive: 0x16323e })));
-            let cap = mesh(pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8)), &self.mats.metal);
-            cap.position().y = 0.18;
-            pg_.add(&cap);
-        } else {
-            pg_.add(&mesh(pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10)), lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 })));
-            let tip = mesh(pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8)), lambert!({ color: 0xdad3c2 }));
-            tip.position().y = 0.105;
-            pg_.add(&tip);
-        }
         pg_.user().gameplay = true;
         self.world.add(&pg_);
         let p = Pickup { g: pg_, taken: false, base, phase: r.range(0.0, 7.0) };

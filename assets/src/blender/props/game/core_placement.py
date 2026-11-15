@@ -132,52 +132,6 @@ def exit_sign_housing():
 part('Props__exitSign_housing', f_box(1.36, 0.54, 0.04), exit_sign_housing)
 
 
-# ----------------------------------------------------------- almond water --
-def almond_bottle():
-    # PET water bottle: petaloid-ish base, straight body with three grip
-    # grooves, rounded shoulder, neck with a support ring
-    prof = [(0, -0.15), (0.068, -0.15), (0.084, -0.145), (0.09, -0.13), (0.09, -0.07),
-            (0.085, -0.064), (0.09, -0.058), (0.09, -0.03), (0.085, -0.024), (0.09, -0.018),
-            (0.09, 0.04), (0.086, 0.07), (0.072, 0.098), (0.054, 0.118), (0.046, 0.128),
-            (0.046, 0.136), (0.053, 0.139), (0.046, 0.143), (0.044, 0.15), (0, 0.15)]
-    return lathe(prof, seg=15)
-
-part('Props__almond_bottle', f_cyl(0.09, 0.09, 0.3), almond_bottle, smooth=50)
-
-
-def almond_cap():
-    # knurled screw cap with a rounded top edge
-    prof = [(0, -0.03), (0.047, -0.03), (0.05, -0.026), (0.05, 0.022), (0.047, 0.029), (0.04, 0.03), (0, 0.03)]
-    s = lathe(prof, seg=36)
-
-    def knurl(p):
-        r = math.hypot(p.x, p.z)
-        if r > 0.049 and -0.027 < p.y < 0.023:
-            a = math.atan2(p.x, p.z)
-            k = round(a / (TAU / 36))
-            if k % 2:
-                p.x *= 0.94
-                p.z *= 0.94
-        return p
-    return s.warp(knurl)
-
-part('Props__almond_cap', f_cyl(0.05, 0.05, 0.06), almond_cap)
-
-
-# --------------------------------------------------------------- battery --
-def battery_body():
-    # D-cell: rolled wrapper edge at both ends, crimp groove under the top
-    prof = [(0, -0.09), (0.046, -0.09), (0.054, -0.088), (0.059, -0.084), (0.06, -0.078),
-            (0.06, 0.064), (0.056, 0.068), (0.06, 0.072), (0.06, 0.08), (0.057, 0.086),
-            (0.05, 0.09), (0, 0.09)]
-    return lathe(prof, seg=22)
-
-part('Props__battery_body', f_cyl(0.06, 0.06, 0.18), battery_body, smooth=50)
-part('Props__battery_tip', f_cyl(0.025, 0.025, 0.03),
-     lambda: lathe([(0, -0.015), (0.025, -0.015), (0.025, -0.009), (0.019, -0.007), (0.017, -0.004),
-                    (0.017, 0.011), (0.014, 0.015), (0, 0.015)], seg=16), smooth=50)
-
-
 # ------------------------------------------------------------ soft helpers --
 def puffy(w, h, d, dome=0.25, n=6, dimple=0.0, seed=0, lump=0.0):
     """Upholstered pad w×h×d (thickness h along Y): subdivided slab, domed

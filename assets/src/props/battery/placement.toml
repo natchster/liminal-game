@@ -1,0 +1,41 @@
+# Where battery may lie, and why (docs/design/ASSETS.md, *Placement
+# rules*). The floor's own (`core_props::pickups`) are placed by these; a
+# drawer's, her camp's, a machine's spill and a door's gift keep their own
+# stories (the brief).
+
+count = [1, 3]
+levels = [4, 99]
+
+[[rule]]
+on = "surface"
+of = ["core_filing_cabinet", "core_cardboard_stack", "place_school_desks", "place_hall_side_tables", "place_wooden_crates", "place_cardboard_boxes"]
+purposes = ["office wing", "maintenance", "service tunnels", "storage hall", "living quarters"]
+weight = 4
+why = "a spare kept for the torches in an emergency kit, left out on whatever it was kept on"
+
+[[rule]]
+on = "floor"
+near = "wall"
+purposes = ["office wing", "living quarters", "play area", "empty"]
+dark = true
+weight = 2
+why = "fell out of a torch someone changed in the dark, and rolled to the wall"
+
+[[rule]]
+on = "floor"
+near = "wall"
+purposes = ["maintenance", "service tunnels", "storage hall"]
+weight = 1
+why = "a spare dropped by someone going through the halls the building's own people walked with torches"
+
+[[rule]]
+on = "floor"
+near = "corner"
+purposes = ["maintenance", "service tunnels", "storage hall", "office wing", "empty"]
+dark = true
+weight = 1
+why = "dropped in a dark corner by someone changing a torch's cells by feel"
+
+[never]
+purposes = ["washrooms", "pool hall", "shrine", "showroom"]
+why = "nobody keeps a torch's spares where they wash, a shrine is not for it, and the Showroom has its own stock"

@@ -485,6 +485,11 @@ impl Game {
         self.settle_placement(prop_start);
         self.story_marks_settled();
         self.free_buried_pickups();
+        // the floor's own almond water and batteries where their placement
+        // rules put them (`world::placement_rules`), on a stream of their own
+        if core {
+            self.place_by_rules();
+        }
         self.vending_settled();
         // the windows, on the final walls (their openings are cut as the walls are drawn)
         self.windows_settled();

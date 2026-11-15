@@ -1480,6 +1480,28 @@
     },
     {
       "checks": [
+        "test:backrooms/usable",
+        "test:game/asset_lint",
+        "test:backrooms/reference_levels",
+        "test:backrooms/materials",
+        "test:backrooms/level_sweep"
+      ],
+      "id": "props/assets",
+      "kind": "prop with rules",
+      "last_checked": "2026-11-15",
+      "last_human_review": null,
+      "name": "the assets made by the pipeline (docs/design/ASSETS.md: a dossier each in assets/src/props/, placement rules the game reads): almond water, the battery",
+      "notes": "issue #13: each made from its brief (what it is, how it came here, what a hand does), references of both licences (free ones by checksum, limited ones only looked at), a Blender model at its real size and its own materials, and placement rules each with its why; the game places the floor's own by them (what_the_rules_place_keeps_its_rules: purpose, surface or a wall's foot, the dark where a rule says, apart, counts), they are picked up and gone (what_is_picked_up_is_gone), the parts lint holds the meshes; cargo xtask asset check holds the dossiers (xtask tests). The playtest's \"why could this be here?\" asked twice of a fresh placement-critic each (their playtest.md); a blind review against the old. No person has asked it yet.",
+      "passes": {
+        "test:backrooms/usable": true,
+        "test:game/asset_lint": true,
+        "test:backrooms/reference_levels": true,
+        "test:backrooms/materials": true,
+        "test:backrooms/level_sweep": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/cutscenes",
         "test:game/player"
       ],

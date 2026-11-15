@@ -1,0 +1,143 @@
+# The references of battery (docs/design/ASSETS.md), gathered on
+# 2026-11-15 by a research agent; `cargo xtask asset refs battery` fetches
+# them into target/asset-refs/battery/. Its film's print is painted from
+# its own palette (`core_props::pickups`), never sampled from these.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/d/d0/D_matchstick-1.jpg"
+page = "https://commons.wikimedia.org/wiki/File:D_matchstick-1.jpg"
+shows = "the thing, on a desk: two alkaline D cells on squared paper by a matchstick; the nub, the shoulder, the negative disc in its crimp, a silver film with a coloured band, the boxed D, LR20 1.5V along it"
+class = "free"
+licence = "CC BY-SA 3.0, Lead holder"
+sha1 = "eabf673801be36d9d90fffa906b46e041b28e289"
+notes = "the layout and both ends (not copied one to one)"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/a/a1/Panasonic_Powerline_Industrial_D-type_batteries.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Panasonic_Powerline_Industrial_D-type_batteries.JPG"
+shows = "the thing, on a table: two industrial D cells, a dark film with a silver band"
+class = "free"
+licence = "CC BY-SA 3.0, Dmitry G"
+sha1 = "2a4a2b0a49feea77acdd5db133319e17bbde094b"
+notes = "the industrial layout; branded, not copied"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e2/Korrodierte_sowjetische_Orion_Batterien_R20.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Korrodierte_sowjetische_Orion_Batterien_R20.jpg"
+shows = "old cells on a surface: R20 cells, their negative ends rusted and pitted, films faded"
+class = "free"
+licence = "CC0-1.0, Zeugvondamals"
+sha1 = "22a4db81ddcad83d686190c5829880cfbbb1ee60"
+notes = "how one ages (zinc-carbon: the weathering only)"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e9/DuracellBatteryBHD-2.jpg"
+page = "https://commons.wikimedia.org/wiki/File:DuracellBatteryBHD-2.jpg"
+shows = "in a device: a D cell in a holder, its caution panel and where the size and type sit"
+class = "free"
+licence = "CC BY-SA 3.0, Tom Blaha"
+sha1 = "6233768feb9cd118b7f28a6973197376da0e6d5f"
+notes = "where the text blocks go (a maker's dress: not copied)"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/d/d7/3x_AA_to_D_battery_converter%2C_MY_DAY_vintage_flashlight%2C_Sofirn_SP36_flashlight.jpg"
+page = "https://commons.wikimedia.org/wiki/File:3x_AA_to_D_battery_converter,_MY_DAY_vintage_flashlight,_Sofirn_SP36_flashlight.jpg"
+shows = "the torch: a D-size adapter by a 1970s metal D-cell hand torch"
+class = "free"
+licence = "CC BY-SA 4.0, Francis Flinch"
+sha1 = "824b47e2e64c94932d61cd9bc99bd7c0ff8ec476"
+notes = "a cell's size against the lamp it feeds"
+
+[[ref]]
+url = "https://en.wikipedia.org/wiki/D_battery"
+page = "https://en.wikipedia.org/wiki/D_battery"
+shows = "a document: the D cell, 33.2 mm across, used in large torches and radios"
+class = "free"
+licence = "CC BY-SA 4.0, Wikipedia contributors"
+sampled = false
+notes = "what it is for; its other names"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/75/%E5%B8%B8%E5%82%99%E7%81%AF_%288196410377%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:%E5%B8%B8%E5%82%99%E7%81%AF_(8196410377).jpg"
+shows = "a place with one: a standby torch in its wall bracket by a door in a building"
+class = "free"
+licence = "CC BY 2.0, anna Hanks"
+sha1 = "35a840ff2ce0eebf343a7f32825ef2dc596ee18a"
+notes = "where buildings keep torches (the cell inside not confirmed a D)"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/7d/LeakedBattery_2701a.jpg"
+page = "https://commons.wikimedia.org/wiki/File:LeakedBattery_2701a.jpg"
+shows = "white crystals grown from the end of a leaked alkaline cell"
+class = "free"
+licence = "CC BY-SA 3.0 DE, Túrelio"
+sha1 = "a8009ba981bdf5118ac0a5888e5b1be564c8d3dc"
+notes = "the crust an old one grows (an AA: its look only)"
+
+[[ref]]
+url = "https://files.batteryjunction.com/frontend/files/energizer/datasheet/ENERGIZER-E95-UpdatedDataSheet.pdf"
+page = "https://files.batteryjunction.com/frontend/files/energizer/datasheet/ENERGIZER-E95-UpdatedDataSheet.pdf"
+shows = "a maker's sheet: an alkaline D cell's dimensioned drawing, 139 g"
+class = "limited"
+licence = "Energizer, all rights reserved"
+notes = "32.3-34.2 mm across, 59.5-61.5 mm long, nub at most 9.5 mm, at least 1.5 mm high, negative at least 18 mm"
+
+[[ref]]
+url = "https://novapart.co/datasheet/farnell:3604394/"
+page = "https://novapart.co/datasheet/farnell:3604394/"
+shows = "a maker's sheet: VARTA 4020, the same envelope"
+class = "limited"
+licence = "VARTA, all rights reserved"
+notes = "the same limits, 140 g"
+
+[[ref]]
+url = "https://data.energizer.com/pdfs/alkaline_appman.pdf"
+page = "https://data.energizer.com/pdfs/alkaline_appman.pdf"
+shows = "a document: how an alkaline cell is made (steel can, nickel-plated covers, nylon seal and vent, a plastic film label), and how they leak"
+class = "limited"
+licence = "Energizer, all rights reserved"
+notes = "the construction; leaking where kept damp or left in a torch"
+
+[[ref]]
+url = "https://api.physicallybased.info/materials"
+page = "https://physicallybased.info"
+shows = "a measurement: nickel's, iron's and aluminium's colour"
+class = "limited"
+licence = "physicallybased.info, all rights reserved (its data looked up)"
+notes = "nickel's warm grey for the ends"
+
+[[measure]]
+what = "diameter"
+value = "33.2 mm (32.3-34.2)"
+ref = 9
+
+[[measure]]
+what = "length with its nub"
+value = "61 mm (59.5-61.5)"
+ref = 9
+
+[[measure]]
+what = "positive nub"
+value = "9 mm across, standing 1.8 mm"
+ref = 10
+
+[[measure]]
+what = "construction"
+value = "steel can, nickel-plated steel covers, nylon seal, plastic film"
+ref = 11
+
+[[palette]]
+what = "nickel plating, the ends"
+srgb = [217, 209, 198]
+ref = 12
+
+[[palette]]
+what = "the film's metallised ground (under its clear coat)"
+srgb = [180, 180, 174]
+ref = 1
+
+[[palette]]
+what = "leaked crystals"
+srgb = [238, 238, 232]
+ref = 8

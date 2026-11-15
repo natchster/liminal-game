@@ -1,0 +1,164 @@
+# The references of almond_water (docs/design/ASSETS.md), gathered on
+# 2026-11-15 by a research agent; `cargo xtask asset refs almond_water`
+# fetches them into target/asset-refs/almond_water/. `free` ones may be
+# sampled (none is, yet: the bottle's surfaces are its materials'); a
+# `limited` one is only looked at and measured.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/0/02/Botella_pet.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Botella_pet.JPG"
+shows = "the thing: an empty, unlabelled ~500 ml PET water bottle, white knurled cap; hoop ribs, grip bands, the sloped shoulder, a footed base with its gate"
+class = "free"
+licence = "CC0-1.0, MdeVicente"
+sha1 = "d287786292d5ac9f374cdfa817d48ef242324dc8"
+notes = "the shape the model follows; already plain, as the canon wants"
+
+[[ref]]
+url = "https://www.sidel.com/services/x-lite-still/"
+page = "https://www.sidel.com/services/x-lite-still/"
+shows = "a maker's sheet: an ultra-light 500 ml still-water bottle, 195 mm, its StarLITE still base"
+class = "limited"
+licence = "Sidel, all rights reserved"
+notes = "height range, the still-water base"
+
+[[ref]]
+url = "https://petainer.com/pet-plastic-bottles/water-bottles/500ml-water-bottle-28mm-pco-1810"
+page = "https://petainer.com/pet-plastic-bottles/water-bottles/500ml-water-bottle-28mm-pco-1810"
+shows = "a maker's sheet: a 500 ml water bottle, 216.5 mm, 65 mm across"
+class = "limited"
+licence = "Petainer, all rights reserved"
+notes = "the body's diameter"
+
+[[ref]]
+url = "https://www.dimensions.com/element/soda-bottle-16-9-oz"
+page = "https://www.dimensions.com/element/soda-bottle-16-9-oz"
+shows = "a measurement: a 16.9 oz bottle, 8 in tall, 2.5 in across"
+class = "limited"
+licence = "Dimensions.com, all rights reserved"
+notes = "the height chosen between the makers' (205 mm)"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/8/8a/Quiet_time_in_Hotel_Ibis.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Quiet_time_in_Hotel_Ibis.JPG"
+shows = "a place with it in: a 500 ml bottle on a built-in desk against a wall, a cup and a key beside it"
+class = "free"
+licence = "CC BY-SA 4.0, Philippe Alès"
+sha1 = "be8da2267a3637a0cf7024079a9a3a2d298cf90c"
+notes = "set down on a desk; its label not copied"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/0/04/202410_%E6%8A%8A%E7%A9%BA%E5%AF%B6%E7%89%B9%E7%93%B6%E7%95%B6%E9%96%80%E6%AA%94%E9%98%BB%E6%AD%A2%E9%97%9C%E9%96%80.jpg"
+page = "https://commons.wikimedia.org/wiki/File:202410_%E6%8A%8A%E7%A9%BA%E5%AF%B6%E7%89%B9%E7%93%B6%E7%95%B6%E9%96%80%E6%AA%94%E9%98%BB%E6%AD%A2%E9%97%9C%E9%96%80.jpg"
+shows = "a place with it in: an empty bottle on its side on a tiled floor against a door frame"
+class = "free"
+licence = "CC BY 4.0, Junyu-K"
+sha1 = "44c2f91b1851296597325746cc99db27fa1df126"
+notes = "how one lies on a floor, and catches the light there"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/ea/SZ_Shenzhen_Futian_Shennan_Middle_Road_Shenzhen_Museum_Ancient_Art_Museum_vending_machine_plastic_bottle_water_March_2025_R12S.jpg"
+page = "https://commons.wikimedia.org/wiki/File:SZ_Shenzhen_Futian_Shennan_Middle_Road_Shenzhen_Museum_Ancient_Art_Museum_vending_machine_plastic_bottle_water_March_2025_R12S.jpg"
+shows = "a place with it in: rows of small PET water bottles on lit shelves behind a machine's glass, white caps"
+class = "free"
+licence = "CC0-1.0, AIOLIAN 2025"
+sha1 = "2c30f1fe2320f82684eb89db8c023102da1cbdc7"
+notes = "the machine's stock"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/5/51/Mira_Sintra-Mele%C3%A7as_Train_Station_Vending_Machines.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Mira_Sintra-Mele%C3%A7as_Train_Station_Vending_Machines.jpg"
+shows = "a place with it in: a bottled-water machine beside a coffee machine in a bare tiled hall"
+class = "free"
+licence = "Public domain, Ivo Emanuel Gonçalves"
+sha1 = "b94d5b55314a0c727a83e9eb7e36646b4d87e195"
+notes = "a machine in a utilitarian interior"
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/2/24/Screw_cap%2C_plastic_bottle.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Screw_cap,_plastic_bottle.jpg"
+shows = "the thing: a knurled screw cap on a PET neck, its tamper band's bridges, the support ring"
+class = "free"
+licence = "CC BY-SA 4.0, Андрей Романенко"
+sha1 = "12a24fb0a5f75f91307fb231a2d99ba005ff2a22"
+notes = "the cap and band's geometry (a brown bottle, a gold cap: geometry only)"
+
+[[ref]]
+url = "https://cdn.prod.website-files.com/646b9f8f61d2f66e1f5d5e20/65131b77ef381c1c6e2c0daa_3784253-21.pdf"
+page = "https://isbt.com/threadspecs.asp"
+shows = "a measurement: the ISBT PCO-1881 28 mm neck finish drawing"
+class = "limited"
+licence = "ISBT voluntary guideline, all rights reserved"
+notes = "thread 27.4 mm, ring 33 mm, bore 21.72 mm, 17 mm finish, 2.7 mm pitch"
+
+[[ref]]
+url = "https://product-catalogue.alpla.com/product/caps/pco1881-gme3204-mogador"
+page = "https://product-catalogue.alpla.com/product/caps/pco1881-gme3204-mogador"
+shows = "a maker's sheet: an HDPE PCO-1881 cap, 31.5 x 15.4 mm, a slitted folded tamper band"
+class = "limited"
+licence = "ALPLA, all rights reserved"
+notes = "the cap"
+
+[[ref]]
+url = "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.141"
+page = "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.141"
+shows = "a document: no food or drink stored or taken in toilet rooms or where a toxic material is"
+class = "free"
+licence = "Public domain (US federal regulation)"
+sampled = false
+notes = "where it is never kept"
+
+[[ref]]
+url = "https://api.physicallybased.info/materials"
+page = "https://physicallybased.info"
+shows = "a measurement: PET's, water's and milk's optical data (IOR, colour)"
+class = "limited"
+licence = "physicallybased.info, all rights reserved (its data looked up)"
+notes = "PET IOR 1.575; water 1.3325; milk's albedo, used thin for the cloud in it"
+
+[[ref]]
+url = "https://www.foodingredientsfirst.com/news/ultra-light-88-gram-pet-bottle-breaks-weight-record.html"
+page = "https://www.foodingredientsfirst.com/news/ultra-light-88-gram-pet-bottle-breaks-weight-record.html"
+shows = "a document: an 8.8 g still-water bottle, its 0.1 mm wall, a tall ribbed body with a sloped shoulder, a 26 mm neck"
+class = "limited"
+licence = "Food Ingredients First, all rights reserved"
+notes = "the wall's thickness, the ribs and shoulder"
+
+[[measure]]
+what = "height with its cap"
+value = "205 mm (makers' 195-216.5)"
+ref = 4
+
+[[measure]]
+what = "body diameter"
+value = "65 mm"
+ref = 3
+
+[[measure]]
+what = "neck finish"
+value = "PCO-1881 28 mm: thread 27.4, ring 33.0, 2.7 mm a turn"
+ref = 10
+
+[[measure]]
+what = "cap"
+value = "31.5 x 15.4 mm, HDPE, folded tamper band"
+ref = 11
+
+[[measure]]
+what = "wall"
+value = "0.1 mm on the body"
+ref = 14
+
+[[palette]]
+what = "PET, its blue toner's cast (a thin shell)"
+srgb = [244, 248, 252]
+ref = 13
+
+[[palette]]
+what = "the water, a little milky"
+srgb = [233, 233, 215]
+ref = 13
+
+[[palette]]
+what = "the cap, white HDPE (an estimate, against ref 1)"
+srgb = [222, 220, 214]
+ref = 1

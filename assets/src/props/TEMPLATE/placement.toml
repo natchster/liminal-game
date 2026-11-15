@@ -10,6 +10,7 @@ on = "floor"           # floor | surface | wall
 near = "wall"          # (floor) wall | corner | open
 # of = ["core_filing_cabinet"]   # (surface) the kinds it stands on
 purposes = ["*"]       # the zone purposes it fits, "*" any
+# dark = true          # only where the place has no light of its own
 weight = 1
 why = ""
 

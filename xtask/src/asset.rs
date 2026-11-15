@@ -125,10 +125,12 @@ fn problems_in(dir: &std::path::Path, name: &str) -> Vec<String> {
                 }
                 match get("class") {
                     "free" => {
+                        // one that may be sampled (into a texture) is fetched by its checksum
+                        let sampled = r.get("sampled").and_then(|v| v.as_bool()).unwrap_or(true);
                         let sha = get("sha1");
-                        if sha.len() != 40 || !sha.chars().all(|c| c.is_ascii_hexdigit()) {
+                        if sampled && (sha.len() != 40 || !sha.chars().all(|c| c.is_ascii_hexdigit())) {
                             say(format!(
-                                "references.toml: ref {} is free and has no SHA-1 (it is sampled: fetched by its checksum)",
+                                "references.toml: ref {} is free and has no SHA-1 (one that may be sampled is fetched by its checksum; `sampled = false` if it never is)",
                                 i + 1
                             ));
                         }
@@ -174,6 +176,9 @@ fn problems_in(dir: &std::path::Path, name: &str) -> Vec<String> {
                 }
                 if s("on") == "surface" && r.get("of").and_then(|v| v.as_array()).is_none_or(|a| a.is_empty()) {
                     say(format!("placement.toml: rule {}: on a surface, of what (`of`)", i + 1));
+                }
+                if r.get("dark").is_some_and(|v| v.as_bool().is_none()) {
+                    say(format!("placement.toml: rule {}: dark = true or false", i + 1));
                 }
                 if !s("near").is_empty() && !NEAR.contains(&s("near")) {
                     say(format!("placement.toml: rule {}: near = {:?} (one of {NEAR:?})", i + 1, s("near")));

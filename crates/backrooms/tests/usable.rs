@@ -395,3 +395,113 @@ fn the_cull_hides_what_is_far_and_never_shows_what_was_hidden() {
         assert!(drawn(&far), "seed {seed} L{l}: shown by the game, not drawn");
     });
 }
+
+/// What the placement rules place (`docs/design/ASSETS.md`, *Placement
+/// rules*: the floor's own almond water and batteries) keeps its rule: a
+/// purpose the rule names and none the asset never fits; on what the rule
+/// says (a thing of a kind it names, or the floor, near a wall when it says
+/// so); clear of the walls, apart from each other, as many as the rules
+/// allow. And the rules name what is: every purpose a zone has, every kind a
+/// floor places (each found on some floor)
+#[test]
+fn what_the_rules_place_keeps_its_rules() {
+    use game::world::placement_rules::{self as pr, Near, On};
+    let purposes = pr::purposes();
+    for a in pr::all() {
+        for r in &a.rules {
+            assert!(r.purposes.iter().all(|p| p == "*" || purposes.contains(&p.as_str())), "{}: {:?}", a.name, r.purposes);
+            assert!(r.why.trim().len() > 12, "{}: a rule without its why", a.name);
+        }
+        assert!(a.never.iter().all(|p| purposes.contains(&p.as_str())), "{}: never {:?}", a.name, a.never);
+    }
+    let levels: Vec<i32> = (4..=12).collect();
+    let floors = each_floor(&levels, |seed, l| {
+        let g = floor(seed, l);
+        // the kinds of thing on the floor, and their boxes
+        let mut things: Vec<(String, engine::math::Box3)> = vec![];
+        for o in g.world.children() {
+            let kind = {
+                let u = o.user();
+                match (u.s.get("kind"), u.placer.as_deref()) {
+                    (Some(k), _) => format!("core_{k}"),
+                    (None, Some(p)) if !p.is_empty() => p.to_string(),
+                    _ => continue,
+                }
+            };
+            let mut bb = engine::math::Box3::empty();
+            bb.set_from_object(&o);
+            things.push((kind, bb));
+        }
+        let mut at: Vec<(f64, f64, &str)> = vec![];
+        let reached = g.bfs_open(g.tx(g.spawn_pos.x), g.tz(g.spawn_pos.z));
+        for (name, list) in [("almond_water", &g.almonds), ("battery", &g.battery_items)] {
+            let a = pr::of(name).expect("its rules");
+            let mine: Vec<_> = list.iter().filter(|p| p.g.user().s.get("by").is_some_and(|b| b == "rules")).collect();
+            if g.building.is_some() || g.level_num < a.levels.0 {
+                continue;
+            }
+            // as many as its rules allow: at least the least, where they allow
+            // anywhere on the floor (the Showroom's, spotless, never)
+            let least = if g.rule_spots(a).is_empty() { 0 } else { a.count.0 };
+            assert!(mine.len() >= least && mine.len() <= a.count.1, "seed {seed} L{l} {:?}: {} {name}", g.level_scp, mine.len());
+            for p in mine {
+                let ri: usize =
+                    p.g.user()
+                        .s
+                        .get("rule")
+                        .and_then(|r| r.parse().ok())
+                        .unwrap_or_else(|| panic!("seed {seed} L{l}: a {name} no rule placed"));
+                let r = &a.rules[ri];
+                let w = p.g.world_position();
+                let label = g.purpose_label_at(w.x, w.z);
+                let here = format!("seed {seed} L{l}: {name} at {:.2}, {:.2}, {:.2} ({label}, rule {ri})", w.x, w.y, w.z);
+                assert!(r.purposes.iter().any(|q| q == "*" || q == label) && !a.never.iter().any(|q| q == label), "{here}: not its place");
+                assert!(!g.circle_hits_wall(w.x, w.z, 0.05), "{here}: in a wall");
+                // its own tile reached from where you arrive (a wall's face can lie
+                // inside its wall tile: a thing slid to it was out of every walk)
+                assert!(reached[g.t_idx(g.tx(w.x), g.tz(w.z))] >= 0, "{here}: cut off");
+                assert!(!r.dark || g.dark_at(w.x, w.z), "{here}: in the light, by a rule for the dark");
+                match r.on {
+                    On::Surface => {
+                        let on = things.iter().any(|(k, bb)| {
+                            r.of.contains(k)
+                                && (bb.max.y - w.y).abs() < 0.01
+                                && (bb.min.x..=bb.max.x).contains(&w.x)
+                                && (bb.min.z..=bb.max.z).contains(&w.z)
+                        });
+                        assert!(on, "{here}: on nothing it may stand on");
+                    }
+                    On::Floor | On::Wall => {
+                        assert!((w.y - g.floor_y_at(w.x, w.z)).abs() < 1e-6, "{here}: off the floor");
+                        if r.near != Some(Near::Open) {
+                            assert!(g.circle_hits_wall(w.x, w.z, 0.2), "{here}: not at a wall's foot");
+                        }
+                    }
+                }
+                at.push((w.x, w.z, name));
+            }
+        }
+        for (i, a) in at.iter().enumerate() {
+            for b in &at[i + 1..] {
+                let apart = if a.2 == b.2 { pr::APART } else { pr::APART_KINDS };
+                assert!((a.0 - b.0).dhypot(a.1 - b.1) > apart - 0.01, "seed {seed} L{l}: two at {a:?} and {b:?}");
+            }
+        }
+        (at.len(), things.into_iter().map(|(k, _)| k).collect::<std::collections::BTreeSet<String>>())
+    });
+    let placed: usize = floors.iter().map(|f| f.0).sum();
+    assert!(placed > 150, "only {placed} placed by the rules");
+    for a in pr::all() {
+        for r in a.rules.iter().filter(|r| r.on == On::Surface) {
+            for k in &r.of {
+                // a placer that is registered (some are rare); a core kind seen on a floor
+                let exists = if k.starts_with("core_") {
+                    floors.iter().any(|f| f.1.contains(k))
+                } else {
+                    game::world::tables::PLACER_THEME.iter().any(|(p, _)| p == k)
+                };
+                assert!(exists, "{}: stands on {k}, which nothing places", a.name);
+            }
+        }
+    }
+}

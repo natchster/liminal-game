@@ -42,7 +42,7 @@ the templates), and the game's code that makes it:
 | File | What |
 |---|---|
 | `brief.md` | **What it is**: the real thing, its make and size, what it is made of, its era. **How it came here**: who brought it or left it, when and why, as the canon allows (quoted, with its section); which purposes' areas it fits. **How it fits**: the pillar rule it serves, and what it must never say (`LORE.md`, *How canon reaches the player*). **What a hand does with it**: nothing, or one verb, from the canon (*Within reach*, *Survival*) and the pillars; its sound, how often, once or again. **Where it would be found** (the placement story the rules start from) |
-| `references.toml` | Every reference: its URL and page, what it shows (the thing, a place with it in, a maker's sheet, a measurement), its licence class, and notes (sizes, colours, wear, where found). `free` (CC0, public domain, CC BY with its attribution) may be sampled into a texture and is fetched by its checksum; `limited` (all rights reserved, used as fair use) is looked at and measured, never sampled, never committed. The palette (sRGB samples, each with its reference) and the measurements (each with its source) are kept here |
+| `references.toml` | Every reference: its URL and page, what it shows (the thing, a place with it in, a maker's sheet, a measurement), its licence class, and notes (sizes, colours, wear, where found). `free` (CC0, public domain, CC BY with its attribution) may be sampled into a texture and is fetched by its checksum (or says `sampled = false`: a document only read); `limited` (all rights reserved, used as fair use) is looked at and measured, never sampled, never committed. The palette (sRGB samples, each with its reference) and the measurements (each with its source) are kept here |
 | `placement.toml` | **The rules** for where it lies (below): each with its reason. The game reads them (`crates/game/assets/placement.json`, written by `cargo xtask asset write`) |
 | `playtest.md` | **"Why could this be here?"**: what people and the agent playtester answered, beside the brief's story; each difference, and the rule it became |
 
@@ -103,6 +103,7 @@ why = "set down where someone worked or rested, and not come back for"
 on = "floor"
 near = "wall"              # wall | corner | open
 purposes = ["*"]
+dark = true                # only where the place has no light of its own
 weight = 1
 why = "dropped or rolled to the wall"
 
@@ -115,6 +116,17 @@ why = "the emptiness is the content (PILLARS 1)"
   check`; a why is the story a player could tell, not the mechanism.
 - **What it stands on is a kind the game places** (`core_<kind>` or a
   placer's name), checked to exist; a purpose is one of `world::purpose`'s.
+- **The game places by them after the floor has settled**
+  (`game::world::placement_rules`): every spot the rules allow (on a
+  thing's top; at a wall's foot or in a corner, a lone pillar no wall; only
+  in the dark where a rule says `dark`), in a purpose a rule names and none
+  the asset never fits, reachable from where you arrive, never behind a
+  barricade, in a wall or in another thing; chosen on a stream of its own
+  (`SplitMix64`, never the level's: no floor's draws move), the assets in
+  turn, no two of a kind within 6 m (two in one view read as a trail laid).
+  A thing its rules allow nowhere is not on that floor. Each keeps the rule
+  that placed it, and `what_the_rules_place_keeps_its_rules`
+  (`tests/usable.rs`) holds every one to it on 36 floors.
 - **For agents making places**: the rules of every asset are one table
   (`cargo xtask asset rules` prints them); a place is dressed from the
   things whose rules allow it, in their counts, for their reasons.
@@ -123,4 +135,11 @@ why = "the emptiness is the content (PILLARS 1)"
 
 Almond water and the battery, the two things every player picks up, were
 the first through it (`assets/src/props/almond_water/`,
-`assets/src/props/battery/`).
+`assets/src/props/battery/`): a plain 500 ml PET bottle, nothing printed on
+it, and an alkaline D cell of a nobody's make, at their real sizes
+(`assets/src/blender/props/game/almond_water_and_battery.py`), built by one
+builder each for every place that makes one (`core_props::pickups`), still
+where they lie. Their rules were asked "why could this be here?" twice:
+set down on a cabinet or a box it is obvious every time; on the floor a
+bottle reads as dropped when it lies by a wall, a battery only in the dark
+or in the halls people walked with torches (their `playtest.md`).

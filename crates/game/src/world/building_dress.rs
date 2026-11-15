@@ -278,13 +278,6 @@ impl Game {
         } else {
             None
         };
-        let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
-        let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
-        let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));
-        let bat_body_geo = pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10));
-        let bat_tip_geo = pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8));
-        let bat_body_mat = lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 });
-        let bat_tip_mat = lambert!({ color: 0xdad3c2 });
         for (i, c) in plan.rooms.iter().enumerate() {
             let (x, z) = c.tile;
             let h = self.floor_y_of(x, z);
@@ -355,20 +348,9 @@ impl Game {
             };
             // and on it, water or a battery in turn
             let water = i % 2 == 0;
-            let base = on.y + if water { 0.15 } else { 0.11 };
-            let gp = group();
+            let base = on.y;
+            let gp = if water { self.almond_water_at(on.x, on.z) } else { self.battery_at(on.x, on.z) };
             gp.position().set(on.x, base, on.z);
-            if water {
-                gp.add(&mesh(&bottle_geo, &bottle_mat));
-                let cap = mesh(&cap_geo, &self.mats.metal);
-                cap.position().y = 0.18;
-                gp.add(&cap);
-            } else {
-                gp.add(&mesh(&bat_body_geo, &bat_body_mat));
-                let tip = mesh(&bat_tip_geo, &bat_tip_mat);
-                tip.position().y = 0.105;
-                gp.add(&tip);
-            }
             self.world.add(&gp);
             let p = crate::base::records::Pickup { g: gp, taken: false, base, phase: r.range(0.0, 7.0) };
             if water {

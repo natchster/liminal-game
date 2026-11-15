@@ -1,7 +1,9 @@
 # The references of NAME (docs/design/ASSETS.md). `class`: "free" (CC0,
 # public domain, CC BY with its attribution: may be sampled into a texture;
 # give its SHA-1) or "limited" (fair use: looked at and measured, never
-# sampled, never committed). `cargo xtask asset refs NAME` fetches them.
+# sampled, never committed); a free one never sampled (a document, a page)
+# says `sampled = false` and needs no SHA-1. `cargo xtask asset refs NAME`
+# fetches them.
 
 [[ref]]
 url = "TODO"

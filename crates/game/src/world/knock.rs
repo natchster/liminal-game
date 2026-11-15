@@ -498,25 +498,16 @@ impl Game {
         let outer = group();
         let inner = group();
         match gift {
+            // pushed out sealed, on its side, its neck toward you
             Gift::Water => {
-                let body =
-                    mesh(pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10)), lambert!({ color: 0x9fc4d8, emissive: 0x16323e }));
-                inner.add(&body);
-                let cap = mesh(pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8)), &self.mats.metal);
-                cap.position().y = 0.18;
-                inner.add(&cap);
-                inner.rotation().x = PI / 2.0;
-                inner.position().y = 0.09;
+                let b = self.almond_water(crate::core_props::pickups::Fill::Sealed, true);
+                b.rotation().y = -PI / 2.0;
+                inner.add(&b);
             }
             Gift::Battery => {
-                let body =
-                    mesh(pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10)), lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 }));
-                inner.add(&body);
-                let tip = mesh(pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8)), lambert!({ color: 0xdad3c2 }));
-                tip.position().y = 0.105;
-                inner.add(&tip);
-                inner.rotation().x = PI / 2.0;
-                inner.position().y = 0.06;
+                let b = self.battery(false);
+                b.rotation().y = PI / 2.0;
+                inner.add(&b);
             }
             _ => {
                 // a sheet folded once: its under half flat on the floor, its

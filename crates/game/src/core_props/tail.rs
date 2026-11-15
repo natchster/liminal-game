@@ -1498,25 +1498,11 @@ impl Game {
         }
     }
 
-    /// almond water + battery bobbing. Also keeps the vacuum's interactable
-    /// on the bot (the interactable holds a copy of the position, not a reference).
+    /// Keeps the vacuum's interactable on the bot (the interactable holds a
+    /// copy of the position, not a reference). (Almond water and batteries
+    /// once bobbed and turned here; real ones lie still: `core_props::pickups`.)
     fn tail_bobbing(&mut self, vac: Option<(usize, Obj)>) {
-        self.animate(move |g, _dt, t| {
-            for a in &g.almonds {
-                if a.taken {
-                    continue;
-                }
-                a.g.position().y = a.base + (t * 2.0 + a.phase).dsin() * 0.05;
-                a.g.rotation().y = t * 1.2 + a.phase;
-            }
-            for b in &g.battery_items {
-                if b.taken {
-                    continue;
-                }
-                b.g.position().y = b.base + (t * 2.4 + b.phase).dsin() * 0.04;
-                b.g.rotation().y = t * 1.4 + b.phase;
-                b.g.rotation().z = PI / 2.0;
-            }
+        self.animate(move |g, _dt, _t| {
             if let Some((idx, vg)) = &vac {
                 let p = vg.pos();
                 if let Some(it) = g.interactables.get_mut(*idx) {

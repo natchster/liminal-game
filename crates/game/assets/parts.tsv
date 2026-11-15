@@ -21,6 +21,12 @@ prop	AlarmBells__plate	box	596	532	-0.0600,-0.0800,-0.0070	0.0600,0.0800,0.0068
 prop	AlarmClocks__bell	other	142	196	-0.0244,0.0000,-0.0250	0.0244,0.0250,0.0250
 prop	AlarmClocks__leg	box	182	160	-0.0071,-0.0100,-0.0100	0.0071,0.0100,0.0100
 prop	AlarmClocks__shell	cyl	394	560	-0.0600,-0.0245,-0.0600	0.0600,0.0250,0.0600
+prop	AlmondWater__bottle	cyl	2210	3584	-0.0325,-0.1015,-0.0325	0.0325,0.1015,0.0325
+prop	AlmondWater__cap	cyl	770	960	-0.0158,-0.0061,-0.0158	0.0158,0.0061,0.0158
+prop	AlmondWater__liquidFull	cyl	994	1856	-0.0320,-0.0795,-0.0320	0.0320,0.0795,0.0320
+prop	AlmondWater__liquidHalf	cyl	546	960	-0.0320,-0.0445,-0.0320	0.0320,0.0445,0.0320
+prop	AlmondWater__liquidLow	cyl	258	384	-0.0320,-0.0140,-0.0320	0.0320,0.0140,0.0320
+prop	AlmondWater__tamperRing	cyl	384	384	-0.0158,-0.0016,-0.0158	0.0158,0.0016,0.0158
 prop	AnalogClocks__hourHand	box	140	176	-0.0040,-0.0390,-0.0020	0.0040,0.0350,0.0020
 prop	AnalogClocks__minuteHand	box	124	160	-0.0026,-0.0526,-0.0020	0.0026,0.0500,0.0020
 prop	AnalogClocks__rim	cyl	578	864	-0.1500,-0.0150,-0.1500	0.1500,0.0180,0.1500
@@ -79,6 +85,10 @@ prop	Barricade__shelving	box	624	320	-0.4550,0.0000,-0.2300	0.4550,1.8300,0.2300
 prop	Barricade__stud	box	181	102	-1.2200,0.0000,0.0000	1.2200,0.0890,0.0380
 prop	BathMats__mat	box	312	572	-0.3000,-0.0040,-0.2000	0.3000,0.0044,0.2000
 prop	BathroomMirrors__bar	box	264	372	-0.1640,-0.0070,-0.0060	0.1640,0.0070,0.0060
+prop	Battery__crystals	cyl	236	336	-0.0147,-0.0022,-0.0143	0.0144,0.0024,0.0143
+prop	Battery__jacket	cyl	402	800	-0.0166,-0.0290,-0.0166	0.0166,0.0293,0.0166
+prop	Battery__negative	cyl	258	448	-0.0155,-0.0006,-0.0155	0.0155,0.0006,0.0155
+prop	Battery__positive	cyl	322	384	-0.0142,-0.0011,-0.0142	0.0142,0.0011,0.0142
 prop	BellowsCameras__bellows	cyl	408	404	-0.0550,-0.0700,-0.0550	0.0550,0.0700,0.0550
 prop	BellowsCameras__brace	cyl	110	96	-0.0017,-0.0700,-0.0020	0.0017,0.0700,0.0020
 prop	BellowsCameras__clothBack	box	322	464	-0.1000,-0.0750,-0.0040	0.1000,0.0750,0.0040
@@ -1277,11 +1287,7 @@ prop	PostItStacks__note	box	118	136	-0.0300,-0.0005,-0.0300	0.0300,0.0008,0.0300
 prop	PottedPlants__pot	cyl	322	440	-0.0550,-0.0400,-0.0550	0.0550,0.0400,0.0550
 prop	PressedFlowers__frame	box	212	236	-0.0900,-0.1200,-0.0090	0.0900,0.1200,0.0090
 prop	PropagandaPosters__frame	box	108	84	-0.1000,-0.1400,-0.0060	0.1000,0.1400,0.0076
-prop	Props__almond_bottle	cyl	362	540	-0.0895,-0.1500,-0.0880	0.0895,0.1500,0.0900
-prop	Props__almond_cap	cyl	254	360	-0.0492,-0.0300,-0.0500	0.0492,0.0300,0.0500
 prop	Props__balloon_body	sphere	434	864	-0.3000,-0.3000,-0.3000	0.3000,0.3000,0.3000
-prop	Props__battery_body	cyl	244	440	-0.0594,-0.0900,-0.0600	0.0594,0.0900,0.0600
-prop	Props__battery_tip	cyl	146	192	-0.0250,-0.0150,-0.0250	0.0250,0.0150,0.0250
 prop	Props__book_cover	box	296	196	-0.1100,-0.0225,-0.0850	0.1100,0.0225,0.0850
 prop	Props__book_pages	box	222	248	-0.1050,-0.0158,-0.0825	0.1050,0.0158,0.0825
 prop	Props__book_ribbon	box	30	16	-0.0075,-0.0525,-0.0025	0.0075,0.0525,0.0025
