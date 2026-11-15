@@ -463,6 +463,86 @@ fn every_command_line_option_is_documented() {
     );
 }
 
+/// The README's diagrams (`docs/engineering/diagrams/`, GitHub issue #7)
+/// name the code they draw in their monospaced lines: a module or function
+/// of the game crate (the game loop), an xtask command and its words, a
+/// skill (the pipelines). Each is still there, or the picture has gone out
+/// of date. And each is a picture as GitHub shows one: a title and a
+/// description, no script, nothing fetched.
+#[test]
+fn the_diagrams_name_code_that_exists() {
+    const DIR: &str = "docs/engineering/diagrams";
+    let mut svgs: Vec<String> = std::fs::read_dir(root().join(DIR))
+        .expect("docs/engineering/diagrams/")
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .filter(|n| n.ends_with(".svg"))
+        .collect();
+    svgs.sort();
+    assert_eq!(svgs, ["game-loop.svg", "pipelines.svg"], "the README's two diagrams");
+    let game: Vec<String> = rust_files("crates/game/src").iter().map(|p| rel(p)).collect();
+    let game_text: String = game.iter().map(|p| read(p)).collect();
+    let module = |w: &str| {
+        let path = w.replace("::", "/");
+        game.iter().any(|g| g.ends_with(&format!("/{path}.rs")) || g.contains(&format!("/{path}/")))
+    };
+    let xtask_main = read("xtask/src/main.rs");
+    let xtask_source = |cmd: &str| -> String {
+        let mut text = std::fs::read_to_string(root().join(format!("xtask/src/{cmd}.rs"))).unwrap_or_default();
+        for p in rust_files(&format!("xtask/src/{cmd}")) {
+            text += &std::fs::read_to_string(p).unwrap_or_default();
+        }
+        text
+    };
+    let mut stale = vec![];
+    for name in &svgs {
+        let svg = read(&format!("{DIR}/{name}"));
+        assert!(
+            svg.contains("<title")
+                && svg.contains("<desc")
+                && !svg.contains("<script")
+                && !svg.contains("href=\"http")
+                && !svg.contains("src=\"http")
+                && !svg.contains("@import")
+                && !svg.contains("url(http"),
+            "{DIR}/{name}: a title and a description, no script, nothing fetched"
+        );
+        let lines: Vec<String> = svg
+            .split("class=\"mono\"")
+            .skip(1)
+            .map(|r| {
+                let t = &r[r.find('>').expect("a text element") + 1..];
+                t[..t.find("</text>").expect("a text element")].to_string()
+            })
+            .collect();
+        assert!(!lines.is_empty(), "{DIR}/{name} names no code: its monospaced lines are what this test reads");
+        for line in &lines {
+            let words: Vec<&str> =
+                line.trim_start_matches("cargo xtask ").split([' ', ',', '|']).filter(|w| !w.is_empty() && *w != "…").collect();
+            let ok = if name == "game-loop.svg" {
+                match line.split_once('(') {
+                    // a call: the function exists
+                    Some((f, _)) => game_text.contains(&format!("fn {f}(")),
+                    None => words.iter().all(|w| module(w)),
+                }
+            } else if words[0].starts_with("add-") {
+                words.iter().all(|w| root().join(format!(".claude/skills/{w}/SKILL.md")).exists())
+            } else {
+                let source = xtask_source(words[0]);
+                xtask_main.contains(&format!("Some(\"{}\") =>", words[0]))
+                    && words[1..].iter().all(|w| source.contains(&format!("\"{w}\"")))
+            };
+            if !ok {
+                stale.push(format!("{name}: {line}"));
+            }
+        }
+    }
+    assert!(
+        stale.is_empty(),
+        "these lines of the README's diagrams name code that is no longer there: draw them again ({DIR}/README.md): {stale:#?}"
+    );
+}
+
 /// The placers live by theme (GitHub issue #2): `place_<name>`, of theme T
 /// in `world::tables::PLACER_THEME` (unlisted: domestic, as the game reads
 /// it), is registered by `crates/placers/placers_<T>/` from its own module

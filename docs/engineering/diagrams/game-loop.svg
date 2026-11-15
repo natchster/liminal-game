@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" role="img" aria-labelledby="t d">
+  <title id="t">The game loop</title>
+  <desc id="d">A floor is built from the run's seed and its number, and its anchor kept; then every frame takes the input, moves the world, lets the directors decide what the place does next, and presents it as light and sound. The pacing director cycles calm, build, peak and relax.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#e3cf6e"/>
+    </marker>
+    <marker id="g" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#5fbf72"/>
+    </marker>
+    <marker id="m" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9d977f"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #d9d2b4; font-size: 13px; }
+    .h1 { font-size: 22px; font-weight: 700; fill: #f1e9c6; }
+    .sub { font-size: 13px; fill: #9d977f; }
+    .h2 { font-size: 15px; font-weight: 700; fill: #f1e9c6; }
+    .h3 { font-size: 14px; font-weight: 700; fill: #e3cf6e; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; fill: #b8b195; }
+    .muted { fill: #9d977f; font-size: 12px; }
+    .pill { font-size: 12.5px; font-weight: 700; text-anchor: middle; }
+    .card { fill: #1c1a14; stroke: #3a3628; stroke-width: 1; }
+    .box { fill: #25221a; stroke: #5b5440; stroke-width: 1.2; }
+    .flow { stroke: #e3cf6e; stroke-width: 2; fill: none; }
+  </style>
+
+  <rect width="1200" height="700" rx="16" fill="#14130f"/>
+  <text x="32" y="46" class="h1">The game loop</text>
+  <text x="32" y="68" class="sub">A floor is built once from its seed; then, frame after frame, the world moves and the directors decide what the place does next.</text>
+
+  <!-- a floor begins -->
+  <rect x="32" y="88" width="250" height="584" rx="12" class="card"/>
+  <text x="52" y="118" class="h2">A floor begins</text>
+
+  <rect x="52" y="136" width="210" height="62" rx="8" class="box"/>
+  <text x="66" y="161" class="h3">the run's seed + floor n</text>
+  <text x="66" y="183" class="mono">seed_for_level(seed, n)</text>
+  <path d="M157 200 V226" class="flow" marker-end="url(#a)"/>
+
+  <rect x="52" y="230" width="210" height="160" rx="8" class="box"/>
+  <text x="66" y="255" class="h3">the level build</text>
+  <text x="66" y="279">zones, walls, rooms, heights</text>
+  <text x="66" y="299">each area given one purpose</text>
+  <text x="66" y="319">props by theme and purpose</text>
+  <text x="66" y="339">the light map of the place</text>
+  <text x="66" y="359">creatures by their ecology</text>
+  <text x="66" y="379" class="muted">one seeded stream, in order</text>
+  <path d="M157 392 V418" class="flow" marker-end="url(#a)"/>
+
+  <rect x="52" y="422" width="210" height="86" rx="8" class="box"/>
+  <text x="66" y="447" class="h3">the floor's anchor</text>
+  <text x="66" y="471">the state a replay or a save</text>
+  <text x="66" y="491">starts the floor from</text>
+
+  <text x="52" y="540" class="muted">A pure function of (seed, floor):</text>
+  <text x="52" y="558" class="muted">the same place on every Mac, held</text>
+  <text x="52" y="576" class="muted">to 20 recorded reference levels.</text>
+  <text x="52" y="612" class="muted">A door, a lift, a fall, waking after</text>
+  <text x="52" y="630" class="muted">a death or Continue: each is a way</text>
+  <text x="52" y="648" class="muted">in, and the next floor begins here.</text>
+
+  <!-- into the loop -->
+  <path d="M262 465 H298 V196 H326" stroke="#5fbf72" stroke-width="2" fill="none" marker-end="url(#g)"/>
+  <text x="290" y="486" class="muted" text-anchor="middle">play</text>
+
+  <!-- the frame -->
+  <rect x="330" y="96" width="220" height="200" rx="10" class="box"/>
+  <text x="346" y="124" class="h3">1 · Input</text>
+  <text x="346" y="150">keys, mouse, the window</text>
+  <text x="346" y="170">the mouse rounded to a grid,</text>
+  <text x="346" y="190">time in whole clock ticks</text>
+  <text x="346" y="216">every event logged, so any</text>
+  <text x="346" y="236">stretch can be kept (F9)</text>
+  <text x="346" y="276" class="mono">session::input, replay</text>
+
+  <rect x="610" y="96" width="220" height="200" rx="10" class="box"/>
+  <text x="626" y="124" class="h3">2 · The world</text>
+  <text x="626" y="150">you: walking, nerve, the lamp</text>
+  <text x="626" y="170">creatures, one brain each:</text>
+  <text x="626" y="190">senses → awareness → mode</text>
+  <text x="626" y="210">fairness no kind can skip</text>
+  <text x="626" y="236">the floor's anomaly, props</text>
+  <text x="626" y="276" class="mono">player, entities, anomalies</text>
+
+  <rect x="610" y="356" width="220" height="200" rx="10" class="box"/>
+  <text x="626" y="384" class="h3">3 · The directors</text>
+  <text x="626" y="410">pacing: when something</text>
+  <text x="626" y="428">comes, and when it leaves</text>
+  <text x="626" y="452">the self-assembly: the siren</text>
+  <text x="626" y="470">and the fog, on the Building</text>
+  <text x="626" y="494">your asides: what you mutter</text>
+  <text x="626" y="518">cutscenes borrow your eyes</text>
+  <text x="626" y="540" class="mono">director, asides, cutscene</text>
+
+  <rect x="330" y="356" width="220" height="200" rx="10" class="box"/>
+  <text x="346" y="384" class="h3">4 · Present</text>
+  <text x="346" y="410">the light map, fog, the HUD,</text>
+  <text x="346" y="430">grain and flicker → Metal</text>
+  <text x="346" y="456">every sound from a place:</text>
+  <text x="346" y="476">props, anchors, the creatures</text>
+  <text x="346" y="496">→ the CoreAudio graph</text>
+  <text x="346" y="540" class="mono">visuals, ui, audio</text>
+
+  <path d="M552 196 H606" class="flow" marker-end="url(#a)"/>
+  <path d="M720 298 V352" class="flow" marker-end="url(#a)"/>
+  <path d="M608 456 H554" class="flow" marker-end="url(#a)"/>
+  <path d="M440 354 V300" class="flow" marker-end="url(#a)"/>
+  <circle cx="580" cy="326" r="25" fill="#1c1a14" stroke="#e3cf6e" stroke-width="1.2"/>
+  <text x="580" y="323" class="pill" style="font-size:11px;fill:#e3cf6e">every</text>
+  <text x="580" y="336" class="pill" style="font-size:11px;fill:#e3cf6e">frame</text>
+
+  <text x="330" y="598" class="muted">Game::frame(dt) runs these in one fixed order, its time in whole</text>
+  <text x="330" y="616" class="muted">ticks of the game's clock: the same inputs give the same frames,</text>
+  <text x="330" y="634" class="muted">so a recording repeats a session exactly. The game crate never</text>
+  <text x="330" y="652" class="muted">touches the window, Metal or a sound device: it runs headless.</text>
+
+  <!-- the pacing director -->
+  <rect x="868" y="88" width="300" height="584" rx="12" class="card"/>
+  <text x="888" y="118" class="h2">The pacing director</text>
+  <text x="888" y="138" class="muted">one cycle after another, every floor</text>
+
+  <circle cx="1018" cy="258" r="95" fill="none" stroke="#3a3628" stroke-width="1"/>
+  <path d="M1062.6 174.1 A95 95 0 0 1 1101.9 213.4" stroke="#9d977f" stroke-width="1.6" fill="none" marker-end="url(#m)"/>
+  <path d="M1101.9 302.6 A95 95 0 0 1 1062.6 341.9" stroke="#9d977f" stroke-width="1.6" fill="none" marker-end="url(#m)"/>
+  <path d="M973.4 341.9 A95 95 0 0 1 934.1 302.6" stroke="#9d977f" stroke-width="1.6" fill="none" marker-end="url(#m)"/>
+  <path d="M934.1 213.4 A95 95 0 0 1 973.4 174.1" stroke="#9d977f" stroke-width="1.6" fill="none" marker-end="url(#m)"/>
+
+  <rect x="982" y="148" width="72" height="28" rx="14" fill="#22322a" stroke="#5fbf72"/>
+  <text x="1018" y="167" class="pill">Calm</text>
+  <rect x="1077" y="244" width="72" height="28" rx="14" fill="#36301c" stroke="#e3cf6e"/>
+  <text x="1113" y="263" class="pill">Build</text>
+  <rect x="982" y="340" width="72" height="28" rx="14" fill="#3a221d" stroke="#d9694f"/>
+  <text x="1018" y="359" class="pill">Peak</text>
+  <rect x="887" y="244" width="72" height="28" rx="14" fill="#202b33" stroke="#79a6c4"/>
+  <text x="923" y="263" class="pill">Relax</text>
+  <text x="1018" y="254" class="muted" text-anchor="middle">the menace</text>
+  <text x="1018" y="270" class="muted" text-anchor="middle">gauge</text>
+
+  <text x="888" y="404" font-weight="700" style="fill:#5fbf72">Calm</text>
+  <text x="940" y="404">nothing is sent after you</text>
+  <text x="888" y="428" font-weight="700" style="fill:#e3cf6e">Build</text>
+  <text x="940" y="428">one creature is sent: its</text>
+  <text x="940" y="446">steps far off, failing lights,</text>
+  <text x="940" y="464">then quiet as it closes in</text>
+  <text x="888" y="488" font-weight="700" style="fill:#d9694f">Peak</text>
+  <text x="940" y="488">it hunts; the gauge fills</text>
+  <text x="888" y="512" font-weight="700" style="fill:#79a6c4">Relax</text>
+  <text x="940" y="512">after a close call, all are sent</text>
+  <text x="940" y="530">away and keep their distance</text>
+
+  <text x="888" y="562" class="muted">It sets the tension (the drone, the</text>
+  <text x="888" y="580" class="muted">heartbeat, the vignette) and the hush</text>
+  <text x="888" y="598" class="muted">(the ambience falls quiet). Where</text>
+  <text x="888" y="616" class="muted">nothing walks, on the Building's floors,</text>
+  <text x="888" y="634" class="muted">the self-assembly keeps the same</text>
+  <text x="888" y="652" class="muted">phases: the quiet, the siren, the fog.</text>
+</svg>
