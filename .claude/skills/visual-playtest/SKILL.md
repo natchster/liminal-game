@@ -46,7 +46,10 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
    The first run builds the release game (minutes). A set of three floors
    on two seeds takes about twenty minutes.
 3. **Run.** `cargo xtask playtest visual --seeds S,… --levels L,…
-   [--area …] [--budget N] [--size 640x400] [--out DIR]`. It writes, under
+   [--area …] [--budget N] [--size 640x400] [--out DIR]`, or
+   `--from-save FILE` for the floor a save is on, as the save left it (her
+   notes, her page, what she took: `docs/engineering/SAVES.md`; a person's
+   save, or one cut from a recording with `--save-from-replay`). It writes, under
    `target/xtask/playtest/visual/`:
    - the report (report.md) and every finding (findings.tsv);
    - a folder a floor (`s<seed>/L<level>/`): views.tsv, findings.tsv,

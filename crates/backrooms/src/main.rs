@@ -423,6 +423,35 @@ fn make_game(o: &Options) -> Game {
     g
 }
 
+/// `--from-save FILE` in a headless mode (`docs/engineering/SAVES.md`): the
+/// save (or a recording) opened and simulated to its place, unseen, in the
+/// mode's view; None without one. `--screenshot` renders that place; the
+/// tour and the dumps build its floor again from it, as Continue builds it
+/// (her progress read: the notes she has, the page taken, what she took).
+fn game_from_save(o: &Options) -> Option<Game> {
+    let p = o.from_save.as_ref()?;
+    let f = replays::read(p).unwrap_or_else(|e| {
+        eprintln!("{e}");
+        std::process::exit(1);
+    });
+    let (mut g, mut v) = game::replay::viewer::Viewer::open(f, replay_game).unwrap_or_else(|e| {
+        eprintln!("{p}: {e}");
+        std::process::exit(1);
+    });
+    while v.bar().seeking.is_some() {
+        if !v.frame(&mut g, 0.0, std::time::Duration::MAX) {
+            break;
+        }
+    }
+    if let Some(d) = &v.player.diverged {
+        eprintln!("{p}: the replay left its recording at frame {} in {:?}: this is not the save's place", d.frame, d.parts);
+    }
+    g.set_view(o.width, o.height, o.scale);
+    g.quality.pr = g.quality.max_pr;
+    println!("from {p}: run {}, floor {}", g.run_seed, g.level_num);
+    Some(g)
+}
+
 /// The game a replay plays in (`game::replay::Player`, which boots it): a
 /// fresh process's, with nothing read and nothing written.
 fn replay_game(flags: &str) -> Game {
@@ -981,22 +1010,28 @@ impl AppHandler for App {
 fn screenshot(o: &Options, path: &str) {
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     let mut r = Renderer::new(device);
-    let mut g = make_game(o);
     let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
-    g.view_width = o.width;
-    g.view_height = o.height;
-    g.scale_factor = o.scale;
-    g.quality.max_pr = o.scale.min(2.0);
-    g.quality.pr = g.quality.max_pr;
-    g.boot();
-    if let Some(s) = o.seed {
-        g.run_seed = s;
-    }
-    if let Some(l) = o.level {
-        g.init_level(l);
-    } else if o.seed.is_some() {
-        g.init_level(1);
-    }
+    // (from a save: its place, then `--frames` more; its clock goes on from it)
+    let from_save = game_from_save(o);
+    let base_ms = from_save.as_ref().map_or(0.0, |g| g.now_ms);
+    let mut g = from_save.unwrap_or_else(|| {
+        let mut g = make_game(o);
+        g.view_width = o.width;
+        g.view_height = o.height;
+        g.scale_factor = o.scale;
+        g.quality.max_pr = o.scale.min(2.0);
+        g.quality.pr = g.quality.max_pr;
+        g.boot();
+        if let Some(s) = o.seed {
+            g.run_seed = s;
+        }
+        if let Some(l) = o.level {
+            g.init_level(l);
+        } else if o.seed.is_some() {
+            g.init_level(1);
+        }
+        g
+    });
     if o.play {
         g.state = "playing".into();
         g.hide_overlay();
@@ -1004,7 +1039,7 @@ fn screenshot(o: &Options, path: &str) {
     let target = r.offscreen_target(w, h);
     let t0 = Instant::now();
     for i in 0..o.frames {
-        g.now_ms = (i as f64) * 1000.0 / 60.0;
+        g.now_ms = base_ms + (i as f64) * 1000.0 / 60.0;
         if let Some((kind, dist)) = &o.showcase {
             if g.state == "playing" && (!o.showcase_walk || i == 0) {
                 g.showcase_entity(kind, *dist);
@@ -1222,26 +1257,36 @@ fn cutscene_shots(o: &Options, id: &str) {
 /// `rs_<seed>_L<n>.json`; with `--screenshot`, rebuild it, take one fixed
 /// 1/60 s step, freeze, and save `rs_<seed>_L<n>.png`.
 fn level_check(o: &Options, dir: &str) {
-    let seed = o.seed.unwrap_or(4242);
-    let mut g = make_game(o);
-    g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
     let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
-    g.view_width = o.width;
-    g.view_height = o.height;
-    g.scale_factor = o.scale;
-    g.quality.max_pr = o.scale.min(2.0);
-    g.quality.pr = g.quality.max_pr;
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     let mut r = Renderer::new(device);
-    g.boot();
-    g.start_new_game(); // as New Game from the menu
+    // (from a save: its run, and its floor built again with her progress read)
+    let from_save = game_from_save(o);
+    let saved_floor = from_save.as_ref().map(|g| g.level_num);
+    let seed = from_save.as_ref().map_or(o.seed.unwrap_or(4242), |g| g.run_seed);
+    let mut g = from_save.unwrap_or_else(|| {
+        let mut g = make_game(o);
+        g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
+        g.view_width = o.width;
+        g.view_height = o.height;
+        g.scale_factor = o.scale;
+        g.quality.max_pr = o.scale.min(2.0);
+        g.quality.pr = g.quality.max_pr;
+        g.boot();
+        g.start_new_game(); // as New Game from the menu
+        g
+    });
     // let the film grain (repainted every 55 ms, opacity eased) settle as if the
     // game had been running for a second
     for _ in 0..60 {
         g.update_grain(1.0 / 60.0);
     }
     std::fs::create_dir_all(dir).expect("create dump dir");
-    let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
+    let levels = match saved_floor {
+        Some(l) => vec![l],
+        None if o.levels.is_empty() => vec![o.level.unwrap_or(1)],
+        None => o.levels.clone(),
+    };
     let shots = o.screenshot.is_some();
     let target = if shots { Some(r.offscreen_target(w, h)) } else { None };
     for &l in &levels {

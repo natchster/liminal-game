@@ -91,7 +91,10 @@ never the gate. What the design took:
 4. **The report** (`cargo xtask playtest visual`): per level, the views,
    each detector's flagged views ranked, contact sheets per detector and of
    a sample of all views, and `findings.tsv`; under
-   `target/xtask/playtest/visual/`.
+   `target/xtask/playtest/visual/`. A floor can be toured as a save left it
+   (`--from-save FILE`, `docs/engineering/SAVES.md`): its run and floor
+   from the save, built with her progress read (the notes she has, the
+   page taken, the places emptied), as Continue builds it.
 5. **Eyes**: a fresh reviewer (`visual-inspector`, by brief) looks at the
    sheets, the flagged first, and names what is wrong in each of the three
    kinds, with the view to reproduce it; detectors find, people (and the

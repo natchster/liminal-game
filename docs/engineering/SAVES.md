@@ -50,6 +50,12 @@ effects, the lens).
   window), Enter in a replay being watched (play goes on from where the
   replay is), `--save-from-replay FILE --at S --save-to OUT` (a file).
   A recording is opened by `--from-save` the same way (from its in-point).
+- **The tools start from one.** `--from-save FILE` in a headless mode:
+  `--screenshot` renders the saved place itself, `--dump-level DIR
+  [--shots-at …]` and `--tour DIR` build the save's floor of its run again
+  with her progress read, as Continue builds it; `cargo xtask playtest
+  visual --from-save FILE` tours it (`VISUAL_PLAYTEST.md`). The reviews'
+  frames come from those (`visual-review`).
 - **More than one.** `--save NAME` reads and writes `saves/NAME.ocsave`;
   the player is offered only the default one. A `--record` playtest, a
   replay and a run `--from-save` (without `--save`) keep their saves in

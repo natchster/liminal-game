@@ -30,7 +30,7 @@
 //! where its wall was), `fight` stands two squares on one plane in front of
 //! its eye, each cut differently (they fight for the same depth).
 use crate::sheet::{self, Tile};
-use crate::{Options, draw_with, make_game};
+use crate::{Options, draw_with, game_from_save, make_game};
 use engine::dmath::DMath;
 use engine::math::{Box3, Vec3};
 use engine::render::Renderer;
@@ -58,25 +58,35 @@ pub struct Seen {
 }
 
 pub fn tour(o: &Options, dir: &str) {
-    let seed = o.seed.unwrap_or(4242);
-    let mut g = make_game(o);
-    g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
     let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
-    g.view_width = o.width;
-    g.view_height = o.height;
-    g.scale_factor = o.scale;
-    g.quality.max_pr = o.scale.min(2.0);
-    g.quality.pr = g.quality.max_pr;
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     let mut r = Renderer::new(device);
-    g.boot();
-    g.start_new_game();
+    // (from a save: its run, and its floor built again with her progress read)
+    let from_save = game_from_save(o);
+    let saved_floor = from_save.as_ref().map(|g| g.level_num);
+    let seed = from_save.as_ref().map_or(o.seed.unwrap_or(4242), |g| g.run_seed);
+    let mut g = from_save.unwrap_or_else(|| {
+        let mut g = make_game(o);
+        g.launch_flags = if o.flags.is_empty() { format!("seed={seed}") } else { format!("seed={seed}&{}", o.flags) };
+        g.view_width = o.width;
+        g.view_height = o.height;
+        g.scale_factor = o.scale;
+        g.quality.max_pr = o.scale.min(2.0);
+        g.quality.pr = g.quality.max_pr;
+        g.boot();
+        g.start_new_game();
+        g
+    });
     // the film grain settled as if the game had run a second (as `--dump-level`)
     for _ in 0..60 {
         g.update_grain(1.0 / 60.0);
     }
     let t = r.offscreen_target(w, h);
-    let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
+    let levels = match saved_floor {
+        Some(l) => vec![l],
+        None if o.levels.is_empty() => vec![o.level.unwrap_or(1)],
+        None => o.levels.clone(),
+    };
     for &l in &levels {
         g.load_level(l);
         // the tour's views (every stand's with `--tour-all`, else the eyes'),

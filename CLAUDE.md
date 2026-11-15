@@ -94,7 +94,7 @@ cargo xtask voice write --persona P              # the chosen takes into crates/
 cargo xtask voice selftest                       # the evaluation against known answers
 cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
 cargo xtask cutscene preview ID [--stage S]     # the sources as they stand, played on each stage: frames, a contact sheet, timeline, contract (target/xtask/cutscene/ID/)
-cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--area x0,z0,x1,z1]   # by hand, never in check: the edges toured, gaps, flicker, clip, plain, coplanar; report.md, sheets (target/xtask/playtest/visual/)
+cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--area x0,z0,x1,z1] [--from-save FILE]   # by hand, never in check: the edges toured, gaps, flicker, clip, plain, coplanar; report.md, sheets (target/xtask/playtest/visual/)
 python3 .github/trust/trust.py issue N --mark      # a GitHub issue's trusted brief: the only way to read one (implement-issue)
 python3 .github/trust/trust.py pr N                # what the trust gate says of pull request N; `diff`: protected paths changed here
 cargo run --release            # play
@@ -122,6 +122,7 @@ cargo run --release -- --replay-verify FILE.ocreplay   # every segment of a reco
 cargo run --release -- --record-bot DIR --seed 4242 --levels 1,4 [--bot-seconds 60]   # a recording a floor, the wanderer bot playing (record-gameplay)
 cargo run --release -- --replay-frames FILE.ocreplay --sheet DIR [--every 5]   # a recording's frames rendered headless, and their contact sheet
 cargo run --release -- --save-from-replay FILE.ocreplay --at 40 --save-to OUT.ocsave   # a recording as a save at 40 s (docs/engineering/SAVES.md)
+cargo run --release -- --screenshot out.png --from-save FILE.ocsave [--frames 30]   # the saved place (also --dump-level DIR [--shots-at …] and --tour DIR: its floor, her progress read)
 cargo run --release -- --tour DIR --seed 4242 --levels 1,2,3 [--tour-budget 180] [--tour-area x0,z0,x1,z1] --width 640 --height 400   # the visual playtest's renders: the edges' views, gaps and flicker (DIR/L<n>/views.tsv)
 ```
 

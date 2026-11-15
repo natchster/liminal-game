@@ -550,6 +550,13 @@ the photographed textures from the scripts in `assets/src/textures/` (see
 * `backrooms --screenshot out.png --level L --seed S --play --frames N`
   renders headless and prints draw calls, triangles, lights and pipeline
   counts; add `--scale 2` for Retina resolution.
+* `--from-save FILE` (`docs/engineering/SAVES.md`) starts a headless mode
+  from a save, or a recording at its in-point, instead of a new run:
+  `--screenshot` renders the saved place itself (`--frames` more after
+  it), `--dump-level DIR [--shots-at …]` and `--tour DIR` build the
+  save's floor again with her progress read, as Continue builds it
+  (`cargo xtask playtest visual --from-save FILE` tours it). A save
+  anywhere in a recording: `--save-from-replay FILE --at S --save-to OUT`.
 * `backrooms --bench FILE --seed S --levels …` writes the timings
   `cargo xtask bench` reads.
 * `--fresh` (headless modes) ignores the saved settings and progress and

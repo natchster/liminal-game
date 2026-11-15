@@ -14,6 +14,7 @@ use std::path::{Path, PathBuf};
 
 pub const USAGE: &str = "usage: cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--budget 180]
                               [--area x0,z0,x1,z1] [--size 640x400] [--out DIR] [--no-build] [--quick]
+                              [--from-save FILE]   (the save's floor of its run, as it left it)
   (every stand is rendered for the detectors, about 6 minutes a floor; the budget is
    the views the eyes get, a sample stratified by the kind of place; --quick: those only)
   (the game's own flags: --tour-budget, --tour-area, --width/--height; --out defaults to
@@ -91,20 +92,29 @@ pub fn playtest(args: &[String]) -> Result<(), String> {
 }
 
 fn visual(args: &[String]) -> Result<(), String> {
-    let seeds: Vec<String> = opt(args, "--seeds").unwrap_or("4242").split(',').map(String::from).collect();
-    let levels = opt(args, "--levels").unwrap_or("1,2,3");
     let budget = opt(args, "--budget").unwrap_or("180");
     let (w, h) = opt(args, "--size").and_then(|s| s.split_once('x')).unwrap_or(("640", "400"));
     let out = opt(args, "--out").map_or_else(|| root().join("target/xtask/playtest/visual"), PathBuf::from);
     if !flag(args, "--no-build") {
         run(cargo().args(["build", "--release", "-p", "backrooms"]))?;
     }
+    // `--from-save FILE`: the save's floor of its run, as the save left it
+    // (`docs/engineering/SAVES.md`); the game says which ("run 7, floor 5")
+    let from_save = opt(args, "--from-save");
+    let (mut seeds, mut levels): (Vec<String>, String) = (
+        opt(args, "--seeds").unwrap_or("4242").split(',').map(String::from).collect(),
+        opt(args, "--levels").unwrap_or("1,2,3").to_string(),
+    );
+    if from_save.is_some() {
+        seeds = vec!["save".into()];
+    }
     let out = make_out(&out)?;
     let t0 = std::time::Instant::now();
-    for seed in &seeds {
+    for seed in seeds.clone() {
+        let seed = seed.as_str();
         let dir = out.join(format!("s{seed}"));
         let mut c = std::process::Command::new(root().join("target/release/backrooms"));
-        c.args(["--tour"]).arg(&dir).args(["--seed", seed, "--levels", levels, "--tour-budget", budget, "--width", w, "--height", h]);
+        c.args(["--tour"]).arg(&dir).args(["--seed", seed, "--levels", &levels, "--tour-budget", budget, "--width", w, "--height", h]);
         // every stand for the detectors (minutes a floor) unless --quick: the eyes' sample only
         if !flag(args, "--quick") {
             c.arg("--tour-all");
@@ -112,12 +122,24 @@ fn visual(args: &[String]) -> Result<(), String> {
         if let Some(a) = opt(args, "--area") {
             c.args(["--tour-area", a]);
         }
+        if let Some(f) = from_save {
+            c.args(["--from-save", f]);
+        }
         let o = c.output().map_err(|e| e.to_string())?;
-        print!("{}", String::from_utf8_lossy(&o.stdout));
+        let said = String::from_utf8_lossy(&o.stdout);
+        print!("{said}");
         if !o.status.success() {
             return Err(format!("backrooms --tour on seed {seed}: {}", String::from_utf8_lossy(&o.stderr).trim()));
         }
+        // a save's run and floor, as the game read them: the report's
+        if let Some(rest) = said.lines().find_map(|l| l.split_once(": run ").map(|x| x.1)).filter(|_| from_save.is_some()) {
+            let (run, floor) = rest.split_once(", floor ").ok_or("the tour did not say the save's floor")?;
+            std::fs::rename(&dir, out.join(format!("s{}", run.trim()))).map_err(|e| e.to_string())?;
+            (seeds, levels) = (vec![run.trim().to_string()], floor.trim().to_string());
+            break;
+        }
     }
+    let levels = levels.as_str();
     let report = report(&out, &seeds, levels, budget, args)?;
     std::fs::write(out.join("report.md"), report).map_err(|e| e.to_string())?;
     println!("wrote {} ({:.0} s)", out.join("report.md").display(), t0.elapsed().as_secs_f64());
