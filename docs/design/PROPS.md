@@ -106,6 +106,42 @@ they hear, never by setting them to hunt; registered after settling;
 none on the Lobby, in the Showroom or the Borrowed House; written into
 `LORE.md` from the code's real gates and reviewed by the `lore-keeper`.
 
+### 4. Writing on the walls
+
+What someone shut in here wrote on the walls (`core_props::graffiti`; the
+research and the game's old writing beside it:
+[`../research/graffiti.md`](../research/graffiti.md); the work:
+[`../plan/PROPS.md`](../plan/PROPS.md), *Writing on the walls*). Up to ten
+pieces a floor of the rooms, each with what an office gives, at that
+tool's size: dried blood gone brown (a capital 9-15 cm), correction fluid,
+a black marker and a lipstick (5-9 cm), a key's scratch to the lighter
+coat, a blue ballpoint that skips and a pencil (2.5-4.5 cm); no aerosol,
+no chalk, no red that never browns. The hand is a frightened person's,
+not a font's: one to four short lines, ragged at the left, all sloping
+the same way (a writer's habit), each a little more or less, and never
+running into the next; letters of uneven size and shape, each taking its
+own width, leaning, growing along the text and crowding narrower at the
+end of a line, the words still apart; heavy at the start, one in
+four fading along its length; now and then a letter gone over again or a
+word crossed out. Its words are a few in the first person, to someone,
+dated as the writer believed, never a rule or the way, never E.'s or
+M.'s (`LORE.md`, *Writing on the walls*): the run deals the pool, each
+floor ten in a row of the deal (none twice on a floor), six in ten of
+them written; none on the Lobby, in the Showroom or the Borrowed House.
+Standing, it is written at 1.2-1.7 m; a pencil or a scratch now and then
+lower, as if sitting.
+
+**It is part of its wall.** The writing is baked into the wall piece it
+is on as the walls are built: a patch 1 mm off the face, drawn with that
+piece's own material, its texture the wall's own surface there (sampled
+as the shader samples it) with the writing in it. So its light is the
+wall's light, its grime and photographed detail are the wall's, and in
+the dark it is dark: nothing glows. Writing that would cross a window, a
+piece's edge or a leaning wall is not written. What is decided before
+it is painted (its lines, size, slope and fading) comes from a stream of
+its own seeded by its place and words; the level's draws are what they
+were, so no floor moves for it.
+
 ## How a prop is remodelled
 
 1. Read its placer (or builder): what it composes, its sizes, its draws,

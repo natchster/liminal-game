@@ -209,3 +209,10 @@ of its phrases give the player rules.
 The level's stream keeps its draws: what is new is drawn by the writing's
 own painter (`canvas_tex`), so no floor moves but for its writing.
 
+| Progress | |
+|---|---|
+| G1 | done: `graffiti.md`, the comparison |
+| G5 | done: the words rewritten (25, reviewed by the lore-keeper: no day counts or tallies, which are E.'s, no name or line that tells E. and M., the Loop or a creature; none twice on a floor, dealt by the run; none on the Lobby, in the Showroom or the Borrowed House), `LORE.md`'s channel *Writing on the walls* |
+| G2-G4 | done together (one mesh): `core_props::graffiti` (media, plan, painter, `bake`), `design/PROPS.md` 4; looked at in the census (seed 4242, levels 5-8): dried blood on the wallpaper in its light, lipstick on brick in shadow, a pencil in the paper's grain, no patch's edge even with the contrast stretched |
+| Review | blind A/B (art-critic, four cameras of seed 4242 levels 6, 7 and 9 where both builds have writing, both orders): the new writing preferred 4 of 4. It found lines running into each other (they sloped either way), words run together (crowding closed the spaces) and gaps inside words (every letter a W's width): one slope a writing, each letter its own width, the spaces kept, lines 1.9 capitals apart (`a_sheet_of_the_writing`, an ignored test, paints the hand alone) |
+

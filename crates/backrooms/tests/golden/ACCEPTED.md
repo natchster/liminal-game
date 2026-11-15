@@ -191,3 +191,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-14, on top of 8ebbcbb: frames: 8 shots. Reason: R2b: a zone's reverb no longer draws its noise from the per-frame stream (a stream of its own, seeded by the preset's name), so a fresh game's per-frame draws after its first zone shift: the film grain and small animation phases differ (looked at: the same scenes, faint structureless grain in every error map, death_fall's arm a little otherwise posed); nothing of the look moved
 
 - 2026-11-14, on top of 8ebbcbb: frames: 4242_L7_maintenance, 4242_L7_living_quarters, 4242_L10_showroom. Reason: R2b, with the eight before: a zone's reverb no longer draws from the per-frame stream, so the grain and the dust motes of a fresh game's frames moved (looked at: the same scenes; grain in the error maps, the showroom's a few motes)
+
+- 2026-11-15, on top of a000cea: frames: 4242_L7_spawn. Reason: issue #11: the walls' writing is baked into the walls as they are built, so its old planes no longer stand among the props when they are settled; a small thing at the far end of the hall stands a few pixels over

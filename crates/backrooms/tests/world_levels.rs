@@ -169,3 +169,71 @@ fn a_floor_painted_on_demand_has_the_pixels_of_one_painted_at_once() {
         assert!(differ.is_empty(), "{seed}/{level}: painted on demand, these differ: {differ:?}");
     }
 }
+
+/// Writing on the walls (GitHub issue #11) is baked into its wall: each piece
+/// a patch under 3 mm thick lying on a drawn wall piece's face (within 3 mm,
+/// inside its extent), drawn with that piece's own world-space material (so
+/// its light, its grime and its photographed detail are the wall's), never
+/// over a window's opening; and there is writing on these floors
+#[test]
+fn writing_is_baked_into_its_wall() {
+    use game::base::config::CELL;
+    let mut pieces = 0;
+    for level in 5..=10 {
+        let mut g = Game::new_bare();
+        placers::register_all(&mut g.placers);
+        g.launch_flags = format!("seed=4242&level={level}&nosound");
+        g.boot();
+        g.start_new_game();
+        let cuts = g.window_cut_boxes();
+        let s = g.solids.clone().expect("the floor's solids");
+        let (gw, gh) = (g.w as f64, g.h as f64);
+        let faces: Vec<[f64; 6]> = (0..s.count)
+            .flat_map(|b| g.wall_box_parts(&s, b))
+            .map(|(_, p)| {
+                [(p[0] - gw / 2.0) * CELL, p[4], (p[1] - gh / 2.0) * CELL, (p[2] - gw / 2.0) * CELL, p[5], (p[3] - gh / 2.0) * CELL]
+            })
+            .collect();
+        let mut found = vec![];
+        g.world.traverse(&mut |o| {
+            let kind = o.user().s.get("kind").cloned();
+            if kind.as_deref() == Some("graffiti") {
+                found.push(o.clone());
+            }
+        });
+        for o in found {
+            let b = o.compute_instanced_bounding_box();
+            let (sx, sy, sz) = (b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z);
+            let thin_x = sx < 0.003;
+            assert!(thin_x || sz < 0.003, "L{level}: a patch {sx:.3} × {sy:.3} × {sz:.3} m is not thin");
+            let m = o.mats()[0].clone();
+            let mm = m.m();
+            assert!(
+                matches!(mm.patch, engine::material::Patch::ArchUV { wallpaper: false, .. }) && mm.map.is_some(),
+                "L{level}: a patch not drawn with a wall's world-space material: {:?}",
+                mm.patch
+            );
+            // a drawn wall piece's face under it
+            let on_face = faces.iter().any(|f| {
+                let inside = |lo: f64, hi: f64, a: f64, z: f64| a >= lo - 1e-3 && z <= hi + 1e-3;
+                if thin_x {
+                    ((b.min.x - f[3]).abs() < 0.003 || (b.max.x - f[0]).abs() < 0.003)
+                        && inside(f[2], f[5], b.min.z, b.max.z)
+                        && inside(f[1], f[4], b.min.y, b.max.y)
+                } else {
+                    ((b.min.z - f[5]).abs() < 0.003 || (b.max.z - f[2]).abs() < 0.003)
+                        && inside(f[0], f[3], b.min.x, b.max.x)
+                        && inside(f[1], f[4], b.min.y, b.max.y)
+                }
+            });
+            assert!(on_face, "L{level}: a patch at {:?} lies on no wall piece's face", b.min);
+            let over_window = cuts
+                .iter()
+                .any(|k| k[0] < b.max.x && k[3] > b.min.x && k[2] < b.max.z && k[5] > b.min.z && k[1] < b.max.y && k[4] > b.min.y);
+            assert!(!over_window, "L{level}: a patch over a window's opening");
+            pieces += 1;
+        }
+    }
+    println!("{pieces} pieces of writing on six floors");
+    assert!(pieces >= 8, "only {pieces} pieces of writing on six floors");
+}

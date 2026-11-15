@@ -109,6 +109,29 @@ pub fn canvas_tex_opt_now<F: FnOnce(&mut Canvas, f64, f64)>(w: impl Num, h: impl
     t
 }
 
+/// A texture `w × h` whose pixels `make` computes from others (RGBA8,
+/// straight alpha, rows top-down), sRGB and repeating: made when its pixels
+/// are first read on a thread that paints on demand, else at once, as a
+/// canvas texture is (`canvas_tex`)
+pub fn made_tex(w: u32, h: u32, make: impl FnOnce() -> Vec<u8> + 'static) -> Tex {
+    let t = if engine::texture::paint_on_demand() {
+        let t = Tex::from_image(engine::texture::Image::new_rgba(w.max(1), h.max(1), vec![]));
+        let img = t.r().image.clone();
+        engine::texture::defer_paint(&img, Box::new(make));
+        t
+    } else {
+        Tex::from_image(engine::texture::Image::new_rgba(w.max(1), h.max(1), make()))
+    };
+    {
+        let mut tt = t.t();
+        tt.color_space = ColorSpace::Srgb;
+        tt.wrap_s = Wrap::Repeat;
+        tt.wrap_t = Wrap::Repeat;
+        tt.anisotropy = 4;
+    }
+    t
+}
+
 /// Fills an image's rows, `row(j, out)` for row `j`, on every core at once.
 /// For a per-pixel painter whose pixels are a pure function of where they
 /// are (no draws and no canvas calls in the loop: its draws are made before

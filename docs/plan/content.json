@@ -1458,6 +1458,28 @@
     },
     {
       "checks": [
+        "test:backrooms/world_levels",
+        "test:game/core_props_tail",
+        "test:backrooms/reference_levels",
+        "test:backrooms/materials",
+        "shots:4242_L7_spawn"
+      ],
+      "id": "props/writing",
+      "kind": "prop with rules",
+      "last_checked": "2026-11-15",
+      "last_human_review": null,
+      "name": "the writing on the walls (docs/design/PROPS.md 4, LORE.md Writing on the walls: what people trapped here wrote, in what an office has, baked into the wall)",
+      "notes": "issue #11: seven media an office could give (dried blood, correction fluid, marker, lipstick, a scratch, ballpoint, pencil), a hand that wavers, crowds, fades and crosses out, 25 lines dealt by the run, none twice on a floor and none on the Lobby, in the Showroom or the Borrowed House; baked into the face of the wall behind it, under its light (writing_is_baked_into_its_wall: thin, on a drawn face, world UVs off, never over a window); the old choice's draws kept (core_props_tail, reference_levels: only the writing moves); game core_props::graffiti unit tests hold the media, sizes, fading, the deal and the glyphs. A blind A/B review of four cameras before and after (2026-11-15). No person has read one on a wall yet.",
+      "passes": {
+        "test:backrooms/world_levels": true,
+        "test:game/core_props_tail": true,
+        "test:backrooms/reference_levels": true,
+        "test:backrooms/materials": true,
+        "shots:4242_L7_spawn": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/cutscenes",
         "test:game/player"
       ],

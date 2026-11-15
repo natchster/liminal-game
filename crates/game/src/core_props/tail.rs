@@ -37,73 +37,38 @@ const SWITCH_PLACARD_NAMES: [&str; 10] =
     ["STORAGE", "HALL A", "HALL B", "BATHROOM", "OFFICE 3", "BASEMENT", "ELEVATOR", "BREAKROOM", "STAIR C", "ARCHIVE"];
 /// The owner names on the vacuum's name plate
 const VAC_NAMES: [&str; 8] = ["ELIAS", "M. RANDOLPH", "K. YU", "A. BAKER", "CHESTER", "BUDDY", "CARL", "PROPERTY OF 7-B"];
-/// The graffiti phrases
-const SCRAWL_POOL: &[&str] = &[
-    "DON'T LOOK AT IT",
-    "IT'S NOT REAL",
-    "NO WAY OUT",
-    "RUN",
-    "IT HUNTS BY SOUND",
-    "THE WALLS BREATHE",
-    "SIX FLOORS DEEPER",
+/// What people shut in here wrote on the walls (`core_props::graffiti`;
+/// `LORE.md`, *Writing on the walls*): in the first person, to someone,
+/// dated as they believed; never a rule, the way, an instruction, a level,
+/// a creature's habit or an anomaly, never E.'s or M.'s (no day counts: his
+/// tallies are his), reviewed by the lore-keeper
+pub(crate) const SCRAWL_POOL: &[&str] = &[
     "HELP ME",
-    "THE CLOCK LIES",
     "I'M STILL HERE",
-    "ALMOND WATER SAVES",
-    "DO NOT ANSWER THE PHONE",
-    "BLINK AND YOU DIE",
-    "IT WEARS OUR FACES",
-    "GOODNIGHT",
-    "FOLLOW THE HUM",
-    "THE EXIT IS A LIE",
-    "MOTHER WHERE ARE YOU",
-    "I SEE YOU THROUGH THE MIRROR",
-    "THIS IS FLOOR ZERO",
-    "HE COUNTS OUR STEPS",
-    "PLEASE LEAVE A LIGHT ON",
     "HELLO ?",
-    "DAY 47",
-    "DAY 219",
-    "DAY ???",
-    "THE LIGHTS LIE",
-    "IT SPEAKS IN CHILD",
-    "MY NAME IS ELIAS",
-    "I MADE IT TO LEVEL 3",
-    "GOD IS NOT HERE",
-    "FOUR CORNERS FOUR WATCHERS",
-    "ALWAYS TURN LEFT",
-    "NEVER TURN RIGHT",
-    "THE HUM IS A HYMN",
-    "MY REFLECTION SMILED FIRST",
-    "STOP RUNNING IT LIKES IT",
+    "MOTHER WHERE ARE YOU",
+    "GOODNIGHT",
+    "PLEASE LEAVE A LIGHT ON",
+    "TELL MY MOTHER I TRIED",
+    "WAIT FOR ME",
+    "DAN I WAITED",
+    "WE WERE FOUR. NOW TWO",
+    "SORRY SORRY SORRY",
+    "LUCY I LOVE YOU",
+    "NOT AGAIN",
+    "SLEPT HERE 3 NIGHTS",
+    "I MISS THE RAIN",
+    "IT'S MY BIRTHDAY",
+    "14 MARCH. COLD",
+    "I KEPT WALKING",
+    "K LOVES J",
+    "I DON'T KNOW HOW LONG",
+    "R.T. WAS HERE",
+    "I'M SO COLD",
+    "SAM SAM SAM",
+    "I WANT TO GO HOME",
+    "HAPPY ANNIVERSARY JO",
 ];
-/// The number of graffiti hand styles
-const HAND_STYLE_COUNT: i64 = 7;
-/// Graffiti hand style `k` — style 0 draws its `drip` chance when called
-fn hand_style(k: i64) -> HandOpts {
-    let o = |color: &str, thickness: f64, jitter: f64, gap: f64, wobble: f64, double_stroke: bool, drip: bool| HandOpts {
-        color: color.to_string(),
-        thickness,
-        jitter,
-        gap,
-        wobble,
-        double_stroke,
-        drip,
-        ..Default::default()
-    };
-    match k {
-        0 => {
-            let drip = rnd() < 0.35;
-            o("rgba(140,20,15,0.95)", 6.0, 1.6, 0.02, 1.2, true, drip)
-        }
-        1 => o("rgba(230,225,210,0.90)", 4.0, 1.9, 0.05, 1.5, false, false), // chalk
-        2 => o("rgba(15,10,8,0.95)", 3.0, 1.2, 0.01, 0.8, true, false),      // pen
-        3 => o("rgba(220,180,40,0.92)", 5.0, 1.4, 0.03, 1.4, false, false),  // aerosol yellow
-        4 => o("rgba(100,10,10,0.98)", 8.0, 2.4, 0.06, 2.0, false, true),    // heavy blood
-        5 => o("rgba(30,50,120,0.95)", 4.0, 1.5, 0.03, 1.1, false, false),   // blue pen
-        _ => o("rgba(35,30,25,0.88)", 3.0, 1.7, 0.04, 1.6, false, false),    // pencil
-    }
-}
 /// the hand-written tape label style of the switch placards / vacuum name plate
 fn tape_hand(w: f64, h: f64) -> HandOpts {
     HandOpts { color: "rgba(30,20,10,0.95)".into(), thickness: 3.0, jitter: 1.4, wobble: 1.1, w, h, ..Default::default() }
@@ -1499,21 +1464,37 @@ impl Game {
         }
     }
 
-    /// hand-written graffiti (stroke-based, per-glyph jitter), up to 10
+    /// writing on the walls (`core_props::graffiti`), up to 10: with what an
+    /// office gives, at its size, in a frightened hand
     fn tail_graffiti(&mut self, cx: &mut PropsCtx) {
+        use crate::core_props::graffiti;
         let graffiti_count = 10;
-        for _ in 0..graffiti_count {
+        // what the run's floors say: the pool dealt by the run's seed, each
+        // floor ten in a row of it (none twice on a floor, the next floor's
+        // ten further on), and of those only some written
+        let deck = graffiti::deck(self.run_seed, SCRAWL_POOL.len());
+        // none on the Lobby (its emptiness is the point), in the Showroom
+        // (spotless) or in the Borrowed House
+        let writes_here = self.level_num != 4 && !matches!(self.level_scp.as_deref(), Some("store" | "house"));
+        for i in 0..graffiti_count {
             let Some(c) = s_take(self, cx, true) else { break };
             let Some(spot) = s_wall_adj_spot(self, c.x, c.z) else { continue };
-            let style = hand_style(irand(0, HAND_STYLE_COUNT - 1));
-            let text = choice(SCRAWL_POOL);
-            let tex = handwritten_tex(text, &style);
-            let (plane_w, plane_h) = (2.6, 0.6);
-            let p = mesh(plane_geo!(plane_w, plane_h), basic_mat!({ map: tex, transparent: true }));
-            p.set_pos_v(&off_wall(&spot, 0.045));
-            p.position().y = rand2(1.1, 2.1);
-            p.rotation().y = spot.yaw;
-            self.world.add(&p);
+            // the level's draws as they were (a hand style of seven, its drip
+            // roll for the first, the words, the height): what is new is
+            // drawn on the writing's own streams, so no floor moves
+            let k = irand(0, graffiti::MEDIA.len() as i64 - 1) as usize;
+            let roll = if k == 0 { rnd() } else { 0.5 };
+            let _drawn = choice(SCRAWL_POOL);
+            let r = rand2(1.1, 2.1);
+            let slot = (self.level_num.max(0) as usize) * graffiti_count + i;
+            if !writes_here || !graffiti::written(self.run_seed, slot) {
+                continue;
+            }
+            let text = SCRAWL_POOL[deck[slot % deck.len()]];
+            let writing = graffiti::plan(text, graffiti::MEDIA[k], graffiti::seed_of(spot.pos.x, spot.pos.z, text), roll);
+            // baked into its wall as the walls are built (`graffiti::bake`)
+            let y = graffiti::height(&writing, r);
+            self.wall_writing.push(graffiti::Planned { writing, at: spot.pos, normal: spot.normal, y });
         }
     }
 

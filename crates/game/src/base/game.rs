@@ -189,6 +189,9 @@ pub struct Game {
     pub odd_spots: Vec<(Obj, &'static str)>,
     /// what the floor holds to be come upon (`audio::noticing`)
     pub noticing: crate::audio::noticing::Noticing,
+    /// writing planned on the walls, baked into them as they are built
+    /// (`core_props::graffiti::bake`)
+    pub wall_writing: Vec<crate::core_props::graffiti::Planned>,
     /// The Well's sealed doors and what answers a knock at them (`world::knock`)
     pub knocks: crate::world::knock::Knocks,
     /// The archgen layout of the current level
@@ -857,6 +860,7 @@ impl Game {
             lift_working_at: None,
             odd_spots: vec![],
             noticing: Default::default(),
+            wall_writing: vec![],
             knocks: Default::default(),
             layout: None,
             solids: None,

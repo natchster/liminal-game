@@ -363,8 +363,13 @@ impl Game {
             // a board askew needs to be shorter to stay within the faces
             let len = span / tilt.dcos().max(0.9) - 0.02;
             m.set_scale(len / 2.44, wide / 0.14, 1.0);
+            // its highest point (an end raised by its tilt, and its width)
+            // no higher than the uprights: an askew board near the top went
+            // through a low ceiling (seed 77, level 12: 2.445 m under 2.44)
+            let rise = len / 2.0 * tilt.dsin().abs() + wide / 2.0 * tilt.dcos();
+            let at = y.min(reach - rise);
             // the askew ones over the rest
-            m.position().set(rand2(-0.01, 0.01), y, face * (0.002 + if askew { 0.021 } else { 0.0 }));
+            m.position().set(rand2(-0.01, 0.01), at, face * (0.002 + if askew { 0.021 } else { 0.0 }));
             m.rotation().y = if face < 0.0 { PI } else { 0.0 };
             m.rotation().z = tilt;
             g.add(&m);

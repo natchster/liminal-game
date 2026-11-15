@@ -65,6 +65,16 @@ these channels, and the `lore-keeper` reviewer checks it:
 - **What you take**: one line as you take a thing put away (or reach into
   the hole): what it is and its taste or feel, never what it does, never
   why.
+- **Writing on the walls**: what others shut in here wrote, on the floors
+  of the rooms (never the Lobby, the Showroom or the Borrowed House), a few
+  pieces a floor and none twice on one, with what an office gives (a
+  pencil, a ballpoint, a marker, a lipstick, a key's scratch, correction
+  fluid, their blood gone brown), part of the wall it is written on: a few
+  words in the first person, to someone, dated as the writer believed.
+  Never E.'s or M.'s (no day counts and no tallies: those are his), never a
+  rule, the way, an instruction, a level, a creature's habit or an
+  anomaly. (`core_props::graffiti`, `PROPS.md` 4.) The chalk RUN of the
+  Electrical Station's survey is that survey's own.
 - **The payphone**: it rings as you come near it, never before; a voice
   on the line, a few words: a whisper, where to look, or worse; never why.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of

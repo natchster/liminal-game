@@ -514,6 +514,8 @@ impl Game {
                 }
             }
         }
+        // the writing planned on the walls, baked into the pieces it is on
+        crate::core_props::graffiti::bake(self, &s, &cuts);
         let geo = self.unit_box_geo.clone();
         self.solids = Some(s);
         for (key, list) in groups {

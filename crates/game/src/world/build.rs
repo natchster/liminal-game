@@ -247,6 +247,7 @@ impl Game {
         self.lift_at = None;
         self.lift_working_at = None;
         self.odd_spots.clear();
+        self.wall_writing.clear();
         self.knocks = Default::default();
         self.assembly = Default::default();
         self.audio.cell_knocks.clear();
