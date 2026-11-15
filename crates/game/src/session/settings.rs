@@ -35,6 +35,12 @@ pub struct Settings {
     pub brightness: i32,
     /// losing the window's focus pauses
     pub focus_pause: bool,
+    /// the share of the disk a recording leaves free (%, 1 to 20): below it
+    /// a recording does not begin, or ends (`replay::disk`)
+    pub replay_free_pct: i32,
+    /// how often the disk is looked at while a recording runs (minutes, 1
+    /// to 30; it is always looked at as a recording begins)
+    pub replay_check_min: i32,
     /// the keys of each action (the defaults are `BINDINGS`)
     pub binds: Vec<(Act, Vec<String>)>,
 }
@@ -46,6 +52,10 @@ pub struct Settings {
 pub const FOV_DEFAULT: f64 = 64.0;
 pub const FOV_MIN: f64 = 50.0;
 pub const FOV_MAX: f64 = 90.0;
+/// The share of the disk a recording leaves free (%): the default and its range
+pub const REPLAY_FREE_PCT: (i32, i32, i32) = (5, 1, 20);
+/// How often a recording looks at the disk (minutes): the default and its range
+pub const REPLAY_CHECK_MIN: (i32, i32, i32) = (1, 1, 30);
 /// The widest a screen sees to the sides (°): past 16:9 a wider screen
 /// widens the view only to here, and sees less above and below instead
 pub const H_FOV_MAX: f64 = 100.0;
@@ -79,6 +89,8 @@ impl Default for Settings {
             volume: 1.0,
             brightness: 0,
             focus_pause: true,
+            replay_free_pct: REPLAY_FREE_PCT.0,
+            replay_check_min: REPLAY_CHECK_MIN.0,
             binds: default_binds(),
         }
     }
@@ -99,7 +111,8 @@ impl Settings {
         json!({
             "look": self.look, "invertY": self.invert_y, "fov": self.fov, "fovRev": 2, "bob": self.bob, "shake": self.shake,
             "grain": self.grain, "runToggle": self.run_toggle, "volume": self.volume, "brightness": self.brightness,
-            "focusPause": self.focus_pause, "binds": binds,
+            "focusPause": self.focus_pause, "replayFreePct": self.replay_free_pct, "replayCheckMin": self.replay_check_min,
+            "binds": binds,
         })
     }
     /// From the store, each value clamped; anything missing keeps its default
@@ -133,6 +146,10 @@ impl Settings {
             volume: f("volume", 0.0, 1.0, d.volume),
             brightness: f("brightness", -5.0, 5.0, d.brightness as f64).round() as i32,
             focus_pause: b("focusPause", d.focus_pause),
+            replay_free_pct: f("replayFreePct", REPLAY_FREE_PCT.1.into(), REPLAY_FREE_PCT.2.into(), d.replay_free_pct.into()).round()
+                as i32,
+            replay_check_min: f("replayCheckMin", REPLAY_CHECK_MIN.1.into(), REPLAY_CHECK_MIN.2.into(), d.replay_check_min.into()).round()
+                as i32,
             binds,
         }
     }
@@ -182,6 +199,10 @@ pub enum Row {
     Volume,
     Brightness,
     FocusPause,
+    /// Settings › Replays: the share of the disk a recording leaves free
+    ReplayFree,
+    /// Settings › Replays: how often a recording looks at the disk
+    ReplayCheck,
 }
 
 /// The settings list, in order: (row, its menu id, its label)
@@ -197,6 +218,16 @@ pub const ROWS: [(Row, &str, &str); 10] = [
     (Row::Brightness, "set:brightness", "Brightness"),
     (Row::FocusPause, "set:focus", "Pause when the window is left"),
 ];
+
+/// Settings › Replays, in order: what a recording leaves of the disk (GitHub
+/// issue #9)
+pub const REPLAY_ROWS: [(Row, &str, &str); 2] =
+    [(Row::ReplayFree, "set:replay-free", "Free space to keep"), (Row::ReplayCheck, "set:replay-check", "Check free space every")];
+
+/// A settings line by its menu id, on either page
+pub fn row_of(id: &str) -> Option<Row> {
+    ROWS.iter().chain(&REPLAY_ROWS).find(|r| r.1 == id).map(|r| r.0)
+}
 
 fn on_off(b: bool) -> String {
     if b { "On" } else { "Off" }.into()
@@ -220,6 +251,11 @@ impl Settings {
             Row::Volume => format!("{:.0}%", self.volume * 100.0),
             Row::Brightness => format!("{:+}", self.brightness).replace("+0", "0"),
             Row::FocusPause => on_off(self.focus_pause),
+            Row::ReplayFree => format!("{}% of the disk", self.replay_free_pct),
+            Row::ReplayCheck => match self.replay_check_min {
+                1 => "minute".into(),
+                m => format!("{m} minutes"),
+            },
         }
     }
     /// Step a row by `dir` (−1 or +1); the switches flip either way
@@ -239,11 +275,15 @@ impl Settings {
             Row::Volume => self.volume = ((self.volume + 0.1 * d) * 10.0).round() / 10.0,
             Row::Brightness => self.brightness += dir,
             Row::FocusPause => self.focus_pause = !self.focus_pause,
+            Row::ReplayFree => self.replay_free_pct += dir,
+            Row::ReplayCheck => self.replay_check_min += dir,
         }
         self.look = self.look.clamp(0.25, 3.0);
         self.fov = self.fov.clamp(FOV_MIN, FOV_MAX);
         self.volume = self.volume.clamp(0.0, 1.0);
         self.brightness = self.brightness.clamp(-5, 5);
+        self.replay_free_pct = self.replay_free_pct.clamp(REPLAY_FREE_PCT.1, REPLAY_FREE_PCT.2);
+        self.replay_check_min = self.replay_check_min.clamp(REPLAY_CHECK_MIN.1, REPLAY_CHECK_MIN.2);
     }
 }
 

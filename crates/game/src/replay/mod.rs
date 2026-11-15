@@ -5,6 +5,7 @@
 //! and names the first frame where it does not (Factorio's per-tick check).
 //! The file is `OCREPLAY` (`file`); `Recorder` makes one from play,
 //! `Player` plays one back from any of its segments.
+pub mod disk;
 pub mod file;
 pub mod viewer;
 

@@ -35,7 +35,7 @@ struct Options {
     showcase_walk: bool,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
-    /// `--screen pause|leave|settings|brightness|controls|recording|recording-paused|replays|replay|replay-bar|title|dead|ending|notebook|notebook-typed`:
+    /// `--screen pause|leave|settings|brightness|controls|replay-settings|recording|recording-paused|replays|replay|replay-bar|title|dead|ending|notebook|notebook-typed`:
     /// with `--play`, that list or card goes up 45 frames before the shot (`Game::debug_screen`)
     screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone

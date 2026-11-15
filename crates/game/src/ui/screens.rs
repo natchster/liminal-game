@@ -75,7 +75,7 @@ fn paint_menu_of(f: &mut Frame, g: &Game, m: &crate::ui::menu::Menu, screen: Scr
     let ink = col(INK);
     let x0 = margin(w);
     let bottom = h - (h * 0.11).max(44.0);
-    let valued = matches!(screen, Screen::Settings | Screen::Controls);
+    let valued = matches!(screen, Screen::Settings | Screen::Controls | Screen::ReplaySettings);
     let n = m.items.len().max(1) as f64;
     let line_h = if valued { (h * 0.62 / n).clamp(20.0, LINE_H) } else { LINE_H };
     let size = if line_h < 26.0 { 14.0 } else { 16.0 };
@@ -117,7 +117,7 @@ fn paint_menu_of(f: &mut Frame, g: &Game, m: &crate::ui::menu::Menu, screen: Scr
     f.ui.hits.splice(0..0, hits);
     let sel = m.sel;
     // the stepped settings show their arrows on the chosen line
-    let stepped = valued && screen == Screen::Settings;
+    let stepped = matches!(screen, Screen::Settings | Screen::ReplaySettings);
     let key = format!("{screen:?}|{:?}|{}|{}|{}|{sel}|{w}|{h}|{line_h}", m.items, m.heading, m.note, m.her_line);
     let top = head_y - 12.0;
     f.layer("menu", &key, fade, move |dpr| {

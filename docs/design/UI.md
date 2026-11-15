@@ -65,7 +65,8 @@ gone when it is not needed.
 4. **Pause stops the world.** The frozen frame dimmed behind the same
    list; Settings (look, invert, field of view, head bob, film grain, run
    hold/toggle, volume, brightness against a barely-visible mark, pause on
-   focus loss) and a Controls page, the only place every key is listed.
+   focus loss), a Replays page (what a recording leaves of the disk) and a
+   Controls page, the only place every key is listed.
 5. **An empty HUD at rest.** Meters appear when they change and fade;
    the pockets show on change and while X is held; a dot only on what can
    be used, its verb beside it; medals live in the notebook.
@@ -137,8 +138,11 @@ Ctrl+Cmd+F toggles full screen, Cmd+Q quits.
 Settings (from the title or the pause list) change the look speed,
 invert, field of view, head bob, camera shake, film grain, the run key
 (hold or press), volume, brightness and whether leaving the window
-pauses; Controls rebinds any key (Enter on a line, then the key; keys
-swap). They are kept apart from the save.
+pauses; Replays sets the free space a recording keeps on the disk (5%,
+from 1% to 20%) and how often it checks while it runs (every minute, up
+to every 30; it always checks as it begins: `docs/engineering/REPLAYS.md`);
+Controls rebinds any key (Enter on a line, then the key; keys swap). They
+are kept apart from the save.
 
 ## What only people can tell
 

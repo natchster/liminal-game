@@ -3,7 +3,7 @@
 //! changes, rebinding keeps every action reachable, and they persist.
 use game::prelude::*;
 use game::session::input::Act;
-use game::session::settings::{FOV_DEFAULT, H_FOV_MAX, Row, SETTINGS_KEY, Settings, vertical_fov};
+use game::session::settings::{FOV_DEFAULT, H_FOV_MAX, REPLAY_ROWS, ROWS, Row, SETTINGS_KEY, Settings, row_of, vertical_fov};
 
 const DT: f64 = 1.0 / 60.0;
 
@@ -30,12 +30,16 @@ fn the_defaults_are_the_game_as_it_was() {
     // (the field of view was 74 until wide screens stopped stretching the walls)
     assert_eq!((s.look, s.invert_y, s.fov, s.bob, s.shake, s.grain), (1.0, false, 64.0, 1.0, true, true));
     assert_eq!((s.run_toggle, s.volume, s.brightness, s.focus_pause), (false, 1.0, 0, true));
+    // a recording keeps 5% of the disk free and looks every minute (issue #9)
+    assert_eq!((s.replay_free_pct, s.replay_check_min), (5, 1));
     assert_eq!(s.keys(Act::Drink), ["KeyG", "Digit1"]);
     // a round trip, and nonsense from the store is clamped or ignored
     assert_eq!(Settings::from_json(&s.to_json()), s);
-    let bad = serde_json::json!({ "look": 40.0, "fov": 10.0, "volume": -3.0, "brightness": 99, "bob": "x", "binds": { "Drink": [], "Nope": ["KeyQ"] } });
+    let bad = serde_json::json!({ "look": 40.0, "fov": 10.0, "volume": -3.0, "brightness": 99, "bob": "x", "binds": { "Drink": [], "Nope": ["KeyQ"] },
+        "replayFreePct": 50, "replayCheckMin": 0 });
     let t = Settings::from_json(&bad);
     assert_eq!((t.look, t.fov, t.volume, t.brightness, t.bob), (3.0, 50.0, 0.0, 5, 1.0));
+    assert_eq!((t.replay_free_pct, t.replay_check_min), (20, 1), "the disk's line and interval are clamped to their ranges");
     assert_eq!(t.keys(Act::Drink), ["KeyG", "Digit1"], "an empty binding from the store left Drink without a key");
 }
 
@@ -189,4 +193,31 @@ fn the_volume_and_the_pause_set_the_master_gain() {
     assert!((gain(&g) - 0.45).abs() < 1e-6);
     g.set_muted(true);
     assert_eq!(gain(&g), 0.0);
+}
+
+/// Settings › Replays (GitHub issue #9): the share of the disk a recording
+/// leaves free steps from 1% to 20%, how often it looks from 1 to 30
+/// minutes, each as the list says it, and both are kept.
+#[test]
+fn the_replay_settings_step_within_their_ranges() {
+    let mut s = Settings::default();
+    assert_eq!((s.value(Row::ReplayFree), s.value(Row::ReplayCheck)), ("5% of the disk".to_string(), "minute".to_string()));
+    for _ in 0..10 {
+        s.step(Row::ReplayFree, -1);
+        s.step(Row::ReplayCheck, -1);
+    }
+    assert_eq!((s.replay_free_pct, s.replay_check_min), (1, 1));
+    for _ in 0..40 {
+        s.step(Row::ReplayFree, 1);
+        s.step(Row::ReplayCheck, 1);
+    }
+    assert_eq!((s.replay_free_pct, s.replay_check_min), (20, 30));
+    s.step(Row::ReplayCheck, -28);
+    assert_eq!(s.value(Row::ReplayCheck), "2 minutes");
+    assert_eq!(Settings::from_json(&s.to_json()), s, "kept as set");
+    // each line is found by its id, on its own page and no other
+    for (r, id, _) in ROWS.iter().chain(&REPLAY_ROWS) {
+        assert_eq!(row_of(id), Some(*r));
+    }
+    assert!(REPLAY_ROWS.iter().all(|(r, _, _)| !ROWS.iter().any(|(q, _, _)| q == r)));
 }

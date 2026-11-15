@@ -6,7 +6,7 @@
 //! back. `ui/screens.rs` paints it.
 use crate::prelude::*;
 use crate::session::input::{Act, BINDINGS, key_label};
-use crate::session::settings::{ROWS, Row};
+use crate::session::settings::{REPLAY_ROWS, ROWS, Row, row_of};
 
 /// Which list is up.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -20,6 +20,8 @@ pub enum Screen {
     Settings,
     /// every key, and rebinding
     Controls,
+    /// Settings › Replays: what a recording leaves of the disk (GitHub issue #9)
+    ReplaySettings,
     /// the death card: one line, then Wake up
     Dead,
     /// the end of her story: the card, then on down
@@ -186,7 +188,16 @@ impl Game {
             Screen::Ending => vec![item("menu:go-on", "Go on down", "")],
             Screen::Settings => {
                 let mut v: Vec<Item> = ROWS.iter().map(|(r, id, label)| item(id, label, &self.settings.value(*r))).collect();
-                v.extend([item("menu:controls", "Controls", ""), item("menu:back", "Back", "")]);
+                v.extend([
+                    item("menu:replay-settings", "Replays", ""),
+                    item("menu:controls", "Controls", ""),
+                    item("menu:back", "Back", ""),
+                ]);
+                v
+            }
+            Screen::ReplaySettings => {
+                let mut v: Vec<Item> = REPLAY_ROWS.iter().map(|(r, id, label)| item(id, label, &self.settings.value(*r))).collect();
+                v.push(item("menu:back", "Back", ""));
                 v
             }
             Screen::Controls => {
@@ -207,9 +218,10 @@ impl Game {
     /// Open `s` (its list rebuilt from the save), with the first line chosen
     pub fn open_menu(&mut self, s: Screen) {
         let saved = self.load_game();
-        // Settings and Controls go back to where they were opened from
-        if matches!(s, Screen::Settings | Screen::Controls)
-            && let Some(from) = self.menu.screen.filter(|f| !matches!(f, Screen::Settings | Screen::Controls))
+        // Settings and its pages go back to where Settings was opened from
+        let settings = |s: &Screen| matches!(s, Screen::Settings | Screen::Controls | Screen::ReplaySettings);
+        if settings(&s)
+            && let Some(from) = self.menu.screen.filter(|f| !settings(f))
         {
             self.menu.back = Some(from);
         }
@@ -234,6 +246,10 @@ impl Game {
             Screen::Controls => {
                 m.heading = "Controls".into();
                 m.note = "Enter on a line, then the new key. With the arrows, crouch with C: Ctrl and an arrow belong to the Mac.".into();
+            }
+            Screen::ReplaySettings => {
+                m.heading = "Replays".into();
+                m.note = "A recording needs room on the disk: it does not begin, or it stops, when less is free. The disk is checked as one begins, and then as often as set here.".into();
             }
             Screen::Replays => {
                 m.heading = "Replays".into();
@@ -290,7 +306,7 @@ impl Game {
         let ok = match s {
             Screen::Title | Screen::ConfirmNew | Screen::Replays | Screen::Replay | Screen::ConfirmDelete => self.state == "menu",
             Screen::Pause | Screen::ConfirmLeave => self.state == "paused",
-            Screen::Settings | Screen::Controls => self.state == "menu" || self.state == "paused",
+            Screen::Settings | Screen::Controls | Screen::ReplaySettings => self.state == "menu" || self.state == "paused",
             Screen::Dead => self.state == "dead",
             Screen::Ending => self.state == "ending",
         };
@@ -310,6 +326,7 @@ impl Game {
                 let to = self.menu.back.unwrap_or(if self.state == "paused" { Screen::Pause } else { Screen::Title });
                 self.open_menu(to);
             }
+            Some(Screen::ReplaySettings) => self.open_menu(Screen::Settings),
             Some(Screen::ConfirmNew) => self.open_menu(Screen::Title),
             Some(Screen::ConfirmLeave) => self.open_menu(Screen::Pause),
             Some(Screen::Pause) => self.resume(),
@@ -350,7 +367,7 @@ impl Game {
             return true;
         }
         let n = self.menu.items.len().max(1);
-        let row = self.menu.items.get(self.menu.sel).and_then(|i| ROWS.iter().find(|r| r.1 == i.id)).map(|r| r.0);
+        let row = self.menu.items.get(self.menu.sel).and_then(|i| row_of(i.id));
         match code {
             "ArrowUp" | "KeyW" => self.menu.sel = (self.menu.sel + n - 1) % n,
             "ArrowDown" | "KeyS" | "Tab" => self.menu.sel = (self.menu.sel + 1) % n,
@@ -377,8 +394,8 @@ impl Game {
     }
     /// A line of a list was chosen (by key or click)
     pub fn menu_choose(&mut self, id: &str) {
-        if let Some((r, _, _)) = ROWS.iter().find(|r| r.1 == id) {
-            return self.change_setting(*r, 1);
+        if let Some(r) = row_of(id) {
+            return self.change_setting(r, 1);
         }
         if let Some(b) = BINDINGS.iter().find(|b| bind_id(b.act) == id) {
             // Escape stays the pause key: it is the way out of everything
@@ -403,6 +420,7 @@ impl Game {
             "menu:new-yes" => self.new_descent(),
             "menu:settings" => self.open_menu(Screen::Settings),
             "menu:controls" => self.open_menu(Screen::Controls),
+            "menu:replay-settings" => self.open_menu(Screen::ReplaySettings),
             "menu:reset-keys" => {
                 self.settings.binds = crate::session::settings::default_binds();
                 self.save_settings();

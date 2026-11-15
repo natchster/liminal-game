@@ -1158,6 +1158,7 @@ impl Game {
                 self.menu.sel = self.menu.items.iter().position(|i| i.id == "set:brightness").unwrap_or(0);
             }
             "controls" => self.open_menu(Screen::Controls),
+            "replay-settings" => self.open_menu(Screen::ReplaySettings),
             _ => {}
         }
     }

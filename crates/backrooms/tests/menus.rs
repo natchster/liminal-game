@@ -173,6 +173,44 @@ fn the_pause_stops_the_world_and_leads_to_settings_and_back() {
     assert!(g.live_menu().is_none());
 }
 
+/// Settings › Replays (GitHub issue #9): a page of Settings with what a
+/// recording leaves of the disk and how often it looks, stepped by the
+/// arrows or a click and kept; back to Settings, then where Settings was
+/// opened from.
+#[test]
+fn the_replay_settings_are_a_page_of_settings() {
+    let mut g = new_game();
+    frame(&mut g, 5);
+    g.menu_choose("menu:settings");
+    assert_eq!(g.live_menu(), Some(Screen::Settings));
+    let at = g.menu.items.iter().position(|i| i.id == "menu:replay-settings").expect("Settings lists Replays");
+    assert_eq!(g.menu.items[at].label, "Replays");
+    g.menu.sel = at;
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::ReplaySettings));
+    assert_eq!(labels(&g), ["Free space to keep", "Check free space every", "Back"]);
+    let details: Vec<&str> = g.menu.items.iter().map(|i| i.detail.as_str()).collect();
+    assert_eq!(details, ["5% of the disk", "minute", ""]);
+    // the arrows step the chosen line, at once and kept
+    press(&mut g, "ArrowLeft");
+    assert_eq!((g.settings.replay_free_pct, g.menu.items[0].detail.as_str()), (4, "4% of the disk"));
+    press(&mut g, "ArrowDown");
+    press(&mut g, "ArrowRight");
+    assert_eq!((g.settings.replay_check_min, g.menu.items[1].detail.as_str()), (2, "2 minutes"));
+    let kept = g.storage_get(game::session::settings::SETTINGS_KEY).expect("the change was kept");
+    assert!(kept.contains("\"replayFreePct\":4") && kept.contains("\"replayCheckMin\":2"), "{kept}");
+    // a click on a line steps it on
+    let (x, y) = spot(&mut g, "set:replay-check").expect("the interval's line can be clicked");
+    g.menu_hover(x, y);
+    g.click(&g.hud_hit_test(x, y));
+    assert_eq!(g.settings.replay_check_min, 3);
+    // back to Settings, then to the title Settings was opened from
+    press(&mut g, "Escape");
+    assert_eq!(g.live_menu(), Some(Screen::Settings));
+    press(&mut g, "Escape");
+    assert_eq!(g.live_menu(), Some(Screen::Title));
+}
+
 #[test]
 fn leaving_for_the_title_keeps_the_notebook() {
     let mut g = new_game();
