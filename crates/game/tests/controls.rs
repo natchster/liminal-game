@@ -2,10 +2,10 @@
 //! key fires once, running and using things go together, a spent sprint
 //! comes back without a stutter, crouch holds or toggles, Escape pauses and
 //! resumes, E uses what you face, the mouse buttons work in play, the
-//! notebook pages without stealing a strafe, and the cards wait for their
-//! key until they are up.
+//! notebook pages without stealing a strafe, the cards wait for their key
+//! until they are up, and the docs' table of keys is the binding table.
 use game::prelude::*;
-use game::session::input::{Act, BINDINGS, LEFT_HAND, acts_for};
+use game::session::input::{Act, BINDINGS, LEFT_HAND, acts_for, key_label};
 
 const DT: f64 = 1.0 / 60.0;
 
@@ -64,6 +64,45 @@ fn what_a_run_needs_is_in_reach() {
         }
     }
     assert_eq!(acts_for("KeyE").collect::<Vec<_>>(), vec![Act::Interact]);
+}
+
+/// The keys as the docs give them (`docs/design/UI.md`, *The keys*) are the
+/// binding table's, row for row: an action added, renamed or bound to
+/// another key shows there, or this fails (the README's copy of the table
+/// had gone without F9).
+#[test]
+fn the_documented_keys_are_the_binding_table() {
+    let ui = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/design/UI.md")).expect("docs/design/UI.md");
+    let at = ui.find("\n## The keys\n").expect("docs/design/UI.md has a section *The keys*") + 1;
+    let section = &ui[at..];
+    let section = &section[..section[3..].find("\n## ").map_or(section.len(), |e| e + 3)];
+    let documented: Vec<(String, String)> = section
+        .lines()
+        .filter_map(|l| {
+            let cells: Vec<&str> = l.trim().strip_prefix('|')?.strip_suffix('|')?.split('|').map(str::trim).collect();
+            let row = cells.len() == 2 && cells[0] != "Action" && !cells[0].starts_with("---");
+            row.then(|| (cells[0].to_string(), cells[1].to_string()))
+        })
+        .collect();
+    let shipped: Vec<(String, String)> = BINDINGS
+        .iter()
+        .map(|b| {
+            // both Shifts are "Shift": a name once
+            let mut names: Vec<String> = vec![];
+            for k in b.keys {
+                let n = key_label(k);
+                if !names.contains(&n) {
+                    names.push(n);
+                }
+            }
+            (b.label.to_string(), names.join(", "))
+        })
+        .collect();
+    assert_eq!(
+        documented, shipped,
+        "docs/design/UI.md's *The keys* is not BINDINGS (crates/game/src/session/input.rs): write its rows again from the table, \
+         each action's label and its keys as key_label names them"
+    );
 }
 
 #[test]

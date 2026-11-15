@@ -69,7 +69,20 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
   fails on a per-frame draw during a build.
 * **`backrooms`** is the executable: it registers the placers (`placers::register_all`), runs the
   window loop, turns the game's state into render calls, and has the
-  headless modes (`--screenshot`, `--dump-level`) and the whole-game tests.
+  headless modes (`--screenshot`, `--dump-level`; every option in
+  [`BUILD.md`](BUILD.md)) and the whole-game tests.
+* **`xtask`** is the project's automation (`cargo xtask …`: the checks,
+  the goldens, the bench, the asset pipelines, the voices, the
+  cutscenes, the visual playtest, the bundle, the agents' hook).
+
+Beside the crates: `assets/src/` holds the sources the asset pipelines
+build from (the Blender scripts of the props and the bodies, the CC0
+photographs' sources and how they are prepared, the cutscenes, the
+voices' personas and lines; `assets/README.md`),
+`tools/voice/` the voice pipeline's Python tools ([`VOICES.md`](VOICES.md)),
+`perf/` the bench's history ([`PERF.md`](PERF.md)), `packaging/` the app's
+`Info.plist` and icon, and `docs/` the docs, sorted by kind
+([`../README.md`](../README.md)).
 
 ## The game crate
 

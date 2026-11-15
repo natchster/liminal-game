@@ -429,6 +429,40 @@ fn every_docs_path_named_exists() {
     );
 }
 
+/// The command line has one list, `docs/engineering/BUILD.md`: every option
+/// the executable reads (`parse_args`, `crates/backrooms/src/main.rs`) is
+/// named there, and every option its tables name is read (the README's
+/// table had fallen behind by most of them).
+#[test]
+fn every_command_line_option_is_documented() {
+    let main = read("crates/backrooms/src/main.rs");
+    let body = &main[main.find("fn parse_args()").expect("main.rs has parse_args")..];
+    let body = &body[..body.find("\nfn ").unwrap_or(body.len())];
+    let option = |t: &str| t.len() > 2 && t.starts_with("--") && t[2..].chars().all(|c| c.is_ascii_lowercase() || c == '-');
+    let mut read_by_main: Vec<&str> = body.split('"').filter(|t| option(t)).collect();
+    read_by_main.sort_unstable();
+    read_by_main.dedup();
+    assert!(read_by_main.len() > 40, "parse_args reads only {} options: has the parser moved?", read_by_main.len());
+    let doc = read("docs/engineering/BUILD.md");
+    // `--save` is not named by `--save-to`
+    let named = |o: &str| doc.match_indices(o).any(|(i, _)| !doc[i + o.len()..].starts_with(|c: char| c.is_ascii_lowercase() || c == '-'));
+    let undocumented: Vec<&&str> = read_by_main.iter().filter(|o| !named(o)).collect();
+    let mut in_tables: Vec<&str> = doc
+        .lines()
+        .filter(|l| l.starts_with("| `--"))
+        .flat_map(|l| l.split(|c: char| !(c.is_ascii_lowercase() || c == '-')))
+        .filter(|t| option(t))
+        .collect();
+    in_tables.sort_unstable();
+    in_tables.dedup();
+    let unread: Vec<&&str> = in_tables.iter().filter(|o| !read_by_main.contains(o)).collect();
+    assert!(
+        undocumented.is_empty() && unread.is_empty(),
+        "docs/engineering/BUILD.md is the command line's list: add a row for each option main.rs reads {undocumented:?}, \
+         and drop those it no longer reads {unread:?}"
+    );
+}
+
 /// The placers live by theme (GitHub issue #2): `place_<name>`, of theme T
 /// in `world::tables::PLACER_THEME` (unlisted: domestic, as the game reads
 /// it), is registered by `crates/placers/placers_<T>/` from its own module

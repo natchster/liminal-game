@@ -39,6 +39,7 @@ a study's, never a design's (`tests/structure.rs` fails on one).
 
 | Read | For |
 |---|---|
+| [`engineering/BUILD.md`](engineering/BUILD.md) | building and running: the requirements, the bundle, where the game keeps things, every command-line option (`tests/structure.rs` holds the list to the parser) |
 | [`engineering/ARCHITECTURE.md`](engineering/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
 | [`engineering/DEVELOPMENT.md`](engineering/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
 | [`engineering/AGENTS.md`](engineering/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |

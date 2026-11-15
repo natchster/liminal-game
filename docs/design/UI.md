@@ -99,6 +99,47 @@ gone when it is not needed.
    unheard, and the line shows how far the seek has come. Escape goes
    back to the title; at its end it holds on its last frame.
 
+## The keys
+
+The binding table as it ships (`BINDINGS`, `crates/game/src/session/input.rs`),
+each action with its keys as the Controls page names them;
+`tests/controls.rs` fails when the two differ.
+
+| Action | Keys |
+|---|---|
+| Walk forward | W, ↑ |
+| Walk back | S, ↓ |
+| Step left | A, ← |
+| Step right | D, → |
+| Run (hold) | Shift |
+| Crouch (hold) | Ctrl |
+| Crouch (toggle) | C |
+| Use, take, open | E, Left click |
+| Light | F, Right click |
+| Drop a sheet of paper | Q |
+| Drink almond water | G, 1 |
+| Change the battery | R, 2 |
+| Call out | V, H |
+| Notebook | Tab, J |
+| Look at what you carry (hold) | X |
+| Pause | Esc, P |
+| Mute | M |
+| Record (start, stop) | F9 |
+| Debug panel | F3 |
+
+The mouse looks (a click in the window captures the pointer). With the
+arrows, crouch with C: Ctrl+arrows is Mission Control's. In the
+notebook, the arrows, the wheel or a click turn its pages. A spent run
+comes back at 30 stamina, and an E a moment early still lands. The
+window's own keys are not the game's and cannot be rebound: F11 or
+Ctrl+Cmd+F toggles full screen, Cmd+Q quits.
+
+Settings (from the title or the pause list) change the look speed,
+invert, field of view, head bob, camera shake, film grain, the run key
+(hold or press), volume, brightness and whether leaving the window
+pauses; Controls rebinds any key (Enter on a line, then the key; keys
+swap). They are kept apart from the save.
+
 ## What only people can tell
 
 Every gate above holds what can be measured: the keys are in reach, a run

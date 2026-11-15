@@ -43,6 +43,7 @@ folders, and every `docs/…` path the repository names exists.
 
 | Read | For |
 |---|---|
+| [`docs/engineering/BUILD.md`](docs/engineering/BUILD.md) | building and running: the requirements, the bundle, where the game keeps things, every command-line option (`tests/structure.rs` holds the list to the parser) |
 | [`docs/engineering/ARCHITECTURE.md`](docs/engineering/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
 | [`docs/engineering/DEVELOPMENT.md`](docs/engineering/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
 | [`docs/engineering/AGENTS.md`](docs/engineering/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
