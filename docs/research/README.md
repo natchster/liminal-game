@@ -113,3 +113,12 @@ One more was gathered on 2026-11-14 for the replays and saves
 | Note | What it covers |
 |---|---|
 | [`replays.md`](replays.md) | How games record and replay: input demos over a deterministic simulation (Doom, Quake's network demos, StarCraft, Age of Empires, Supreme Commander, Factorio, Halo, Trackmania, osu!, Celeste's TAS files) against state streams (Quake III, Unreal, Rocket League, Overwatch) and keyframes with inputs (MotoGP, Photon Quantum); starting anywhere (simulating from a checkpoint, snapshots, a save as a replay's start); determinism (the time step, random streams, iteration order, threads, and floating point across builds and systems: libm, FMA, fast-math, `powi`, the `libm` and CORE-MATH libraries); file size (inputs quantized where they enter, varints, deflate; sizes a minute); desync checks and binding a replay to its build; recording, browsing and playback in the menus; what this game does today, read from its code; twelve recommendations and a file layout |
+
+One more was gathered on 2026-11-15 for the writing on the walls (GitHub
+issue #11, [`../plan/PROPS.md`](../plan/PROPS.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 21:
+
+| Note | What it covers |
+|---|---|
+| [`graffiti.md`](graffiti.md) | Writing on walls by people in distress (prison cells, asylums, Hiroshima, trapped miners and sailors) and what reads as fake in games and film; the media an office offers and their colours (pencil, ballpoints, marker, lipstick, blood as it browns, correction fluid, scratches); how marks sit on a surface and take its light; handwriting under stress and fatigue; the game's writing beside it; twelve rules for drawing it |
+

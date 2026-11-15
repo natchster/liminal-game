@@ -614,3 +614,34 @@ is kept whole in [`replays.md`](replays.md), every claim linked.
 **Checking and showing a replay** (Factorio's and SupCom's checksums, Fortnite's and Overwatch's replay browsers, MotoGP's seeking; sections 5 and 6).
 - Says: store state checksums and stop at the first mismatch; a replay list with a build badge; pause, speed, skip and a timeline; show a frozen frame with progress while seeking.
 - Used for: hashes every 60 frames, the Replays screen and its controls (R3–R5).
+
+## 21. Writing on the walls
+
+Gathered on 2026-11-15 for GitHub issue #11 ([`../plan/PROPS.md`](../plan/PROPS.md),
+*Writing on the walls*); the note is kept whole in [`graffiti.md`](graffiti.md),
+every claim linked.
+
+**Real distressed wall writing** (the Cologne Gestapo cells, Kilmainham
+Gaol, the Tower of London, Richmond Castle, Volterra, Hiroshima's
+Fukuromachi school, trapped miners' and the Kursk's notes; the note's
+section 1).
+- Says: pencil, charcoal, chalk and incised marks, in short stacked lines,
+  misspelt, to named people, with day counts; most of it faint, read in
+  light across it; a dying hand fades and trails off.
+- Used for: the layout, the media and the words of the walls' writing
+  (G2, G3, G5).
+
+**Colours and surfaces** (how ballpoints, blood, inks, graphite and
+engraving behave; sections 2 and 3).
+- Says: ballpoint skips on a wall; blood browns within hours; graphite
+  shines and grooves; ink feathers into paper; nothing glows.
+- Used for: an office's media and their colours, no aerosol, chalk or
+  bright red; the writing baked into its wall's surface and lit with it
+  (G3, G4).
+
+**Handwriting under stress** (motor-noise studies, hurried and tired
+writing; section 4).
+- Says: distress shows as variability (pressure, letter size and shape,
+  slant, drift), not as an illegible scrawl; letters grow as it goes on.
+- Used for: the distressed hand (G2).
+

@@ -183,3 +183,29 @@ shadows, so each change was judged alone):
   never burns lower, what was left out stays out, and the place's own
   flames (the candles on the bench, a haunted floor's) keep off the Lobby
   and every floor with rules of its own, as the things a hand can use do.
+
+## Writing on the walls (GitHub issue #11)
+
+The brief, the owner's: "Research spooky graffiti visuals in the web and
+compare with the ones in game. Remove illogical colors, make font less
+cartoonish and more similar to writing of emotionally distressed human.
+Bake graffiti into textures of surfaces underneath and check that
+lightning is correct."
+
+The research and the comparison: [`../research/graffiti.md`](../research/graffiti.md).
+The game's writing (`core_props/tail.rs`, `tail_graffiti`) glows in
+aerosol yellow, chalk and a red that never browns, in a stick font more
+like type than a hand, on an unlit plane 4.5 cm off its wall, and some
+of its phrases give the player rules.
+
+| Milestone | What |
+|---|---|
+| G1 | the research, and the game's writing beside it |
+| G2 | the hand: a writer of its own (not the labels'), in short stacked lines, its size, slope, slant and pressure drifting, letters growing and crowding, now and then a word crossed out or gone over, a message fading; day counts as dates or tallies |
+| G3 | the media an office offers, in their colours (pencil, ballpoints, marker, lipstick or red pen, blood gone brown, correction fluid, a scratch), at their sizes and heights; no aerosol, no chalk, no bright red |
+| G4 | baked into the wall: written into a copy of the wallpaper under it and drawn with its wall's own material, so its light, grime and detail are the wall's; checked lit and dark, in the goldens and the visual playtest |
+| G5 | the words: in the first person, to someone, dated, never a rule or the way (lore-keeper) |
+
+The level's stream keeps its draws: what is new is drawn by the writing's
+own painter (`canvas_tex`), so no floor moves but for its writing.
+
