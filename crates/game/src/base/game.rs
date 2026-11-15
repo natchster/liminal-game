@@ -181,6 +181,14 @@ pub struct Game {
     pub figure_perches: Vec<Vec3>,
     /// Where the Well's lift cage hangs, if it has one
     pub lift_at: Option<Vec3>,
+    /// the floor's working lift: where you stand to call it (your asides
+    /// come upon it, `audio::noticing`)
+    pub lift_working_at: Option<Vec3>,
+    /// things out of place as their passes made them (placer's subject):
+    /// read once the floor is fitted (`fit_noticing`), then let go
+    pub odd_spots: Vec<(Obj, &'static str)>,
+    /// what the floor holds to be come upon (`audio::noticing`)
+    pub noticing: crate::audio::noticing::Noticing,
     /// The Well's sealed doors and what answers a knock at them (`world::knock`)
     pub knocks: crate::world::knock::Knocks,
     /// The archgen layout of the current level
@@ -846,6 +854,9 @@ impl Game {
             far_figure: None,
             figure_perches: vec![],
             lift_at: None,
+            lift_working_at: None,
+            odd_spots: vec![],
+            noticing: Default::default(),
             knocks: Default::default(),
             layout: None,
             solids: None,

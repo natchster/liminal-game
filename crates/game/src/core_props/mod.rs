@@ -1117,6 +1117,8 @@ impl Game {
             });
             g.show_msg("SOMEONE SCREAMED. THEY HEARD.", 2.8);
         }
+        // your asides: once what answered has had its say
+        g.aside_later(3000.0, crate::audio::asides::Use::Used, "phone");
     }
 
     /// mannequin. do not blink (sets `man_data`; its timer is `f["timer"]`)

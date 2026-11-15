@@ -204,6 +204,8 @@ impl Game {
                 m.body.lift(k);
                 m.state.near = None;
                 self.vending_sound(i, Sfx::Motor);
+                // your asides: once the good has turned out and caught
+                self.aside_later(2200.0, crate::audio::asides::Use::Used, "vending");
             }
             Verb::Rock => {
                 let m = &mut self.vending[i];

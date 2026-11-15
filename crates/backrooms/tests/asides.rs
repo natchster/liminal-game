@@ -3,8 +3,10 @@
 //! held still, the voice director answers the place: sudden sounds are
 //! answered and said, each kind at most once a run, never two asides within
 //! the gap, never a line twice; a floor's arrival comes with your first
-//! steps, and a retry or a Continue of the floor never says it again; and
-//! the same run says the same.
+//! steps, and a retry or a Continue of the floor never says it again; the
+//! same run says the same; and what you come upon, use, pick up or meet first
+//! tells the director (GitHub issue #10), each once, a thing out of place
+//! only the first of a floor, a word about a sound only once it has sounded.
 mod common;
 
 use engine::audio::AudioContext;
@@ -278,4 +280,194 @@ fn a_run_down_ten_floors_arrives_with_a_word_on_many_and_never_says_one_twice() 
         println!("seed {seed}: an arrival on {n} of 10 floors");
         assert!(n >= 4, "seed {seed}: an arrival on only {n} of 10 floors: {arrived:?}");
     }
+}
+
+/// Whether your asides were told of `k` (`use:subject`): weighed, or owed
+fn told(g: &Game, k: &str) -> bool {
+    g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k)
+}
+
+/// Stand `back` metres before `at`, facing it, the lamp on
+fn stand_before(g: &mut Game, at: engine::math::Vec3, back: f64) {
+    use engine::dmath::DMath;
+    let p = g.player.pos;
+    let (dx, dz) = (at.x - p.x, at.z - p.z);
+    let d = dx.dhypot(dz).max(1e-6);
+    g.player.pos.x = at.x - dx / d * back;
+    g.player.pos.z = at.z - dz / d * back;
+    g.player.yaw = (-dx).datan2(-dz);
+    g.player.flashlight_on = true;
+}
+
+/// What you come upon tells your asides (GitHub issue #10): a window, the
+/// floor's door, the working lift, the broken one, a thing out of place
+/// (only the first of a floor), each once; not from where you arrive.
+#[test]
+fn coming_upon_things_tells_your_asides_once_and_one_odd_thing_a_floor() {
+    let mut seen: std::collections::BTreeSet<String> = Default::default();
+    let mut odd_floor = false;
+    'floors: for seed in [4242u32, 77, 202, 9001] {
+        for level in 5..=9 {
+            let (mut g, ac) = start(seed, level);
+            play(&mut g, &ac, 0.5, false);
+            let things = g.noticing.things.clone();
+            for n in &things {
+                let k = format!("{}:{}", n.use_.name(), n.subject);
+                if seen.contains(&k) || !g.noticing.things.contains(n) {
+                    continue;
+                }
+                stand_before(&mut g, n.at, 1.0);
+                play(&mut g, &ac, 0.5, false);
+                assert!(!g.noticing.things.contains(n), "{seed}/{level}: {k} at {:?} not come upon from 1 m", n.at);
+                if told(&g, &k) {
+                    seen.insert(k.clone());
+                }
+                // a thing out of place: the floor's others are let go
+                if n.use_ == Use::Odd {
+                    assert!(g.noticing.odd_done && !g.noticing.things.iter().any(|t| t.use_ == Use::Odd), "{seed}/{level}");
+                    if let Some(other) = things.iter().find(|t| t.use_ == Use::Odd && t.subject != n.subject) {
+                        let after = g.asides.memory.events.get("odd").copied().unwrap_or(0);
+                        stand_before(&mut g, other.at, 1.0);
+                        play(&mut g, &ac, 0.5, false);
+                        assert_eq!(g.asides.memory.events.get("odd").copied().unwrap_or(0), after, "{seed}/{level}: a second odd thing");
+                        odd_floor = true;
+                    }
+                }
+            }
+            let want = ["noticed:window", "noticed:exit", "noticed:lift", "noticed:lift_broken"];
+            if want.iter().all(|k| seen.contains(*k)) && seen.iter().any(|k| k.starts_with("odd:")) && odd_floor {
+                break 'floors;
+            }
+        }
+    }
+    println!("told: {seen:?}");
+    for k in ["noticed:window", "noticed:exit", "noticed:lift", "noticed:lift_broken"] {
+        assert!(seen.contains(k), "no {k} told your asides: {seen:?}");
+    }
+    assert!(seen.iter().any(|k| k.starts_with("odd:")), "no thing out of place told your asides: {seen:?}");
+    assert!(odd_floor, "no floor with two kinds of odd things to hold to one");
+}
+
+/// The vacuum met, a note picked up: your asides are told, the note once
+/// its chime has rung.
+#[test]
+fn meeting_the_vacuum_and_a_note_tell_your_asides() {
+    let (mut vacuum, mut note) = (false, false);
+    'floors: for seed in [4242u32, 77, 202, 9001, 7] {
+        for level in 5..=10 {
+            let (mut g, ac) = start(seed, level);
+            play(&mut g, &ac, 0.5, false);
+            if !vacuum && let Some(at) = g.vacuum_bot.as_ref().map(|v| v.g.pos()) {
+                stand_before(&mut g, at, 1.0);
+                play(&mut g, &ac, 0.5, false);
+                assert!(g.noticing.vacuum_met, "{seed}/{level}: the vacuum not met from 1 m");
+                vacuum |= told(&g, "noticed:vacuum");
+            }
+            if !note && let Some(at) = g.lore_notes.iter().find(|n| !n.taken).map(|n| n.g.pos()) {
+                g.player.pos.x = at.x;
+                g.player.pos.z = at.z;
+                play(&mut g, &ac, 0.4, false);
+                assert!(!told(&g, "found:note"), "{seed}/{level}: told before the chime");
+                play(&mut g, &ac, 1.5, false);
+                note |= told(&g, "found:note");
+            }
+            if vacuum && note {
+                break 'floors;
+            }
+        }
+    }
+    assert!(vacuum, "no vacuum met told your asides");
+    assert!(note, "no note picked up told your asides");
+}
+
+/// Using things (GitHub issue #10): the phone answered, the first coin in a
+/// machine, a dead lift's button that brings nothing; each told once what
+/// it set off has sounded, never before.
+#[test]
+fn using_the_phone_a_machine_and_a_dead_lift_tells_your_asides_once_they_have_sounded() {
+    use game::core_props::vending::rules::Verb;
+    let mut found: std::collections::BTreeSet<&str> = Default::default();
+    'floors: for seed in [4242u32, 77, 202, 7, 9001, 31337] {
+        for level in 5..=12 {
+            let (mut g, ac) = start(seed, level);
+            play(&mut g, &ac, 0.5, false);
+            if !found.contains("used:phone") && g.phone_data.is_some() {
+                g.answer_payphone();
+                play(&mut g, &ac, 1.5, false);
+                assert!(!told(&g, "used:phone"), "{seed}/{level}: told before it had its say");
+                play(&mut g, &ac, 3.0, false);
+                if told(&g, "used:phone") {
+                    found.insert("used:phone");
+                }
+            }
+            if !found.contains("used:vending") && !g.vending.is_empty() {
+                g.vending[0].state.gaze = Some(0);
+                g.player.coins = 1;
+                g.vending_use(0, Verb::InsertCoin);
+                play(&mut g, &ac, 1.0, false);
+                assert!(!told(&g, "used:vending"), "{seed}/{level}: told before the good turned out");
+                play(&mut g, &ac, 3.0, false);
+                if told(&g, "used:vending") {
+                    found.insert("used:vending");
+                }
+            }
+            if !found.contains("used:lift_dead") {
+                let buttons: Vec<usize> =
+                    (0..g.interactables.len()).filter(|&i| g.interactables[i].prompt == "[E] PRESS THE BUTTON").collect();
+                for i in buttons {
+                    use_it(&mut g, i);
+                    play(&mut g, &ac, 0.6, false);
+                    assert!(!told(&g, "used:lift_dead"), "{seed}/{level}: told before the button clicked");
+                    play(&mut g, &ac, 2.0, false);
+                    if told(&g, "used:lift_dead") {
+                        found.insert("used:lift_dead");
+                        break;
+                    }
+                }
+            }
+            if found.len() == 3 {
+                break 'floors;
+            }
+        }
+    }
+    assert_eq!(found.len(), 3, "told: {found:?}");
+}
+
+/// The run's first creature is a meeting (GitHub issue #10), whatever its
+/// kind; a kind after it is a sighting of its own.
+#[test]
+fn the_first_creature_of_a_run_is_a_meeting_and_the_next_kinds_are_sightings() {
+    // the kinds a first sight can be (`Use::Sighted`'s subjects: never the
+    // Watcher, nor an anomaly's figures)
+    let kinds_of = |g: &Game| -> Vec<(usize, String)> {
+        let mut seen: Vec<(usize, String)> = vec![];
+        for (i, e) in g.entities.iter().enumerate() {
+            if Use::Sighted.subjects().contains(&e.kind.as_str()) && !seen.iter().any(|(_, k)| *k == e.kind) {
+                seen.push((i, e.kind.clone()));
+            }
+        }
+        seen
+    };
+    let mut floors = 0;
+    'floors: for seed in [4242u32, 77, 202, 9001] {
+        for level in 6..=12 {
+            let (mut g, ac) = start(seed, level);
+            let kinds = kinds_of(&g);
+            if kinds.len() < 2 {
+                continue;
+            }
+            play(&mut g, &ac, 0.5, false);
+            g.entity_sighted(kinds[0].0, 10.0);
+            assert!(told(&g, "met:"), "{seed}/{level}: the first creature was no meeting: {:?}", g.asides.memory);
+            assert!(!g.asides.memory.events.contains_key("sighted"));
+            g.entity_sighted(kinds[1].0, 10.0);
+            assert_eq!(g.asides.memory.events.get("met").copied(), Some(1), "{seed}/{level}: a second meeting");
+            assert!(told(&g, &format!("sighted:{}", kinds[1].1)), "{seed}/{level}: the second kind was no sighting");
+            floors += 1;
+            if floors == 2 {
+                break 'floors;
+            }
+        }
+    }
+    assert_eq!(floors, 2, "two floors with two kinds of creature to meet");
 }

@@ -280,14 +280,18 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 |---|---|---|---|
 | `arrive` | a few seconds after your first steps on a floor | the Well, the Stair Halls, the Works, the first rooms, the rooms, deep down, each anomaly | "There's no bottom." |
 | `startle` | a sudden sound near you, the first of its kind in a run: a level's signature within its carry (a bang, a scream, steps, a laugh, a moan), the stalker's steps far off | its kind | "What was that?" |
-| `sighted` | the first sight of a kind of creature in a run, from where it does not have you (`entity_sighted`; never the Watcher: a word would say which sheet) | the kind (never named): hound, smiler, corner, reader, glass | "Something's crawling." |
+| `met` | the first sight of the run's first creature, whatever its kind, from where it does not have you (`entity_sighted`; never the Watcher) | — | "It moved. It's moving." |
+| `sighted` | the first sight of each kind of creature after the run's first, from where it does not have you (`entity_sighted`; never the Watcher: a word would say which sheet); its general lines are "more of them" | the kind (never named): hound, smiler, corner, reader, glass | "Something's crawling." "There's more of them?" |
 | `knocked` | a touch throws you down and lets you go (`creature_contact`) | — | "Get up. Come on." |
 | `aftermath` | the relief after a close call (`enter_relax` after a peak survived), said once your breath is let go | — | "Is it gone?" |
 | `siren` | the self-assembly's siren (`world::assembly`), through the fog's hush | first (until a line for it is said or declined), again | "What's that siren for?" |
 | `held` | sealed in a cell while it is up: the first knock of what knocks (`world::cell_knock`), the all-clear (posted sealed in, said as you may step out) | knock, clear | "Please, not the door." |
 | `answered` | a resident's door answers your knock (`world::knock`, `knock_answer`), before you pick it up | hatch, note | "Someone's in there." |
 | `uncanny` | the place does something back: a marked door knocks back in your rhythm, the figure across the void turns its back on your look (not when you come upon it), the hole's touch, a dead machine's flap once its print is up, a lift's car once it has gone by, a candle's two notes once sounded, a window's pane once it has ticked; never the Face (it always has you), nor the store's closing (its screen says it) | knock_back, figure, hole, flap, lift, candle, pane | "That was my knock." |
-| `found` | the first time in a run you come within 3.5 m of her camp, on its storey (`update_camp_come`, once a floor) | camp | "Whose things are these?" |
+| `found` | the first time in a run you come within 3.5 m of her camp, on its storey (`update_camp_come`, once a floor); a note picked up, once its chime has rung (`lore_note_pickups`; never what its card says); one of the Showroom's beds come upon | camp, note, bed | "Whose things are these?" |
+| `odd` | you come upon a thing out of place, the first of a floor (the rest of that floor's let go): within 5 m, in sight, before you, lit or your lamp on (`audio::noticing`; kept as their placers' passes made them) | pool, occult, cones, toys, party | "Who swims in a place like this?" |
+| `noticed` | you come upon a window, the vacuum (4 m), the floor's door where it is only a door (never the Loop's, the Borrowed House's, the Stairwell's, the Showroom's), the working lift, the broken one | window, vacuum, exit, lift, lift_broken | "There's an outside?" |
+| `used` | the payphone answered, once what answered has had its say; the first coin in a machine, once the good has turned and caught; a dead lift's button that brings nothing, once it has clicked | phone, vending, lift_dead | "Why would it ring for me?" |
 | `nerve` | your nerve falls under 0.28 of it (where its heartbeat and whispers begin), once a floor, and again only after it is back over 0.4 (`asides_nerve`) | — | "Keep it together." |
 | `dark` | the lamp's battery runs out while it is on, where the place is dark (`in_dark_region`; at most once a minute) | — | "Not the lamp." |
 

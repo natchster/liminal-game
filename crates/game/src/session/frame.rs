@@ -82,6 +82,7 @@ impl Game {
             self.update_entities(dt, perf_t);
             self.update_director(dt);
             self.update_camp_come();
+            self.update_noticing(dt);
             self.update_asides(dt);
             // a cutscene's camera over play's, its cues and its end
             self.cutscene_post(dt);

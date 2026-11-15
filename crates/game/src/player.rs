@@ -1437,6 +1437,8 @@ impl Game {
                 self.sfx_chime();
                 let title = self.lore_entry_title(id);
                 self.show_msg(&format!("NOTE FOUND — {title} (J to read)"), 2.2);
+                // your asides: once the chime has rung
+                self.aside_later(1200.0, crate::audio::asides::Use::Found, "note");
                 // Arc completion: if this pickup finished an arc, a special toast + chord.
                 for (name, ids) in self.lore_arc_list() {
                     if self.lore_arcs_completed.contains(&name) {

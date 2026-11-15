@@ -65,8 +65,8 @@ these channels, and the `lore-keeper` reviewer checks it:
 - **What you take**: one line as you take a thing put away (or reach into
   the hole): what it is and its taste or feel, never what it does, never
   why.
-- **The payphone**: a voice on a ringing line, a few words: a whisper, where
-  to look, or worse; never why.
+- **The payphone**: it rings as you come near it, never before; a voice
+  on the line, a few words: a whisper, where to look, or worse; never why.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of
   place, never a name, a number or a rule.
 - **Your asides**: your own voice under your breath (`docs/design/VOICES.md`,
@@ -75,9 +75,10 @@ these channels, and the `lore-keeper` reviewer checks it:
   at a sudden sound heard near (a bang, a scream far off, steps, a laugh,
   a moan: in the rooms, and on the Building's floors only a bang), the
   first of its kind in a run, now and then, never to anyone; at the first
-  sight of a kind of thing that lives here, from where it does not have
-  you (what you see of it, never what it is; never at the Watcher, which
-  at a glance is one of the sheets); when a touch throws you down and
+  sight of the first thing that lives here in a run, whatever it is, and
+  at the first sight of each kind after it (a meeting, then more of them),
+  from where it does not have you (what you see of it, never what it is;
+  never at the Watcher, which at a glance is one of the sheets); when a touch throws you down and
   lets you go; in the relief after a close call, never that it is over;
   and on the Building's floors at the siren, at a knock on the cell you
   are sealed in and at the all-clear there, when a resident's door
@@ -87,7 +88,14 @@ these channels, and the `lore-keeper` reviewer checks it:
   the print is on its glass, when a lift's car has gone by behind its
   doors, when the two notes have sounded after a candle you blew out, and
   when a window's pane ticks; and the first time you come upon someone
-  else's camp, never whose (what you feel, hear and see, never what it
+  else's camp, never whose; when you come upon a thing out of place (a
+  pool, a shrine's things, cones, toys, a party's things: the first of
+  them on a floor, no more), a window, the vacuum, the floor's door where
+  it is only a door, the lift that works or the broken one; when you have
+  answered the payphone, put the first coin in a machine, or pressed a
+  dead lift's button and nothing came; when you pick up a note (never
+  what its card has just said, nor who left it) and when you come upon
+  one of the Showroom's beds (what you feel, hear and see, never what it
   is, who did it, nor what to do; a word about a sound only once it has
   sounded); on the Stairwell's stairs once its door has locked behind you;
   when your nerve comes near its end; and when your lamp dies where the
@@ -1112,6 +1120,13 @@ it can be looked into again). What looks back is not one of the things
 that live here: it never comes out, and nothing sends it. Nothing says
 what was down there, the lift is never a way, and what you heard was heard
 by nothing but you.
+
+**The vacuum.** On each floor of the rooms a small robot vacuum still
+runs, slowly, about the carpet, someone's name taped on its lid: the one
+thing down here glad of you. Tapped, it mostly follows you for a while,
+sometimes chases you in play; now and then the tap is a kick, and its
+clank is heard by what is near (`core_props/tail.rs`). It is not one of
+the things that live here, and it harms no one by itself.
 
 ## What still burns
 

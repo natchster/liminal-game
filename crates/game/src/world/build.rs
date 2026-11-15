@@ -60,13 +60,19 @@ impl Game {
         self.placer_theme_cache.insert(name.to_string(), t);
         t
     }
-    /// What a pass added carries its placer's name
+    /// What a pass added carries its placer's name; a thing out of place is
+    /// kept for your asides to come upon (`audio::noticing`; no draw)
     pub fn tag_placed(&mut self, c0: usize, name: &str) {
+        let odd = crate::audio::noticing::odd_subject(name, self.placer_theme(name));
         for k in c0..self.world.child_count() {
             let c = self.world.child(k).unwrap();
             let mut u = c.user();
             if u.placer.as_deref().is_none_or(|s| s.is_empty()) {
                 u.placer = Some(name.to_string());
+            }
+            drop(u);
+            if let Some(s) = odd {
+                self.odd_spots.push((c, s));
             }
         }
     }
@@ -239,6 +245,8 @@ impl Game {
         self.far_figure = None;
         self.figure_perches.clear();
         self.lift_at = None;
+        self.lift_working_at = None;
+        self.odd_spots.clear();
         self.knocks = Default::default();
         self.assembly = Default::default();
         self.audio.cell_knocks.clear();

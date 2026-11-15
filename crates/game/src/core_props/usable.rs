@@ -263,6 +263,9 @@ impl Game {
                     });
                     // your asides: once it has gone by (4 s on, 2.6 s of rumble)
                     g.aside_later(6900.0, crate::audio::asides::Use::Uncanny, "lift");
+                } else {
+                    // nothing comes: your asides, once the button has clicked
+                    g.aside_later(1200.0, crate::audio::asides::Use::Used, "lift_dead");
                 }
             },
         );

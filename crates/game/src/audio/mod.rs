@@ -4,6 +4,7 @@
 
 pub mod ambient;
 pub mod asides;
+pub mod noticing;
 pub mod rap;
 pub mod soundscape;
 pub mod sys;

@@ -179,6 +179,8 @@ impl Game {
         self.fit_story();
         self.fit_secrets();
         self.fit_knocks();
+        // what your asides may come upon (from what was built: no draw)
+        self.fit_noticing();
         // the one in the corner, after her camp (never near it): by the place
         crate::entities::corner::place(self);
         // the Reader, where paper lies

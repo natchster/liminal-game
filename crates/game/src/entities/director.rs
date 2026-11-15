@@ -752,9 +752,16 @@ impl Game {
         self.dread_sting(0.7);
         self.sfx_thump(0.9);
         // your asides: the first sight of a kind in a run, from where it does
-        // not have you (never the Watcher: a word would say which sheet)
+        // not have you (never the Watcher: a word would say which sheet); the
+        // run's first creature is a meeting of its own (GitHub issue #10)
         if kind != "watcher" {
-            self.aside(crate::audio::asides::Use::Sighted, &kind);
+            use crate::audio::asides::Use;
+            let ev = &self.asides.memory.events;
+            if ev.contains_key(Use::Met.name()) || ev.contains_key(Use::Sighted.name()) {
+                self.aside(Use::Sighted, &kind);
+            } else {
+                self.aside(Use::Met, "");
+            }
         }
     }
 

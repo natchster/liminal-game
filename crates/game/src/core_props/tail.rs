@@ -1376,6 +1376,7 @@ impl Game {
             if functional {
                 let mut use_pos = off_wall(&spot, 1.0);
                 use_pos.y = EYE;
+                self.lift_working_at = Some(use_pos);
                 self.interact(use_pos, 1.8, "[E] CALL THE ELEVATOR", |_| true, |gm| gm.next_level_via_elevator());
             }
             elevator_placed += 1;
