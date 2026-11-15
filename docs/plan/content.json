@@ -1328,6 +1328,24 @@
     },
     {
       "checks": [
+        "test:game/hud",
+        "shots:4242_L1_spawn",
+        "shots:4242_L7_spawn"
+      ],
+      "id": "ui/screen",
+      "kind": "system",
+      "last_checked": "2026-11-16",
+      "last_human_review": null,
+      "name": "what lies over the place: the grade, the lens's falloff, the vignettes and the nerve's overlays, and no noise",
+      "notes": "Issue #14: the place as a photograph shows it, not a bad camera's recording: no film grain or other noise (the_screen_lays_no_noise: the overlays draw nothing from the frame stream, two frames at rest alike); the light kept (each golden's mean luma within 0.0002 of before). Whether it now reads as photographed and abandoned is a person's question (PLAYTEST.md).",
+      "passes": {
+        "shots:4242_L1_spawn": true,
+        "shots:4242_L7_spawn": true,
+        "test:game/hud": true
+      }
+    },
+    {
+      "checks": [
         "test:game/faces"
       ],
       "id": "ui/type",

@@ -42,8 +42,8 @@ source: read the materials. Vision models find under half the glitches in a
 frame and hallucinate clipping at near contact: the inspector is a filter,
 never the gate. What the design took:
 
-- the renders deterministic: the world frozen, the grain and the lamps'
-  flicker held between a view's renders, and the bare ones without the HUD;
+- the renders deterministic: the world frozen, the lamps' flicker held
+  between a view's renders, and the bare ones without the HUD;
 - *clip* tests the near face's four corners and the eye, not the eye alone;
 - *flicker* is two detectors: the jitter diff (pixels) and *coplanar*
   (two faces in reach, of one thing or two, parallel, within 2 mm, overlapping);

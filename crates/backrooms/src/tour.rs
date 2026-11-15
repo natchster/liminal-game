@@ -63,9 +63,9 @@ pub fn tour(o: &Options, dir: &str) {
     let mut r = Renderer::new(device);
     // (a new run, or a save's floor built again with her progress read)
     let (mut g, seed, levels) = tool_game(o);
-    // the film grain settled as if the game had run a second (as `--dump-level`)
+    // the overlays settled as if the game had run a second (as `--dump-level`)
     for _ in 0..60 {
-        g.update_grain(1.0 / 60.0);
+        g.update_overlays(1.0 / 60.0);
     }
     let t = r.offscreen_target(w, h);
     for &l in &levels {

@@ -164,7 +164,6 @@ pub struct UiModel {
     pub weather_tint: Element,
     pub aberration: Element,
     pub flash: Element,
-    pub grain: Element,
     pub fade: Element,
     // HUD
     pub hud: Element,
@@ -236,7 +235,7 @@ impl UiModel {
         d.journal_next.text = "NEXT ▶".into();
         d.journal_hint.text = "[TAB] CLOSE".into();
         // (the menus and cards are `ui::menu`; the overlay keeps no words of its own)
-        for el in [&mut d.vignette, &mut d.aberration, &mut d.flash, &mut d.grain, &mut d.fade, &mut d.hud] {
+        for el in [&mut d.vignette, &mut d.aberration, &mut d.flash, &mut d.fade, &mut d.hud] {
             el.classes.insert("layer".into());
         }
         for el in [&mut d.journal_prev, &mut d.journal_next] {
@@ -251,7 +250,6 @@ impl UiModel {
             "weatherTint" => &mut self.weather_tint,
             "aberration" => &mut self.aberration,
             "flash" => &mut self.flash,
-            "grain" => &mut self.grain,
             "fade" => &mut self.fade,
             "hud" => &mut self.hud,
             "level" => &mut self.level,
@@ -305,7 +303,6 @@ impl UiModel {
             &self.weather_tint,
             &self.aberration,
             &self.flash,
-            &self.grain,
             &self.fade,
             &self.hud,
             &self.level,
@@ -372,7 +369,7 @@ pub enum LayerBlend {
 /// One composited HUD layer over the 3D view, in paint order. Rects
 /// are in 0..1 screen units (y down); colours straight-alpha sRGB 0..1.
 pub enum HudLayer {
-    /// a premultiplied canvas (the HUD text and bars, the grain)
+    /// a premultiplied canvas (the HUD text and bars)
     Canvas {
         canvas: std::rc::Rc<std::cell::RefCell<engine::canvas::Canvas>>,
         id: u64,

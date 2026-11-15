@@ -6,9 +6,14 @@ checked. The canon is [`LORE.md`](LORE.md) and the pillars it serves are
 the end are read by `cargo xtask shots`: a zone view whose look leaves its
 purpose's band fails, so this file and the gate cannot disagree.
 
+## The work
+
+How the look was changed (the brief, the analysis, milestones, progress): [`../plan/STYLE.md`](../plan/STYLE.md).
+
 ## The look in one paragraph
 
-Real buildings, photographed badly: worn materials under weak fluorescent
+Real buildings, abandoned, as a photograph shows them (not a bad camera's
+recording of them: GitHub issue #14): worn materials under weak fluorescent
 light, colour that has faded toward yellow-grey, grime gathering near the
 floor, and real darkness between the lit parts. Nothing is clean, nothing is
 saturated, nothing is lit from the player. A place is lit by its own fixtures
@@ -49,8 +54,10 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
   void's first quarter metre. A thing (a prop, a door, a railing) stands
   on its own floor, the one its wear is measured from, or in a pool on
   the pool's.
-- **The camera:** a mild grade and lens vignette, film grain rising as sanity
-  falls. No bloom, no lens flares.
+- **The camera:** a mild grade and lens vignette, and nothing of a camera's
+  own over the place: no film grain or other noise (the screen draws no
+  number a frame: `tests/hud.rs`, `the_screen_lays_no_noise`). No bloom, no
+  lens flares.
 
 ## Type (the screen's three voices)
 

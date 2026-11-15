@@ -97,7 +97,7 @@ pub fn rnd() -> f64 {
     })
 }
 /// Restart the native generator from `seed` instead of the clock, so
-/// per-frame randomness (grain, flicker, creature decisions) repeats exactly:
+/// per-frame randomness (flicker, dust, creature decisions) repeats exactly:
 /// reproducible headless shots and replays.
 pub fn seed_native(seed: u64) {
     RNG.with(|r| {

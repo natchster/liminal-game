@@ -1,5 +1,5 @@
 // Composite pass: the resolved 3D view, then the HUD and the CSS-style overlay layers
-// (vignette, tints, flashes, grain, fade) with CSS mix-blend-mode semantics.
+// (vignette, tints, flashes, fade) with CSS mix-blend-mode semantics.
 // Apple GPUs read the framebuffer in the fragment shader ([[color(0)]]), so
 // every blend mode is computed exactly instead of approximated.
 #include <metal_stdlib>
@@ -64,7 +64,7 @@ fragment float4 fs_scene(QOut in [[stage_in]], texture2d<float> t [[texture(0)]]
     }
     return float4(c, 1.0);
 }
-// a premultiplied image (HUD canvas, grain)
+// a premultiplied image (the HUD canvas)
 fragment float4 fs_image(QOut in [[stage_in]], float4 dst [[color(0)]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]], constant P& p [[buffer(0)]]) {
     float2 uv = in.uv * p.a.zw + p.b.xy;
     float4 c = t.sample(s, uv);

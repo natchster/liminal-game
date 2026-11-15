@@ -116,7 +116,7 @@ voices' personas and lines; `assets/README.md`),
 `backrooms` calls `Game::frame(dt)` (`session::frame`), which runs the
 scheduled callbacks and then the update in a fixed order: player, entities,
 the pacing director, anomaly, prop culling, lights, HUD (which also runs the
-prop animators), dust, film grain, reality glitches, the flicker wave, ghost
+prop animators), dust, the sanity's overlays, reality glitches, the flicker wave, ghost
 footsteps, guide arrows, the vacuum and the broken elevator, sanity effects,
 ambient sound and the soundscape. Inside the Stairwell or the Loop the mode's update replaces
 most of that. A cutscene (`cutscene::play`, `docs/design/CUTSCENES.md`) wraps play's
@@ -125,7 +125,7 @@ update: `cutscene_pre` puts back the gameplay camera of the frame before
 it was), play draws its camera, and `cutscene_post`, after the director
 and your asides, mixes the cutscene's camera over it and runs its cues;
 one that holds the world runs only your body (still), the prop cull, the
-lights, the HUD, dust, grain and the place's sound. The app then asks for the render globals (background, fog, the
+lights, the HUD, dust, the overlays and the place's sound. The app then asks for the render globals (background, fog, the
 light map, the colour filter) and the HUD layers, and renders.
 
 ### Building a level

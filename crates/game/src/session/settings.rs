@@ -25,8 +25,6 @@ pub struct Settings {
     pub bob: f64,
     /// camera shake (scares, low sanity, the lens dip): on or off
     pub shake: bool,
-    /// film grain: on or off
-    pub grain: bool,
     /// the run key toggles a run (until you stop, or it is spent)
     pub run_toggle: bool,
     /// master volume, 0..1
@@ -84,7 +82,6 @@ impl Default for Settings {
             fov: FOV_DEFAULT,
             bob: 1.0,
             shake: true,
-            grain: true,
             run_toggle: false,
             volume: 1.0,
             brightness: 0,
@@ -110,7 +107,7 @@ impl Settings {
         let binds: serde_json::Map<String, Value> = self.binds.iter().map(|(a, k)| (format!("{a:?}"), json!(k))).collect();
         json!({
             "look": self.look, "invertY": self.invert_y, "fov": self.fov, "fovRev": 2, "bob": self.bob, "shake": self.shake,
-            "grain": self.grain, "runToggle": self.run_toggle, "volume": self.volume, "brightness": self.brightness,
+            "runToggle": self.run_toggle, "volume": self.volume, "brightness": self.brightness,
             "focusPause": self.focus_pause, "replayFreePct": self.replay_free_pct, "replayCheckMin": self.replay_check_min,
             "binds": binds,
         })
@@ -141,7 +138,6 @@ impl Settings {
             },
             bob: f("bob", 0.0, 1.0, d.bob),
             shake: b("shake", d.shake),
-            grain: b("grain", d.grain),
             run_toggle: b("runToggle", d.run_toggle),
             volume: f("volume", 0.0, 1.0, d.volume),
             brightness: f("brightness", -5.0, 5.0, d.brightness as f64).round() as i32,
@@ -194,7 +190,6 @@ pub enum Row {
     Fov,
     Bob,
     Shake,
-    Grain,
     Run,
     Volume,
     Brightness,
@@ -206,13 +201,12 @@ pub enum Row {
 }
 
 /// The settings list, in order: (row, its menu id, its label)
-pub const ROWS: [(Row, &str, &str); 10] = [
+pub const ROWS: [(Row, &str, &str); 9] = [
     (Row::Look, "set:look", "Look speed"),
     (Row::Invert, "set:invert", "Invert looking up and down"),
     (Row::Fov, "set:fov", "Field of view"),
     (Row::Bob, "set:bob", "Head bob"),
     (Row::Shake, "set:shake", "Camera shake"),
-    (Row::Grain, "set:grain", "Film grain"),
     (Row::Run, "set:run", "Run key"),
     (Row::Volume, "set:volume", "Volume"),
     (Row::Brightness, "set:brightness", "Brightness"),
@@ -246,7 +240,6 @@ impl Settings {
                 _ => "Off".into(),
             },
             Row::Shake => on_off(self.shake),
-            Row::Grain => on_off(self.grain),
             Row::Run => if self.run_toggle { "Press to run" } else { "Hold to run" }.into(),
             Row::Volume => format!("{:.0}%", self.volume * 100.0),
             Row::Brightness => format!("{:+}", self.brightness).replace("+0", "0"),
@@ -270,7 +263,6 @@ impl Settings {
                 self.bob = [0.0, 0.5, 1.0][(i + dir).clamp(0, 2) as usize];
             }
             Row::Shake => self.shake = !self.shake,
-            Row::Grain => self.grain = !self.grain,
             Row::Run => self.run_toggle = !self.run_toggle,
             Row::Volume => self.volume = ((self.volume + 0.1 * d) * 10.0).round() / 10.0,
             Row::Brightness => self.brightness += dir,

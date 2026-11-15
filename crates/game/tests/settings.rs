@@ -28,13 +28,16 @@ fn step(g: &mut Game, n: usize) {
 fn the_defaults_are_the_game_as_it_was() {
     let s = Settings::default();
     // (the field of view was 74 until wide screens stopped stretching the walls)
-    assert_eq!((s.look, s.invert_y, s.fov, s.bob, s.shake, s.grain), (1.0, false, 64.0, 1.0, true, true));
+    assert_eq!((s.look, s.invert_y, s.fov, s.bob, s.shake), (1.0, false, 64.0, 1.0, true));
     assert_eq!((s.run_toggle, s.volume, s.brightness, s.focus_pause), (false, 1.0, 0, true));
     // a recording keeps 5% of the disk free and looks every minute (issue #9)
     assert_eq!((s.replay_free_pct, s.replay_check_min), (5, 1));
     assert_eq!(s.keys(Act::Drink), ["KeyG", "Digit1"]);
     // a round trip, and nonsense from the store is clamped or ignored
     assert_eq!(Settings::from_json(&s.to_json()), s);
+    // a store from before the film grain was taken out (issue #14) still loads
+    let old = serde_json::json!({ "grain": false, "look": 1.5 });
+    assert_eq!(Settings::from_json(&old).look, 1.5);
     let bad = serde_json::json!({ "look": 40.0, "fov": 10.0, "volume": -3.0, "brightness": 99, "bob": "x", "binds": { "Drink": [], "Nope": ["KeyQ"] },
         "replayFreePct": 50, "replayCheckMin": 0 });
     let t = Settings::from_json(&bad);

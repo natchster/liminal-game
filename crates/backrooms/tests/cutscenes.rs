@@ -360,8 +360,8 @@ fn the_bars_come_in_the_hud_goes_and_a_key_shows_the_way_out() {
     }
     let during = layers(&mut g);
     assert!(during.contains(&"cut-bar-top") && during.contains(&"cut-bar-bottom"), "{during:?}");
-    // what the HUD painted is gone (the place's own: the vignette, grain, fills, stays)
-    let hud: Vec<_> = before.iter().filter(|n| !["vignette", "radial", "fill", "grain"].contains(n)).collect();
+    // what the HUD painted is gone (the place's own: the vignette, fills, stays)
+    let hud: Vec<_> = before.iter().filter(|n| !["vignette", "radial", "fill"].contains(n)).collect();
     assert!(!hud.is_empty());
     for n in hud {
         assert!(!during.contains(n), "{n} is still up during a cutscene: {during:?}");

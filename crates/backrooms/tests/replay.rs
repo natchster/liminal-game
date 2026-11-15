@@ -774,7 +774,7 @@ fn the_title_s_rows_replay_as_played() {
 
 /// A save that cannot be put back is kept, and the title stays, the
 /// player's settings untouched; one an older build made, without a field
-/// added since, continues.
+/// added since or with one taken out, continues.
 #[test]
 fn a_save_that_cannot_be_read_is_kept() {
     std::thread::Builder::new()
@@ -808,13 +808,24 @@ fn a_save_that_cannot_be_read_is_kept() {
             assert_eq!(h.live_menu(), Some(game::ui::menu::Screen::Title), "the title stays");
             assert!(h.saved.is_some() && !h.save_cleared, "the save is kept");
             assert_eq!(h.settings.fov, 101.0, "the player's settings untouched");
-            // a field added since (the grain's clock): it continues
+            // a field added since (the overlay's eased opacity): it continues
             let mut h = app_game("nosound");
             h.boot_in_view(Some([1280.0, 800.0, 1.0]));
-            h.saved = Some(with("f64.grain_t"));
+            h.saved = Some(with("f64.aberration_opacity_cur"));
             h.continue_game();
             h.run_scheduled();
             assert_eq!((h.state.as_str(), h.level_num), ("playing", 2), "an older save continues");
+            // a field taken out since (the film grain's clock, issue #14): it continues
+            let mut older = good.clone();
+            if let game::replay::Start::Floor(a) = &mut older.segments[0].start {
+                a.state["f64"]["grain_t"] = json!(0.25f64.to_bits());
+            }
+            let mut h = app_game("nosound");
+            h.boot_in_view(Some([1280.0, 800.0, 1.0]));
+            h.saved = Some(older);
+            h.continue_game();
+            h.run_scheduled();
+            assert_eq!((h.state.as_str(), h.level_num), ("playing", 2), "a save with the grain's clock continues");
         })
         .unwrap()
         .join()

@@ -177,7 +177,7 @@ built game, and writes the sample `target/replays/recorded_77_L3.ocreplay`.
   had just before it entered a floor (the save, the per-frame stream, the
   clocks, the settings, the view, the keys held, what crosses floors
   unsaved, the sound's preset and hum, the dust and pooled effects, the
-  film grain's refresh, the mouse's move in that frame, the camera's lens;
+  overlays' eased opacity, the mouse's move in that frame, the camera's lens;
   the view is applied, its aspect with it). A fresh game handed the anchor
   enters the floor exactly as play did (`tests/anchors.rs`).
 

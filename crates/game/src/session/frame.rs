@@ -62,19 +62,19 @@ impl Game {
             self.update_lights(dt, perf_t);
             self.update_hud(dt);
             self.update_dust(dt);
-            self.update_grain(dt);
+            self.update_overlays(dt);
             self.update_ambient(dt);
             self.update_soundscape(dt);
         } else if self.state == "playing" && self.in_stairwell {
             self.update_stairwell(dt);
             self.update_asides(dt);
             self.update_hud(dt);
-            self.update_grain(dt);
+            self.update_overlays(dt);
         } else if self.state == "playing" && self.in_loop {
             self.update_loop(dt);
             self.update_asides(dt);
             self.update_hud(dt);
-            self.update_grain(dt);
+            self.update_overlays(dt);
         } else if self.state == "playing" {
             let perf_t = self.perf_t;
             self.cutscene_pre();
@@ -91,7 +91,7 @@ impl Game {
             self.update_lights(dt, perf_t);
             self.update_hud(dt);
             self.update_dust(dt);
-            self.update_grain(dt);
+            self.update_overlays(dt);
             self.update_reality_glitch(dt);
             self.update_flicker_wave(dt);
             let moving = self.player.bob_amp > 0.02;
@@ -109,7 +109,7 @@ impl Game {
             self.update_title_view(dt);
             self.update_lights(dt, perf_t);
             self.update_dust(dt);
-            self.update_grain(dt);
+            self.update_overlays(dt);
             if self.ac.is_some() {
                 self.update_ambient(dt);
                 self.update_soundscape(dt);
@@ -134,7 +134,7 @@ impl Game {
             for i in 0..self.entities.len() {
                 self.update_face(i);
             }
-            self.update_grain(dt);
+            self.update_overlays(dt);
         }
         self.run_animators_frame();
         self.sync_far_to_fog();

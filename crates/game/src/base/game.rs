@@ -402,8 +402,6 @@ pub struct Game {
     pub test_keep_prop_looks: bool,
 
     // ---- hud
-    /// 480×300 film-grain canvas (made by `init_hud`)
-    pub grain_canvas: Option<std::rc::Rc<std::cell::RefCell<Canvas>>>,
     /// The HUD renderer's own state (per-element canvases, running CSS
     /// transitions/animations, hit rects); see [`crate::ui::draw`]
     pub hud_ui: crate::ui::draw::HudUi,
@@ -674,8 +672,6 @@ pub struct Game {
     pub journal_open: bool,
     pub journal_cursor: f64,
     pub debug_on: bool,
-    pub grain_t: f64,
-    pub grain_opacity_cur: f64,
     pub aberration_opacity_cur: f64,
     pub lore_archivist_shown: bool,
     pub survivor_shown: bool,
@@ -918,7 +914,6 @@ impl Game {
             test_stub_core_placers: false,
             test_keep_prop_looks: false,
             // ---- hud
-            grain_canvas: None,
             hud_ui: Default::default(),
             ent_ext: HashMap::new(),
             store_hide_spots: vec![],
@@ -1233,8 +1228,6 @@ impl Game {
             journal_open: false,
             journal_cursor: 0.0,
             debug_on: false,
-            grain_t: 0.0,
-            grain_opacity_cur: 0.0,
             aberration_opacity_cur: 0.0,
             lore_archivist_shown: false,
             survivor_shown: false,
@@ -1296,7 +1289,6 @@ impl Game {
         g.panel_lfo_freq_mul_current = 1.0;
         g.item_hint_water = "[G] DRINK".to_string();
         g.item_hint_cell = "[R] SWAP".to_string();
-        g.grain_opacity_cur = 0.08;
         g.state = "menu".to_string();
         g.death_tally.insert("entity".into(), BTreeMap::new());
         g.death_tally.insert("sanity".into(), BTreeMap::new());

@@ -199,7 +199,7 @@ impl Game {
 
     /// One step of what a tool's eye needs (the tour, the census, `--shots-at`):
     /// your body to where the eye stands (the camera, the lamp), the props'
-    /// cull, the place's light, the HUD and its grain. No creature, no
+    /// cull, the place's light, the HUD and its overlays. No creature, no
     /// director, no fog rising, nothing taken or fallen into (`tool_eye`),
     /// your nerve kept whole: every view of a level sees it as built,
     /// however many views come before (a tour of every stand is two minutes
@@ -214,7 +214,7 @@ impl Game {
         let t = self.perf_t;
         self.update_lights(dt, t);
         self.update_hud(dt);
-        self.update_grain(dt);
+        self.update_overlays(dt);
         self.tool_eye = was;
     }
 

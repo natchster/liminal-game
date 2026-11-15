@@ -1,4 +1,4 @@
-//! The HUD: journal, debug panel, grain, messages, lore notes and arcs,
+//! The HUD: journal, debug panel, overlays, messages, lore notes and arcs,
 //! medals, the menu overlay, `update_hud`, `try_interact`. Draws through the
 //! element model (`crate::ui::model`) + `crate::ui::draw`.
 //! CONTRACT: the signatures below are called from other modules; keep them.
@@ -565,10 +565,6 @@ pub static LORE_ARCS: [LoreArc; 6] = [
     LoreArc { name: "THE BUILDING", ids: &[52, 54, 55, 56, 57], color: 0xb8a4c4 }, // the fog's violet
 ];
 
-/// the grain canvas size (480×300)
-pub const GRAIN_W: u32 = 480;
-pub const GRAIN_H: u32 = 300;
-
 fn hex6(c: u32) -> String {
     format!("#{c:06x}")
 }
@@ -601,10 +597,8 @@ pub fn notebook_journal_id(n: i32) -> JournalId {
 
 impl Game {
     // ------------------------------------------------------------ startup
-    /// Startup work (grain canvas, journal, medals)
+    /// Startup work: the HUD's renderer state
     pub fn init_hud(&mut self) {
-        // Grain resolution bump: 220×140 was pixelated on large screens.
-        self.grain_canvas = Some(Rc::new(RefCell::new(Canvas::new(GRAIN_W, GRAIN_H))));
         self.hud_ui = crate::ui::draw::HudUi::default();
     }
 
@@ -1527,56 +1521,21 @@ impl Game {
         self.ui.debug.set_text(&s);
     }
 
-    // ------------------------------------------------------------ grain
-    pub fn update_grain(&mut self, dt: f64) {
-        let Some(grain) = self.grain_canvas.clone() else { return };
-        // Smooth sanity-driven opacity every frame (not just on refresh)
+    // ------------------------------------------------------------ overlays
+    /// The sanity's overlays, eased every frame: the aberration layer's
+    /// opacity and the scene's sanity filter (`body.low-sanity`,
+    /// `.crit-sanity`). No noise: the screen is not a camera's (issue #14
+    /// took the film grain out), and nothing here draws a number.
+    pub fn update_overlays(&mut self, dt: f64) {
         let s = self.player.sanity / SAN_MAX;
-        let grain_target = 0.08 + (1.0 - s) * 0.28;
         let ab_scalar = (1.0 - s).dpowf(1.8);
         let aberration_target = clamp(ab_scalar * 1.1, 0.0, 0.95);
         // Lerp toward target at ~2Hz half-life
         let k_lerp = (dt * 4.5).min(1.0);
-        self.grain_opacity_cur += (grain_target - self.grain_opacity_cur) * k_lerp;
         self.aberration_opacity_cur += (aberration_target - self.aberration_opacity_cur) * k_lerp;
-        let (go, ao) = (self.grain_opacity_cur, self.aberration_opacity_cur);
-        self.ui.grain.set_opacity(go);
+        let ao = self.aberration_opacity_cur;
         self.ui.aberration.set_opacity(ao);
-        // Grain texture regenerates ~18fps.
-        self.grain_t += dt;
-        if self.grain_t < 0.055 {
-            return;
-        }
-        self.grain_t = 0.0;
-        {
-            let mut ctx = grain.borrow_mut();
-            let (w, h) = (ctx.width() as usize, ctx.height() as usize);
-            let mut img = ctx.create_image_data(w as f64, h as f64);
-            let d = &mut img.data;
-            // Smoother grain — mix each row ~30% with the row above
-            let mut prev_row: Option<Vec<u8>> = None;
-            for y in 0..h {
-                let row_start = y * w * 4;
-                for x in 0..w {
-                    let i = row_start + x * 4;
-                    let mut v = irand(0, 255) as f64;
-                    if let Some(pr) = &prev_row {
-                        v = to_i32(v * 0.7 + pr[x] as f64 * 0.3) as f64;
-                    }
-                    let v = v as u8;
-                    d[i] = v;
-                    d[i + 1] = v;
-                    d[i + 2] = v;
-                    d[i + 3] = 255;
-                }
-                let pr = prev_row.get_or_insert_with(|| vec![0u8; w]);
-                for x in 0..w {
-                    pr[x] = d[row_start + x * 4];
-                }
-            }
-            ctx.put_image_data(&img, 0, 0);
-        }
-        // Body-class swap: CSS-filter saturation drop on the 3D view at low sanity
+        // the scene's sanity filter: a saturation drop on the 3D view at low sanity
         let want_low = s < 0.55;
         let want_crit = s < 0.28;
         let b = &mut self.ui.body;
@@ -2057,7 +2016,7 @@ impl Game {
 
     // ------------------------------------------------------------ HUD layers
     /// The HUD's layers over the 3D view this frame (vignette, tints, flash,
-    /// grain, fade, the HUD itself, the menu overlay, the journal), for a
+    /// fade, the HUD itself, the menu overlay, the journal), for a
     /// window of `w`×`h` CSS px at `dpr` device pixels per CSS px.
     pub fn hud_layers(&mut self, w: f64, h: f64, dpr: f64) -> Vec<crate::ui::model::HudLayer> {
         crate::ui::draw::hud_layers(self, w, h, dpr)

@@ -86,6 +86,11 @@ Hands and screen (did the controls and the screens get out of the way?):
   wanted to know that it did not show? (Never name the glance key.)
 - One word each for the title, the pause and the death screen.
 - Did you change a setting? Which, and why?
+- If the place were a picture, what kind: a photograph someone took of a
+  real building, a film, a video game, a security camera's tape? Did
+  anything on the screen look like the camera's rather than the place's?
+  (The noise was taken out for a photograph's look, GitHub issue #14;
+  never name it.)
 
 Why could this be here? (`docs/design/ASSETS.md`: the props made by the
 asset pipeline; ask about two or three things they stopped at or picked

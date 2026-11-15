@@ -121,7 +121,7 @@ pub enum OBlend {
     Lighten = 8,
 }
 
-/// A premultiplied RGBA image to composite (the HUD canvas, the grain).
+/// A premultiplied RGBA image to composite (the HUD canvas).
 pub struct OverlayImage<'a> {
     pub id: u64,
     pub version: u64,

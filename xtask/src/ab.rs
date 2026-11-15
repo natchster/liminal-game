@@ -155,7 +155,8 @@ fn score(args: &[String]) -> Result<(), String> {
 }
 
 /// A pixel is changed when a channel moved by more than this (0-255): above
-/// the film grain, which differs between runs of `--shots-at`
+/// what may differ between runs of `--shots-at` (the film grain did, until
+/// issue #14 took it out)
 const CHANGED: u32 = 12;
 /// Under this share of changed pixels a pair is near-identical
 const NEAR_IDENTICAL: f64 = 0.005;

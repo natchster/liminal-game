@@ -63,7 +63,7 @@ gone when it is not needed.
    camera back into your eyes, with no cut (`docs/design/CUTSCENES.md`, the way
    in).
 4. **Pause stops the world.** The frozen frame dimmed behind the same
-   list; Settings (look, invert, field of view, head bob, film grain, run
+   list; Settings (look, invert, field of view, head bob, camera shake, run
    hold/toggle, volume, brightness against a barely-visible mark, pause on
    focus loss), a Replays page (what a recording leaves of the disk) and a
    Controls page, the only place every key is listed.
@@ -136,7 +136,7 @@ window's own keys are not the game's and cannot be rebound: F11 or
 Ctrl+Cmd+F toggles full screen, Cmd+Q quits.
 
 Settings (from the title or the pause list) change the look speed,
-invert, field of view, head bob, camera shake, film grain, the run key
+invert, field of view, head bob, camera shake, the run key
 (hold or press), volume, brightness and whether leaving the window
 pauses; Replays sets the free space a recording keeps on the disk (5%,
 from 1% to 20%) and how often it checks while it runs (every minute, up

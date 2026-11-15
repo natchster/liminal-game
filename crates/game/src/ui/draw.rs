@@ -7,8 +7,8 @@
 //! CSS opacity transitions and keyframe animations are just layer opacities.
 //! The full-screen layers (#vignette, #weatherTint, #aberration, #flash,
 //! #fade, #achievementFlash) are radial-gradient / fill ops with their CSS
-//! mix-blend-mode; #grain is the 480×300 grain canvas stretched over the
-//! view (`image-rendering: pixelated`, overlay blend).
+//! mix-blend-mode. No noise is laid over the view (issue #14: the film
+//! grain is gone).
 //!
 //! Layout: "Courier New" metrics (ascent/descent rounded per size, 0.6em
 //! advances, trailing letter-spacing counted), line boxes with floored
@@ -1090,7 +1090,6 @@ pub struct HudUi {
     boxes: HashMap<&'static str, BoxCanvas>,
     trans: HashMap<String, Trans>,
     next_id: u64,
-    grain_id: u64,
     /// click targets of the last frame, topmost first: (id, rect css px, enabled)
     pub(crate) hits: Vec<(&'static str, [f64; 4], bool)>,
     /// the frame's layers in paint order, by box name (tests dump them)
@@ -1332,7 +1331,7 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
     }
     paint_hud(&mut f, g);
     crate::ui::screens::paint_level_card(&mut f, g);
-    // ---- z 5: #flash, #grain
+    // ---- z 5: #flash
     {
         let el = &d.flash;
         let op = f.tr("flash.opacity", opacity_of(el, 0.0), 0.12, Ease::Ease);
@@ -1342,17 +1341,6 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
             .to_string();
         if op > 0.0005 {
             f.background(&bg, op, LayerBlend::Normal);
-        }
-    }
-    if let Some(gc) = g.grain_canvas.clone() {
-        let op = opacity_of(&d.grain, 0.10) * if g.settings.grain { 1.0 } else { 0.0 };
-        if f.ui.grain_id == 0 {
-            f.ui.next_id += 1;
-            f.ui.grain_id = 0x4855_4400 + f.ui.next_id;
-        }
-        let (id, ver) = (f.ui.grain_id, gc.borrow().version);
-        if op > 0.0005 {
-            f.push_canvas("grain", gc, id, ver, [0.0, 0.0, 1.0, 1.0], op, LayerBlend::Overlay, false);
         }
     }
     // ---- z 6: #fade

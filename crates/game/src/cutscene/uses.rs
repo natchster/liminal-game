@@ -159,7 +159,7 @@ impl Game {
             be.peered = true;
         }
         self.player.sanity = (self.player.sanity - SHAFT_NERVE).clamp(0.0, SAN_MAX);
-        // (the grain's update eases it back to what your nerve has it)
+        // (`update_overlays` eases it back to what your nerve has it)
         self.aberration_opacity_cur = 0.85;
     }
 

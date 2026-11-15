@@ -533,7 +533,7 @@ fn draw(
 }
 
 /// Render the game's scene into `target`, with its HUD layers or bare (no
-/// grain, no vignette, no text: the visual playtest's renders)
+/// vignette, no text: the visual playtest's renders)
 fn draw_with(
     g: &mut Game,
     r: &mut Renderer,
@@ -1378,10 +1378,10 @@ fn level_check(o: &Options, dir: &str) {
     let device = MTLCreateSystemDefaultDevice().expect("Metal device");
     let mut r = Renderer::new(device);
     let (mut g, seed, levels) = tool_game(o);
-    // let the film grain (repainted every 55 ms, opacity eased) settle as if the
-    // game had been running for a second
+    // let the overlays (their opacities eased) settle as if the game had been
+    // running for a second
     for _ in 0..60 {
-        g.update_grain(1.0 / 60.0);
+        g.update_overlays(1.0 / 60.0);
     }
     std::fs::create_dir_all(dir).expect("create dump dir");
     let shots = o.screenshot.is_some();

@@ -56,7 +56,7 @@ fn over(mode: LayerBlend, dst: &mut [f32; 3], cs: [f32; 3], a: f32) {
     }
 }
 /// composite `layers` over BG into an RGBA8 image of wpx×hpx
-pub fn composite(layers: &[HudLayer], wpx: usize, hpx: usize, skip_grain: bool) -> Vec<u8> {
+pub fn composite(layers: &[HudLayer], wpx: usize, hpx: usize) -> Vec<u8> {
     let mut img: Vec<[f32; 3]> = vec![BG; wpx * hpx];
     for l in layers {
         match l {
@@ -94,9 +94,6 @@ pub fn composite(layers: &[HudLayer], wpx: usize, hpx: usize, skip_grain: bool) 
             HudLayer::Canvas { canvas, rect, opacity, blend, tile, offset, smooth, .. } => {
                 let c = canvas.borrow();
                 let (cw, ch) = (c.width() as usize, c.height() as usize);
-                if skip_grain && cw == 480 && ch == 300 {
-                    continue;
-                }
                 let px = c.premultiplied();
                 let x0 = ((rect[0] * wpx as f32).floor().max(0.0)) as usize;
                 let y0 = ((rect[1] * hpx as f32).floor().max(0.0)) as usize;
@@ -174,12 +171,11 @@ fn el_json(e: &Element) -> String {
     let at = e.attrs.iter().map(|(k, v)| format!("{}:{}", rec(k), rec(v))).collect::<Vec<_>>().join(",");
     format!("{{\"text\":{},\"markup\":{},\"classes\":[{}],\"style\":{{{}}},\"attrs\":{{{}}}}}", rec(&e.text), rec(&e.markup), cls, st, at)
 }
-const IDS: [&str; 52] = [
+const IDS: [&str; 51] = [
     "vignette",
     "weatherTint",
     "aberration",
     "flash",
-    "grain",
     "fade",
     "hud",
     "level",
@@ -255,14 +251,14 @@ fn game() -> Game {
     g.init_hud();
     g
 }
-/// `frames` frames of the HUD: update_hud (when playing), update_grain, layers
+/// `frames` frames of the HUD: update_hud and update_overlays (when playing), layers
 fn run(g: &mut Game, frames: usize, playing: bool) {
     for _ in 0..frames {
         g.now_ms += 1000.0 / 60.0;
         g.run_scheduled();
         if playing {
             g.update_hud(1.0 / 60.0);
-            g.update_grain(1.0 / 60.0);
+            g.update_overlays(1.0 / 60.0);
         }
         let _ = g.hud_layers(W, H, DPR);
     }
@@ -296,7 +292,7 @@ fn dump_canvases(g: &mut Game, prefix: &str) {
 fn shoot(g: &mut Game, name: &str) -> Vec<u8> {
     let layers = g.hud_layers(W, H, DPR);
     let (wp, hp) = ((W * DPR) as usize, (H * DPR) as usize);
-    let img = composite(&layers, wp, hp, true);
+    let img = composite(&layers, wp, hp);
     let dir = out_dir();
     engine::png::write_rgba(dir.join(format!("hud-{name}.png")).to_str().unwrap(), wp as u32, hp as u32, &img).unwrap();
     std::fs::write(dir.join(format!("hud-{name}.json")), ui_json(g)).unwrap();
@@ -386,7 +382,7 @@ fn hud_states() {
     g.interactables.clear();
     run(&mut g, 400, true);
     let _ = g.hud_layers(W, H, DPR);
-    let shown: Vec<_> = g.hud_ui.painted.iter().filter(|n| !["vignette", "grain", "radial", "fill"].contains(n)).copied().collect();
+    let shown: Vec<_> = g.hud_ui.painted.iter().filter(|n| !["vignette", "radial", "fill"].contains(n)).copied().collect();
     assert!(shown.is_empty(), "drawn at rest: {shown:?}");
     shoot(&mut g, "rest");
     // ... and X held shows it all, with labels
@@ -564,10 +560,34 @@ fn hud_logic() {
     g.update_hud(0.016);
     g.update_hud(0.016);
     assert_eq!(n.get(), 2);
-    // the grain canvas refreshes at ~18 fps
-    let v0 = g.grain_canvas.as_ref().unwrap().borrow().version;
-    g.update_grain(0.06);
-    assert!(g.grain_canvas.as_ref().unwrap().borrow().version > v0);
+}
+
+/// Issue #14: the screen is not a camera's recording. Nothing laid over the
+/// view changes by chance from one frame to the next: at the lowest nerve,
+/// where the film grain was thickest, the overlays draw nothing from the
+/// frame stream, no layer is noise, and two frames at rest composite alike.
+#[test]
+fn the_screen_lays_no_noise() {
+    let mut g = game();
+    playing_state(&mut g);
+    g.player.sanity = 5.0;
+    let d0 = game::base::rng::native_draws();
+    for _ in 0..600 {
+        g.now_ms += 1000.0 / 60.0;
+        g.update_overlays(1.0 / 60.0);
+    }
+    assert_eq!(game::base::rng::native_draws(), d0, "the overlays drew from the frame stream");
+    assert!(g.aberration_opacity_cur > 0.9, "the nerve's overlay is still eased in");
+    let frame = |g: &mut Game| {
+        g.now_ms += 1000.0 / 60.0;
+        g.update_overlays(1.0 / 60.0);
+        let layers = g.hud_layers(W, H, DPR);
+        assert!(!g.hud_ui.painted.contains(&"grain"), "a grain layer");
+        composite(&layers, 640, 400)
+    };
+    let (a, b) = (frame(&mut g), frame(&mut g));
+    let differ = a.iter().zip(&b).filter(|(x, y)| x != y).count();
+    assert_eq!(differ, 0, "two frames at rest differ in {differ} channels");
 }
 
 #[test]
