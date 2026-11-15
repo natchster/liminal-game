@@ -124,3 +124,7 @@ notes in [`docs/research/`](docs/research/README.md)). The core themes:
 
 The docs are sorted by kind (the game, the research, the plan, the code):
 [`docs/README.md`](docs/README.md).
+
+The project is under the [Liminal license 1.0](LICENSE): the MIT license's
+clauses, unchanged, and one clause more; the parts drawn from SCP and
+Backrooms wiki articles are CC BY-SA 3.0, with their attribution.

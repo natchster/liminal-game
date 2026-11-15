@@ -8,7 +8,8 @@ default-members = ["crates/backrooms"]
 version = "1.0.0"
 edition = "2024"
 rust-version = "1.100"
-license = "MIT"
+# the Liminal license 1.0: the MIT license's clauses and one more (not an SPDX id)
+license-file = "LICENSE"
 publish = false
 
 [workspace.dependencies]

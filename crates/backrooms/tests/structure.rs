@@ -601,6 +601,60 @@ fn the_readme_says_what_the_project_is() {
     assert!(lines <= 140, "README.md is {lines} lines: it says what the project is, and links the docs for the rest");
 }
 
+/// The project's licence (GitHub issue #8): the Liminal license 1.0, the MIT
+/// license's clauses unchanged and in their order, then the Liminal clause;
+/// every crate's manifest points at it (it is no SPDX id, so `license-file`),
+/// and the README names it.
+#[test]
+fn the_licence_is_mits_clauses_and_the_liminal_clause() {
+    const MIT: [&str; 3] = [
+        "Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated \
+         documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation \
+         the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to \
+         permit persons to whom the Software is furnished to do so, subject to the following conditions:",
+        "The above copyright notice and this permission notice shall be included in all copies or substantial portions of \
+         the Software.",
+        "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO \
+         THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE \
+         AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, \
+         TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE \
+         SOFTWARE.",
+    ];
+    let words = |s: &str| s.split_whitespace().collect::<Vec<_>>().join(" ");
+    let licence = read("LICENSE");
+    assert!(licence.starts_with("Liminal license 1.0\n"), "LICENSE begins with its name, `Liminal license 1.0`");
+    assert!(licence.lines().any(|l| l.starts_with("Copyright (c) ")), "LICENSE keeps MIT's copyright line");
+    let flat = words(&licence);
+    let at: Vec<usize> =
+        MIT.iter().map(|c| flat.find(&words(c)).unwrap_or_else(|| panic!("LICENSE must keep this MIT clause unchanged: {c}"))).collect();
+    let liminal = flat.find("Liminal clause").expect("LICENSE has its Liminal clause");
+    assert!(at.windows(2).all(|w| w[0] < w[1]) && at[2] < liminal, "MIT's clauses in their order, then the Liminal clause");
+    for term in ["creepypasta", "before sleep", "AI agent", "ASCII art", "No proof or log"] {
+        assert!(flat.contains(term), "the Liminal clause says `{term}`");
+    }
+    let manifest = read("Cargo.toml");
+    assert!(
+        manifest.contains("license-file = \"LICENSE\"") && !manifest.contains("license = "),
+        "the workspace's package metadata names the LICENSE file (`license-file`), not an SPDX id"
+    );
+    let mut stack = vec![root().join("crates"), root().join("xtask")];
+    let mut not_pointing = vec![];
+    while let Some(d) = stack.pop() {
+        for e in std::fs::read_dir(&d).into_iter().flatten().flatten() {
+            let p = e.path();
+            if p.is_dir() && !p.ends_with("target") {
+                stack.push(p);
+            } else if p.file_name().is_some_and(|n| n == "Cargo.toml")
+                && !std::fs::read_to_string(&p).unwrap_or_default().contains("license-file.workspace = true")
+            {
+                not_pointing.push(rel(&p));
+            }
+        }
+    }
+    assert!(not_pointing.is_empty(), "every crate inherits the licence (`license-file.workspace = true`): {not_pointing:?}");
+    assert!(read("README.md").contains("](LICENSE)"), "README.md names the licence");
+}
+
 /// The placers live by theme (GitHub issue #2): `place_<name>`, of theme T
 /// in `world::tables::PLACER_THEME` (unlisted: domestic, as the game reads
 /// it), is registered by `crates/placers/placers_<T>/` from its own module
