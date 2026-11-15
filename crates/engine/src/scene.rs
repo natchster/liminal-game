@@ -178,7 +178,12 @@ pub struct Node {
     pub matrix_world: Mat4,
     pub matrix_auto_update: bool,
     pub matrix_world_needs_update: bool,
+    /// whether it is drawn, as its owner (the game) says: hidden, it is gone
     pub visible: bool,
+    /// hidden by a draw-distance cull (the cull's own, never the game's:
+    /// a cull that wrote `visible` showed again what the game had hidden,
+    /// GitHub issue #12); drawn only when visible and not culled
+    pub culled: bool,
     pub frustum_culled: bool,
     pub render_order: i32,
     pub cast_shadow: bool,
@@ -209,6 +214,7 @@ impl Node {
             matrix_auto_update: true,
             matrix_world_needs_update: false,
             visible: true,
+            culled: false,
             frustum_culled: true,
             render_order: 0,
             cast_shadow: false,
@@ -424,6 +430,19 @@ impl Obj {
         self.0.borrow_mut().visible = v;
         self
     }
+    /// Hidden by a draw-distance cull (see [`Node::culled`])
+    pub fn culled(&self) -> bool {
+        self.0.borrow().culled
+    }
+    pub fn set_culled(&self, c: bool) -> &Self {
+        self.0.borrow_mut().culled = c;
+        self
+    }
+    /// Drawn, as far as its own flags go: visible and not culled
+    pub fn drawn(&self) -> bool {
+        let n = self.0.borrow();
+        n.visible && !n.culled
+    }
     /// How it is worn by use (see [`UseWear`])
     pub fn use_wear(&self) -> UseWear {
         self.0.borrow().use_wear
@@ -510,8 +529,10 @@ impl Obj {
             k.traverse(f);
         }
     }
+    /// Depth-first over what is drawn (visible and not culled, with every
+    /// parent so)
     pub fn traverse_visible(&self, f: &mut dyn FnMut(&Obj)) {
-        if !self.visible() {
+        if !self.drawn() {
             return;
         }
         f(self);

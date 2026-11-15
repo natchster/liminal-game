@@ -271,9 +271,14 @@ affects a level's build.
 
 `Renderer::render(scene, camera, globals, overlays, target)`:
 
-1. **Collect:** a visible-only traversal with frustum culling (bounding
-   spheres; instanced meshes use the union of their instances' spheres),
-   opaque and transparent lists sorted by render order, depth and material.
+1. **Collect:** a traversal of what is drawn, with frustum culling
+   (bounding spheres; instanced meshes use the union of their instances'
+   spheres), opaque and transparent lists sorted by render order, depth and
+   material. A node is drawn when it and every parent are `visible` (the
+   game's: a pickup taken is hidden) and not `culled` (the prop cull's, a
+   few times a second, by draw distance): two flags, so the cull never
+   shows what the game hid (GitHub issue #12: with one, every pickup taken
+   came back within a fifth of a second).
 2. **Lights:** ambient, hemisphere, point, spot and directional lights with
    physical falloff and spot penumbra; each draw gets the lights that reach
    it.
@@ -306,7 +311,8 @@ affects a level's build.
    outline of its foot (at most 16 corners), unlit black with its alpha in
    its vertex colours, one mesh a 10 x 10 tile chunk, made once a level
    from where the things settled (no texture read, no random draw); past a
-   thing's draw distance the prop cull draws its chunk without it.
+   thing's draw distance, or once the game hides it (a note picked up),
+   the prop cull draws its chunk without it.
 4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
    texels a tile: the light, how open each place is, its ceiling or on
    the Building whether it has a floor, its floor; all but the light made

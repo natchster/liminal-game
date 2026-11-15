@@ -784,17 +784,21 @@ impl Game {
             let (x, z) = self.prop_cull_xz[i];
             let d = crate::base::numeric::hypot2(x - cp.x, z - cp.z) - r;
             let vis = d < cap.min((PROP_FAR * 0.4).max(190.0 * r));
-            if o.visible() != vis {
-                o.set_visible(vis);
+            // the cull's own flag: what the game hid (a pickup taken) stays
+            // hidden, whatever the distance (GitHub issue #12)
+            if o.culled() == vis {
+                o.set_culled(!vis);
             }
             if !vis {
                 hidden += 1;
             }
-            // its contact shadows with it
+            // its contact shadows with it, and gone with it when the game
+            // hides it
+            let shown = vis && o.visible();
             for &(c, k) in &pc.shadows_of[i] {
                 let slot = &mut pc.shadows[c].slots[k];
-                if slot.shown != vis {
-                    slot.shown = vis;
+                if slot.shown != shown {
+                    slot.shown = shown;
                     if !redo.contains(&c) {
                         redo.push(c);
                     }

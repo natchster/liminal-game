@@ -1425,10 +1425,10 @@
       ],
       "id": "props/usable",
       "kind": "prop with rules",
-      "last_checked": "2026-11-03",
+      "last_checked": "2026-11-15",
       "last_human_review": null,
       "name": "the things a hand can use (docs/design/PROPS.md 3, LORE.md Within reach: a box, a bin, a book stack, a locker left unlocked, a dead lift, the television)",
-      "notes": "none on the Building's floors, the Lobby or a floor with rules of its own; what each holds is fixed when the floor is built, from a stream of its own (USE_SALT), given once (what_they_give_is_fixed_and_given_once); each verb where its prop is (every_usable_prop_has_its_verb); the TV off and on (the_tv_switches_off_and_on); the tape, a locker and a set coming on stop a creature near, a bin and a page do not (a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not); the sounds are synthesized, no person has listened to them or used a verb",
+      "notes": "none on the Building's floors, the Lobby or a floor with rules of its own; what each holds is fixed when the floor is built, from a stream of its own (USE_SALT), given once (what_they_give_is_fixed_and_given_once); each verb where its prop is (every_usable_prop_has_its_verb); the TV off and on (the_tv_switches_off_and_on); the tape, a locker and a set coming on stop a creature near, a bin and a page do not (a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not); the sounds are synthesized, no person has listened to them or used a verb What is picked up is gone (issue #12; what_is_picked_up_is_gone: every bottle, battery, stack of paper and note of levels 1-12 on four seeds, and what the drawers give, stood on, taken, given once, not drawn again nor its shadow); the props' cull hides by a flag of its own (the_cull_hides_what_is_far_and_never_shows_what_was_hidden).",
       "passes": {
         "test:backrooms/usable": true,
         "test:backrooms/level_sweep": true,

@@ -1,5 +1,7 @@
 //! Things a hand can use (`docs/design/PROPS.md` 3): each verb is where its prop
-//! is, does what a hand does, once, and gives what the floor fixed for it.
+//! is, does what a hand does, once, and gives what the floor fixed for it;
+//! and what a hand picks up (water, a battery, paper, a note) is gone once
+//! taken (GitHub issue #12).
 //!
 //!   cargo test --release -p backrooms --test usable -- --nocapture
 use engine::dmath::DMath;
@@ -237,4 +239,159 @@ fn a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not() {
     });
     let (loud, quiet) = (tried.iter().any(|t| t.0), tried.iter().any(|t| t.1));
     assert!(loud && quiet, "no box or no book on the floors tried");
+}
+
+/// `secs` of play with the creatures held still (what is picked up is
+/// picked up in play: `update_player`, the props' cull a few times a
+/// second)
+fn step(g: &mut Game, secs: f64) {
+    for _ in 0..(secs * 60.0).round() as usize {
+        for e in g.entities.iter_mut() {
+            e.freeze = 1e9;
+        }
+        g.now_ms += 1000.0 / 60.0;
+        g.fixed_step_dt = 1.0 / 60.0;
+        g.frame(1.0 / 60.0);
+        g.fixed_step_dt = 0.0;
+    }
+}
+
+/// Whether anything of `o` is drawn: a mesh under it with itself and every
+/// parent visible and not culled
+fn drawn(o: &engine::scene::Obj) -> bool {
+    let up = |m: &engine::scene::Obj| {
+        let mut c = Some(m.clone());
+        while let Some(x) = c {
+            if !x.drawn() {
+                return false;
+            }
+            c = x.parent();
+        }
+        true
+    };
+    let mut any = false;
+    o.traverse(&mut |m| any |= m.is_mesh() && up(m));
+    any
+}
+
+/// A pickup of the floor: its kind, its object, whether it is taken
+fn pickups(g: &Game) -> Vec<(&'static str, engine::scene::Obj, bool)> {
+    let mut out = vec![];
+    out.extend(g.almonds.iter().map(|p| ("water", p.g.clone(), p.taken)));
+    out.extend(g.battery_items.iter().map(|p| ("battery", p.g.clone(), p.taken)));
+    out.extend(g.papers.iter().map(|p| ("paper", p.g.clone(), p.taken)));
+    out.extend(g.lore_notes.iter().map(|n| ("note", n.g.clone(), n.taken)));
+    out
+}
+
+/// What is picked up is gone (GitHub issue #12): stood on, every bottle,
+/// battery, stack of paper and note of a floor (and what its drawers give)
+/// is taken once, given once, and nothing of it is drawn again, nor its
+/// contact shadow, nor her page or a hiding place's thing once taken,
+/// however near you stay (the props' cull, which hides
+/// what is far, showed what was taken again within a fifth of a second)
+#[test]
+fn what_is_picked_up_is_gone() {
+    let levels: Vec<i32> = (1..=12).collect();
+    let taken: (usize, usize) = each_floor(&levels, |seed, l| {
+        let mut g = floor(seed, l);
+        g.god_mode = true;
+        step(&mut g, 0.3);
+        // what the drawers give, out where a hand reaches it
+        for i in verbs(&g, "[E] OPEN DRAWER") {
+            use_it(&mut g, i);
+        }
+        let all = pickups(&g);
+        assert!(all.iter().all(|p| !p.2), "seed {seed} L{l}: a pickup taken before you came");
+        let had = (g.player.bottles, g.player.batteries, g.player.papers, g.lore_found.len());
+        // stood on, each still lying there (a cabinet's drawers give theirs
+        // in one place: one stand takes them all)
+        for (k, (kind, o, _)) in all.iter().enumerate() {
+            if pickups(&g)[k].2 {
+                continue;
+            }
+            let at = o.world_position();
+            g.player.pos.x = at.x;
+            g.player.pos.z = at.z;
+            g.player.pos.y = g.floor_y_at(at.x, at.z) + game::base::config::EYE;
+            // long enough for the cull to look again (it does, every 0.2 s)
+            step(&mut g, 0.7);
+            assert!(pickups(&g)[k].2, "seed {seed} L{l}: {kind} at {:.2}, {:.2} not taken, stood on", at.x, at.z);
+        }
+        // her page at the camp and what the hiding places keep, taken by
+        // their verbs (`take_page`, `take_secret`; a dish of sweets in
+        // three), and stood beside past the cull
+        let mut kept: Vec<(&str, engine::scene::Obj)> = vec![];
+        if let Some(o) = g.story.camp.as_ref().filter(|c| !c.page_taken).and_then(|c| c.page.clone()) {
+            g.take_page();
+            kept.push(("her page", o));
+        }
+        for i in 0..g.secrets.list.len() {
+            if let Some(o) = g.secrets.list[i].thing.clone().filter(|_| !g.secrets.list[i].emptied) {
+                for _ in 0..3 {
+                    g.take_secret(i);
+                }
+                kept.push(("a kept thing", o));
+            }
+        }
+        for (what, o) in &kept {
+            let at = o.world_position();
+            g.player.pos.x = at.x;
+            g.player.pos.z = at.z + 0.6;
+            g.player.pos.y = g.floor_y_at(at.x, at.z + 0.6) + game::base::config::EYE;
+            step(&mut g, 0.7);
+            assert!(!drawn(o), "seed {seed} L{l}: {what} at {:.2}, {:.2} taken and still drawn", at.x, at.z);
+        }
+        // and stood on again, each: nothing more given, nothing back
+        for (_, o, _) in &all {
+            let at = o.world_position();
+            g.player.pos.x = at.x;
+            g.player.pos.z = at.z;
+            step(&mut g, 0.25);
+        }
+        for (kind, o, _) in &all {
+            let at = o.world_position();
+            assert!(!drawn(o), "seed {seed} L{l}: {kind} at {:.2}, {:.2} taken and still drawn", at.x, at.z);
+            let shadow = g.prop_cull.shadows.iter().flat_map(|c| c.slots.iter()).any(|s| s.owner.ptr_eq(o) && s.shown);
+            assert!(!shadow, "seed {seed} L{l}: {kind} at {:.2}, {:.2} taken, its shadow left", at.x, at.z);
+        }
+        let of = |k: &str| all.iter().filter(|p| p.0 == k).count();
+        let got = (g.player.bottles - had.0, g.player.batteries - had.1, g.player.papers - had.2, g.lore_found.len() - had.3);
+        assert_eq!((got.0 as usize, got.1 as usize, got.3), (of("water"), of("battery"), of("note")), "seed {seed} L{l}: given");
+        let stacks = of("paper") as i32;
+        assert!((3 * stacks..=8 * stacks).contains(&got.2), "seed {seed} L{l}: {} sheets from {stacks} stacks", got.2);
+        (all.len(), kept.len())
+    })
+    .into_iter()
+    .fold((0, 0), |a, b| (a.0 + b.0, a.1 + b.1));
+    assert!(taken.0 > 400 && taken.1 > 10, "only {taken:?} pickups stood on and pages or kept things taken");
+}
+
+/// The props' cull hides what is far and shows it again near, with its
+/// contact shadow, on a flag of its own: what the game hid stays hidden
+/// near, and what it shows again is drawn
+#[test]
+fn the_cull_hides_what_is_far_and_never_shows_what_was_hidden() {
+    each_floor(&[5, 9], |seed, l| {
+        let mut g = floor(seed, l);
+        g.god_mode = true;
+        step(&mut g, 0.3);
+        let far = g.prop_cull.list.iter().map(|(o, _)| o.clone()).find(|o| o.culled()).expect("a prop out of reach");
+        assert!(far.visible() && !drawn(&far), "seed {seed} L{l}: culled, as the cull's own");
+        let at = far.world_position();
+        let (px, pz) = (at.x, at.z + 0.01);
+        g.player.pos.x = px;
+        g.player.pos.z = pz;
+        g.player.pos.y = g.floor_y_at(px, pz) + game::base::config::EYE;
+        // (a tool's eye: nothing taken or fallen into while it stands there)
+        g.tool_eye = true;
+        step(&mut g, 0.5);
+        assert!(!far.culled() && drawn(&far), "seed {seed} L{l}: near, not shown again");
+        far.set_visible(false);
+        step(&mut g, 0.5);
+        assert!(!far.culled() && !drawn(&far), "seed {seed} L{l}: hidden by the game, shown by the cull");
+        far.set_visible(true);
+        step(&mut g, 0.3);
+        assert!(drawn(&far), "seed {seed} L{l}: shown by the game, not drawn");
+    });
 }

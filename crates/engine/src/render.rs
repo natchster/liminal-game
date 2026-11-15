@@ -1687,14 +1687,14 @@ fn collect(
     light: &mut dyn FnMut(&Node),
 ) {
     // an instanced mesh's bounding sphere is computed on its first frustum test
-    if o.is_instanced() && o.visible() {
+    if o.is_instanced() && o.drawn() {
         let missing = matches!(&o.r().kind, Kind::Instanced { inst, .. } if inst.bounding_sphere.is_none());
         if missing {
             o.compute_instanced_bounding_sphere();
         }
     }
     let n = o.r();
-    if !n.visible {
+    if !n.visible || n.culled {
         return;
     }
     let mut go = group_order;
