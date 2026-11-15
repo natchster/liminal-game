@@ -38,7 +38,7 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
     (`REPLAYS.md`, *Room on the disk*).
 * **`game`** is the game itself, with no platform code: it runs headless,
   which is how every test drives it.
-* **`placers_<theme>`** hold the ~650 decoration placers (`place_*`
+* **`placers_<theme>`** hold the ~440 decoration placers (`place_*`
   functions that add props to a level), a crate per theme of
   `world::tables::PLACER_THEME` (bathroom, core, domestic, industrial,
   nature, occult, office, party, toys, victorian) and a module per placer,

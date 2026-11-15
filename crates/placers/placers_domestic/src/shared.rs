@@ -172,12 +172,3 @@ pub(crate) fn paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
         ctx.stroke();
     }
 }
-
-/// A custom geometry from f32 positions + an index, normals computed.
-pub(crate) fn buffer_geo(verts: &[f64], index: Vec<u32>) -> Geo {
-    let geo = Geo::new();
-    geo.set_position(verts.iter().map(|&a| a as f32).collect());
-    geo.set_index(index);
-    geo.compute_vertex_normals();
-    geo
-}

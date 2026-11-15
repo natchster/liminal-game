@@ -47,7 +47,6 @@ mod keycard_readers;
 mod leaning_frames;
 mod missing_photo_hooks;
 mod mold_patches;
-mod motion_detector_domes;
 mod motion_sensors;
 mod overturned_chair;
 mod overturned_chairs;
@@ -122,7 +121,6 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_leaning_frames", leaning_frames::place_leaning_frames));
     r.push(("place_missing_photo_hooks", missing_photo_hooks::place_missing_photo_hooks));
     r.push(("place_mold_patches", mold_patches::place_mold_patches));
-    r.push(("place_motion_detector_domes", motion_detector_domes::place_motion_detector_domes));
     r.push(("place_motion_sensors", motion_sensors::place_motion_sensors));
     r.push(("place_overturned_chair", overturned_chair::place_overturned_chair));
     r.push(("place_overturned_chairs", overturned_chairs::place_overturned_chairs));
@@ -159,7 +157,7 @@ mod tests {
     fn smoke() {
         let mut list = vec![];
         super::register(&mut list);
-        assert_eq!(list.len(), 71);
+        assert_eq!(list.len(), 70);
         game::debug::testkit::smoke_placers(&list);
     }
 }

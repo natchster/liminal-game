@@ -112,12 +112,3 @@ pub(crate) fn vinyl_tex(salt: u32, base: u32) -> Tex {
         }
     })
 }
-
-/// A custom geometry from a flat position list (f64 → f32) and an index.
-pub(crate) fn tri_geo(verts: &[f64], idx: Vec<u32>) -> Geo {
-    let geo = Geo::new();
-    geo.set_position(verts.iter().map(|&v| v as f32).collect());
-    geo.set_index(idx);
-    geo.compute_vertex_normals();
-    geo
-}

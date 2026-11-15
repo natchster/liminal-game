@@ -53,7 +53,7 @@ pub struct Noticing {
 /// a thing an office has, or might)
 pub fn odd_subject(placer: &str, theme: &str) -> Option<&'static str> {
     match (placer, theme) {
-        ("place_traffic_cones" | "place_safety_cones", _) => Some("cones"),
+        ("place_traffic_cones", _) => Some("cones"),
         (_, "occult") => Some("occult"),
         (_, "toys") => Some("toys"),
         (_, "party") => Some("party"),

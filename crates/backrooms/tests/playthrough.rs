@@ -1,8 +1,11 @@
 //! Playthrough: is the game beatable? A bot plays whole runs from New Game: on
 //! every level it walks to the exit with the real movement and collision (a
 //! fine-grid path steered with the movement keys; a small counted nudge only
-//! when truly stuck), deals with the level's anomaly the way a player must,
-//! and goes through the door:
+//! when truly stuck, and a new way from where it stands after three, as a
+//! player chased off their way finds one), deals with the level's anomaly
+//! the way a player must, and goes through the door
+//! (`PLAYTHROUGH_SEEDS=303 PLAYTHROUGH_TRACE=12`: one run, its level 12's
+//! walks traced):
 //!
 //!   Showroom       walk to the exit
 //!   Borrowed House put out every lamp in the nest, then leave by the front door
@@ -300,10 +303,27 @@ impl Bot {
     /// as the rule-follower's counters say)
     fn walk(&mut self, g: &mut Game, x: f64, z: f64, max_frames: usize) -> Walk {
         let free = self.free_grid(g).to_vec();
-        let Some(p) = fine_path(g, &free, x, z).or_else(|| tile_path(g, x, z)) else { return Walk { ok: false, frames: 0, stuck: 0 } };
+        let Some(mut p) = fine_path(g, &free, x, z).or_else(|| tile_path(g, x, z)) else { return Walk { ok: false, frames: 0, stuck: 0 } };
         let (mut i, mut frames, mut stuck, mut best, mut still, mut tries) = (1usize, 0usize, 0usize, 1e9f64, 0usize, 0usize);
+        // nudges since the way was last planned: chased off it (a creature's
+        // counter turns you aside) and caught, a player finds a new way from
+        // where they stand rather than push back to where they were
+        let mut planned_at = 0usize;
+        // `PLAYTHROUGH_TRACE=<level>`: where the walk is every ten seconds
+        let trace = std::env::var("PLAYTHROUGH_TRACE").ok().and_then(|v| v.parse::<i32>().ok()) == Some(g.level_num);
+        let mut why = "";
         key(g, "KeyW", true);
         while i < p.len() && frames < max_frames {
+            if trace && frames % 600 == 0 {
+                println!(
+                    "  L{} f{frames}: at {:.1},{:.1} point {i}/{} stuck {stuck} papers {} {why}",
+                    g.level_num,
+                    g.player.pos.x,
+                    g.player.pos.z,
+                    p.len(),
+                    g.player.papers
+                );
+            }
             let (wx, wz) = p[i];
             let (dx, dz) = (wx - g.player.pos.x, wz - g.player.pos.z);
             let d = dx.dhypot(dz);
@@ -317,6 +337,7 @@ impl Bot {
             if self.live {
                 // the rule-follower: what the creatures it perceives call for
                 let c = rule_follower::counter(g, self.last_drop, self.t);
+                why = c.why;
                 if c.paper {
                     g.drop_paper_marker();
                     self.last_drop = self.t;
@@ -387,6 +408,14 @@ impl Bot {
                         }
                         stuck += 1;
                         tries = 0;
+                        if stuck - planned_at >= 3
+                            && let Some(np) = fine_path(g, &free, x, z).or_else(|| tile_path(g, x, z))
+                        {
+                            p = np;
+                            i = 1;
+                            best = 1e9;
+                            planned_at = stuck;
+                        }
                     }
                 }
             }

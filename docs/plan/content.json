@@ -444,7 +444,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "bathroom props (58 placers)",
+      "name": "bathroom props (29 placers)",
       "notes": "P1-P3: the washroom's things remade as real ones (the mirrors, the basin and the rest), their draws kept; P4 wear; M8: a silvered mirror shows the lamp as a small hot spot, the nail polish's drip a flat run, the atomizer (a tie).",
       "passes": {
         "lint:placer-smoke": true,
@@ -473,7 +473,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "core props (71 placers)",
+      "name": "core props (70 placers)",
       "notes": "P1-P3 (docs/design/PROPS.md): every cartoon kind of the core props remade as the real thing in Blender batches r01-r18 at its real size, its print painted, its draws kept call for call (the reference levels hold every placer's objects); P4: wear by use, the thing's own (tests/prop_wear.rs); M8: contact shadows under small things on the floor, a mirror's lamp a hot spot; P5 the barricades and P6 the verbs have entries of their own. P7: the place's own flames (the candles on the bench, a haunted floor's candles) only where the verbs are, below the Lobby and never on a floor with rules of its own; a candle blown out stays out; the bench says nothing, its hum comes from it and by it the low-nerve heartbeat holds off (tests/flames.rs, tests/player.rs; LORE.md What still burns). The light switch's '(bad wiring)', the vacuum's and the payphone's dice and lines, the shaft's lines and the staff ID's names still break the house style (docs/research/props-interactions.md 1.3). No person has judged a prop.",
       "passes": {
         "lint:placer-smoke": true,
@@ -502,7 +502,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "domestic props (122 placers)",
+      "name": "domestic props (96 placers)",
       "notes": "P1-P3: someone's rooms' things remade as real ones (the kettle, the books, the rugs, the shoes and the rest), their draws kept; P4 wear; M8 (the suitcase's jumpers, the umbrella crooks). What burns is canon (LORE.md What still burns, P7): the cigarette left burning in a glass ashtray, a kettle's vapour and an iron's steam.",
       "passes": {
         "lint:placer-smoke": true,
@@ -528,7 +528,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "industrial props (38 placers)",
+      "name": "industrial props (32 placers)",
       "notes": "P1-P3: the maintenance runs' things remade as real ones (the rusted pipes and their leak, the breaker panel, the firewood and the rest), their draws kept; P4 wear. The wall placers take a pool's curb for a wall (open).",
       "passes": {
         "lint:placer-smoke": true,
@@ -554,7 +554,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "nature props (45 placers)",
+      "name": "nature props (16 placers)",
       "notes": "P2-P3: the overgrown atrium's things remade as real ones (the dead geraniums and the rest), their draws kept; P4 wear; M8 (the conker husks, a tie: whether they read as petals is for people).",
       "passes": {
         "lint:placer-smoke": true,
@@ -580,7 +580,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "occult props (36 placers)",
+      "name": "occult props (15 placers)",
       "notes": "P3: the shrine's things remade as real ones (t08, t09, t17, t18 and others: the candlestick, the memorial board, the pumpkins and cauldrons, the censer), their draws kept; P4 wear; M8's shape fixes (the mask's ribbons). What burns is canon (LORE.md What still burns, P7): the candles lit or cold as the code draws them, the censer cold, no coal and no smoke. Whether a lit candle in an empty shrine reads as wrong or as a game's light is for people.",
       "passes": {
         "lint:placer-smoke": true,
@@ -606,7 +606,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "office props (100 placers)",
+      "name": "office props (76 placers)",
       "notes": "P1-P3: the office's things remade as real ones (the wall phone, the chalkboard and the rest), their draws kept; P4 wear. P7: a mug's coffee still steams and a broken wall phone's board still smokes (LORE.md What still burns).",
       "passes": {
         "lint:placer-smoke": true,
@@ -632,7 +632,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "party props (27 placers)",
+      "name": "party props (21 placers)",
       "notes": "P3: the party's paper, the cake stand and its cake nobody ate (t13) and the rest, their draws kept; P4 wear. What burns is canon (LORE.md What still burns, P7): a birthday candle lit or out as the code draws it.",
       "passes": {
         "lint:placer-smoke": true,
@@ -658,7 +658,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "toys props (76 placers)",
+      "name": "toys props (43 placers)",
       "notes": "P1-P3: the toys remade as real, faded ones (the baby doll, the duck, the ball, the plush and the rest), their draws kept; P4 wear; M8: contact shadows under the small things on the floor (9 of 9), the doll's limbs apart, the elephant's ears.",
       "passes": {
         "lint:placer-smoke": true,
@@ -684,7 +684,7 @@
       "kind": "prop family",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "victorian props (76 placers)",
+      "name": "victorian props (43 placers)",
       "notes": "P3: the parlour's things remade as real ones (t10 the fireplace and the wall bookshelf, t21 the hanging brass lantern, and others), their draws kept; P4 wear; M8 (the bookshelf's brackets, the roe head, the trout). What burns is canon (LORE.md What still burns, P7): the hanging lantern and the chandelier always lit, about half the hearths and sconces cold, a lit hearth's crackle heard close by, the tray's tea still steaming.",
       "passes": {
         "lint:placer-smoke": true,

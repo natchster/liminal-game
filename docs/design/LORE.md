@@ -1152,31 +1152,25 @@ cold was settled when the floor was made.
   it that was for something), and on the Building's floors nothing but her
   lamp (*Places*, the purposes). In a shrine, a candle on a brass
   candlestick, three in a small candelabra, a ring of thin ones on the
-  floor, chime candles before a photograph on a board, a tea light in a
-  carved pumpkin gone soft. In a parlour, a brass lantern hanging from the
-  ceiling (some sway a little on their chains, and creak), a sconce on the
-  wall, the six candles of a small chandelier (its drops tinkling close
-  by, and some sway), a candle lantern on the floor, and a wood fire in
-  the hearth, its light on the room. In a party room, a birthday candle in
+  floor, a tea light in a carved pumpkin gone soft. In a parlour, a sconce
+  on the wall, a candle lantern on the floor, and a wood fire in the
+  hearth, its light on the room. In a party room, a birthday candle in
   a cake nobody ate, or on its own on the floor. In someone's rooms, a
   cigarette in a glass ashtray, its smoke going up straight and breaking
-  into curls. The hanging lantern, the chandelier, the candelabra and the
-  cigarette are always lit; a ring's candles mostly; a candlestick, a
-  pumpkin's tea light and a cake's candle more often than not; a hearth, a
-  sconce or a chime candle about half the time; a lantern or a birthday
+  into curls. The candelabra and the cigarette are always lit; a ring's
+  candles mostly; a candlestick, a pumpkin's tea light and a cake's candle
+  more often than not; a hearth or a sconce about half the time; a lantern or a birthday
   candle on the floor less often; a shrine's loose candles seldom, and
   over some of the cold ones a wisp of smoke stands from a wick just put
   out, and never drifts.
 - **What was hot**: most mugs left on an office floor steam, and more
   often than not the cups on a parlour's tray; a kettle on the floor puts
   out vapour from its spout more often than not, an iron left on its
-  board less often; a teapot's lid lifts on its steam; the radiators of
+  board less often; the radiators of
   the maintenance runs are hot; and some broken wall phones' burnt boards
   smoke.
-- **What is cold**: the censer hung in a shrine has no coal in it and
-  gives no smoke; it only sways a little on its chain. A cauldron holds
-  stale water, a drip from above falling into it, or dust and two sweet
-  wrappers.
+- **What is cold**: a cauldron holds stale water, a drip from above
+  falling into it, or dust and two sweet wrappers.
 - **The candles on the bench**: on most floors below the Lobby, but never
   on a floor with rules of its own (*Within reach*), somewhere well away
   from where you come in, three candles burn on a wooden bench over a

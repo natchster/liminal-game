@@ -1,7 +1,7 @@
 # Prop parts: the modelling contract
 
 Every prop in the game is built by a *placer* (a `place_xxx(g, dist)` in
-its theme's crate, `crates/placers/placers_<theme>/src/xxx.rs`, about 650
+its theme's crate, `crates/placers/placers_<theme>/src/xxx.rs`, about 440
 of them, or a core-props builder in `crates/game/src/core_props/`) from the
 engine's primitives (`box_geo!`, `cyl_geo!`, `sphere_geo!`, …). This
 directory makes those props finer in Blender, a folder per theme

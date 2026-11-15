@@ -193,3 +193,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-14, on top of 8ebbcbb: frames: 4242_L7_maintenance, 4242_L7_living_quarters, 4242_L10_showroom. Reason: R2b, with the eight before: a zone's reverb no longer draws from the per-frame stream, so the grain and the dust motes of a fresh game's frames moved (looked at: the same scenes; grain in the error maps, the showroom's a few motes)
 
 - 2026-11-15, on top of a000cea: frames: 4242_L7_spawn. Reason: issue #11: the walls' writing is baked into the walls as they are built, so its old planes no longer stand among the props when they are settled; a small thing at the far end of the hall stands a few pixels over
+
+- 2026-11-15, on top of cc825af: frames: 9 shots. Reason: issue #13 A2: 208 placers removed (docs/research/assets-census.md); every placer after a removed one draws otherwise, so the stains and grime laid on walls and floors and a few small things moved (looked at: the same scenes; the error maps faint on the walls' stains, two specks on the play area's floor, the shadow and spawn frames' worst tiles at most 0.004)
