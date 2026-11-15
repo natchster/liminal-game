@@ -1497,7 +1497,7 @@ fn paint_px_rows(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(usize, usize) -> [
 /// A transparent mark `w × h` px painted by `paint` (on its own stream);
 /// where it is clear its colour is `bleed` (sRGB), so its smaller mips keep
 /// the mark's colour at its soft edges instead of darkening them
-fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], paint: F) -> Tex {
+fn mark_tex<F: FnOnce(&mut Canvas, f64, f64) + 'static>(w: f64, h: f64, bleed: [f64; 3], paint: F) -> Tex {
     let tex = canvas_tex_opt(w, h, false, paint);
     {
         let img = tex.image();

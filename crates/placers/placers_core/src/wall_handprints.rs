@@ -450,7 +450,7 @@ fn hand_drag_tex(right: bool, grime: [f64; 3], vary: u32) -> Tex {
 /// A transparent mark `w × h` px painted by `paint` on a stream of its own
 /// varied by `vary`; where it is clear its colour is `bleed` (sRGB), so its
 /// smaller mips keep its colour at its soft edges
-fn hand_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], vary: u32, paint: F) -> Tex {
+fn hand_tex<F: FnOnce(&mut Canvas, f64, f64) + 'static>(w: f64, h: f64, bleed: [f64; 3], vary: u32, paint: F) -> Tex {
     let tex = canvas_tex_opt(w, h, false, move |ctx: &mut Canvas, cw: f64, ch: f64| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || paint(ctx, cw, ch))

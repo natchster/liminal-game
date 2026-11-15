@@ -21,6 +21,8 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
   * `material` / `texture`: Lambert, Phong, unlit, points, sprite and line
     materials with blending, sides, alpha test and the game's shader patches;
     image and canvas textures with wrapping, repeat, offset, filtering;
+    a canvas texture painted when its pixels are first read, or at once
+    (`paint_on_demand`: the game's executable paints at once);
   * `canvas` (on `cg`, CoreGraphics / CoreText): a 2D drawing API with paths,
     arcs, gradients, text, shadows, compositing and pixel access, used for
     procedural textures and the HUD, and JPEG decoding (`from_jpeg`) for the

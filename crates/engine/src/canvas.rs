@@ -1118,7 +1118,9 @@ impl Canvas {
     /// Copy the current pixels into a texture made from this canvas and mark it for re-upload.
     pub fn update_tex(&self, t: &Tex) {
         let img = self.to_image();
-        let rc = t.image();
+        // (written whole: a painting that waits for it is let go)
+        let rc = t.0.borrow().image.clone();
+        crate::texture::cancel_paint(&rc);
         let mut im = rc.borrow_mut();
         im.width = img.width;
         im.height = img.height;

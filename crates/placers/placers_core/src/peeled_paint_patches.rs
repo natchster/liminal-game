@@ -82,6 +82,7 @@ fn hex_of(c: [f64; 3]) -> u32 {
 /// middle): cells of a cracked film (jittered Voronoi, its edges wavering),
 /// each gone or still there by how far the damp got (`env`), and under the
 /// gone ones the older coat, itself gone in places.
+#[derive(Clone, Copy)]
 struct Flakes {
     pub seed: u32,
     pub painted: bool,
@@ -268,6 +269,7 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
         })
         .collect();
     let (pw, ph, painted, s) = (f.pw, f.ph, f.painted, f.seed);
+    let f = *f;
 
     decal_tex(400, 520, pw, ph, coat, move |cx, cy, aa| {
         let (x, y) = (cx - pw / 2.0, ph / 2.0 - cy);

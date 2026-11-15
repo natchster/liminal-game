@@ -99,7 +99,7 @@ fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
 
 /// An opaque, repeating surface `tw` x `th` px over `pw` x `ph` m: each
 /// pixel `px(x, y)` (m from its top left) in sRGB
-fn surface_tex(tw: usize, th: usize, pw: f64, ph: f64, px: impl Fn(f64, f64) -> [f64; 4] + Sync) -> Tex {
+fn surface_tex(tw: usize, th: usize, pw: f64, ph: f64, px: impl Fn(f64, f64) -> [f64; 4] + Sync + 'static) -> Tex {
     canvas_tex_opt(tw as f64, th as f64, true, move |ctx, cw, ch| {
         let (sx, sy) = (pw / cw, ph / ch);
         let mut img = ctx.create_image_data(cw, ch);

@@ -67,6 +67,7 @@ fn texture(h: &mut Fnv, t: &Option<Tex>, seen: &mut HashMap<usize, u64>) {
     let t = t.t();
     let key = std::rc::Rc::as_ptr(&t.image) as usize;
     let img = *seen.entry(key).or_insert_with(|| {
+        engine::texture::resolve(&t.image);
         let i = t.image.borrow();
         let mut ih = Fnv::new();
         ih.u64(u64::from(i.width));

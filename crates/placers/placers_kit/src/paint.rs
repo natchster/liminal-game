@@ -26,7 +26,7 @@ pub fn css(c: [f64; 3], a: f64) -> String {
 /// pixel `px(x, y, aa)` (m from the plane's top left, y down; `aa` a
 /// pixel's size) in straight sRGB and alpha. Where it is clear its colour
 /// is `bleed`, so a mark's edge does not filter toward black.
-pub fn decal_tex(tw: usize, th: usize, pw: f64, ph: f64, bleed: [f64; 3], px: impl Fn(f64, f64, f64) -> [f64; 4] + Sync) -> Tex {
+pub fn decal_tex(tw: usize, th: usize, pw: f64, ph: f64, bleed: [f64; 3], px: impl Fn(f64, f64, f64) -> [f64; 4] + Sync + 'static) -> Tex {
     let tex = canvas_tex_opt(tw as f64, th as f64, false, move |ctx, cw, ch| {
         let (sx, sy) = (pw / cw, ph / ch);
         let aa = sx.max(sy) * 1.1;
@@ -123,7 +123,7 @@ pub fn paint_px(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 
 }
 
 /// A repeating `px` x `px` tile painted pixel by pixel by `f(u, v)`
-pub fn paint_tile<F: Fn(f64, f64) -> [f64; 3] + Sync>(px: u32, f: F) -> Tex {
+pub fn paint_tile<F: Fn(f64, f64) -> [f64; 3] + Sync + 'static>(px: u32, f: F) -> Tex {
     canvas_tex_opt(px, px, true, move |ctx, w, h| {
         let w_ = w as usize;
         let mut img = ctx.create_image_data(w, h);
@@ -187,7 +187,7 @@ pub fn paint_px_indexed(ctx: &mut Canvas, w: f64, h: f64, mut f: impl FnMut(usiz
 /// A transparent mark `w × h` px painted by `paint` (on its own stream);
 /// where it is clear its colour is `bleed` (sRGB), so its smaller mips keep
 /// the mark's colour at its soft edges instead of darkening them
-pub fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], paint: F) -> Tex {
+pub fn mark_tex<F: FnOnce(&mut Canvas, f64, f64) + 'static>(w: f64, h: f64, bleed: [f64; 3], paint: F) -> Tex {
     let tex = canvas_tex_opt(w, h, false, paint);
     {
         let img = tex.image();

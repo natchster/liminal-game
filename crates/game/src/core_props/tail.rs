@@ -1296,7 +1296,7 @@ impl Game {
             cg.add(&pool);
             // ID card with a name that ties to the lore (drawn on the native RNG)
             let id_names = ["ELIAS", "M. RANDOLPH", "K. YU", "A. BAKER", "7-B STAFF"];
-            let name_tex = canvas_tex_opt(256, 128, false, |ctx, w, h| {
+            let name_tex = canvas_tex_opt(256, 128, false, move |ctx, w, h| {
                 ctx.set_fill_style("#e0dabf");
                 ctx.fill_rect(0, 0, w, h);
                 ctx.set_stroke_style("#2a1a08");

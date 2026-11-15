@@ -27,7 +27,7 @@ pub(crate) fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, 
 /// `vary` comes from where the mark was put); where it is clear its colour is
 /// `bleed` (sRGB), so its smaller mips keep the mark's colour at its soft
 /// edges instead of darkening them
-pub(crate) fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], vary: u32, paint: F) -> Tex {
+pub(crate) fn mark_tex<F: FnOnce(&mut Canvas, f64, f64) + 'static>(w: f64, h: f64, bleed: [f64; 3], vary: u32, paint: F) -> Tex {
     let tex = canvas_tex_opt(w, h, false, move |ctx: &mut Canvas, cw: f64, ch: f64| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || paint(ctx, cw, ch))

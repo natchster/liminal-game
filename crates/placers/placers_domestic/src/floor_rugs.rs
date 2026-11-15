@@ -353,7 +353,7 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
             )
         })
         .collect();
-    let face = canvas_tex_opt(512, 320, false, |ctx, w, h| {
+    let face = canvas_tex_opt(512, 320, false, move |ctx, w, h| {
         let mut img = ctx.create_image_data(w, h);
         let (n, m) = (w as usize, h as usize);
         par_rows(&mut img.data, n * 4, |j, out| {
@@ -430,7 +430,7 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
         });
         ctx.put_image_data(&img, 0, 0);
     });
-    let back = canvas_tex_opt(256, 160, false, |ctx, w, h| {
+    let back = canvas_tex_opt(256, 160, false, move |ctx, w, h| {
         let mut img = ctx.create_image_data(w, h);
         let (n, m) = (w as usize, h as usize);
         par_rows(&mut img.data, n * 4, |j, out| {

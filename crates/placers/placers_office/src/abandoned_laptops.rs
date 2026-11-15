@@ -174,7 +174,8 @@ fn laptop_screen_textures() -> Vec<Tex> {
                 variants
                     .iter()
                     .map(|&(bg, fg, line, bsod)| {
-                        canvas_tex_opt(128, 96, false, |ctx, w, h| {
+                        let glyphs = glyphs.clone();
+                        canvas_tex_opt(128, 96, false, move |ctx, w, h| {
                             ctx.set_fill_style(bg);
                             ctx.fill_rect(0, 0, w, h);
                             // Horizontal scan lines.

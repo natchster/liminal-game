@@ -324,7 +324,7 @@ pub fn print_tex(name: &str, size: (f64, f64), ppm: f64, age: Age, vary: u32) ->
 /// A sheet `size` m at `ppm` px a metre whose design the game paints
 /// (`draw`, in px: a poster's type and inks, on its own stream), then aged
 /// by `age` as [`print_tex`] ages a print
-pub fn sheet_tex(size: (f64, f64), ppm: f64, age: Age, vary: u32, draw: impl FnOnce(&mut Canvas, f64, f64)) -> Tex {
+pub fn sheet_tex(size: (f64, f64), ppm: f64, age: Age, vary: u32, draw: impl FnOnce(&mut Canvas, f64, f64) + 'static) -> Tex {
     let (pw, ph) = ((size.0 * ppm).round().max(8.0), (size.1 * ppm).round().max(8.0));
     canvas_tex_opt(pw, ph, false, move |ctx, w, h| {
         draw(ctx, w, h);

@@ -247,7 +247,34 @@ Levels must be a pure function of `(run_seed, level)`:
   17 minutes to about 3). A test that plays many floors runs them side by
   side on threads of its own (`beatable`'s runs, `usable`'s floors,
   `glass`'s floors and trials), each floor and trial seeding its per-frame
-  stream so it plays the same on any thread.
+  stream so it plays the same on any thread. The pool asks every binary
+  for its tests at once (a binary just built is checked by the system at
+  its first launch, about 0.8 s each, and there are 90), and keeps the
+  times of the tests there are, so a test split or renamed leaves no time
+  behind to order the queue by.
+* **Textures are painted on demand in tests.** A floor's build was four
+  fifths painting (measured with `sample` on nine floors of the rooms:
+  83% of the main thread inside `canvas_tex`, CoreGraphics filling
+  gradients and paths), and almost every test that builds floors (a
+  creature's counter, a barricade, an aside, a vending machine) never
+  looks at a pixel. A canvas texture made on a thread that paints on
+  demand (`engine::texture::paint_on_demand`, the default) keeps its
+  painter and its stream's seed, and paints when its pixels are first
+  read (`Tex::image`, the renderer's upload: `engine::texture::resolve`;
+  a texture written whole drops its painting, `cancel_paint`). The
+  game's executable paints at once (`main` sets it), so play never waits
+  on a painter, and the bench, the goldens and the headless tools draw
+  and measure as before. Painted later, a texture has the same pixels:
+  its seed is its place among its painter's textures as it was made
+  (`world_levels` `a_floor_painted_on_demand_has_the_pixels_of_one_painted_at_once`,
+  each floor on a fresh thread, alone: two threads drawing at once
+  rasterize differently), and the placers' fingerprints read theirs
+  through the same path. So a painter owns what it paints with
+  (`'static`: a `move` closure); a draw that is only lent paints at once
+  (`canvas_tex_opt_now`). The fast suite's test work fell from about
+  3,700 to about 1,000 s (four floor-building tests alone: 25 → 3.7 s,
+  17 → 2.9 s, 30 → 1.2 s, 36 → 6.3 s), its test step with nothing to
+  rebuild to about two minutes.
 * `cargo test --workspace --release` runs every test directly.
 * **Golden frames.** `cargo xtask shots` renders 56 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the

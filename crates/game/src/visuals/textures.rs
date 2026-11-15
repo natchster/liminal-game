@@ -784,6 +784,7 @@ pub fn make_wallpaper(palette: &WallPalette, pattern_kind: &str, grime_lvl: i64)
     let motif2 =
         format!("rgba({},{},{},{})", (mr as f64 * 0.75).floor(), (mg as f64 * 0.75).floor(), (mb as f64 * 0.75).floor(), motif_alpha * 1.4);
     let palette = *palette;
+    let pattern_kind = pattern_kind.to_string();
     canvas_tex(512, 512, move |ctx, w, h| {
         // base gradient — slight uneven wash from ceiling to floor
         let bg = ctx.create_linear_gradient(0, 0, 0, h);
@@ -810,7 +811,7 @@ pub fn make_wallpaper(palette: &WallPalette, pattern_kind: &str, grime_lvl: i64)
             );
         }
         // pattern render (very subtle now)
-        wall_pattern(pattern_kind)(ctx, w, h, &motif, &motif2);
+        wall_pattern(&pattern_kind)(ctx, w, h, &motif, &motif2);
         // fibrous noise — kept, gives the "old paper" grain
         for _ in 0..1600 {
             ctx.set_fill_style(format!("rgba({},{},{},0.05)", irand(mr - 20, mr + 30), irand(mg - 20, mg + 30), irand(0, 40)));

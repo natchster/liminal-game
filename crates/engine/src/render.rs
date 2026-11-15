@@ -487,6 +487,7 @@ impl Renderer {
     fn gpu_tex(&mut self, t: &Tex) -> (u64, bool) {
         let tt = t.0.borrow();
         let img = tt.image.clone();
+        crate::texture::resolve(&img);
         let im = img.borrow();
         let id = im.id;
         let srgb = tt.color_space == ColorSpace::Srgb;

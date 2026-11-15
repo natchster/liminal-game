@@ -222,7 +222,7 @@ pub fn window_sign_textures() -> Vec<Tex> {
                 variants
                     .iter()
                     .map(|&(text, bg, fg, fs)| {
-                        canvas_tex_opt(128, 64, false, |ctx, w, h| {
+                        canvas_tex_opt(128, 64, false, move |ctx, w, h| {
                             ctx.set_fill_style(bg);
                             ctx.fill_rect(0, 0, w, h);
                             ctx.set_stroke_style(fg);
@@ -270,7 +270,7 @@ pub fn clock_textures() -> Vec<Tex> {
                 variants
                     .iter()
                     .map(|&(vh, vm, face, tr, tg, tb, cracked)| {
-                        canvas_tex_opt(128, 128, false, |ctx, w, h| {
+                        canvas_tex_opt(128, 128, false, move |ctx, w, h| {
                             ctx.set_fill_style(face);
                             ctx.fill_rect(0, 0, w, h);
                             let grd = ctx.create_radial_gradient(w / 2.0, h / 2.0, w * 0.3, w / 2.0, h / 2.0, w * 0.55);

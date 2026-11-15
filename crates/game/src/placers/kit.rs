@@ -49,15 +49,53 @@ fn painter_seed<F>(w: f64, h: f64) -> u32 {
 }
 
 /// A repeating sRGB canvas texture. The draw runs on a stream of its own
-/// (`painter_seed`), never the level's seeded one nor the native one.
-pub fn canvas_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: impl Num, h: impl Num, draw: F) -> Tex {
+/// (`painter_seed`), never the level's seeded one nor the native one, so
+/// it paints the same whenever it runs: at once, or on demand when its
+/// pixels are first read (`engine::texture::paint_on_demand`; the game's
+/// window paints at once).
+pub fn canvas_tex<F: FnOnce(&mut Canvas, f64, f64) + 'static>(w: impl Num, h: impl Num, draw: F) -> Tex {
     canvas_tex_opt(w, h, true, draw)
 }
 /// [`canvas_tex`] with a choice of repeat wrapping.
-pub fn canvas_tex_opt<F: FnOnce(&mut Canvas, f64, f64)>(w: impl Num, h: impl Num, repeat: bool, draw: F) -> Tex {
+pub fn canvas_tex_opt<F: FnOnce(&mut Canvas, f64, f64) + 'static>(w: impl Num, h: impl Num, repeat: bool, draw: F) -> Tex {
     let (w, h) = (w.f(), h.f());
+    // (its seed is its place among the painter's textures as it is made,
+    // whenever it is painted)
+    let seed = painter_seed::<F>(w, h);
+    let paint = move || {
+        let mut c = Canvas::new(w as u32, h as u32);
+        with_own_stream(seed, || draw(&mut c, w, h));
+        c
+    };
+    let t = if engine::texture::paint_on_demand() {
+        // (its image, and both ids, made now as an eager one makes them)
+        let t = Tex::from_image(engine::texture::Image::new_rgba((w as u32).max(1), (h as u32).max(1), vec![]));
+        let img = t.r().image.clone();
+        engine::texture::defer_paint(&img, Box::new(move || paint().pixels()));
+        t
+    } else {
+        paint().to_tex()
+    };
+    {
+        let mut tt = t.t();
+        tt.color_space = ColorSpace::Srgb;
+        if repeat {
+            tt.wrap_s = Wrap::Repeat;
+            tt.wrap_t = Wrap::Repeat;
+        }
+        tt.anisotropy = 4;
+    }
+    t
+}
+
+/// [`canvas_tex_opt`] painted at once whatever the thread's mode: for a draw
+/// that is lent, not given (`modes::stairwell`'s texture maker), which
+/// cannot wait. The same seed, so the same pixels.
+pub fn canvas_tex_opt_now<F: FnOnce(&mut Canvas, f64, f64)>(w: impl Num, h: impl Num, repeat: bool, draw: F) -> Tex {
+    let (w, h) = (w.f(), h.f());
+    let seed = painter_seed::<F>(w, h);
     let mut c = Canvas::new(w as u32, h as u32);
-    with_own_stream(painter_seed::<F>(w, h), || draw(&mut c, w, h));
+    with_own_stream(seed, || draw(&mut c, w, h));
     let t = c.to_tex();
     {
         let mut tt = t.t();

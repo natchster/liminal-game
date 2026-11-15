@@ -7,8 +7,61 @@
 
 use crate::dmath::DMath;
 use crate::math::*;
-use std::cell::{Ref, RefCell, RefMut};
+use std::cell::{Cell, Ref, RefCell, RefMut};
+use std::collections::HashMap;
 use std::rc::Rc;
+
+/// What paints a deferred image: its pixels (RGBA8, straight alpha, rows
+/// top-down, as `Canvas::pixels` gives them)
+pub type Painter = Box<dyn FnOnce() -> Vec<u8>>;
+
+thread_local! {
+    /// Whether a canvas texture made on this thread is painted only when its
+    /// pixels are first read (`resolve`), or at once. On demand by default:
+    /// a test or a headless tool that never looks at most of a floor's
+    /// textures never paints them (painting was four fifths of a floor's
+    /// build). The game's executable paints at once, so play never waits on
+    /// a painter.
+    static ON_DEMAND: Cell<bool> = const { Cell::new(true) };
+    /// The images whose painting waits, by image id
+    static PENDING: RefCell<HashMap<u64, Painter>> = RefCell::new(HashMap::new());
+}
+
+/// Whether canvas textures made on this thread are painted on demand
+pub fn paint_on_demand() -> bool {
+    ON_DEMAND.with(Cell::get)
+}
+/// Paint this thread's canvas textures on demand (`true`) or at once
+pub fn set_paint_on_demand(on: bool) {
+    ON_DEMAND.with(|c| c.set(on));
+}
+/// `img` (its size already set, its data empty) is painted by `paint` when
+/// its pixels are first read
+pub fn defer_paint(img: &Rc<RefCell<Image>>, paint: Painter) {
+    let id = img.borrow().id;
+    PENDING.with(|p| p.borrow_mut().insert(id, paint));
+}
+/// Paint `img` now if its painting waits (every read of an image's pixels
+/// comes here first: `Tex::image`, the renderer's upload)
+pub fn resolve(img: &Rc<RefCell<Image>>) {
+    let id = img.borrow().id;
+    // (taken out first: a painter may make, and paint, textures of its own)
+    if let Some(paint) = PENDING.with(|p| p.borrow_mut().remove(&id)) {
+        let data = paint();
+        let mut im = img.borrow_mut();
+        im.data = data;
+        im.version += 1;
+    }
+}
+/// `img`'s waiting painting is let go: its pixels are about to be written whole
+pub fn cancel_paint(img: &Rc<RefCell<Image>>) {
+    let id = img.borrow().id;
+    PENDING.with(|p| p.borrow_mut().remove(&id));
+}
+/// How many images made on this thread wait to be painted
+pub fn unpainted() -> usize {
+    PENDING.with(|p| p.borrow().len())
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum Wrap {
@@ -172,8 +225,11 @@ impl Tex {
     pub fn id(&self) -> u64 {
         self.0.borrow().id
     }
+    /// The image, painted first if its painting waits (`resolve`)
     pub fn image(&self) -> Rc<RefCell<Image>> {
-        self.0.borrow().image.clone()
+        let img = self.0.borrow().image.clone();
+        resolve(&img);
+        img
     }
     pub fn width(&self) -> u32 {
         self.0.borrow().image.borrow().width

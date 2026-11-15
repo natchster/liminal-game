@@ -34,7 +34,8 @@ pub type CanvasTexFn = Rc<dyn Fn(f64, f64, bool, &mut dyn FnMut(&mut Canvas, f64
 /// The game's canvas textures (`placers::kit::canvas_tex_opt`) as a [`CanvasTexFn`].
 pub fn game_canvas_tex() -> CanvasTexFn {
     Rc::new(|w: f64, h: f64, repeat: bool, draw: &mut dyn FnMut(&mut Canvas, f64, f64)| {
-        crate::placers::kit::canvas_tex_opt(w, h, repeat, |c, w, h| draw(c, w, h))
+        // (its draw is lent, not given: painted at once)
+        crate::placers::kit::canvas_tex_opt_now(w, h, repeat, |c, w, h| draw(c, w, h))
     })
 }
 

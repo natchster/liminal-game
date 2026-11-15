@@ -7,6 +7,11 @@
 use game::Game;
 use game::base::rng::{seed_for_level, seeded_draws, with_seed};
 
+/// Held by this binary's tests that paint: CoreGraphics rasterizes
+/// differently when two threads draw at once, so a test comparing pixels
+/// paints alone (the check's pool runs each test in a process of its own)
+static PAINTING: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 #[test]
 fn every_themed_placer_is_registered() {
     let mut r = vec![];
@@ -18,6 +23,7 @@ fn every_themed_placer_is_registered() {
 
 #[test]
 fn levels_build_with_all_placers() {
+    let _alone = PAINTING.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
     let mut out = String::from("{\"levels\":[\n");
     let mut first = true;
     for run_seed in [0x1234_5678u32, 0x0BAD_F00D, 2026] {
@@ -92,4 +98,74 @@ fn levels_build_with_all_placers() {
     let p = std::path::Path::new(env!("CARGO_TARGET_TMPDIR")).join("world_marks.json");
     std::fs::write(&p, out).unwrap();
     eprintln!("marks written to {}", p.display());
+}
+
+/// Every texture of a floor as it was built on this thread, in the order the
+/// scene holds them: its name and a hash of its pixels (each read through
+/// `Tex::image`, which paints it first if its painting waits)
+fn floor_textures(seed: u32, level: i32, on_demand: bool) -> (Vec<(String, u64)>, usize) {
+    // (a fresh thread: nothing of what the thread made before, as a run's
+    // process starts)
+    std::thread::spawn(move || floor_textures_here(seed, level, on_demand)).join().expect("the floor's thread")
+}
+fn floor_textures_here(seed: u32, level: i32, on_demand: bool) -> (Vec<(String, u64)>, usize) {
+    engine::texture::set_paint_on_demand(on_demand);
+    // (the boot's textures draw on the per-frame stream: the same for both,
+    // as `--fresh` makes it)
+    game::base::rng::seed_native(u64::from(seed) << 8 | level as u64);
+    let mut g = Game::new_bare();
+    placers::register_all(&mut g.placers);
+    g.launch_flags = format!("seed={seed}&level={level}&nosound");
+    g.boot();
+    g.start_new_game();
+    let waiting = engine::texture::unpainted();
+    let mut out = vec![];
+    let mut seen = std::collections::HashSet::new();
+    g.scene.traverse(&mut |o| {
+        for m in o.mats() {
+            let mm = m.m();
+            let detail = match &mm.patch {
+                engine::material::Patch::ArchUV { detail: Some(d), .. } => Some(d.map.clone()),
+                _ => None,
+            };
+            for t in [&mm.map, &mm.alpha_map, &mm.bump_map, &mm.emissive_map, &detail].into_iter().flatten() {
+                if !seen.insert(t.id()) {
+                    continue;
+                }
+                let img = t.image();
+                let im = img.borrow();
+                // FNV-1a over its size and pixels
+                let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+                for b in im.width.to_le_bytes().into_iter().chain(im.height.to_le_bytes()).chain(im.data.iter().copied()) {
+                    h ^= u64::from(b);
+                    h = h.wrapping_mul(0x0100_0000_01b3);
+                }
+                let placer = o.user().placer.clone().unwrap_or_default();
+                let name = o.name();
+                let who = format!("{placer}|{name}|{}x{}", im.width, im.height);
+                out.push((who, h));
+            }
+        }
+    });
+    (out, waiting)
+}
+
+/// Painted on demand (`engine::texture::paint_on_demand`: the tests' and
+/// the headless tools' way, where most of a floor's textures are never
+/// looked at), a floor's textures have the very pixels of one painted at
+/// once (the game's window's way): each painter keeps the seed it was given
+/// as its texture was made, whenever it paints. Nearly every texture of a
+/// floor waits until it is read.
+#[test]
+fn a_floor_painted_on_demand_has_the_pixels_of_one_painted_at_once() {
+    let _alone = PAINTING.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+    for (seed, level) in [(4242u32, 5), (7, 9), (77, 2)] {
+        let (at_once, none) = floor_textures(seed, level, false);
+        let (on_demand, waiting) = floor_textures(seed, level, true);
+        assert_eq!(none, 0, "{seed}/{level}: painted at once, nothing waits");
+        assert!(waiting > at_once.len() / 2, "{seed}/{level}: only {waiting} of {} textures waited", at_once.len());
+        assert_eq!(at_once.len(), on_demand.len(), "{seed}/{level}: the floor holds as many textures");
+        let differ: Vec<&String> = at_once.iter().zip(&on_demand).filter(|(a, b)| a != b).map(|(a, _)| &a.0).collect();
+        assert!(differ.is_empty(), "{seed}/{level}: painted on demand, these differ: {differ:?}");
+    }
 }

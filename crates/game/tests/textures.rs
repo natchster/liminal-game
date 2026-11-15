@@ -241,7 +241,7 @@ fn textures_and_surfaces() {
                 .map(|&(name, f)| {
                     item(
                         name,
-                        game::canvas_tex(512, 512, |ctx, w, h| {
+                        game::canvas_tex(512, 512, move |ctx, w, h| {
                             ctx.set_fill_style("#f4f0e0");
                             ctx.fill_rect(0, 0, w, h);
                             f(ctx, w, h, "rgba(0,0,0,0.85)", "rgba(170,20,20,0.7)");

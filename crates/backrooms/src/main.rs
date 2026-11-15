@@ -1856,6 +1856,10 @@ fn bench_creatures(o: &Options, path: &str) {
 }
 
 fn main() {
+    // the game's canvas textures painted as they are made, so play never
+    // waits on a painter (the tests and the engine's default paint them on
+    // demand: `engine::texture::paint_on_demand`)
+    engine::texture::set_paint_on_demand(false);
     let o = parse_args();
     // a cutscene bundle against the game's rules (`cargo xtask cutscene check`)
     if let Some(p) = &o.cutscene_check {

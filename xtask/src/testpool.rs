@@ -11,7 +11,7 @@
 //! yet first; the whole suite then takes about the longest test or its
 //! total time over the cores, whichever is more.
 use crate::{cargo, root};
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;
@@ -65,11 +65,21 @@ pub fn run(skip: &[&str], log: &mut std::fs::File) -> Result<Outcome, String> {
         .lines()
         .filter_map(|l| l.split_once('\t').and_then(|(k, v)| v.parse().ok().map(|v| (k.to_string(), v))))
         .collect();
+    // every binary asked for its tests at once: one just built is checked by
+    // the system at its first launch (0.8 s for one of ours, alone), and
+    // the 90 of them one after another had taken a minute or more
+    let listed: Vec<Result<(Vec<String>, Vec<String>), String>> = std::thread::scope(|s| {
+        let asked: Vec<_> = bins.iter().map(|b| s.spawn(move || Ok((list(b, true)?, list(b, false)?)))).collect();
+        asked.into_iter().map(|h| h.join().unwrap_or_else(|_| Err("a listing thread panicked".to_string()))).collect()
+    });
     let mut jobs = vec![];
-    for (bi, b) in bins.iter().enumerate() {
-        let ignored = list(b, true)?;
+    // every test there is (skipped or not): the times kept are theirs
+    let mut known = HashSet::new();
+    for (bi, (b, l)) in bins.iter().zip(listed).enumerate() {
+        let (ignored, names) = l?;
         out.ignored += ignored.len();
-        for name in list(b, false)? {
+        for name in names {
+            known.insert(format!("{}::{}::{name}", b.pkg, b.target));
             if ignored.contains(&name) {
                 continue;
             }
@@ -131,19 +141,29 @@ pub fn run(skip: &[&str], log: &mut std::fs::File) -> Result<Outcome, String> {
         h.join().map_err(|_| "a test pool worker panicked".to_string())?;
     }
     let results = results.lock().unwrap();
-    let mut all = times;
-    for (key, ok, secs) in results.iter() {
+    for (_, ok, _) in results.iter() {
         if *ok {
             out.passed += 1;
         } else {
             out.failed += 1;
         }
-        all.insert(key.clone(), *secs);
     }
-    let mut tsv: Vec<String> = all.into_iter().map(|(k, v)| format!("{k}\t{v:.2}")).collect();
-    tsv.sort();
-    let _ = std::fs::write(&times_path, tsv.join("\n") + "\n");
+    let ran: Vec<(String, f64)> = results.iter().map(|(k, _, s)| (k.clone(), *s)).collect();
+    let _ = std::fs::write(&times_path, kept_times(times, &ran, &known));
     Ok(out)
+}
+
+/// The times file after a run: each test that ran with its new time, each
+/// one that did not (skipped by `--fast`) with its last, and none of a test
+/// that is gone (a stale time ordered the queue, and read as work there was
+/// not: a test split long ago kept its six minutes)
+fn kept_times(mut times: HashMap<String, f64>, ran: &[(String, f64)], known: &HashSet<String>) -> String {
+    for (key, secs) in ran {
+        times.insert(key.clone(), *secs);
+    }
+    let mut tsv: Vec<String> = times.into_iter().filter(|(k, _)| known.contains(k)).map(|(k, v)| format!("{k}\t{v:.2}")).collect();
+    tsv.sort();
+    tsv.join("\n") + "\n"
 }
 
 /// The test binaries `cargo test --no-run --message-format=json` built
@@ -191,6 +211,15 @@ fn list(b: &Binary, ignored: bool) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_times_kept_are_the_tests_there_are() {
+        let old: HashMap<String, f64> =
+            [("a::t::ran", 9.0), ("a::t::skipped", 30.0), ("a::t::gone", 352.0)].iter().map(|(k, v)| (k.to_string(), *v)).collect();
+        let known: HashSet<String> = ["a::t::ran", "a::t::skipped", "a::t::new"].iter().map(|k| k.to_string()).collect();
+        let ran = [("a::t::ran".to_string(), 2.5), ("a::t::new".to_string(), 1.0)];
+        assert_eq!(kept_times(old, &ran, &known), "a::t::new\t1.00\na::t::ran\t2.50\na::t::skipped\t30.00\n");
+    }
 
     #[test]
     fn a_package_is_named_from_its_id() {

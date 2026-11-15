@@ -119,7 +119,7 @@ fn photo_textures() -> Vec<Tex> {
                 ];
                 let mut textures = vec![];
                 for &(bg, kind) in variants.iter() {
-                    textures.push(canvas_tex_opt(96, 96, false, |ctx, w, h| {
+                    textures.push(canvas_tex_opt(96, 96, false, move |ctx, w, h| {
                         ctx.set_fill_style(bg);
                         ctx.fill_rect(0, 0, w, h);
                         // Grunge speckle.

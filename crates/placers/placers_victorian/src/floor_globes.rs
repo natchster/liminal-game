@@ -304,8 +304,8 @@ fn gl_map_tex(vary: u32) -> Tex {
     };
     let sheet = pictures::print_tex("map_world", (0.48, 0.40), 1000.0, none, vary);
     let (sw, sh, data) = {
-        let t = sheet.0.borrow();
-        let img = t.image.borrow();
+        let img = sheet.image();
+        let img = img.borrow();
         (img.width as usize, img.height as usize, img.data.clone())
     };
     canvas_tex_opt(512, 256, false, move |ctx, w, h| {
