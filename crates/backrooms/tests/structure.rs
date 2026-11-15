@@ -543,6 +543,64 @@ fn the_diagrams_name_code_that_exists() {
     );
 }
 
+/// The README says what the project is, briefly (GitHub issue #7): its
+/// header, an opening paragraph, then *The game* (with its grid of four
+/// pictures), *The harness* (with its two diagrams) and *Research and
+/// materials*, in that order and nothing else; every picture it shows is in
+/// the repository; and the detail stays in the docs it links, so it stays
+/// short.
+#[test]
+fn the_readme_says_what_the_project_is() {
+    let readme = read("README.md");
+    assert!(readme.starts_with("# The liminal game\n"), "README.md begins with its header, `# The liminal game`");
+    let sections: Vec<&str> = readme.lines().filter_map(|l| l.strip_prefix("## ")).collect();
+    assert_eq!(
+        sections,
+        ["The game", "The harness", "Research and materials"],
+        "README.md's sections are the issue's (#7); put more detail in a doc and link it"
+    );
+    let opening = &readme[readme.find('\n').unwrap()..readme.find("\n## ").unwrap()];
+    assert!(opening.trim().len() > 200, "README.md opens with a paragraph that says what the project is");
+    let section = |name: &str| {
+        let at = readme.find(&format!("\n## {name}\n")).unwrap() + 1;
+        let rest = &readme[at..];
+        &rest[..rest[3..].find("\n## ").map_or(rest.len(), |e| e + 3)]
+    };
+    // what a section shows: `![alt](path)` and `<img src="path">`
+    let pictures = |text: &str| -> Vec<String> {
+        let mut out = vec![];
+        for (at, _) in text.match_indices("![") {
+            let rest = &text[at..];
+            if let Some(open) = rest.find("](")
+                && let Some(len) = rest[open + 2..].find(')')
+            {
+                out.push(rest[open + 2..open + 2 + len].to_string());
+            }
+        }
+        for (at, _) in text.match_indices("<img src=\"") {
+            let rest = &text[at + 10..];
+            out.push(rest[..rest.find('"').unwrap()].to_string());
+        }
+        out
+    };
+    let game = pictures(section("The game"));
+    assert!(
+        game.len() == 4 && game.iter().all(|p| p.starts_with("docs/design/screenshots/")),
+        "*The game* shows a grid of four screenshots from docs/design/screenshots/: {game:?}"
+    );
+    let harness = pictures(section("The harness"));
+    assert_eq!(
+        harness,
+        ["docs/engineering/diagrams/game-loop.svg", "docs/engineering/diagrams/pipelines.svg"],
+        "*The harness* shows the game loop and the pipelines"
+    );
+    for p in game.iter().chain(&harness) {
+        assert!(root().join(p).is_file(), "README.md shows {p}, which is not in the repository");
+    }
+    let lines = readme.lines().count();
+    assert!(lines <= 140, "README.md is {lines} lines: it says what the project is, and links the docs for the rest");
+}
+
 /// The placers live by theme (GitHub issue #2): `place_<name>`, of theme T
 /// in `world::tables::PLACER_THEME` (unlisted: domestic, as the game reads
 /// it), is registered by `crates/placers/placers_<T>/` from its own module
