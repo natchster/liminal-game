@@ -441,24 +441,6 @@ pub fn pattern_sync_by_weather(key: &str) -> Option<PatternSyncSpec> {
     })
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct StaticChromSpec {
-    pub contrast: f64,
-    pub saturate: f64,
-}
-/// Contrast and saturation of the static-burst chromatic effect.
-pub fn static_chrom_by_weather(key: &str) -> Option<StaticChromSpec> {
-    Some(match key {
-        "wet" => StaticChromSpec { contrast: 0.2, saturate: 0.45 },
-        "electric" => StaticChromSpec { contrast: 0.45, saturate: 0.8 },
-        "haunted" => StaticChromSpec { contrast: 0.32, saturate: 0.65 },
-        "derelict" => StaticChromSpec { contrast: 0.28, saturate: 0.55 },
-        "still" => StaticChromSpec { contrast: 0.15, saturate: 0.35 },
-        "normal" => StaticChromSpec { contrast: 0.3, saturate: 0.6 },
-        _ => return None,
-    })
-}
-
 /// Light dimming of the door event.
 pub fn door_dim_by_weather(key: &str) -> Option<f64> {
     Some(match key {
@@ -591,24 +573,6 @@ pub fn bob_amp_mul_by_weather(key: &str) -> Option<f64> {
         "derelict" => 1.0,
         "still" => 0.9,
         "normal" => 1.0,
-        _ => return None,
-    })
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct SanityHueSpec {
-    pub spread: f64,
-    pub bias: f64,
-}
-/// Hue spread and bias of the low-sanity colour shift.
-pub fn sanity_hue_by_weather(key: &str) -> Option<SanityHueSpec> {
-    Some(match key {
-        "wet" => SanityHueSpec { spread: 40.0, bias: -60.0 },
-        "electric" => SanityHueSpec { spread: 80.0, bias: -20.0 },
-        "haunted" => SanityHueSpec { spread: 50.0, bias: -90.0 },
-        "derelict" => SanityHueSpec { spread: 45.0, bias: 20.0 },
-        "still" => SanityHueSpec { spread: 30.0, bias: -40.0 },
-        "normal" => SanityHueSpec { spread: 60.0, bias: -30.0 },
         _ => return None,
     })
 }

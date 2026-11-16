@@ -403,7 +403,6 @@ impl Game {
             self.noise_burst(0.30, st.tail_freq, 0.8, static_gain * 0.4, "bandpass", None, 0.30, static_pan);
             self.static_burst_timer = (420.0 + rnd() * 420.0) * etm * rtm; // 7–14 min
             self.static_burst_flash_t = 0.5;
-            self.static_chromatic_t = 0.35; // chromatic aberration punch
             self.rare_fired("static", wk);
             self.log_ambient("static-burst", None, None, Some(static_pan));
         }

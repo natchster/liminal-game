@@ -69,7 +69,6 @@ fn entities_smoke() {
                 g.chime_flash_t = 0.5;
                 g.chime_flash_color = Some("rgba(90, 160, 220".into());
                 g.electric_surge_t = 0.3;
-                g.static_chromatic_t = 0.3;
             }
             g.camera.set_pos(g.player.pos.x, EYE, g.player.pos.z);
             g.perf_t = t;

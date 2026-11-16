@@ -1073,6 +1073,13 @@ impl Game {
             self.debug_loop_pickup(if name == "loop-water" { PickupKind::Almond } else { PickupKind::Battery }, 1.25);
             return;
         }
+        // the nerve all but spent: its overlay (the red edge, the even dim
+        // that kept the blotches' light) eased in, the scene's sanity filter
+        if name == "nerve" {
+            self.player.sanity = 5.0;
+            self.aberration_opacity_cur = 0.95;
+            return;
+        }
         // a figure far across the void, looked at (`world::far_figures`)
         if name == "figure" && self.building.is_some() {
             self.show_far_figure();

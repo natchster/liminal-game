@@ -1201,10 +1201,14 @@ impl Frame<'_> {
         });
     }
     pub(crate) fn fill(&mut self, c: Rgba, blend: LayerBlend) {
+        self.fill_as("fill", c, blend);
+    }
+    /// a fill painted under its own name (the nerve's dim is not a list's)
+    fn fill_as(&mut self, name: &'static str, c: Rgba, blend: LayerBlend) {
         if c[3] <= 0.0005 {
             return;
         }
-        self.ui.painted.push("fill");
+        self.ui.painted.push(name);
         self.out.push(HudLayer::Fill { color: f32x4(c), blend });
     }
     /// an element's `background`: a colour fill or a radial gradient
@@ -1270,6 +1274,14 @@ pub(crate) fn text_layer(f: &mut Frame, name: &'static str, tb: TextBlock, x: f6
 }
 
 // ------------------------------------------------------------ HUD layers
+/// The nerve's overlay at full opacity darkens the view evenly by this much
+/// (a black fill's alpha):
+/// what its two colour blotches (red at 68% 58%, cyan at 32% 42%, a tenth
+/// each, multiplied) took of the light, measured over the HUD test's flat
+/// stand-in (`the_nerves_overlay_keeps_its_light_and_lays_no_colour`), so
+/// taking out their colour left the light as it was (issue #14)
+const NERVE_DIM: f64 = 0.016;
+
 /// The HUD's layers over the 3D view, in CSS paint order.
 pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
     let mut ui = std::mem::take(&mut g.hud_ui);
@@ -1316,18 +1328,19 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
             f.background(bg, 1.0, LayerBlend::Multiply);
         }
     }
-    // ---- z 4: #aberration (three gradients, multiply), then #hud
+    // ---- z 4: #aberration (the nerve's: its red edge, multiply), then #hud
+    // (its red and cyan blotches, a lens's colour fringes, went with issue
+    // #14; their light stays, laid evenly: `NERVE_DIM`)
     {
         let el = &d.aberration;
         let (dur, ease) = inline_transition(el, "opacity").unwrap_or((0.4, Ease::Ease));
         let op = f.tr("aberration.opacity", opacity_of(el, 0.0), dur, ease);
-        for bg in [
-            "radial-gradient(circle at 68% 58%, rgba(220,0,60,0.10) 0%, transparent 32%)",
-            "radial-gradient(circle at 32% 42%, rgba(0,180,220,0.10) 0%, transparent 32%)",
+        f.fill_as("nerve", [0.0, 0.0, 0.0, NERVE_DIM * op.min(1.0)], LayerBlend::Normal);
+        f.background(
             "radial-gradient(ellipse at center, transparent 40%, rgba(120,0,0,0.55) 90%, rgba(60,0,0,0.85) 100%)",
-        ] {
-            f.background(bg, op, LayerBlend::Multiply);
-        }
+            op,
+            LayerBlend::Multiply,
+        );
     }
     paint_hud(&mut f, g);
     crate::ui::screens::paint_level_card(&mut f, g);

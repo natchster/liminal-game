@@ -419,7 +419,7 @@ impl Game {
 /// The HUD read every this many frames of a run
 pub const HUD_EVERY: usize = 15;
 /// Layers that are the place's, not the HUD's
-const NOT_HUD: &[&str] = &["vignette", "radial", "fill"];
+const NOT_HUD: &[&str] = &["vignette", "radial", "fill", "nerve"];
 /// A skip's nerve within this of watching's (what time takes or gives
 /// over the seconds a skip saves)
 pub const SKIP_NERVE: f64 = 4.0;

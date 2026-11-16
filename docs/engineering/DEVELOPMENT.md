@@ -640,7 +640,8 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   reach, looking down at it; `--screen put-away:<id>` (`yellow_water`,
   `coin`, …: a thing put away, `secrets::SPECIAL`) sets it on the floor
   1.2 m before you, a sealed almond water to its right, looked at, without
-  opening a hiding place. Give it
+  opening a hiding place; `--screen nerve` your nerve all but spent (5),
+  its overlay eased in (the red edge, the scene's colour going). Give it
   a floor of the
   rooms (`--level 4` or deeper): the Building's floors (1–3) have no
   creatures, and the arrival there stands high over y = 0.

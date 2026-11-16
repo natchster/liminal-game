@@ -452,32 +452,10 @@ impl Game {
                 self.ui.vignette.set_style("boxShadow", &format!("inset 0 0 240px 60px {c}, {alpha})"));
             }
         }
-        // Sanity hue-shift; static chromatic
+        // (the vignette keeps its colours: the nerve's hue drifting like a
+        // tape's and the static's saturation and contrast kicked like an
+        // interference went with issue #14)
         let s01 = self.player.sanity / SAN_MAX;
-        if self.static_chromatic_t > 0.0 {
-            self.static_chromatic_t -= dt;
-        }
-        let chromatic_mag = if self.static_chromatic_t > 0.0 { self.static_chromatic_t / 0.35 } else { 0.0 };
-        let chrom_spec = static_chrom_by_weather(wk).or(static_chrom_by_weather("normal")).unwrap();
-        let chrom_contrast = 1.0 + chrom_spec.contrast * chromatic_mag;
-        let chrom_saturate = 1.0 + chrom_spec.saturate * chromatic_mag;
-        if s01 < 0.20 && self.state == "playing" {
-            let shift_mag = 1.0 - s01 / 0.20; // 0 → 1 as sanity drops
-            let hue_spec = sanity_hue_by_weather(wk).or(sanity_hue_by_weather("normal")).unwrap();
-            let hue_deg = (hue_spec.spread * (self.clock_ms() / 700.0).dsin() + hue_spec.bias) * shift_mag;
-            let f = format!(
-                "hue-rotate({}deg) saturate({}) contrast({})",
-                fmt_fixed(hue_deg, 1),
-                fmt_fixed((1.0 + shift_mag * 1.5) * chrom_saturate, 2),
-                fmt_fixed(chrom_contrast, 2)
-            );
-            self.ui.vignette.set_style("filter", &f);
-        } else if chromatic_mag > 0.0 {
-            let f = format!("saturate({}) contrast({})", fmt_fixed(chrom_saturate, 2), fmt_fixed(chrom_contrast, 2));
-            self.ui.vignette.set_style("filter", &f);
-        } else if self.ui.vignette.style("filter").is_some() {
-            self.ui.vignette.set_style("filter", "");
-        }
         // Sanity safe-room detune: the hum sags at very low sanity
         if let (Some(lfo), Some(car)) = (self.audio.safe_room_lfo.clone(), self.audio.safe_room_trem_carrier.clone()) {
             let lfo_jit = ((self.current_seed & 0xff) as f64 / 255.0 - 0.5) * 0.20;

@@ -1014,7 +1014,6 @@ pub fn reset_level_timers(g: &mut crate::base::game::Game) {
     g.voice_sample_flash_t = 0.0;
     g.static_burst_flash_t = 0.0;
     g.voice_hue_shift_t = 0.0;
-    g.static_chromatic_t = 0.0;
     g.reality_shift_t = 0.0;
     g.settle_timer = 0.0;
     g.settle_visual_t = 0.0;

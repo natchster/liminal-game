@@ -590,6 +590,42 @@ fn the_screen_lays_no_noise() {
     assert_eq!(differ, 0, "two frames at rest differ in {differ} channels");
 }
 
+/// The frame over the flat stand-in at the lowest nerve, the nerve's
+/// overlay (`#aberration`) eased in to its most: (the mean luma, 0..1; the
+/// colour at three points: (32%, 42%), the middle, (68%, 58%))
+fn at_the_lowest_nerve() -> (f64, [[u8; 3]; 3]) {
+    let mut g = game();
+    playing_state(&mut g);
+    g.player.sanity = 5.0;
+    for _ in 0..600 {
+        g.now_ms += 1000.0 / 60.0;
+        g.update_overlays(1.0 / 60.0);
+    }
+    let (w, h) = (640, 400);
+    let img = composite(&g.hud_layers(W, H, DPR), w, h);
+    let luma =
+        img.chunks(4).map(|p| (0.2126 * p[0] as f64 + 0.7152 * p[1] as f64 + 0.0722 * p[2] as f64) / 255.0).sum::<f64>() / (w * h) as f64;
+    let at = |u: f64, v: f64| {
+        let i = (((v * h as f64) as usize) * w + (u * w as f64) as usize) * 4;
+        [img[i], img[i + 1], img[i + 2]]
+    };
+    (luma, [at(0.32, 0.42), at(0.5, 0.5), at(0.68, 0.58)])
+}
+
+/// Issue #14: the nerve's overlay lost its two colour blotches (a lens's
+/// fringes: red at 68% 58%, cyan at 32% 42%) and kept their light. Measured
+/// with them on the parent of the change: the mean luma 0.26051, and the
+/// three points (97, 91, 51), (104, 91, 51), (106, 85, 48), a cast either
+/// side of the middle.
+#[test]
+fn the_nerves_overlay_keeps_its_light_and_lays_no_colour() {
+    let (luma, pts) = at_the_lowest_nerve();
+    println!("luma {luma:.5}, points {pts:?}");
+    assert!((luma - 0.26051).abs() < 0.0005, "the nerve's overlay moved the light: mean luma {luma:.5}, was 0.26051");
+    assert!(pts[0] == pts[1] && pts[1] == pts[2], "a colour cast where the blotches were: {pts:?}");
+    assert!(pts[1][0] < 107 && pts[1][1] < 94, "the overlay no longer darkens: {pts:?}");
+}
+
 #[test]
 fn hud_frame_cost() {
     let mut g = game();

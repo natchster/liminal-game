@@ -1236,11 +1236,10 @@ impl Game {
             let settle_cd = if self.settle_timer > 0.0 { format!("{}s", fx(self.settle_timer, 1)) } else { "-".into() };
             let door_dim = tables::door_dim_by_weather(wk).or(tables::door_dim_by_weather("normal")).unwrap();
             let ding_br = tables::ding_bright_by_weather(wk).or(tables::ding_bright_by_weather("normal")).unwrap();
-            let static_ctr = tables::static_chrom_by_weather(wk).or(tables::static_chrom_by_weather("normal")).unwrap().contrast;
             let voice_hue_r = tables::voice_hue_by_weather(wk).or(tables::voice_hue_by_weather("normal")).unwrap().r;
             let _ = write!(
                 s,
-                "─ rare events ─\n  knock  cd={}s  flashT={}  tintT={}  lastPan={}\n  timbre  freq={}Hz  noise={}Hz  gainMul={}\n  door   cd={}s  flashT={}  dimT={}\n  ding   cd={}s  flashT={}  brightT={}\n  voice  cd={}s  flashT={}\n  static cd={}s  flashT={}\n  shift  cd={}s  envT={}  settleCd={}\n  patt   cd={}s  envT={}\n  skip   cd={}s  envT={}\n  peaks  doorDim={}  dingBr={}  staticCtr={}  voiceHueR={}\n  meta   stagger={}  lastFireT={}s  age={}s\n  tally  k={}  d={}  b={}  v={}  s={}  sh={}  pt={}  sk={}\n",
+                "─ rare events ─\n  knock  cd={}s  flashT={}  tintT={}  lastPan={}\n  timbre  freq={}Hz  noise={}Hz  gainMul={}\n  door   cd={}s  flashT={}  dimT={}\n  ding   cd={}s  flashT={}  brightT={}\n  voice  cd={}s  flashT={}\n  static cd={}s  flashT={}\n  shift  cd={}s  envT={}  settleCd={}\n  patt   cd={}s  envT={}\n  skip   cd={}s  envT={}\n  peaks  doorDim={}  dingBr={}  voiceHueR={}\n  meta   stagger={}  lastFireT={}s  age={}s\n  tally  k={}  d={}  b={}  v={}  s={}  sh={}  pt={}  sk={}\n",
                 fx(self.distant_knock_timer, 0),
                 fx(self.knock_flash_t, 2),
                 fx(self.knock_tint_t, 2),
@@ -1267,7 +1266,6 @@ impl Game {
                 fx(self.clock_skip_t, 2),
                 fx(door_dim, 2),
                 fx(ding_br, 2),
-                fx(static_ctr, 2),
                 fx(voice_hue_r, 2),
                 yn(stagger),
                 fx(self.last_rare_fire_t, 2),
