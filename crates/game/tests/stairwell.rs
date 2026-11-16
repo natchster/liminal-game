@@ -392,6 +392,9 @@ fn ser_tree(o: &Obj) -> serde_json::Value {
     };
     let (p, r) = (o.pos(), o.rot());
     let mut m = serde_json::json!({"k": kind, "v": o.visible(), "p": [p.x, p.y, p.z], "r": [r.x, r.y, r.z]});
+    if !o.name().is_empty() {
+        m["n"] = serde_json::json!(o.name());
+    }
     if o.is_mesh() {
         let g = o.geo();
         let mut gj = vec![serde_json::json!(geo_kind(&g))];
@@ -425,7 +428,18 @@ fn rerecord_doors() {
     let path = format!("{}/tests/fixtures/stairwell.json", env!("CARGO_MANIFEST_DIR"));
     let mut v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let (mut s, _, _) = make(1234, None);
-    v["build"]["tree"] = ser_tree(&s.group);
+    let tree = ser_tree(&s.group);
+    // (only the doors may move: the rest of the tree as recorded, once the
+    // recording names its doors)
+    let old = &v["build"]["tree"];
+    if has_names(old) {
+        if let Err(at) = same(&outside_doors(old), &outside_doors(&tree), "tree") {
+            panic!("the Stairwell's tree moved outside its doors, at {at}: that is not this re-record's");
+        }
+    } else {
+        eprintln!("(the recording does not name its doors yet: written once without the check)");
+    }
+    v["build"]["tree"] = tree;
     s.enter(10); // as stairwell_enter_matches_reference does
     let n = v["enters"].as_array().unwrap().len();
     for i in 0..n {
@@ -438,4 +452,47 @@ fn rerecord_doors() {
         v["enters"][i]["bottom"] = serde_json::json!([pr(&s.exit_door), pr(&s.exit_glow), pr(&s.floor)]);
     }
     std::fs::write(&path, serde_json::to_string(&v).unwrap()).unwrap();
+}
+
+/// Whether a recorded tree names its nodes (the doors' re-record writes names)
+fn has_names(v: &serde_json::Value) -> bool {
+    v.get("n").is_some() || v.get("c").and_then(|c| c.as_array()).is_some_and(|c| c.iter().any(has_names))
+}
+
+/// The tree with the doors and their lights taken out (named `stair-door…`)
+fn outside_doors(v: &serde_json::Value) -> serde_json::Value {
+    let mut v = v.clone();
+    if let Some(c) = v.get_mut("c").and_then(|c| c.as_array_mut()) {
+        c.retain(|k| !k.get("n").and_then(|n| n.as_str()).is_some_and(|n| n.starts_with("stair-door")));
+        for k in c.iter_mut() {
+            *k = outside_doors(k);
+        }
+    }
+    v
+}
+
+/// Two recorded values alike, numbers within the tests' tolerance; where not, its path
+fn same(a: &serde_json::Value, b: &serde_json::Value, at: &str) -> Result<(), String> {
+    use serde_json::Value as V;
+    match (a, b) {
+        (V::Number(x), V::Number(y)) => {
+            let (x, y) = (x.as_f64().unwrap_or(0.0), y.as_f64().unwrap_or(0.0));
+            if (x - y).abs() <= TOL * x.abs().max(1.0) { Ok(()) } else { Err(format!("{at}: {x} -> {y}")) }
+        }
+        (V::Array(x), V::Array(y)) => {
+            if x.len() != y.len() {
+                return Err(format!("{at}: {} -> {} entries", x.len(), y.len()));
+            }
+            x.iter().zip(y).enumerate().try_for_each(|(i, (p, q))| same(p, q, &format!("{at}[{i}]")))
+        }
+        (V::Object(x), V::Object(y)) => {
+            let keys: std::collections::BTreeSet<&String> = x.keys().chain(y.keys()).filter(|k| *k != "n").collect();
+            keys.into_iter().try_for_each(|k| match (x.get(k), y.get(k)) {
+                (Some(p), Some(q)) => same(p, q, &format!("{at}/{k}")),
+                _ => Err(format!("{at}/{k}: only on one side")),
+            })
+        }
+        _ if a == b => Ok(()),
+        _ => Err(format!("{at}: {a} -> {b}")),
+    }
 }

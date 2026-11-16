@@ -549,10 +549,19 @@ impl Game {
         let dg = group();
         dg.position().copy(&spot.pos);
         dg.rotation().y = spot.yaw;
-        if to_stairs {
-            // a steel door made up to look like a janitor's closet
+        // where the floor is back of house its stair door is steel, as its
+        // other doors are (the playtest: an office's veneered door "a bit
+        // soft for a raw back room"); the Loop's way in is an office door
+        let back_of_house = !in_loop
+            && matches!(
+                g.purpose_label_at(spot.pos.x, spot.pos.z),
+                "maintenance" | "service tunnels" | "storage hall" | "pool hall" | "washrooms"
+            );
+        if to_stairs || back_of_house {
+            // a steel door, made up to look like a janitor's closet where it
+            // leads to the Stairwell
             let _ = g.place_by_layout("steel_door", "way down", spot.pos.x, spot.pos.z);
-            doors::steel_door(&dg, doors::SteelSide::Floor);
+            doors::steel_door(&dg, if to_stairs { doors::SteelSide::Floor } else { doors::SteelSide::Service });
             doors::exit_door_sign(&dg);
         } else {
             // the Loop's way in is an ordinary office door: no EXIT sign over

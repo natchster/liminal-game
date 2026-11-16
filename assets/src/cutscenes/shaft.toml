@@ -4,9 +4,10 @@
 # a cable scrapes far up, a breath comes from far down; two points of
 # eyeshine open low in the black, and are gone with a clank; you start
 # back, and your eyes are yours again. The thing is the lift's frame: x to
-# its right, y up, z out of its face (its doors' middle at z 0.14, the
-# frame's face at 0.16, the black at z 0.10, the gap between the doors from
-# x -0.075 to 0.47: `core_props::doors`, the lift doors).
+# its right, y up, z out of its face (its doors' middle at z -0.021, the
+# frame's face at 0, the black at z -0.058, the wall at -0.075, the gap
+# between the doors from x -0.075 to 0.47: `core_props::doors`, the lift
+# doors, set nearly flush in their wall).
 id = "shaft"
 about = "Looking into a broken lift's shaft: the black, a breath, what looks back"
 world = "live"
@@ -36,32 +37,32 @@ anchor = "eyes"
 [[camera]]
 t = 1.9
 anchor = "thing"
-pos = [0.2, 1.47, 0.78]
-look = [0.2, 1.05, 0.0]
+pos = [0.2, 1.47, 0.62]
+look = [0.2, 1.05, -0.16]
 walk = 0.6
 
 # leaning in, the black filling your eyes, looking down into it
 [[camera]]
 t = 2.9
 anchor = "thing"
-pos = [0.2, 1.42, 0.36]
-look = [0.2, 1.15, 0.10]
+pos = [0.2, 1.42, 0.2]
+look = [0.2, 1.15, -0.06]
 sway = 0.5
 
 # held there, still breathing
 [[camera]]
 t = 4.05
 anchor = "thing"
-pos = [0.2, 1.41, 0.35]
-look = [0.2, 1.13, 0.10]
+pos = [0.2, 1.41, 0.19]
+look = [0.2, 1.13, -0.06]
 sway = 0.6
 
 # you start back
 [[camera]]
 t = 4.45
 anchor = "thing"
-pos = [0.2, 1.52, 0.95]
-look = [0.2, 1.25, 0.0]
+pos = [0.2, 1.52, 0.79]
+look = [0.2, 1.25, -0.16]
 ease = "out"
 jolt = true
 
@@ -70,21 +71,21 @@ jolt = true
 t = 1.7
 name = "scrape"
 anchor = "thing"
-pos = [0.2, 2.2, -0.4]
+pos = [0.2, 2.2, -0.56]
 
 # a breath from far down
 [[sound]]
 t = 3
 name = "breath"
 anchor = "thing"
-pos = [0.2, -4.0, -0.6]
+pos = [0.2, -4, -0.76]
 
 # a clank as what looked back is gone
 [[sound]]
 t = 4.05
 name = "clank"
 anchor = "thing"
-pos = [0.2, 1.0, -0.6]
+pos = [0.2, 1, -0.76]
 
 # two points of eyeshine, low in the black
 [[event]]

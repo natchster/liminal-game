@@ -71,7 +71,7 @@ LiftDoors__*         the lift's landing doors (assets/src/props/lift_doors/), in
                      at z = -0.075 (`tail_elevators` stands it 7.5 cm off it):
   __frame            the landing entrance's stainless frame round a 1100 x
                      2100 mm opening (a 1000 kg car's, ISO 4190), 120 mm at
-                     the jambs and 150 at the head, its face 16 cm out
+                     the jambs and 150 at the head, its face 7.5 cm out
   __panel            one of the two centre-opening panels, hairline stainless,
                      572 x 2094 x 32 mm, centred (the game sets each)
   __panelForced      the broken lift's panel that was forced: kicked in a
@@ -179,22 +179,23 @@ def exit_closer():
     sx = bx0 + 0.070
     spindle = cyl(0.009, 0.009, 0.020, seg=12).rot(x=math.pi / 2).move(x=sx, y=by + 0.010, z=bz + 0.034)
     arm = rbox(0.300, 0.020, 0.008, r=0.003).move(x=sx + 0.140, y=by + 0.024, z=bz + 0.040)
-    fore = rbox(0.200, 0.016, 0.007, r=0.003).rot(z=0.08).move(x=sx + 0.370, y=by + 0.040, z=bz + 0.030)
-    shoe = rbox(0.060, 0.012, 0.030, r=0.002).move(x=sx + 0.470, y=OPEN_H - 0.006 - 0.001, z=STOP_Z + 0.012)
+    # (level, along the head: an arm angled up read as a notch in the leaf)
+    fore = rbox(0.200, 0.016, 0.007, r=0.003).move(x=sx + 0.370, y=by + 0.030, z=bz + 0.030)
+    shoe = rbox(0.060, 0.012, 0.030, r=0.002).move(x=sx + 0.470, y=by + 0.030, z=bz + 0.018)
     return body + caps + spindle + arm + fore + shoe
 
 
 def exit_kick_plate():
     w, h, t = 0.863, 0.254, 0.00127
     s = bevel(box(w, h, t), 0.001, seg=1, angle=30)
-    s = s.move(y=UNDERCUT + 0.004 + h / 2, z=LEAF_Z + t / 2 + 0.0002)
+    s = s.move(y=UNDERCUT + 0.004 + h / 2, z=LEAF_Z + t / 2 + 0.001)
     for sx in (-1, 0, 1):
         for sy in (-1, 1):
             if sx == 0 and sy == -1:
                 continue
             head = cyl(0.0045, 0.0035, 0.0012, seg=6).rot(x=math.pi / 2)
             s = s + head.move(x=sx * (w / 2 - 0.020), y=UNDERCUT + 0.004 + h / 2 + sy * (h / 2 - 0.018),
-                               z=LEAF_Z + t + 0.0007)
+                               z=LEAF_Z + t + 0.0015)
     return s
 
 
@@ -347,9 +348,9 @@ def hermetic_face_frame():
     # the band 75 mm beyond it, 35 mm off the face; the leaf laps 33 mm
     lw2 = H_LW / 2
     W, H = H_LW + 0.15, H_Y0 + H_LH + 0.075
+    # (open at its foot: a note slid under the leaf comes out under it)
     s = ring_u(W, H, H_LW - 0.066, H_LH - 0.066, 0.035, r=0.004, seg=1)
-    foot = box(W, 0.075 + H_Y0, 0.035).move(y=-H / 2 + (0.075 + H_Y0) / 2)
-    return (s + foot).move(y=H / 2, z=0.0175)
+    return s.move(y=H / 2, z=0.0175)
 
 
 def hermetic_wheel_far():
@@ -376,10 +377,10 @@ auto('HermeticDoor__faceFrame', hermetic_face_frame, 300)
 
 
 # ------------------------------------------------------------ lift doors --
-# the lift's frame: the wall's face at z = -0.075; the entrance's face 16 cm
-# out, the panels just behind it (the shaft's look takes them there: its
-# cutscene, assets/src/cutscenes/shaft.toml)
-L_WALL, L_FACE = -0.075, 0.16
+# the lift's frame: the wall's face at z = -0.075; the entrance's face 7.5 cm
+# out of it, the panels just behind it (an entrance is set nearly flush in
+# its wall: a deeper surround read as a cabinet bolted on)
+L_WALL, L_FACE = -0.075, 0.0
 L_OW, L_OH = 1.10, 2.10
 L_JAMB, L_HEAD = 0.12, 0.15
 LIFT_CALL_X, LIFT_CALL_Y = 0.80, 1.065
@@ -413,9 +414,9 @@ def lift_panel_forced():
 def lift_sill():
     # the sill under the panels, flush with the floor: its nosing to the
     # landing, two grooves the panels' gibs run in
-    z0, z1 = 0.110, 0.205
+    z0, z1 = -0.050, 0.045
     out = None
-    for (a, b) in [(z0, 0.120), (0.127, 0.150), (0.157, z1)]:
+    for (a, b) in [(z0, -0.040), (-0.033, -0.010), (-0.003, z1)]:
         st = box(L_OW, 0.008, b - a).move(y=0.004, z=(a + b) / 2)
         out = st if out is None else out + st
     under = box(L_OW, 0.004, z1 - z0).move(y=0.002, z=(z0 + z1) / 2)

@@ -173,7 +173,7 @@ would put it:
 ```toml
 # assets/src/props/exit_door/placement.toml (as it is)
 by = "layout"
-count = [1, 2]
+count = [1, 3]
 levels = [1, 999]
 
 [[rule]]
@@ -188,13 +188,17 @@ why = "an office floor's stair is at its far end, and its door is the last one o
   refuses them), and `levels` may start on the Building's floors (1).
 - **The layout asks before it makes one** (`Game::place_by_layout(asset,
   at, x, z)`): the first rule for `at` whose purposes take the zone's,
-  none the asset never fits, on a floor in its levels. One allowed is
-  recorded with its rule (`Game::layout_things`); one no rule allows is not
-  made, and its maker keeps its draws.
+  none the asset never fits, on a floor in its levels, and fewer than the
+  most of its `count` made already. One allowed is recorded with its rule
+  (`Game::layout_things`); one refused is not made, and its maker keeps
+  its draws.
 - **`what_the_layout_places_keeps_its_rules`** (`tests/usable.rs`) holds
   every one, on 48 floors of the rooms and the Building: its rule's place,
-  purposes and levels, its counts; one way down on every floor; and every
-  rule one some floor's layout makes (a rule nothing makes is a lie).
+  purposes and levels, its counts; one way down on every floor; what was
+  made against what was recorded (every cell's door, every gallery door
+  that knocks, every lift and broken lift); and every rule one some
+  floor's layout makes (a rule nothing makes is a lie).
+  `the_doors_are_built_of_their_parts` holds each builder to its real size.
 - **The playtest's question is the same**: frames of it where the layout
   put it (`cargo xtask asset sheet NAME --kinds core_exit_door,…`, the
   census kinds that hold it). Where the answers differ from its story, the
@@ -205,10 +209,31 @@ why = "an office floor's stair is at its far end, and its door is the last one o
 Every door in a wall, remade by the pipeline (`../plan/DOORS.md`): five
 real things, a dossier each (`assets/src/props/`), their parts in one
 family (`assets/src/blender/props/game/doors.py`), put together by
-`core_props::doors`. The exit door is a flush red-oak veneered office
-door in a pressed-steel frame, its lever, closer and kick plate, the lit
-exit sign over it at its real size (no arrow); the Stairwell's way in is
-a hollow-metal stair door with its STAIRS plaque.
+`core_props::doors`, each made by the layout under its rules:
+
+- **`exit_door`**: a flush red-oak veneered office door in a pressed-steel
+  frame, its lever, closer and kick plate, the lit exit sign over it at
+  its real size (no arrow): the way down of an office floor, the
+  Building's, and the Loop's way in (no sign) and its side doors.
+- **`steel_door`**: a hollow-metal stair door in the same frame: the way
+  down where the floor's far wall is at the back of the house (a
+  maintenance run, service tunnels, a storage hall, a pool hall,
+  washrooms: the playtest found a wood office door "soft for a raw back
+  room"), with its STAIRS plaque on the Stairwell's floor; the Stairwell's
+  top and bottom doors.
+- **`hermetic_door`**: a Soviet shelter door the size of a ДУ-IV-2, its
+  hand wheel and gearbox: every cell's door and the Well's galleries'
+  (the door that knocks among them).
+- **`lift_doors`**: a landing entrance, its two hairline stainless panels
+  worn by hands and wiping, its dark-bronze frame set nearly flush, its
+  sill and call station: the working lift, the dead one, the broken one
+  jammed apart on the shaft.
+- **`interior_door`**: a hollow-core six-panel moulded door in its
+  casing: the door to nowhere against a wall, and the door a home's
+  barricade nails across a doorway.
+
+What the playtest asked of each, and the rules it changed, is in each
+dossier's `playtest.md`.
 
 ## The samples
 

@@ -56,4 +56,7 @@ nothing else"), nor on a floor with rules of its own (on the Loop's, a
 second plain shut door would stand for its way in). In a barricade, in
 the doorways of someone's rooms or a parlour, with the house's other
 things, by the barricades' own rules (never on a floor with rules of its
-own, one at most on the Lobby).
+own, one at most on the Lobby). Against a wall as wide as its casing, the
+floor clear at both its edges: not on the face of a narrow box, not
+squeezed into a corner (the playtest), which the game does not yet check
+(`docs/plan/MILESTONES.md` 26).

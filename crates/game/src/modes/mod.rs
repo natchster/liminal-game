@@ -274,14 +274,16 @@ impl Game {
             self.player.flashlight_on = true;
         } // (`toggle_flashlight` is a no-op mid-transition)
         let flights = stair_flights_for(self.level_num);
-        // its two steel doors, the top's and the bottom's, held to their rule
-        // (`assets/src/props/steel_door/`, "stairwell"; `place_by_layout`)
-        for _ in 0..2 {
-            let _ = self.place_by_layout("steel_door", "stairwell", self.player.pos.x, self.player.pos.z);
-        }
+        let mut doors = 0;
         if let Some(s) = self.stairwell.as_mut() {
             s.enter(flights);
             s.group.set_visible(true);
+            doors = [&s.top, &s.exit_door].iter().filter(|o| o.get_object_by_name("steel-door-leaf").is_some()).count();
+        }
+        // its steel doors, the top's and the bottom's, each it has held to
+        // their rule (`assets/src/props/steel_door/`, "stairwell")
+        for _ in 0..doors {
+            let _ = self.place_by_layout("steel_door", "stairwell", self.player.pos.x, self.player.pos.z);
         }
         self.ui.body.add_class("in-stairwell");
         if let Some(ss) = self.modes_ss() {
@@ -670,8 +672,10 @@ impl Game {
         self.loop_rooms = Some(loop_rooms);
         self.in_loop = true;
         // its two side doors, the one you came in by and the first room's,
-        // held to their rule (`assets/src/props/exit_door/`, "loop")
-        for _ in 0..2 {
+        // held to their rule where it has them (`assets/src/props/exit_door/`,
+        // "loop")
+        let doors = if self.loop_rooms.as_ref().is_some_and(|lr| !lr.m_door.is_empty()) { 2 } else { 0 };
+        for _ in 0..doors {
             let _ = self.place_by_layout("exit_door", "loop", self.player.pos.x, self.player.pos.z);
         }
         self.asides_leave_floor();

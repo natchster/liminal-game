@@ -83,4 +83,7 @@ at the foot of the door's tower, and in the Works set in the machine wall.
 On the Loop's floor its way in (no sign, no lamps, no call), and in the
 Loop the side door you came in by and the one in the first room's side
 wall (its small sign). On the Stairwell's floor the steel door stands in
-its place. Never more than one exit door a floor.
+its place, and on a floor whose far wall is at the back of the house (a
+maintenance run, service tunnels, a storage hall, a pool hall, washrooms)
+the steel door without its plaque: there the stair doors are steel (the
+playtest). Never more than one exit door a floor.

@@ -23,9 +23,10 @@
 //! gallery's; `by = "layout"`). Their rules name the place in the layout
 //! each stands at (`at`), with its purposes and its why, on any floor its
 //! `levels` say (the Building's too). The layout asks `place_by_layout`
-//! before it makes one: a rule that allows it is recorded with it
-//! (`Game::layout_things`), and a thing no rule allows is not made (its
-//! maker keeps its draws).
+//! as it makes one: a rule that allows it is recorded with it
+//! (`Game::layout_things`); a thing the layout may leave out is not made
+//! where no rule allows it (its maker keeps its draws), and what the floor
+//! must have is made and, unrecorded, found by the rules' test.
 use super::N4;
 use crate::base::rng::SplitMix64;
 use crate::prelude::*;
@@ -360,9 +361,13 @@ impl Game {
     /// Whether the rules of `asset` (a thing the layout makes) allow one at
     /// `at` in the layout, standing at (x, z) on this floor: the first rule
     /// for `at` whose purposes take the zone's (and none the asset never
-    /// fits), on a floor in its levels. One allowed is recorded with its
-    /// rule (`layout_things`) and the rule's index returned; one no rule
-    /// allows is not made (its maker keeps its draws)
+    /// fits), on a floor in its levels, under its count's most. One allowed
+    /// is recorded with its rule (`layout_things`) and the rule's index
+    /// returned. A maker free to leave it out does when none allows it (the
+    /// door to nowhere, keeping its draws); a door the floor must have (its
+    /// way down, a cell's, a gallery's, a lift's) is made either way, and
+    /// `what_the_layout_places_keeps_its_rules` counts what was made against
+    /// what was recorded
     pub fn place_by_layout(&mut self, asset: &str, at: &str, x: f64, z: f64) -> Option<usize> {
         let a = of(asset).unwrap_or_else(|| panic!("{asset}: no placement rules (assets/src/props/{asset}/, cargo xtask asset write)"));
         assert!(a.by == By::Layout, "{asset}: placed by the rules pass, not by the layout");
@@ -370,7 +375,9 @@ impl Game {
             return None;
         }
         let purpose = self.purpose_label_at(x, z);
-        if a.never.iter().any(|p| p == purpose) {
+        // (past its most a floor, no more)
+        let made = self.layout_things.iter().filter(|t| t.asset == a.name).count();
+        if a.never.iter().any(|p| p == purpose) || made >= a.count.1 {
             return None;
         }
         let (rule, r) = a.rules.iter().enumerate().find(|(_, r)| r.at == at && fits(&r.purposes, purpose))?;

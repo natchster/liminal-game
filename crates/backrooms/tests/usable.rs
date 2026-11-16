@@ -570,15 +570,35 @@ fn what_the_layout_places_keeps_its_rules() {
         let here = format!("seed {seed} L{l} {:?}", g.level_scp);
         let ways = g.layout_things.iter().filter(|t| t.at == "way down").count();
         assert_eq!(ways, 1, "{here}: {ways} ways down");
+        // what was made, against what was recorded: every cell's door, every
+        // knockable gallery door, every lift of each kind (a door to nowhere
+        // is static and leaves the world for its instances: its builder is
+        // `the_doors_are_built_of_their_parts`'s)
+        let recorded = |at: &str| g.layout_things.iter().filter(|t| t.at == at).count();
+        assert_eq!(recorded("cell"), g.cell_doors.len(), "{here}: cells' doors made and recorded");
+        assert_eq!(recorded("gallery"), g.knocks.doors.len(), "{here}: gallery doors made and recorded");
+        // (a working lift is static, and leaves the world for its instances,
+        // as a dead one does where it has no verb: the Lobby, a floor with
+        // rules of its own; the floor's records of them)
+        let dead = g.world.children().iter().filter(|o| o.user().s.contains_key("dead_lift")).count();
+        let lifts = usize::from(g.lift_working_at.is_some()) + dead;
+        if g.level_scp.is_none() && l > 4 {
+            assert_eq!(recorded("lift"), lifts, "{here}: lifts made and recorded");
+        } else if g.building.is_none() {
+            assert!((lifts..=2).contains(&recorded("lift")), "{here}: {} lifts recorded, {lifts} seen", recorded("lift"));
+        }
+        assert_eq!(recorded("broken lift"), usize::from(g.broken_elevator.is_some()), "{here}: broken lifts made and recorded");
         // through the way down where it leads to a place of its own: its doors
-        let mode = if g.level_scp.as_deref() == Some("loop") {
-            g.enter_loop();
-            Some("loop")
-        } else if g.layout_things.iter().any(|t| t.asset == "steel_door") {
-            g.enter_stairwell();
-            Some("stairwell")
-        } else {
-            None
+        let mode = match g.level_scp.as_deref() {
+            Some("loop") => {
+                g.enter_loop();
+                Some("loop")
+            }
+            Some("stairwell") => {
+                g.enter_stairwell();
+                Some("stairwell")
+            }
+            _ => None,
         };
         if let Some(m) = mode {
             g.now_ms += 1000.0;
@@ -616,4 +636,48 @@ fn what_the_layout_places_keeps_its_rules() {
             assert!(!(made.contains(&key) && pending), "{}: made at {} now: take it off NOT_YET", a.name, r.at);
         }
     }
+}
+
+/// Every door's builder makes it of its parts at its real size
+/// (`core_props::doors`, `docs/plan/DOORS.md`): the exit door's frame 1016 mm
+/// wide and its sign over it, a 3'0" x 7'0" opening; the steel door's floor
+/// side with its plaque, its back-of-house side without; the door to
+/// nowhere in its casing, 2'8" x 6'8" in it; the lift's entrance 1.34 m wide
+#[test]
+fn the_doors_are_built_of_their_parts() {
+    use engine::prelude::*;
+    use game::core_props::doors::{self, SteelSide};
+    let size = |o: &engine::scene::Obj| {
+        o.update_world_matrix(true, true);
+        let mut bb = engine::math::Box3::empty();
+        bb.set_from_object(o);
+        (bb.max.x - bb.min.x, bb.max.y - bb.min.y, bb.max.z - bb.min.z)
+    };
+    let meshes = |o: &engine::scene::Obj| {
+        let mut n = 0;
+        o.traverse(&mut |c: &engine::scene::Obj| n += usize::from(c.is_mesh()));
+        n
+    };
+    let close = |a: f64, b: f64, what: &str| assert!((a - b).abs() < 0.012, "{what}: {a:.3} m, not {b:.3}");
+    let exit = group();
+    doors::exit_door(&exit, true);
+    let (w, h, _) = size(&exit);
+    close(w, 1.016, "the exit door's frame");
+    close(h, doors::SIGN_Y + 0.115, "the exit door to its sign's top");
+    assert!(exit.get_object_by_name("exit-door-leaf").is_some() && exit.get_object_by_name("exit-sign").is_some());
+    let plain = group();
+    doors::exit_door(&plain, false);
+    close(size(&plain).1, doors::EXIT_OPEN_H + 0.051, "the Loop's way in, no sign");
+    let (floor, service) = (group(), group());
+    doors::steel_door(&floor, SteelSide::Floor);
+    doors::steel_door(&service, SteelSide::Service);
+    assert_eq!(meshes(&floor), meshes(&service) + 2, "the closet's plaque and its letters, only on the floor side");
+    let nowhere = doors::interior_door_in_frame(2);
+    let (w, h, _) = size(&nowhere);
+    close(w, doors::I_W + 0.006 + 2.0 * 0.057, "the door to nowhere in its casing");
+    close(h, 0.010 + doors::I_H + 0.003 + 0.057, "the door to nowhere to its casing's head");
+    assert_eq!(meshes(&nowhere), 3, "its leaf, its frame, its knob");
+    let lift = group();
+    doors::lift_entrance(&lift);
+    close(size(&lift).0, 2.0 * doors::LIFT_FRAME_HALF, "the lift's frame");
 }

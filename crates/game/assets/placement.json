@@ -215,7 +215,7 @@
       "by": "layout",
       "count": [
         0,
-        2
+        5
       ],
       "levels": [
         5,
@@ -288,8 +288,8 @@
         3
       ],
       "levels": [
-        5,
-        12
+        4,
+        999
       ],
       "rule": [
         {
@@ -297,7 +297,7 @@
           "purposes": [
             "*"
           ],
-          "why": "the floor's stair is at its far end, behind a fire door someone made up as a janitor's closet"
+          "why": "the floor's stair is at its far end behind a steel fire door, as a back-of-house floor's doors are; on one floor someone made it up as a janitor's closet"
         },
         {
           "at": "stairwell",

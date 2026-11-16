@@ -18,10 +18,12 @@ pub const WALL_Z: f64 = -0.06;
 pub const EXIT_OPEN_W: f64 = 0.914;
 pub const EXIT_OPEN_H: f64 = 2.134;
 pub const UNDERCUT: f64 = 0.019;
-/// The exit sign's middle, and its lit face (in the housing's recess)
+/// The exit sign's middle, and its lit face (in the housing's recess, 3 mm
+/// before its back: half a millimetre was one face to the visual playtest,
+/// which takes faces 2 mm apart as one)
 pub const SIGN_Y: f64 = 2.47;
 const SIGN_FACE: (f64, f64) = (0.40, 0.20);
-const SIGN_FACE_Z: f64 = WALL_Z + 0.0495;
+const SIGN_FACE_Z: f64 = WALL_Z + 0.052;
 
 /// A part as modelled, or the box filling its frame when the parts are off
 fn part(name: &str) -> Geo {
@@ -281,14 +283,17 @@ fn paint_exit_sign() -> Tex {
 /// along its foot, where rust has come through; a dent low on it where a
 /// cart hit it; the grime of hands where it is pushed. From the side that
 /// pulls (`pull`) the leaf's face is seen the other way round: the lock's
-/// side on its left. (Each a painter of its own, painted once a thread:
+/// side on its left. (Each a painter of its own fn, painted once a thread:
 /// cached, a painter's one paint never hangs on what was painted before.)
 fn enamel_tex(pull: bool) -> Tex {
-    if pull {
-        ENAMEL_PULL.with(|c| c.get_or_init(|| canvas_tex_opt(256, 512, false, |ctx, w, h| paint_enamel(ctx, w, h, true))).clone())
-    } else {
-        ENAMEL.with(|c| c.get_or_init(|| canvas_tex_opt(256, 512, false, |ctx, w, h| paint_enamel(ctx, w, h, false))).clone())
-    }
+    if pull { enamel_pull_tex() } else { enamel_push_tex() }
+}
+// (two fns: closures in one fn share a name, and so a count)
+fn enamel_push_tex() -> Tex {
+    ENAMEL.with(|c| c.get_or_init(|| canvas_tex_opt(256, 512, false, |ctx, w, h| paint_enamel(ctx, w, h, false))).clone())
+}
+fn enamel_pull_tex() -> Tex {
+    ENAMEL_PULL.with(|c| c.get_or_init(|| canvas_tex_opt(256, 512, false, |ctx, w, h| paint_enamel(ctx, w, h, true))).clone())
 }
 
 fn paint_enamel(ctx: &mut Canvas, w: f64, h: f64, pull: bool) {
@@ -359,7 +364,7 @@ fn satin_chrome() -> Mat {
     phong!({ color: 0xa9a9a5, specular: 0x8c8c88, shininess: 46 })
 }
 fn stainless() -> Mat {
-    phong!({ color: 0x91908b, specular: 0x5c5c58, shininess: 34 })
+    phong!({ color: 0xffffff, map: &hairline_tex(), specular: 0x5c5c58, shininess: 34 })
 }
 fn sprayed_aluminium() -> Mat {
     phong!({ color: 0x9b9a96, specular: 0x3c3c3a, shininess: 24 })
@@ -391,7 +396,7 @@ pub fn warm_under(spot: &WallSpot) -> Obj {
     g.rotation().y = spot.yaw;
     let h = UNDERCUT - 0.003;
     let m = mesh(plane_geo!(EXIT_OPEN_W - 0.02, h), basic_mat!({ color: 0xffd9a0 }));
-    m.position().set(0, h / 2.0, WALL_Z + 0.0045);
+    m.position().set(0, h / 2.0, WALL_Z + 0.009);
     g.add(&m);
     // and spilled on the floor in front of it, fading a hand's length out
     let spill = canvas_tex_opt(64, 64, false, |ctx, w, h| {
@@ -434,17 +439,25 @@ pub enum SteelSide {
     /// the stair's top door, behind you, which pulls: its hinges, and
     /// nothing to take hold of
     Top,
+    /// the floor's, which pushes, where the floor is back of house: as
+    /// `Floor`, but no plaque (a stair door, not made up as a closet)
+    Service,
 }
 
 /// The steel door in its frame on the wall at `dg`'s origin, from `side`
 /// (its leaf is named `steel-door-leaf`). The sign over it, its lights and
 /// its use are its maker's.
 pub fn steel_door(dg: &Obj, side: SteelSide) {
-    let enamel = phong!({ color: 0xffffff, map: &enamel_tex(side == SteelSide::Top), specular: 0x2a2a2a, shininess: 18 });
+    let enamel = phong!({ color: 0xffffff, map: &enamel_tex(side == SteelSide::Top), specular: 0x1c1c1c, shininess: 30 });
     let leaf = add(dg, &part("SteelDoor__leaf"), &enamel);
     leaf.set_name("steel-door-leaf");
     add(dg, &part("ExitDoor__frame"), &frame_paint());
     match side {
+        SteelSide::Service => {
+            add(dg, &part("ExitDoor__lever"), &satin_chrome());
+            add(dg, &part("ExitDoor__closer"), &sprayed_aluminium());
+            add(dg, &part("ExitDoor__kickPlate"), &stainless());
+        }
         SteelSide::Floor => {
             add(dg, &part("ExitDoor__lever"), &satin_chrome());
             add(dg, &part("ExitDoor__closer"), &sprayed_aluminium());
@@ -608,7 +621,7 @@ pub fn hermetic_enamel() -> Mat {
 /// red, ref 1; here red is the cleaners' mark, and a red wheel on every
 /// door would say what only a marked one says: `LORE.md`, *Knocking*)
 pub fn hermetic_wheel_paint() -> Mat {
-    phong!({ color: 0x83877f, specular: 0x5a5c58, shininess: 34 })
+    phong!({ color: 0xd8dccf, map: &hairline_tex(), specular: 0x5a5c58, shininess: 34 })
 }
 /// Its seal's rubber
 pub fn rubber() -> Mat {
@@ -625,7 +638,7 @@ pub fn part_geo(name: &str) -> Geo {
 /// wall's face 7.5 cm behind its origin): the frame's face, the panels'
 /// middle (their faces 5 mm behind the frame's), a panel's size and middle
 /// height, the opening's half width, the frame's outer half width
-pub const LIFT_FACE: f64 = 0.16;
+pub const LIFT_FACE: f64 = 0.0;
 pub const LIFT_PANEL_W: f64 = 0.572;
 pub const LIFT_PANEL_Z: f64 = LIFT_FACE - 0.005 - 0.016;
 pub const LIFT_PANEL_Y: f64 = 0.006 + 2.094 / 2.0;
@@ -648,11 +661,11 @@ fn hairline_tex() -> Tex {
     HAIRLINE.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(256, 512, false, |ctx, w, h| {
-                ctx.set_fill_style("#8c8e92");
+                ctx.set_fill_style("#7e8084");
                 ctx.fill_rect(0, 0, w, h);
                 for _ in 0..420 {
                     let x = rnd() * w;
-                    ctx.set_fill_style(if rnd() < 0.5 { "rgba(255,255,255,0.06)" } else { "rgba(30,32,36,0.06)" });
+                    ctx.set_fill_style(if rnd() < 0.5 { "rgba(255,255,255,0.09)" } else { "rgba(30,32,36,0.10)" });
                     ctx.fill_rect(x, 0, 0.6 + rnd() * 1.2, h);
                 }
                 // the light down it, as a brushed sheet takes a ceiling's
@@ -687,24 +700,129 @@ fn hairline_tex() -> Tex {
 
 /// Hairline stainless (the panels, the frame, the call station)
 pub fn hairline() -> Mat {
-    phong!({ color: 0xffffff, map: &hairline_tex(), specular: 0x8e8e8c, shininess: 42 })
+    phong!({ color: 0xffffff, map: &hairline_tex(), specular: 0x5c5c5a, shininess: 36 })
 }
 
 /// The lift's landing entrance on the wall at `g`'s origin: its stainless
 /// frame and its aluminium sill
 pub fn lift_entrance(g: &Obj) {
-    add(g, &part("LiftDoors__frame"), &phong!({ color: 0x909295, specular: 0x7a7a78, shininess: 40 }));
+    // (painted dark bronze, as the entrances of its era were: all stainless
+    // read near white under one panel, and plain)
+    add(g, &part("LiftDoors__frame"), &phong!({ color: 0x4a443c, map: &frame_tex(), specular: 0x2a2826, shininess: 24 }));
     add(g, &part("LiftDoors__sill"), &phong!({ color: 0x7c7c78, specular: 0x4a4a48, shininess: 24 }));
 }
 
 /// One of its two panels, centred (its maker sets it)
 pub fn lift_panel() -> Obj {
-    mesh(part("LiftDoors__panel"), hairline())
+    mesh(part("LiftDoors__panel"), lift_panel_paint())
 }
 /// The broken lift's panel that was forced: kicked in, its foot pushed
 /// toward the shaft, hanging from its top track
 pub fn lift_panel_forced() -> Obj {
-    mesh(part("LiftDoors__panelForced"), hairline())
+    mesh(part("LiftDoors__panelForced"), lift_panel_paint())
+}
+
+/// A lift panel's stainless, years on a landing: its grain fine and broken,
+/// dulled in clouds where it was wiped and not polished, greyed by hands at
+/// the edges where the doors meet, keyed, its foot grimed and kicked (a
+/// blind review found the plain hairline "evenly streaked, clean, unworn");
+/// dark in diffuse, its steel in the highlight (`STYLE.md`: "metals are dark
+/// in diffuse"; the next review found it "very light ... a flat texture")
+fn lift_panel_paint() -> Mat {
+    phong!({ color: 0xa4a4a0, map: &lift_panel_tex(), specular: 0x6e6e6a, shininess: 34 })
+}
+
+thread_local! {
+    static LIFT_PANEL: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
+}
+
+fn lift_panel_tex() -> Tex {
+    LIFT_PANEL.with(|c| {
+        c.get_or_init(|| {
+            canvas_tex_opt(256, 512, false, |ctx, w, h| {
+                ctx.set_fill_style("#7a7b7c");
+                ctx.fill_rect(0, 0, w, h);
+                // the grain: fine, faint, in runs of every length
+                for _ in 0..1600 {
+                    let (x, y0, len) = (rnd() * w, rnd() * h, h * (0.15 + rnd() * 0.7));
+                    let a = 0.03 + rnd() * 0.035;
+                    ctx.set_fill_style(if rnd() < 0.5 { format!("rgba(255,255,255,{a:.3})") } else { format!("rgba(28,30,32,{a:.3})") });
+                    ctx.fill_rect(x, y0 - len / 2.0, 0.5 + rnd() * 0.5, len);
+                }
+                // the light down it, as a brushed sheet takes a ceiling's
+                let g = ctx.create_linear_gradient(0, 0, 0, h);
+                g.add_color_stop(0.0, "rgba(255,255,255,0.06)");
+                g.add_color_stop(0.6, "rgba(0,0,0,0)");
+                g.add_color_stop(1.0, "rgba(20,20,24,0.10)");
+                ctx.set_fill_style(&g);
+                ctx.fill_rect(0, 0, w, h);
+                // dulled in clouds: wiped with a grey rag, never polished
+                for _ in 0..14 {
+                    let (x, y, r) = (rnd() * w, rnd() * h, 30.0 + rnd() * 70.0);
+                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+                    gr.add_color_stop(0.0, &format!("rgba(74,68,58,{:.3})", 0.05 + rnd() * 0.07));
+                    gr.add_color_stop(1.0, "rgba(74,68,58,0)");
+                    ctx.set_fill_style(&gr);
+                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+                }
+                // a wipe's runs, dried down it
+                for _ in 0..7 {
+                    let (x, y0) = (rnd() * w, h * (0.15 + rnd() * 0.45));
+                    let len = h * (0.1 + rnd() * 0.3);
+                    let g = ctx.create_linear_gradient(0, y0, 0, y0 + len);
+                    g.add_color_stop(0.0, "rgba(60,56,48,0)");
+                    g.add_color_stop(0.3, "rgba(60,56,48,0.10)");
+                    g.add_color_stop(1.0, "rgba(60,56,48,0)");
+                    ctx.set_fill_style(&g);
+                    ctx.fill_rect(x, y0, 1.5 + rnd() * 2.5, len);
+                }
+                // hands at both edges (one is where the doors meet), 0.9-1.6 m
+                // up (0.24-0.57 down the texture): a grey band and prints in it
+                for x0 in [0.0, w * 0.82] {
+                    let g = ctx.create_linear_gradient(0, h * 0.24, 0, h * 0.57);
+                    g.add_color_stop(0.0, "rgba(58,54,48,0)");
+                    g.add_color_stop(0.5, "rgba(58,54,48,0.16)");
+                    g.add_color_stop(1.0, "rgba(58,54,48,0)");
+                    ctx.set_fill_style(&g);
+                    ctx.fill_rect(x0, h * 0.24, w * 0.18, h * 0.33);
+                }
+                for _ in 0..34 {
+                    let x = if rnd() < 0.5 { w * rnd() * 0.2 } else { w * (1.0 - rnd() * 0.2) };
+                    let y = h * (0.28 + rnd() * 0.26);
+                    let r = 4.0 + rnd() * 8.0;
+                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+                    gr.add_color_stop(0.0, "rgba(52,48,42,0.22)");
+                    gr.add_color_stop(1.0, "rgba(52,48,42,0)");
+                    ctx.set_fill_style(&gr);
+                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+                }
+                // keyed: thin bright scratches through the grain, waist to chest
+                ctx.set_line_width(0.8);
+                for _ in 0..14 {
+                    let (x, y) = (rnd() * w, h * (0.3 + rnd() * 0.35));
+                    let (dx, dy) = (12.0 + rnd() * 50.0, (rnd() - 0.5) * 18.0);
+                    ctx.set_stroke_style(format!("rgba(214,214,208,{:.3})", 0.18 + rnd() * 0.2));
+                    ctx.begin_path();
+                    ctx.move_to(x, y);
+                    ctx.line_to(x + dx, y + dy);
+                    ctx.stroke();
+                }
+                // the foot grimed, and kicked
+                let g = ctx.create_linear_gradient(0, h * 0.88, 0, h);
+                g.add_color_stop(0.0, "rgba(54,46,36,0)");
+                g.add_color_stop(0.7, "rgba(54,46,36,0.30)");
+                g.add_color_stop(1.0, "rgba(40,34,26,0.55)");
+                ctx.set_fill_style(&g);
+                ctx.fill_rect(0, h * 0.88, w, h * 0.12);
+                for _ in 0..22 {
+                    let (x, y) = (rnd() * w, h * (0.84 + rnd() * 0.14));
+                    ctx.set_fill_style(format!("rgba(34,32,30,{:.3})", 0.08 + rnd() * 0.14));
+                    ctx.fill_rect(x, y, 8.0 + rnd() * 34.0, 1.0 + rnd() * 2.5);
+                }
+            })
+        })
+        .clone()
+    })
 }
 
 /// The hall call station beside the frame: its faceplate and its two

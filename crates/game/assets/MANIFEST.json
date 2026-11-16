@@ -59,7 +59,7 @@
     "cutscenes.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask cutscene write (TOML sources, every field written out)",
-      "fingerprint": "9f401e477799c1c7",
+      "fingerprint": "ee7b9b36d7543300",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",
@@ -75,7 +75,7 @@
     "placement.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask asset write (TOML sources, every field written out)",
-      "fingerprint": "e802424011ae6d2b",
+      "fingerprint": "5008e3896070756d",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",
@@ -93,7 +93,7 @@
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "Blender headless: props.py runs every batch module in assets/src/blender/props/ (propkit shapes, seeded noise, weighted normals); packed by cargo xtask assets props, the frozen parts kept as stored",
-      "fingerprint": "9ce587830ef9b4e2",
+      "fingerprint": "151e2401cd41bae2",
       "frozen_parts": [
         "Acorns__cap",
         "Backpacks__body",

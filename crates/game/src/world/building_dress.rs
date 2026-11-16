@@ -33,7 +33,7 @@ use crate::visuals::textures::{TextTexOpts, text_tex};
 use crate::world::knock::{KnockDoor, Mark};
 
 /// The hermetic door's materials (`core_props::doors`), one set a floor:
-/// its enamel, its wheel's red, its seal's rubber
+/// its enamel, its wheel's bare steel, its seal's rubber
 struct HermeticMats {
     enamel: Mat,
     wheel: Mat,

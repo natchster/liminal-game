@@ -1317,6 +1317,7 @@ pub fn build_elevator(g: &mut Game, cx: &mut PropsCtx, functional: bool) -> Buil
     use crate::core_props::doors::{LIFT_FACE, LIFT_PANEL_W, LIFT_PANEL_Y, LIFT_PANEL_Z};
     let _ = (g, cx);
     let eg = group();
+    eg.set_name("lift");
     // the landing entrance, the asset pipeline's (`core_props::doors`,
     // `assets/src/props/lift_doors/`): its frame and sill, and its two
     // panels shut, meeting in the middle
@@ -1329,7 +1330,7 @@ pub fn build_elevator(g: &mut Game, cx: &mut PropsCtx, functional: bool) -> Buil
     // its position indicator over it, dark: it shows no floor (`LORE.md`:
     // where a car goes is never said); the floor it once showed keeps its draw
     let display = mesh(pg("Props__elevator_display", box_geo!(0.5, 0.12, 0.02)), lambert!({ color: 0x1a1a1a }));
-    display.position().set(0, 2.32, LIFT_FACE - 0.012);
+    display.position().set(0, 2.32, LIFT_FACE - 0.064);
     eg.add(&display);
     if functional {
         let _ = irand(1, 9);

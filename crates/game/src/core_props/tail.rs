@@ -999,7 +999,9 @@ impl Game {
         let Some(c) = s_take(self, cx, true) else { return };
         let Some(spot) = s_wall_adj_spot(self, c.x, c.z) else { return };
         let g = group();
-        g.set_pos_v(&off_wall(&spot, 0.075));
+        g.set_name("broken-lift");
+        // its origin 7.5 cm off the wall's face (the spot is 6 cm out of it)
+        g.set_pos_v(&off_wall(&spot, 0.015));
         g.rotation().y = spot.yaw;
         // (its doors held to their rule: `assets/src/props/lift_doors/`, "broken lift")
         let _ = self.place_by_layout("lift_doors", "broken lift", spot.pos.x, spot.pos.z);
@@ -1009,8 +1011,8 @@ impl Game {
         // the black at z 0.10: `assets/src/cutscenes/shaft.toml`)
         use crate::core_props::doors::{LIFT_FACE, LIFT_FRAME_HALF, LIFT_PANEL_W, LIFT_PANEL_Y, LIFT_PANEL_Z};
         crate::core_props::doors::lift_entrance(&g);
-        let shaft = mesh(box_geo!(1.10, 2.1, 0.06), basic_mat!({ color: 0x000000 }));
-        shaft.set_pos(0, 1.05, 0.10);
+        let shaft = mesh(box_geo!(1.10, 2.1, 0.03), basic_mat!({ color: 0x000000 }));
+        shaft.set_pos(0, 1.05, -0.058);
         g.add(&shaft);
         // the left one most of the way shut, the right one slid further back,
         // the most of it in its pocket behind the jamb (what shows of it, and
@@ -1019,7 +1021,9 @@ impl Game {
         door_l.set_pos(-0.075 - LIFT_PANEL_W / 2.0, LIFT_PANEL_Y, LIFT_PANEL_Z);
         g.add(&door_l);
         let door_r = crate::core_props::doors::lift_panel();
-        let wr = LIFT_FRAME_HALF - 0.47;
+        // (its edge 1 cm inside the jamb's outer side: at the side itself it
+        // flickered, seen along the wall)
+        let wr = LIFT_FRAME_HALF - 0.01 - 0.47;
         door_r.scale().x = wr / LIFT_PANEL_W;
         door_r.set_pos(0.47 + wr / 2.0, LIFT_PANEL_Y, LIFT_PANEL_Z);
         g.add(&door_r);
@@ -1034,31 +1038,41 @@ impl Game {
         let wire_mat = lambert!({ color: 0x2a1a08 });
         for _ in 0..4 {
             let wire = mesh(pg("Props__brokenElevator_wire", cyl_geo!(0.006, 0.006, rand2(0.4, 0.9), 4)), &wire_mat);
-            wire.set_pos(rand2(-0.4, 0.4), 1.85 - rand2(0.0, 0.4), 0.135);
+            wire.set_pos(rand2(-0.4, 0.4), 1.85 - rand2(0.0, 0.4), -0.036);
             wire.rotation().z = rand2(-0.15, 0.15);
             g.add(&wire);
         }
         // red emergency warning bar over the frame
         let warn_bar = mesh(box_geo!(1.2, 0.08, 0.04), basic_mat!({ color: 0xff2020 }));
-        warn_bar.set_pos(0, 2.31, 0.12);
+        warn_bar.set_pos(0, 2.31, -0.054);
         g.add(&warn_bar);
         // pulsing red glow in front of the shaft (driven by `update_broken_elevator`)
         let red_light = point_light!(0xff2020, 0, 4, 1.8);
         red_light.set_pos(0, 2.28, 0.4);
         g.add(&red_light);
-        // written across the gap, on the panels
-        let oos = mesh(
-            plane_geo!(1.0, 0.22),
-            basic_mat!({
-                map: handwritten_tex("DO NOT ENTER", &HandOpts {
-                    color: "rgba(160,30,20,0.98)".into(), thickness: 6.0, jitter: 1.9, wobble: 1.4,
-                    w: 1024.0, h: 220.0, double_stroke: true, drip: true, ..Default::default()
-                }),
-                transparent: true,
+        // written across the doors while they were shut, and parted with
+        // them: its left half on the left panel (7.5 cm further left), its
+        // right half gone with the right one into its pocket, what shows of it
+        // before the jamb (the visual playtest found it written on the air
+        // across the gap)
+        let oos_mat = basic_mat!({
+            map: handwritten_tex("DO NOT ENTER", &HandOpts {
+                color: "rgba(160,30,20,0.98)".into(), thickness: 6.0, jitter: 1.9, wobble: 1.4,
+                w: 1024.0, h: 220.0, double_stroke: true, drip: true, ..Default::default()
             }),
-        );
-        oos.set_pos(0, 1.9, LIFT_FACE - 0.003);
-        g.add(&oos);
+            transparent: true,
+        });
+        let right_end = LIFT_FRAME_HALF - 0.01;
+        for (x0, x1, u0) in [(-0.575, -0.075, 0.0), (0.47, right_end, 0.5)] {
+            let w = x1 - x0;
+            let geo = plane_geo!(w, 0.22);
+            let u1 = (u0 + w) as f32;
+            let u0 = u0 as f32;
+            geo.set_uv(vec![u0, 1.0, u1, 1.0, u0, 0.0, u1, 0.0]);
+            let half = mesh(geo, &oos_mat);
+            half.set_pos((x0 + x1) / 2.0, 1.9, LIFT_FACE - 0.003);
+            g.add(&half);
+        }
         // its call station dead
         crate::core_props::doors::lift_call_station(&g, false);
         // scorch marks round its edges, on the frame's face
@@ -1081,8 +1095,8 @@ impl Game {
                 ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
             }
         });
-        let scorch = mesh(plane_geo!(1.4, 2.3), basic_mat!({ map: scorch_tex, transparent: true }));
-        scorch.set_pos(0, 1.12, LIFT_FACE + 0.002);
+        let scorch = mesh(plane_geo!(1.34, 2.25), basic_mat!({ map: scorch_tex, transparent: true }));
+        scorch.set_pos(0, 1.125, LIFT_FACE + 0.002);
         g.add(&scorch);
         self.world.add(&g);
         // ---- bloody handprints trailing along the wall away from the shaft ----
@@ -1174,9 +1188,10 @@ impl Game {
                 hp.scale().x = -1.0;
             }
             hp.rotation().z = rand2(-0.08, 0.08);
-            // nudge out from the wall against z-fighting
-            hp.position().x += spot.normal.x * 0.055;
-            hp.position().z += spot.normal.z * 0.055;
+            // on the wall's face, 3 mm off it against z-fighting (the lift's
+            // origin stands 7.5 cm off the face; they hung 19 cm off it)
+            hp.position().x -= spot.normal.x * 0.072;
+            hp.position().z -= spot.normal.z * 0.072;
             self.world.add(&hp);
         }
         // ---- peer-in interactable ----
@@ -1340,8 +1355,8 @@ impl Game {
                 // a dead one: its button can still be pressed (`core_props::usable`)
                 built.g.user().s.insert("dead_lift".into(), "yes".into());
             }
-            // flush with the wall
-            built.g.set_pos_v(&off_wall(&spot, 0.075));
+            // its origin 7.5 cm off the wall's face (the spot is 6 cm out of it)
+            built.g.set_pos_v(&off_wall(&spot, 0.015));
             built.g.rotation().y = spot.yaw;
             self.world.add(&built.g);
             // (its doors held to their rule: `assets/src/props/lift_doors/`, "lift")

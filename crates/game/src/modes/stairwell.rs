@@ -501,10 +501,12 @@ impl Stairwell {
             // side that pulls, its hinges and nothing to take hold of
             // (`core_props::doors`, `assets/src/props/steel_door/`)
             let door = group();
+            door.set_name("stair-door-top");
             door.position().set(0, 0, -R + DOOR_OFF);
             crate::core_props::doors::steel_door(&door, crate::core_props::doors::SteelSide::Top);
             top.add(&door);
             let strip = mesh(plane_geo!(0.9, 0.03), basic_mat!({ color: 0xfff1c8 }));
+            strip.set_name("stair-door-top-light");
             strip.position().set(0, 0.002, -R + DOOR_OFF + 0.01);
             strip.rotation().x = -PI / 2.0;
             top.add(&strip); // light under the door
@@ -515,8 +517,10 @@ impl Stairwell {
         let bottom = group();
         // the steel door's side that pushes, its push bar (`core_props::doors`)
         let exit_door = group();
+        exit_door.set_name("stair-door-bottom");
         crate::core_props::doors::steel_door(&exit_door, crate::core_props::doors::SteelSide::Bottom);
         let exit_glow = mesh(plane_geo!(0.88, 0.035), basic_mat!({ color: 0xd9f0c8 }));
+        exit_glow.set_name("stair-door-bottom-light");
         let floor = mesh(box_geo!(HALF * 2.0 + 0.4, 0.3, FL + R * 2.0 + 0.4), &slab_mat);
         bottom.add(&exit_door);
         bottom.add(&exit_glow);

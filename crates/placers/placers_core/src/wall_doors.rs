@@ -21,11 +21,11 @@ pub(crate) fn place_wall_doors(g: &mut Game, _dist: &[i32]) {
     }
     let c = choice(&candidates);
     let paint = choice(&[0usize, 1, 2, 3]);
+    let (wall_x, wall_z) = wall_xz(g, c, 0.0);
     if g.level_scp.is_some() || g.place_by_layout("interior_door", "wall", g.wx(c.x), g.wz(c.z)).is_none() {
         return;
     }
     let door = game::core_props::doors::interior_door_in_frame(paint);
-    let (wall_x, wall_z) = wall_xz(g, c, 0.0);
     mount(&door, c, wall_x, wall_z, 0.0, None);
     g.world.add(&door);
 }

@@ -3,7 +3,7 @@
 # (`place_wall_doors`), and a home's barricade nails it across a doorway
 # (`core_props::barricade`).
 by = "layout"
-count = [0, 2]
+count = [0, 5]
 levels = [5, 999]
 
 [[rule]]

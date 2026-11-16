@@ -47,7 +47,11 @@ never said, and nothing here says it.
 painted grey and worn. Pillar 4: it is found as every exit door is, by
 its sign's light and its call; its plaque says what it is only as a
 closet's plaque would (`LORE.md`, *How canon reaches the player*: a
-thing's own printing). Nothing on it glows but the sign over it.
+thing's own printing). Nothing on it glows but the sign over it. In the
+Stairwell, a place with rules of its own (`LORE.md`, *The Stairwell*), a
+line of light lies on the floor under each of its two doors: warm under
+the one behind you, where the floor you left is lit, pale under the one at
+the bottom (`modes::stairwell`, as the old game had them).
 
 ## What a hand does
 
@@ -61,5 +65,10 @@ the stair.
 
 In the exit door's place, against the wall furthest from where you come
 in, on the one floor a run whose way down is the Stairwell (levels 5 to
-12); in the Stairwell, the door at its top behind you and the door at
-its bottom.
+12), with its plaque; in the Stairwell, the door at its top behind you and
+the door at its bottom. And, without the plaque, the way down of every
+floor whose far wall is at the back of the house: a maintenance run,
+service tunnels, a storage hall, a pool hall, washrooms, whose stair doors
+are steel (the exit door's playtest: "a plain wood office door is a bit
+soft for a raw back room"); never the Loop's floor, whose way in is an
+office door.

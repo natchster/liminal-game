@@ -366,8 +366,8 @@ is never said.
 **A door to nowhere.** Now and then (on about one floor in twenty-five,
 never the Lobby, nor a floor with rules of its own) an ordinary door
 stands shut against a wall of a place that had rooms with doors (someone's
-rooms, an office wing, a parlour, a storage hall, a maintenance run), in
-its frame, its knob on it. It does not open, and behind it is the wall;
+rooms, an office wing, a parlour, a storage hall, a maintenance run, a play
+area, a room a party was held in), in its frame, its knob on it. It does not open, and behind it is the wall;
 why it is there is never said.
 
 ## M.'s descent
@@ -1134,7 +1134,7 @@ the car behind its doors are heard by nothing but you.
 among them, and the floors with rules of their own too: nothing keeps it
 from them), a lift stands broken against a wall: its doors jammed apart on
 black, a red lamp over them that will not settle, DO NOT ENTER written
-across the gap in red, its call button dead, scorch round its edges, and
+in red across them, broken by the gap, its call button dead, scorch round its edges, and
 from it a trail of hands along the wall to what is left of people. Cables
 scrape in it now and then, heard from some twenty metres. Stay by it a
 while and something falls far down it: a slam, two clanks, a scream going

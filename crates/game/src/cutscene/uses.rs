@@ -9,9 +9,9 @@ use crate::prelude::*;
 
 /// The shaft's eyeshine: where it opens in the lift's frame (low in the
 /// black between the doors, a hair in front of its face: the black is a box
-/// 6 cm deep about z 0.10), how far apart, how big; what looking takes of
-/// your nerve
-const SHAFT_EYES: (f64, f64, f64) = (0.2, 0.98, 0.134);
+/// 3 cm deep about z -0.058, behind the doors' faces at -0.005), how far
+/// apart, how big; what looking takes of your nerve
+const SHAFT_EYES: (f64, f64, f64) = (0.2, 0.98, -0.026);
 const SHAFT_EYES_APART: f64 = 0.009;
 const SHAFT_EYE_R: f64 = 0.0034;
 const SHAFT_NERVE: f64 = 12.0;
