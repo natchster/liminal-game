@@ -1,0 +1,359 @@
+# The references of interior_door (docs/design/ASSETS.md), gathered on
+# 2026-11-16 by a research agent (its notes: docs/research/doors.md);
+# `cargo xtask asset refs interior_door` fetches them into
+# target/asset-refs/interior_door/. Its surfaces are painted from its own
+# palette (`core_props::doors`), never sampled from these; the palette is
+# photo-sampled, each photo's light in it.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/d/dc/Door_Bedroom_rotated.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Door_Bedroom_rotated.jpg"
+shows = "the thing: a white primed-and-painted six-panel moulded (colonist) door, closed in its painted jamb and casing, round satin knob, three butt hinges, dark grime on the latch stile beside the knob"
+class = "free"
+licence = "CC BY-SA 3.0, Corn cheese"
+sha1 = "ae30aabdde5b605e401f1b0ab51c39ba50903df7"
+notes = "Whole-door proportions (panel layout, stiles, rails, hinge count) and the hand-grime patch at the knob; photo is dim and underexposed, so colours need normalising (see palette). Viewed; full original downloaded and its SHA-1 matched."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/5/51/Gold_doorknob.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Gold_doorknob.jpg"
+shows = "the thing: a polished-brass round passage knob (Tylo-style bell knob) on its round rose, latch faceplate in the door edge, white painted door with scuffs and chipped paint along the latch edge"
+class = "free"
+licence = "CC BY-SA 3.0, BlastOButter42"
+sha1 = "29feaf216db44f78f6cfe101e3f7e42cc66ed32b"
+notes = "Brass colour and reflections, knob/rose shape and size relation, wear at the latch edge (dark scuffs, paint chips), the latch faceplate. 2007 US bedroom door. Viewed at 960 px; SHA-1 from the Commons API."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/4e/Interior_door_being_shortened_wood_bottom_being_removed.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Interior_door_being_shortened_wood_bottom_being_removed.JPG"
+shows = "a measurement: the cut bottom of a hollow-core interior slab, skins sprung apart to pull out the bottom rail, maker's stamp reading '6'08 1-3/8 HC' (6 ft 8 in, 1-3/8 in, hollow core)"
+class = "free"
+licence = "CC0, Tomwsulcer"
+sha1 = "efeb79434ebaa3fbcd20bb6245df1131cd71d9c9"
+notes = "How thin the skins are and that the bottom rail is a loose solid strip glued between them; the stamp confirms 1-3/8 in hollow core. Viewed; full original downloaded, SHA-1 matched."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/a/af/Chiseling_a_hole_for_the_door_hinge_while_comparing_it_to_previous_door.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Chiseling_a_hole_for_the_door_hinge_while_comparing_it_to_previous_door.JPG"
+shows = "the thing: edge of an old dark red-brown stained hollow-core door (which, says the caption, had a hole punched in it) laid on a new slab; the new slab's softwood stile edge with the two thin skins showing as lines, a hinge mortise being chiselled"
+class = "free"
+licence = "CC0, Tomwsulcer"
+sha1 = "5a31bc47f850bee8878bba9bda9c9907ffe7f603"
+notes = "Stile edge build-up (softwood stile between thin skins), hinge mortise shape, colour of a brown-stained door and of an unfinished lauan skin. The punched hole itself is not in frame. Viewed; full original downloaded, SHA-1 matched."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/c/ce/After_using_a_butt_marker_to_chisel_out_hole_for_door_hinge.JPG"
+page = "https://commons.wikimedia.org/wiki/File:After_using_a_butt_marker_to_chisel_out_hole_for_door_hinge.JPG"
+shows = "the thing: a residential butt hinge with radius corners, three screws, five-knuckle barrel and pin, set in its mortise on a new slab; above it the empty mortise in the old stained door"
+class = "free"
+licence = "CC0, Tomwsulcer"
+sha1 = "ccbc2a1caf664dd9202633e264e8036a2afdc1d4"
+notes = "Hinge shape and finish (satin nickel look), mortise depth and outline, stained-door edge colour. Viewed; full original downloaded, SHA-1 matched."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/44/Hohlkammert%C3%BCrblatt_R%C3%B6hrenplatte_Querschnitt1.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Hohlkammert%C3%BCrblatt_R%C3%B6hrenplatte_Querschnitt1.jpg"
+shows = "the thing: cross-section sample of a European (German) interior door leaf: white finish, rebated (Falz) edge, tubular-chipboard (Roehrenspan) core between thin facings"
+class = "free"
+licence = "CC0, Best Tech Nick 25"
+sha1 = "1ff896d5cfd8f54a319f178c2e9ef5f6cd5022e6"
+notes = "The European counterpart to the US hollow core: rebated leaf edge that laps the frame, chipboard-tube core instead of paper honeycomb. Viewed at 960 px; SHA-1 from the Commons API."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/4f/Close-up_of_a_door_knob_and_keyhole.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Close-up_of_a_door_knob_and_keyhole.jpg"
+shows = "the thing: a European lever handle on a round rose with a separate round key escutcheon below, brushed/polished nickel, on a white interior door"
+class = "free"
+licence = "CC BY 2.0, Shixart1985"
+sha1 = "c62b8006011620fd85d1c0528c4d0819d69de24c"
+notes = "European hardware layout (lever on rose + keyhole rose), satin-nickel colour, white door surface. Viewed at 960 px; SHA-1 from the Commons API."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e7/Winchester_Mystery_House_%28door_to_nowhere%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Winchester_Mystery_House_(door_to_nowhere).jpg"
+shows = "a place with one: the Winchester House 'Door to Nowhere', a white four-panel door with a knob set high in an upper-storey wall with nothing outside it but a drop"
+class = "free"
+licence = "CC BY-SA 3.0, Spiel"
+sha1 = "05234785e734c3711d4730722d629492092df141"
+notes = "The archetypal door to nowhere: an ordinary panel door, framed and trimmed, in a wall with no floor behind it. Exterior, Victorian, but the composition carries. Viewed; full original downloaded, SHA-1 matched."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/3/3b/Barricaded_Door_%288466040355%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Barricaded_Door_(8466040355).jpg"
+shows = "a place with one: a door barricaded with two weathered planks nailed across it, overlapping the frame on both sides, plus a sheet-metal patch, round knob still on, in a painted brick wall (St. Louis)"
+class = "free"
+licence = "CC BY 2.0, Paul Sableman"
+sha1 = "10880f37998ef1b29036223bf31da71ed32ef182"
+notes = "How boards sit across a doorway (heights, overhang past the jamb, weathering, nail heads). The door is a steel service door, not a hollow-core one. Viewed at 960 px; SHA-1 from the Commons API."
+
+[[ref]]
+url = "https://edge.sitecorecloud.io/jeldwencanada1-jeldwen-p523-e8d9/media/Project/JeldWen/JeldWenCanada/Articles/Documents-Video/Consumer-Size-Guides/Moulded_Door_Specifications_11_2015_Revised_3.pdf"
+page = "https://edge.sitecorecloud.io/jeldwencanada1-jeldwen-p523-e8d9/media/Project/JeldWen/JeldWenCanada/Articles/Documents-Video/Consumer-Size-Guides/Moulded_Door_Specifications_11_2015_Revised_3.pdf"
+shows = "a maker's sheet: JELD-WEN of Canada, Moulded Door Designs Dimensional Specifications (rev. 11/18/2015), dimensioned elevations and sticking profiles of every moulded facing (Colonist six-panel, Princeton and Camden two-panel arch-top, etc.)"
+class = "limited"
+licence = "JELD-WEN, all rights reserved"
+notes = "Panel layout of the six-panel (p.31) and two-panel arch-top (p.14, p.17) facings: rail heights, stile/panel widths for every nominal width, sticking depth. Read in text and pages 14, 17, 28, 31 rendered and viewed."
+
+[[ref]]
+url = "https://pdf.lowes.com/productdocuments/82f41f1f-45a0-4077-b8eb-49cf4e91a3a2/63792860.pdf"
+page = "https://pdf.lowes.com/productdocuments/82f41f1f-45a0-4077-b8eb-49cf4e91a3a2/63792860.pdf"
+shows = "a maker's sheet: Masonite Molded Door Facing Dimensional Specifications, 2020 collection (DD-MIC-19001 Rev B), incl. Two Panel Smooth (square top) and Six Panel Smooth"
+class = "limited"
+licence = "Masonite, all rights reserved"
+notes = "Square-top two-panel layout and the INP sticking profile (p.7, rendered and viewed); six-panel widths (p.15, text) agree with JELD-WEN's Colonist to 0.01 in."
+
+[[ref]]
+url = "https://res.cloudinary.com/hdi/image/upload/v1626462038/Suppliers/Masonite/Documents/Brochures/Masonite_Interior_Doors_Product_Catalog_Rugby.pdf"
+page = "https://res.cloudinary.com/hdi/image/upload/v1626462038/Suppliers/Masonite/Documents/Brochures/Masonite_Interior_Doors_Product_Catalog_Rugby.pdf"
+shows = "a maker's sheet: Masonite Interior Doors product catalog (RES-24121, Feb 2025): molded-panel stile rule for a standard bore, jamb widths, finish swatches incl. 'PRIMED'"
+class = "limited"
+licence = "Masonite, all rights reserved"
+notes = "Jamb widths 4-9/16 and 6-9/16 in, minimum stile for a 2-1/8 in bore, and a printed primer swatch (page 29 rendered and sampled)."
+
+[[ref]]
+url = "https://millwork.bc.com/wp-content/uploads/2024/02/F-LN_TXT_80-1-22-2024.pdf"
+page = "https://millwork.bc.com/wp-content/uploads/2024/02/F-LN_TXT_80-1-22-2024.pdf"
+shows = "a maker's sheet: Steves & Sons lauan flush doors, standard dimensions (rev. 1-22-24), with a drawing of hollow-core construction: paper core, particle-board lock block, stiles and rails"
+class = "limited"
+licence = "Steves & Sons, all rights reserved"
+notes = "Internal build of a US hollow-core slab: frame section and lock-block size. A flush (not moulded) door, but moulded hollow-core slabs are framed the same way (ref 14). Page 2 rendered and viewed."
+
+[[ref]]
+url = "https://www.jlconline.com/wp-content/uploads/sites/4/2001/inside-interior-doors-tcm96-1083869.pdf"
+page = "https://www.jlconline.com/wp-content/uploads/sites/4/2001/inside-interior-doors-tcm96-1083869.pdf"
+shows = "a measurement: Dave Holbrook, 'Inside Interior Doors', Journal of Light Construction, Feb 2001: how molded hardboard-skin doors and hollow cores are built, undersizing, bevel, trimming limits"
+class = "limited"
+licence = "Journal of Light Construction (Hanley Wood), all rights reserved"
+notes = "Period trade source (2001) for construction: molded hardboard skins on a perimeter frame, cardboard honeycomb, wood/particleboard/polystyrene lock blocks, 5/32-1/4 in undersize, 3-degree edge bevel, rail-trim limits. Read (text)."
+
+[[ref]]
+url = "https://commercial.schlage.com/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_A_Series_Cut_Sheet_113208.pdf"
+page = "https://commercial.schlage.com/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_A_Series_Cut_Sheet_113208.pdf"
+shows = "a maker's sheet: Schlage A Series cylindrical lock cut sheet: knob widths and projections (Plymouth, Georgian, Orbit, Tulip), standard rose diameter, backsets, door thickness"
+class = "limited"
+licence = "Allegion, all rights reserved"
+notes = "Knob and rose dimensions for the classic round knob (Plymouth). Read (text)."
+
+[[ref]]
+url = "https://www.thisoldhouse.com/home-safety/how-to-install-a-lockset"
+page = "https://www.thisoldhouse.com/home-safety/how-to-install-a-lockset"
+shows = "a measurement: This Old House, How to Install a Lockset: knob height above the floor, interior/exterior backset, edge-bore and face-bore tool sizes"
+class = "limited"
+licence = "This Old House Ventures, all rights reserved"
+notes = "Knob height 36 or 38 in; backset 2-3/8 in interior; 7/8 in spade bit for the edge bore, 2-1/8 in hole saw. Read (text)."
+
+[[ref]]
+url = "https://izhgqk.files.cmp.optimizely.com/download/assets/ALEXANDRIA_MW_Catalog_RCM.pdf/2baeec08b67911f0ac71861ac88494f1"
+page = "https://izhgqk.files.cmp.optimizely.com/download/assets/ALEXANDRIA_MW_Catalog_RCM.pdf/2baeec08b67911f0ac71861ac88494f1"
+shows = "a maker's sheet: Alexandria Moulding catalog, casing page: profile drawings and sizes of WM356, WM366, WM327, WM316 and 2-1/2 in casings"
+class = "limited"
+licence = "Alexandria Moulding, all rights reserved"
+notes = "Casing cross-sections (stepped colonial, curved clamshell/ranch-type, flat) with thickness x width. Profile style names are not printed. Page 8 rendered and viewed."
+
+[[ref]]
+url = "https://vividdoors.co.uk/internal-doors/classical-2p-white-moulded-internal-doors/2040x726x40mm-classical-2p-white-moulded-internal-doors"
+page = "https://vividdoors.co.uk/internal-doors/classical-2p-white-moulded-internal-doors/2040x726x40mm-classical-2p-white-moulded-internal-doors"
+shows = "a measurement: UK retailer listing for a metric white moulded two-panel hollow-core internal door, 2040 x 726 x 40 mm, primed"
+class = "limited"
+licence = "Vivid Doors, all rights reserved"
+notes = "UK metric leaf size and thickness, weight, trim allowance. Read (text)."
+
+[[measure]]
+what = "leaf nominal width x height, US"
+value = "24, 28, 30, 32, 36 x 80 in = 610, 711, 762, 813, 914 x 2032 mm (nominal sizes from the maker's table; mm = in x 25.4)"
+ref = 10
+
+[[measure]]
+what = "leaf actual vs nominal size, US"
+value = "slabs undersized 5/32-1/4 in (4-6 mm) from nominal; vertical stile edges bevelled 3 degrees"
+ref = 14
+
+[[measure]]
+what = "leaf thickness, US hollow core"
+value = "1-3/8 in = 34.9 mm (maker's stamp '1-3/8 HC')"
+ref = 3
+
+[[measure]]
+what = "leaf width x height x thickness, UK metric"
+value = "726 x 2040 x 40 mm, hollow core, about 14.0 kg, max trim 8 mm per edge"
+ref = 18
+
+[[measure]]
+what = "moulded facing blank before trimming (6 ft 8 in door)"
+value = "80.75 in (2051 mm) tall; width = nominal + 3/8 in (e.g. 32.375 in = 822 mm for a 32 in door); +/- 1/16 in"
+ref = 10
+
+[[measure]]
+what = "six-panel (Colonist) rail and panel heights, bottom of the list = bottom of door"
+value = "top rail 4.51 / top panels 8.54 / rail 3.71 / upper panels 24.23 / lock rail 6.78 / lower panels 24.23 / bottom rail 8.76 in = 115 / 217 / 94 / 615 / 172 / 615 / 223 mm (sum 80.75 in on the blank)"
+ref = 10
+
+[[measure]]
+what = "six-panel stile, panel and centre-stile widths, 32 in door"
+value = "outer stiles 4.345 in (110 mm), panels 9.956 in (253 mm), centre stile 3.775 in (96 mm)"
+ref = 10
+
+[[measure]]
+what = "six-panel panel width by door width (stiles 4.345 in, centre stile 3.775 in)"
+value = "24 in: 5.956 in (151 mm); 28: 7.956 (202); 30: 8.956 (227); 32: 9.956 (253); 36: 11.956 (304); 34 and 26 use 5.345 in stiles"
+ref = 10
+
+[[measure]]
+what = "six-panel sticking (moulded bevel round each panel), width x depth"
+value = "1.87 x 0.43 in = 47.5 x 10.9 mm"
+ref = 10
+
+[[measure]]
+what = "two-panel square-top (Two Panel Smooth) rail and panel heights, top to bottom"
+value = "top rail 4.51 / upper panel 36.48 / lock rail 6.78 / lower panel 24.23 / bottom rail 8.76 in = 115 / 927 / 172 / 615 / 223 mm"
+ref = 11
+
+[[measure]]
+what = "two-panel square-top widths, 32 in door"
+value = "stiles 5.34 in (136 mm), panel 21.69 in (551 mm)"
+ref = 11
+
+[[measure]]
+what = "two-panel INP sticking profile, width x depth"
+value = "1.87 x 0.55 in = 47.5 x 14.0 mm, with a 0.12 in (3 mm) flat step"
+ref = 11
+
+[[measure]]
+what = "two-panel arch-top (Princeton) heights top to bottom, and widths at 32 in"
+value = "5.51 (at arch crown) / 43.19 / 3.69 / 19.69 / 8.63 in; stiles 4.743 in, panel 22.876 in; cove-and-bead sticking 1.82 x 0.43 in"
+ref = 10
+
+[[measure]]
+what = "lock-rail centre above the bottom of the facing (six-panel and two-panel square-top)"
+value = "8.76 + 24.23 + 6.78/2 = 36.38 in (924 mm): the knob bore lands in the lock rail"
+ref = 10
+
+[[measure]]
+what = "hollow-core frame and lock block"
+value = "stiles and rails 1-1/8 x 1-1/8 in (29 x 29 mm) softwood; particle-board lock block 3 x 30 in (76 x 762 mm) on the lock side at mid-height; paper (honeycomb/diamond) core"
+ref = 13
+
+[[measure]]
+what = "skin (facing) thickness, derived"
+value = "(1-3/8 - 1-1/8) / 2 = 1/8 in = 3.2 mm per skin"
+ref = 13
+
+[[measure]]
+what = "hollow-core trimming limits"
+value = "top/bottom rails not cut below 1-1/4 in (32 mm); lock stile at least 13/16 in, hinge stile at least 1 in"
+ref = 14
+
+[[measure]]
+what = "knob centre height above floor"
+value = "36 or 38 in = 914 or 965 mm"
+ref = 16
+
+[[measure]]
+what = "knob bore and latch bore"
+value = "face (cross) bore 2-1/8 in = 54 mm; edge bore 7/8 in = 22 mm; backset 2-3/8 in = 60 mm interior (2-3/4 in = 70 mm exterior)"
+ref = 16
+
+[[measure]]
+what = "minimum outer stile for a standard bore at 2-3/8 in backset"
+value = "3-7/16 in = 87 mm (= backset 2.375 + bore radius 1.0625)"
+ref = 12
+
+[[measure]]
+what = "round knob (Schlage Plymouth) width x projection; standard rose"
+value = "knob 2-1/8 in (54 mm) wide, 2-5/16 in (59 mm) projection; rose diameter 2-9/16 in (65 mm)"
+ref = 15
+
+[[measure]]
+what = "door thickness a cylindrical knobset fits"
+value = "1-3/8 to 1-7/8 in = 35 to 48 mm; backset standard 2-3/8 in (60 mm)"
+ref = 15
+
+[[measure]]
+what = "jamb width"
+value = "4-9/16 in (116 mm) for a 2x4 wall with 1/2 in drywall; 6-9/16 in (167 mm) for 2x6; flat, single- or double-rabbet"
+ref = 12
+
+[[measure]]
+what = "casing thickness x width (colonial WM356 / WM366, clamshell-type WM327, ranch-type WM316)"
+value = "11/16 x 2-1/4 in = 17.5 x 57 mm (MDF versions 9/16 or 5/8 x 2-1/4 in); 2-1/2 in casings 1/2 or 9/16 x 2-1/2 in = 13-14 x 64 mm"
+ref = 17
+
+[[measure]]
+what = "butt hinge leaf length (photo-scaled)"
+value = "about 3.5 in (89 mm), ESTIMATE: scaled from the 1-3/8 in door edge, 3.5-4.0 in depending on the edge used"
+ref = 5
+
+[[measure]]
+what = "hinges per 6 ft 8 in hollow-core leaf"
+value = "3 (top, middle, bottom) seen on the six-panel door"
+ref = 1
+
+[[measure]]
+what = "barricade boards across a door (photo-scaled)"
+value = "2 boards about 11 in (280 mm) tall x 40 in (1020 mm) long, running 2-3 in past each leaf edge onto the frame; ESTIMATE assuming a 36 in door"
+ref = 9
+
+[[palette]]
+what = "white paint on a lived-in door, new-ish (estimated from photo; camera white balance a little cool)"
+srgb = [222, 222, 229]
+ref = 2
+
+[[palette]]
+what = "factory primer (maker's printed 'PRIMED' swatch, rendered from the PDF)"
+srgb = [228, 227, 225]
+ref = 12
+
+[[palette]]
+what = "white door paint, yellowed (estimated from photo; raw 128,127,121 scaled x1.81 to undo underexposure)"
+srgb = [232, 230, 219]
+ref = 1
+
+[[palette]]
+what = "hand grime on the latch stile by the knob (estimated from photo; raw 113,113,105 scaled x1.81)"
+srgb = [205, 205, 190]
+ref = 1
+
+[[palette]]
+what = "casing paint, same white (estimated from photo; raw 131,130,125 scaled x1.81)"
+srgb = [237, 236, 227]
+ref = 1
+
+[[palette]]
+what = "brown stained door, dark red-brown (estimated from photo of the door edge)"
+srgb = [73, 33, 22]
+ref = 5
+
+[[palette]]
+what = "brown stained door, lighter worn area (estimated from photo)"
+srgb = [87, 41, 35]
+ref = 4
+
+[[palette]]
+what = "unfinished lauan skin of a new hollow-core slab (estimated from photo)"
+srgb = [178, 163, 160]
+ref = 4
+
+[[palette]]
+what = "polished brass knob, mean over the knob front incl. reflections (estimated from photo)"
+srgb = [125, 105, 70]
+ref = 2
+
+[[palette]]
+what = "satin nickel hinge leaf (estimated from photo; finish not stated)"
+srgb = [130, 130, 126]
+ref = 5
+
+[[palette]]
+what = "satin nickel / chrome round knob (estimated from photo; raw 84,87,86 scaled x1.81)"
+srgb = [152, 158, 156]
+ref = 1
+
+[[palette]]
+what = "brushed nickel European lever, brushed section (estimated from photo; warm reflections)"
+srgb = [133, 122, 116]
+ref = 7
+
+[[palette]]
+what = "weathered board nailed across a door (estimated from photo)"
+srgb = [95, 87, 80]
+ref = 9

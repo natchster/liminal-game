@@ -765,3 +765,189 @@ Mitsubishi [11] lists the lit-button colours as yellow-orange, white or blue, co
   finish in [2] looks non-directional rather than hairline.
 - **Photo geometry**: [1] has deep or splayed jamb returns, so frame face widths in mm could not be taken from it.
   Only the panel ratio (panel plane) and the faceplate aspect are given.
+
+## 5. The interior door (`interior_door`)
+Companion to `interior_door.toml` (18 refs: 9 free, 9 limited; 27 measures; 13 palette samples).
+Ref numbers below are the 1-based `[[ref]]` order in the TOML.
+
+Status markers: **VERIFIED** read on the page/PDF (or seen in the image); **SEARCH-ONLY** seen only in a
+search summary; **DERIVED** computed (working shown); **ESTIMATE** no source / judged from a photo.
+
+### The references
+
+| # | Class | What | Viewed? |
+|---|---|---|---|
+| 1 | free, CC BY-SA 3.0 Corn cheese | [Door_Bedroom_rotated.jpg](https://commons.wikimedia.org/wiki/File:Door_Bedroom_rotated.jpg): white six-panel moulded door, round satin knob, 3 hinges, grime by knob | yes, full original; SHA-1 matched locally |
+| 2 | free, CC BY-SA 3.0 BlastOButter42 | [Gold_doorknob.jpg](https://commons.wikimedia.org/wiki/File:Gold_doorknob.jpg): polished-brass bell knob on round rose, latch faceplate, chipped/scuffed white latch edge | yes, 960 px thumb; SHA-1 from API |
+| 3 | free, CC0 Tomwsulcer | [Interior door being shortened...](https://commons.wikimedia.org/wiki/File:Interior_door_being_shortened_wood_bottom_being_removed.JPG): cut bottom of a hollow-core slab, stamp "6'08 1-3/8 HC" | yes, original; SHA-1 matched |
+| 4 | free, CC0 Tomwsulcer | [Chiseling a hole for the door hinge...](https://commons.wikimedia.org/wiki/File:Chiseling_a_hole_for_the_door_hinge_while_comparing_it_to_previous_door.JPG): old red-brown stained door edge on a new slab; new stile edge with the two skins as thin lines | yes, original; SHA-1 matched |
+| 5 | free, CC0 Tomwsulcer | [After using a butt marker...](https://commons.wikimedia.org/wiki/File:After_using_a_butt_marker_to_chisel_out_hole_for_door_hinge.JPG): radius-corner butt hinge in its mortise; empty mortise in old stained door | yes, original; SHA-1 matched |
+| 6 | free, CC0 Best Tech Nick 25 | [Hohlkammertuerblatt Roehrenplatte Querschnitt1.jpg](https://commons.wikimedia.org/wiki/File:Hohlkammert%C3%BCrblatt_R%C3%B6hrenplatte_Querschnitt1.jpg): European leaf section, rebated edge, tubular chipboard core | yes, 960 px; SHA-1 from API |
+| 7 | free, CC BY 2.0 Shixart1985 | [Close-up of a door knob and keyhole.jpg](https://commons.wikimedia.org/wiki/File:Close-up_of_a_door_knob_and_keyhole.jpg): European lever on round rose + key escutcheon, white door | yes, 960 px; SHA-1 from API |
+| 8 | free, CC BY-SA 3.0 Spiel | [Winchester Mystery House (door to nowhere).jpg](https://commons.wikimedia.org/wiki/File:Winchester_Mystery_House_(door_to_nowhere).jpg): white 4-panel door high in an upper wall, sign "DOOR TO NOWHERE" | yes, original; SHA-1 matched |
+| 9 | free, CC BY 2.0 Paul Sableman | [Barricaded Door (8466040355).jpg](https://commons.wikimedia.org/wiki/File:Barricaded_Door_(8466040355).jpg): two weathered planks nailed across a door in a brick wall | yes, 960 px; SHA-1 from API |
+| 10 | limited | [JELD-WEN Canada Moulded Door Designs Dimensional Specifications, rev 11/18/2015](https://edge.sitecorecloud.io/jeldwencanada1-jeldwen-p523-e8d9/media/Project/JeldWen/JeldWenCanada/Articles/Documents-Video/Consumer-Size-Guides/Moulded_Door_Specifications_11_2015_Revised_3.pdf) | text read; pp. 14, 17, 28, 31 rendered and viewed |
+| 11 | limited | [Masonite Molded Door Facing Dimensional Specifications 2020, DD-MIC-19001 Rev B](https://pdf.lowes.com/productdocuments/82f41f1f-45a0-4077-b8eb-49cf4e91a3a2/63792860.pdf) | text read; p. 7 viewed |
+| 12 | limited | [Masonite Interior Doors catalog, RES-24121 Feb 2025](https://res.cloudinary.com/hdi/image/upload/v1626462038/Suppliers/Masonite/Documents/Brochures/Masonite_Interior_Doors_Product_Catalog_Rugby.pdf) | text read; p. 29 (swatches) viewed and sampled |
+| 13 | limited | [Steves & Sons lauan doors, standard dimensions, rev 1-22-24](https://millwork.bc.com/wp-content/uploads/2024/02/F-LN_TXT_80-1-22-2024.pdf) | p. 2 viewed |
+| 14 | limited | [JLC Feb 2001, "Inside Interior Doors", Dave Holbrook](https://www.jlconline.com/wp-content/uploads/sites/4/2001/inside-interior-doors-tcm96-1083869.pdf) | text read |
+| 15 | limited | [Schlage A Series cut sheet](https://commercial.schlage.com/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_A_Series_Cut_Sheet_113208.pdf) | text read |
+| 16 | limited | [This Old House, How to Install a Lockset](https://www.thisoldhouse.com/home-safety/how-to-install-a-lockset) | text read (fetch) |
+| 17 | limited | [Alexandria Moulding catalog](https://izhgqk.files.cmp.optimizely.com/download/assets/ALEXANDRIA_MW_Catalog_RCM.pdf/2baeec08b67911f0ac71861ac88494f1) | casing page (p. 8) viewed |
+| 18 | limited | [Vivid Doors, 2040x726x40 Classical 2P white moulded](https://vividdoors.co.uk/internal-doors/classical-2p-white-moulded-internal-doors/2040x726x40mm-classical-2p-white-moulded-internal-doors) | text read (fetch) |
+
+### The leaf
+
+**Sizes, US.** Nominal widths 12 to 36 in, all 6'8" (80 in) tall, in the maker's table [10] **VERIFIED**.
+Residential passage sizes 24/28/30/32/36 x 80 in = 610/711/762/813/914 x 2032 mm **DERIVED** (x 25.4).
+Slabs come 5/32 to 1/4 in under nominal with a 3-degree bevel on the stile edges [14] **VERIFIED**.
+Thickness 1-3/8 in (34.9 mm): stamp "6'08 1-3/8 HC" on the cut slab in [3] **VERIFIED** (stamp is upside-down and partly
+legible; "6'08 1-3/8 HC" and "LAUAN" are clear, so that slab is a flush lauan door, not a moulded one).
+
+**Sizes, UK/Europe.** Metric 2040 x 726 x 40 mm, hollow core, ~14.0 kg, primed, max trim 8 mm per edge [18] **VERIFIED**.
+Note: metric UK leaves are **40 mm**, not 35 mm. UK imperial is 1981 x 762 x 35 mm ("most typical internal door sizing in
+England & Wales"; also 610/686/838 x 1981 x 35) on [Latham's guide](https://lathamssteeldoors.co.uk/blog/home-security/a-guide-to-uk-standard-door-sizes) **VERIFIED** (not a TOML ref).
+526-926 mm metric width range: **SEARCH-ONLY**.
+
+**Facing blank.** The moulded skin is made oversize: 80.75 in tall for a 6'8" door (80.71 on some JW designs), width =
+nominal + 3/8 in, +/- 1/16 in [10][11] **VERIFIED**; trimmed after pressing.
+
+**Six-panel (JELD-WEN "Colonist", Masonite "Six Panel Smooth").** [10] p. 31, drawing viewed, **VERIFIED**:
+- heights, top to bottom: top rail 4.51 / top (small) panels 8.54 / rail 3.71 / upper long panels 24.23 / lock rail 6.78 /
+  lower long panels 24.23 / bottom rail 8.76 in (sum 80.76 = 80.75 blank).
+- widths at 32 in: outer stiles 4.345, panels 9.956, centre stile 3.775 in (2 x 4.345 + 2 x 9.956 + 3.775 = 32.377, checks).
+  Panel width varies by door width, stile and centre stile stay put (24: 5.956; 28: 7.956; 30: 8.956; 36: 11.956; 26 and
+  34 use 5.345 in stiles).
+- sticking (the moulded bevel framing each panel): 1.87 in wide x 0.43 in deep, "Patented INP sticking".
+- Masonite's six-panel table [11] p. 15 (text only, drawing not viewed) gives 4.34 / 9.96 / 3.78 at 32 in: the same facing.
+
+**Two-panel.** Square top, Masonite "Two Panel Smooth" [11] p. 7, viewed, **VERIFIED**: 4.51 / 36.48 / 6.78 / 24.23 / 8.76 in;
+32 in: stiles 5.34, panel 21.69; INP profile 1.87 wide x 0.55 deep with a 0.12 in flat step (Masonite draws it deeper than
+JELD-WEN's 0.43; both **VERIFIED**, the difference is real or drafting, not resolved).
+Arch top ("colonist"-era Princeton/Cambridge style), JW Princeton [10] p. 14 **VERIFIED**: 5.51 (top rail at the arch crown) /
+43.19 / 3.69 / 19.69 / 8.63 in; 32 in: stiles 4.743, panel 22.876; cove-and-bead sticking 1.82 x 0.43.
+JW Camden, the same arch-top two-panel in **textured oak woodgrain** [10] p. 17 **VERIFIED**: 4.96 / 43.11 / 3.74 / 19.75 / 9.15;
+32 in: stiles 4.775, panel 22.812 (not in the TOML).
+"Craftsman" style: JW pages 19-20 list "Craftsman III" (heights 4.80 / 16.00 / 4.50 / 45.94 / 9.47 from text only, drawing
+not viewed, so not used).
+
+**Lock rail lands at knob height.** Six-panel and square two-panel: 8.76 + 24.23 + 6.78/2 = 36.38 in from the facing bottom
+**DERIVED**, i.e. the 36 in knob bore [16] sits in the middle of the lock rail. On the six-panel the 2-1/8 in bore at 2-3/8 in
+backset reaches 2.375 + 1.0625 = 3.44 in from the edge, inside the 4.345 in stile **DERIVED**.
+
+**Hollow-core build.**
+- [14] **VERIFIED** (2001): molded hardboard skins laminated to a perimeter frame; hollow core = "a cardboard honeycomb grid
+  separates and stiffens the thin wood veneer or hardboard skins. Solid wood, particleboard, or polystyrene lock blocks provide
+  rigidity at the lockset location"; hollow-core doors often have wider rails and stiles than solid-core ones; laid up by hand
+  ("loose layup"), cold-pressed in stacks of 30-60, then trimmed. Trim limits: rails no less than 1-1/4 in after cutting; lock
+  stile >= 13/16 in, hinge stile >= 1 in. A 2'6" x 6'6" hollow slab cost about $31 in 2001.
+- [13] drawing **VERIFIED**: paper core (drawn as a diamond grid), "PB Lock Block 3" x 30"" notched into the lock-side stile at
+  mid-height, stiles and rails 1-1/8 x 1-1/8 in. Skins therefore (1.375 - 1.125)/2 = 1/8 in = 3.2 mm each **DERIVED**
+  (1/8 in hardboard skins are also in a supply listing, **SEARCH-ONLY**).
+- [3][4] photos **VERIFIED by viewing**: the cut bottom shows a thin skin and a separate solid bottom-rail strip glued in; the
+  stile edge shows softwood between two thin skin lines.
+- Europe [6] **VERIFIED by viewing**: tubular chipboard ("Roehrenspan") core and a rebated edge that laps the frame stop
+  (the European "gefaelzt" leaf); no dimensions on the file page.
+- Masonite stile rule: [12] says outer stile >= 3-7/16 in for a 2-1/8 in bore at 2-3/8 in backset **VERIFIED**; Masonite's
+  [Heritage design/size sheet](https://pdf.lowes.com/productdocuments/5a59816f-4225-4892-97d5-89601adc6247/48338036.pdf) says
+  >= 3.6875 in (2-3/8 backset) and >= 4.0625 in (2-3/4 backset) **VERIFIED**. 3-7/16 = backset + bore radius with no margin;
+  3.6875 keeps 1/4 in of wood. Both Masonite; the newer catalog is the looser figure.
+
+**Bore and hinges.** Face bore 2-1/8 in (hole saw), edge bore 7/8 in spade bit, backset 2-3/8 in interior / 2-3/4 in exterior,
+knob 36 or 38 in above the floor [16] **VERIFIED**. Schlage's F-series prep sheet
+[RF103](https://www.schlage.com/content/dam/sch-us/documents/pdf/installation-manuals/RF103.pdf) agrees: 2-1/8 in (54 mm)
+hole, 7/8 in (22 mm) edge hole, latch faceplate 1 in (25 mm) wide, mortise 2-1/4 in (57 mm), door 1-3/8 to 1-3/4 in
+(35-44 mm), backsets 60/70/127 mm **VERIFIED** (not a TOML ref). Kwikset retail listings give a 1 in edge bore **SEARCH-ONLY**.
+Hinges: 3 on the six-panel door in [1] **VERIFIED by viewing**. Leaf length ~3.5 in **ESTIMATE**: in [5] the hinge spans ~450 px
+along the edge; scaled by the 1-3/8 in edge (~175 px) that is 3.5 in, by the leaf width it is nearer 4 in. 3-1/2 x 3-1/2 in
+residential butts with radius corners: **SEARCH-ONLY** (radius corners **VERIFIED by viewing** [5]).
+Hinge positions 7 in from the top and 11 in from the bottom, middle centred: WoodWeb forum posts
+([page](https://woodweb.com/knowledge_base/Hinge_Placement_Rules_and_Traditions.html)) **VERIFIED** as forum opinion only (others
+say 6/10 or 5/10); not a TOML measure.
+
+### Jamb and casing
+
+- Jamb width 4-9/16 in (116 mm) for a 2x4 stud wall with 1/2 in drywall each side; 6-9/16 in for 2x6; flat, single- or
+  double-rabbet jambs [12] p. 35 **VERIFIED**; the wall build is also stated by [doornmore](https://doornmore.com/help/jamb-width.html)
+  **VERIFIED** (3-1/2 + 2 x 1/2 = 4-1/2 in wall, +1/16 in **DERIVED**). Jamb stock thickness (commonly 11/16 in): **not verified**.
+- Casing [17] p. 8 viewed **VERIFIED**: WM356 (stepped colonial ogee) 11/16 x 2-1/4 in in pine and finger-jointed pine,
+  9/16 x 2-1/4 in in primed MDF; WM366 (colonial, more steps) 11/16 x 2-1/4 (MDF 5/8); WM327 (curved clamshell-type) 11/16 x 2-1/4
+  (MDF 5/8); WM316 (sloped ranch-type) 11/16 x 2-1/4; 2-1/2 in casings L492A 1/2 x 2-1/2, 87362 9/16 x 2-1/2. The catalog
+  prints only codes and sizes; the style names colonial/clamshell/ranch are my reading of the profile drawings **ESTIMATE**.
+- Reveal (casing set back from the jamb's inner face, commonly 3/16-1/4 in): **not verified**, ESTIMATE.
+- Europe: MDF torus/ogee architrave 18 x 69 mm (and 15 x 68 mm) in UK merchant listings **SEARCH-ONLY**; nominal vs finished
+  sizes differ by 5-6 mm per one retailer **SEARCH-ONLY**.
+
+### Hardware
+
+- Round knob: Schlage Plymouth knob 2-1/8 in (54 mm) wide, 2-5/16 in (59 mm) projection; standard rose 2-9/16 in (65 mm);
+  door thickness 1-3/8 to 1-7/8 in; backset 2-3/8 in standard [15] **VERIFIED** (A Series is Schlage's Grade 2 line; the
+  residential F-series Plymouth is listed at 2-3/16 in knob diameter by retailers **SEARCH-ONLY**).
+- Kwikset Tylo (the bell knob in [2]): [kwikset.com](https://www.kwikset.com/products/detail/tylo-knob-hall-closet) gives door
+  thickness 1-3/8 to 1-3/4 in, adjustable backset 2-3/8 to 2-3/4 in, "assembled" 2-5/8 x 2-5/8 x 2-5/16 in (probably rose dia.
+  x rose dia. x projection, unlabelled), finishes Satin Nickel, Polished Chrome, Polished Brass, Satin Chrome, Antique Brass
+  **VERIFIED** (not a TOML ref).
+- European lever on a round rose with a separate key rose below [7] **VERIFIED by viewing**; dimensions not researched.
+- Finishes: polished brass (80s-90s), antique brass, satin nickel (2000s): finish names **VERIFIED** on the Kwikset page;
+  which decade used which is **ESTIMATE**.
+
+### Paint and ageing
+
+- Moulded slabs ship primed white, textured (embossed woodgrain) or smooth: retailer listings **SEARCH-ONLY**; [12] prints a
+  "PRIMED" swatch (sampled) **VERIFIED**. [14]: hardboard facings also come embossed to imitate stained wood; makers warn against
+  water-based primers on veneer; all six faces should be sealed but top/bottom edges are often left bare **VERIFIED**.
+- Yellowing: drying-oil (and to a lesser degree alkyd) white films yellow in the dark by "thermally induced oxidative
+  reactions" and bleach back in daylight; acrylic films did not yellow (Levison, [JAIC 1985 24(2)](https://cool.culturalheritage.org/jaic/articles/jaic24-02-002.html))
+  **VERIFIED** (not a TOML ref). So a 1970s-90s oil/alkyd gloss door yellows most where it is shaded (behind a door, in a
+  closet); heat and kitchen fumes worsen it **SEARCH-ONLY** (retailer page, 403 on fetch).
+- Wear seen in photos **VERIFIED by viewing**: grime as a dark vertical smear on the latch stile beside the knob [1]; scuffs and
+  chips along the latch edge and around the faceplate [2]; stained door with worn, lighter edges [4][5]. A hole punched through
+  a hollow-core door: only the caption of [4] ("had a hole punched in it"); no free photo of the hole found. Split skins: no
+  photo found.
+
+### Palette (sRGB, mean of a pixel box; sampler converts via `sips` to BMP and averages encoded values)
+
+| What | sRGB | Ref | Basis |
+|---|---|---|---|
+| white paint, lived-in | 222,222,229 | 2 | photo; slightly cool camera WB |
+| primer swatch | 228,227,225 | 12 | maker's printed swatch, PDF rendered by `sips` |
+| white, yellowed | 232,230,219 | 1 | photo, raw 128,127,121 x 1.8125 (232/128) to undo underexposure; the hue is the datum, the level is DERIVED |
+| grime by knob | 205,205,190 | 1 | raw 113,113,105 x 1.8125 |
+| casing paint | 237,236,227 | 1 | raw 131,130,125 x 1.8125 |
+| brown stain, dark | 73,33,22 | 5 | photo of stained door edge |
+| brown stain, lighter | 87,41,35 | 4 | photo |
+| lauan skin, bare | 178,163,160 | 4 | photo (a drill-photo box gave 172,158,159) |
+| polished brass knob | 125,105,70 | 2 | photo; mean incl. reflections, highlights run to near white |
+| satin nickel hinge | 130,130,126 | 5 | photo; finish not stated (a darker box gave 105,105,99) |
+| satin/chrome knob | 152,158,156 | 1 | raw 84,87,86 x 1.8125 |
+| brushed nickel lever | 133,122,116 | 7 | photo; warm room reflections |
+| weathered board | 95,87,80 | 9 | photo |
+
+All palette values are **ESTIMATE from photos** except the primer swatch (a maker's print, still an estimate of the real paint).
+No brown **textured woodgrain moulded face** was found in a free photo; the brown values come from a stained door edge.
+No antique-brass sample.
+
+### Places
+
+- Door to nowhere, high in a wall: [8] Winchester House **VERIFIED by viewing**. Also seen, not used: a red "EMERGENCY ONLY" door
+  high in a demolished mill wall, Galashiels ([geograph 1375072](https://commons.wikimedia.org/wiki/File:A_door_to_nowhere_-_geograph.org.uk_-_1375072.jpg),
+  CC BY-SA 2.0 Walter Baxter, sha1 e7f30606ba053d6ef325b3f23ee4bc04c672c165, viewed); a dormer door over a roof drop at Alcatraz
+  ([Door_to_Nowhere.JPG](https://commons.wikimedia.org/wiki/File:Door_to_Nowhere.JPG), PD, sha1 f2abb10524c5c23205b37cb0caaa6cca5740e632, viewed).
+- Boarded/barricaded door: [9] **VERIFIED by viewing**; boards ~11 in tall (a 2x12 is 11-1/4 in **SEARCH-ONLY** lumber convention),
+  ~40 in long, two of them at roughly 1/3 and 1/2 height: **ESTIMATE**, scaled assuming a 36 in leaf (390 px wide).
+- House corridor with these doors: no free photo found of a 1970s-2000s residential hall lined with moulded doors.
+- Excluded on purpose: Commons "EFTA00002867 ... White six-panel door with black doorknob" (public-domain FBI evidence photo,
+  Epstein files) - a clean six-panel reference, but its provenance makes it a poor asset source.
+
+### Could not verify
+
+- Hinge size (3-1/2 x 3-1/2 in) and hinge positions on residential prehung doors from a maker's sheet; only forum posts and a
+  photo-scaled estimate.
+- Casing reveal, jamb stock thickness (11/16 in), and the casing style names for each WM number.
+- UK/European architrave sizes (SEARCH-ONLY), German DIN 18101 leaf sizes (not researched), European lever dimensions.
+- A dated source for which knob finishes were common in which decade.
+- Moulded panel recess depth beyond the sticking depth (0.43 vs 0.55 in between the two makers is unresolved).
+- Free photos of: a hole punched through a hollow-core skin, a split skin, a door taken off its hinges and nailed across an
+  opening (the barricade in [9] is planks across a hung door), an interior door opening onto a bricked-up wall.
+- The Commons API was rate-limited during the work; four SHA-1s (refs 2, 6, 7, 9) were taken from the API but not re-hashed
+  locally because only thumbnails could be downloaded.

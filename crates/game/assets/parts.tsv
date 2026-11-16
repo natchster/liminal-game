@@ -72,7 +72,6 @@ prop	Barricade__chairFrame	box	536	320	-0.2240,-0.0008,-0.2489	0.2240,0.7813,0.2
 prop	Barricade__chairShell	box	408	376	-0.2200,0.4419,-0.2545	0.2200,0.7879,0.2100
 prop	Barricade__desk	box	1192	1208	-0.7600,0.0000,-0.3700	0.7600,0.7200,0.4000
 prop	Barricade__deskTop	box	216	236	-0.7700,0.7180,-0.3900	0.7700,0.7540,0.3900
-prop	Barricade__door	box	552	464	-0.4050,0.0000,-0.0175	0.4050,2.0300,0.0175
 prop	Barricade__dresser	box	1384	1108	-0.3900,0.0000,-0.2275	0.3900,0.8200,0.2675
 prop	Barricade__mattress	box	998	1536	-0.4890,-0.0020,-0.9590	0.4890,0.2020,0.9590
 prop	Barricade__nut	box	126	80	-0.0190,-0.0190,-0.0000	0.0190,0.0190,0.0300
@@ -914,6 +913,9 @@ prop	InkwellLetters__neck	torus	264	264	-0.0260,-0.0257,-0.0020	0.0260,0.0257,0.
 prop	InkwellLetters__nib	cyl	118	88	-0.0040,-0.0070,-0.0040	0.0040,0.0070,0.0040
 prop	InkwellLetters__sheet	box	262	360	-0.0800,-0.0010,-0.1000	0.0800,0.0009,0.1000
 prop	InspirationalPosters__bar	box	40	36	-0.1740,-0.0070,-0.0050	0.1740,0.0070,0.0050
+prop	InteriorDoor__frame	box	532	404	-0.4665,0.0000,0.0000	0.4665,2.1020,0.0620
+prop	InteriorDoor__knob	box	430	544	0.3140,0.8815,0.0400	0.3790,0.9465,0.1070
+prop	InteriorDoor__leaf	box	940	844	-0.4065,0.0100,0.0050	0.4065,2.0420,0.0400
 prop	IroningBoards__backEnd	other	184	234	-0.0800,-0.0100,-0.0800	0.0000,0.0100,0.0800
 prop	IroningBoards__board	box	178	336	-0.1600,-0.0100,-0.0800	0.1600,0.0100,0.0800
 prop	IroningBoards__brace	cyl	278	272	-0.0040,-0.1500,-0.0040	0.0040,0.1500,0.0040
@@ -3889,9 +3891,6 @@ prop	WallCoatHooks__shaft	cyl	102	100	-0.0048,-0.0250,-0.0050	0.0048,0.0250,0.00
 prop	WallCoatHooks__tip	cyl	98	80	-0.0050,-0.0100,-0.0050	0.0050,0.0100,0.0050
 prop	WallCrucifixes__crossbar	box	110	64	-0.0800,-0.0120,-0.0100	0.0800,0.0120,0.0097
 prop	WallCrucifixes__upright	box	110	64	-0.0130,-0.1400,-0.0100	0.0130,0.1400,0.0096
-prop	WallDoors__knob	cyl	198	252	-0.0140,-0.0150,-0.0140	0.0140,0.0150,0.0140
-prop	WallDoors__panel	box	72	76	-0.2500,-0.3000,-0.0050	0.2500,0.3000,0.0050
-prop	WallDoors__slab	box	264	212	-0.3500,-0.9500,-0.0150	0.3500,0.9500,0.0150
 prop	WallDrainGrates__slot	box	80	76	-0.0400,-0.0020,-0.0025	0.0400,0.0020,0.0025
 prop	WallFlashlights__barrel	cyl	402	480	-0.0250,-0.0800,-0.0250	0.0250,0.0800,0.0250
 prop	WallFlashlights__bracket	box	380	244	-0.0300,-0.0300,-0.0075	0.0300,0.0300,0.0075

@@ -81,6 +81,16 @@ LiftDoors__*         the lift's landing doors (assets/src/props/lift_doors/), in
   __callPlate        the hall call station's faceplate, 91 x 171 x 6 mm, on
                      the wall beside the frame, 1065 mm up
   __button           a 25 mm push button, centred (the game sets two)
+InteriorDoor__*      the interior door (assets/src/props/interior_door/), in its
+                     frame's frame: the wall's face at z = 0, x across it, y
+                     up from the floor, z out into the room:
+  __leaf             a hollow-core six-panel moulded door, 813 x 2032 x 35 mm
+                     (2'8" x 6'8" x 1-3/8"), its panels moulded on both
+                     faces as Masonite lays them out, its 54 mm bore at a
+                     60 mm backset 914 mm up, its hinge mortises
+  __frame            its jamb and colonial casing (57 x 17 mm), standing
+                     on the wall's face round it (no opening behind it)
+  __knob             a round knob on its rose, 54 mm across, 59 mm out
 SteelDoor__hinges    three 4-1/2" butt hinges' knuckles at the hinge edge,
                      seen from the side that pulls (the hinge edge on the
                      right from there)
@@ -427,3 +437,62 @@ auto('LiftDoors__panelForced', lift_panel_forced, 600)
 auto('LiftDoors__sill', lift_sill, 150)
 auto('LiftDoors__callPlate', lift_call_plate, 150)
 auto('LiftDoors__button', lift_button, 150)
+
+
+# --------------------------------------------------------- interior door --
+# in its frame's frame: the wall's face at z = 0, z out into the room
+IN = 0.0254
+I_W, I_H, I_T = 0.813, 2.032, 0.035
+I_Y0, I_Z0 = 0.010, 0.005              # the leaf's foot and back
+I_KNOB = (I_W / 2 - 0.060, 0.914)      # its bore: 60 mm backset, 914 mm up
+I_JAMB, I_CASE_W, I_CASE_T = 0.045, 0.057, 0.017
+
+
+def interior_leaf():
+    s = rbox(I_W, I_H, I_T, r=0.0025, seg=1).move(y=I_H / 2)
+    # the six panels (Masonite's layout at 32" wide: stiles 4.345", panels
+    # 9.956", the middle stile 3.775"; from the top, rails 4.51", 3.71",
+    # 6.78" and 8.76" round panels 8.54", 24.23", 24.23"), moulded on
+    # both faces, their bevel soft (0.43" deep)
+    sx = (4.345 + 9.956 / 2) * IN - I_W / 2
+    pw = 9.956 * IN
+    rows, y = [], I_H
+    for (rail, ph) in [(4.51, 8.54), (3.71, 24.23), (6.78, 24.23)]:
+        y -= rail * IN
+        rows.append((y - ph * IN / 2, ph * IN))
+        y -= ph * IN
+    pockets = []
+    for (cy, ph) in rows:
+        for x in (sx, -sx):
+            for face in (1, -1):
+                pockets.append(rbox(pw, ph, 0.016, r=0.006, seg=2).move(x=x, y=cy, z=face * (I_T / 2 + 0.002)))
+    s = cut(s, *pockets)
+    bore = cyl(0.027, 0.027, 0.05, seg=14).rot(x=math.pi / 2).move(x=I_KNOB[0], y=I_KNOB[1])
+    mortises = [box(0.006, 0.089, 0.026).move(x=-I_W / 2, y=y) for y in (0.28, 1.80)]
+    s = cut(s, bore, *mortises)
+    return s.move(y=I_Y0, z=I_Z0 + I_T / 2)
+
+
+def interior_frame():
+    # the jamb round the opening (its edge to the room), the casing on it:
+    # a colonial profile, a flat face stepped down to a rounded inner bead
+    ow, oh = I_W + 0.006, I_Y0 + I_H + 0.003
+    jamb = ring_u(ow + 2 * 0.019, oh + 0.019, ow, oh, I_JAMB, r=0.0015, seg=1).move(y=(oh + 0.019) / 2, z=I_JAMB / 2)
+    W, H = ow + 2 * I_CASE_W, oh + I_CASE_W
+    back = ring_u(W, H, ow + 0.010, oh + 0.005, I_CASE_T * 0.6, r=0.002, seg=1).move(y=H / 2, z=I_JAMB + I_CASE_T * 0.3)
+    face = ring_u(W - 0.016, H - 0.008, ow + 0.010, oh + 0.005, I_CASE_T, r=0.004, seg=2).move(y=(H - 0.008) / 2, z=I_JAMB + I_CASE_T / 2)
+    return jamb + back + face
+
+
+def interior_knob():
+    x, y, z = I_KNOB[0], I_KNOB[1], I_Z0 + I_T
+    rose = lathe([(0.0, 0.0), (0.0325, 0.0), (0.0325, 0.003), (0.028, 0.008), (0.012, 0.010), (0.0, 0.010)], seg=24)
+    neck = lathe([(0.0, 0.0), (0.011, 0.0), (0.010, 0.020), (0.0, 0.020)], seg=16).move(y=0.008)
+    knob = lathe([(0.0, 0.0), (0.012, 0.0), (0.020, 0.008), (0.026, 0.020), (0.027, 0.030), (0.024, 0.037),
+                  (0.014, 0.040), (0.0, 0.041)], seg=24).move(y=0.026)
+    return (rose + neck + knob).rot(x=math.pi / 2).move(x=x, y=y, z=z)
+
+
+auto('InteriorDoor__leaf', interior_leaf, 1400)
+auto('InteriorDoor__frame', interior_frame, 600)
+auto('InteriorDoor__knob', interior_knob, 900)

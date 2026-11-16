@@ -725,3 +725,106 @@ pub fn lift_call_station(g: &Obj, lit: bool) -> Vec<Obj> {
         })
         .collect()
 }
+
+// ----------------------------------------------------------- interior door
+/// The interior door's leaf (`InteriorDoor__leaf`, in its frame's frame:
+/// the wall's face at z = 0): its size, its foot over the floor, its back
+/// off the wall
+pub const I_W: f64 = 0.813;
+pub const I_H: f64 = 2.032;
+pub const I_T: f64 = 0.035;
+const I_Y0: f64 = 0.010;
+const I_Z0: f64 = 0.005;
+/// What it was painted (`assets/src/props/interior_door/references.toml`,
+/// its palette): white gone yellow, a moulded wood-grain brown, a dark
+/// stain, someone's oxblood red
+const INTERIOR_PAINTS: [u32; 4] = [0xd3cab4, 0x7a583b, 0x3e2d21, 0x6a2628];
+
+thread_local! {
+    static INTERIOR: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
+}
+
+/// A painted moulded door's surface under its paint's colour, as its leaf's
+/// face takes it whole: the faint grain pressed into the hardboard, grime
+/// round the knob (0.93 across, 914 mm up), the latch edge chipped, the foot
+/// scuffed, the paint a little yellower toward the top where the light was
+fn interior_tex() -> Tex {
+    INTERIOR.with(|c| {
+        c.get_or_init(|| {
+            canvas_tex_opt(256, 512, false, |ctx, w, h| {
+                ctx.set_fill_style("#f2f0eb");
+                ctx.fill_rect(0, 0, w, h);
+                for _ in 0..60 {
+                    let mut x = rnd() * w;
+                    ctx.set_stroke_style(format!("rgba(120,110,95,{:.3})", 0.03 + rnd() * 0.05));
+                    ctx.set_line_width(0.6 + rnd());
+                    ctx.begin_path();
+                    ctx.move_to(x, 0);
+                    let mut y = 0.0;
+                    while y < h {
+                        y += 32.0;
+                        x += rnd() * 1.4 - 0.7;
+                        ctx.line_to(x, y);
+                    }
+                    ctx.stroke();
+                }
+                let g = ctx.create_linear_gradient(0, 0, 0, h);
+                g.add_color_stop(0.0, "rgba(220,190,120,0.10)");
+                g.add_color_stop(1.0, "rgba(0,0,0,0)");
+                ctx.set_fill_style(&g);
+                ctx.fill_rect(0, 0, w, h);
+                // grime round the knob, where hands go (914 mm up of 2032 from
+                // 10 mm: 0.55 down the texture), and up the latch edge
+                for (x, y, r, a) in [(0.93, 0.55, 0.20, 0.30), (0.88, 0.45, 0.14, 0.16)] {
+                    let (x, y, r) = (x * w, y * h, r * w);
+                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+                    gr.add_color_stop(0.0, &format!("rgba(70,60,48,{a})"));
+                    gr.add_color_stop(1.0, "rgba(70,60,48,0)");
+                    ctx.set_fill_style(&gr);
+                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+                }
+                for _ in 0..10 {
+                    let (x, y) = (w * (0.965 + rnd() * 0.03), h * (0.3 + rnd() * 0.4));
+                    ctx.set_fill_style("rgba(150,140,120,0.8)");
+                    ctx.begin_path();
+                    ctx.ellipse(x, y, 0.8 + rnd() * 1.4, 1.0 + rnd() * 2.5, 0, 0, PI * 2.0);
+                    ctx.fill();
+                }
+                // the foot, scuffed by feet and a vacuum's head
+                let gr = ctx.create_linear_gradient(0, h * 0.9, 0, h);
+                gr.add_color_stop(0.0, "rgba(60,54,46,0)");
+                gr.add_color_stop(1.0, "rgba(60,54,46,0.30)");
+                ctx.set_fill_style(&gr);
+                ctx.fill_rect(0, h * 0.9, w, h * 0.1);
+            })
+        })
+        .clone()
+    })
+}
+
+/// The interior door's paint, one of `INTERIOR_PAINTS`
+pub fn interior_paint(i: usize) -> Mat {
+    let c = INTERIOR_PAINTS[i % INTERIOR_PAINTS.len()];
+    phong!({ color: c, map: &interior_tex(), specular: 0x202020, shininess: 16 })
+}
+
+/// The door to nowhere: the interior door shut in its frame on the wall at
+/// the group's origin (no opening behind it), painted `paint` (its trim the
+/// same, but white round a red door), its brass knob
+pub fn interior_door_in_frame(paint: usize) -> Obj {
+    let g = group();
+    let mat = interior_paint(paint);
+    add(&g, &part("InteriorDoor__leaf"), &mat);
+    add(&g, &part("InteriorDoor__frame"), &if paint % INTERIOR_PAINTS.len() == 3 { interior_paint(0) } else { mat.clone() });
+    add(&g, &part("InteriorDoor__knob"), &phong!({ color: 0xa88a52, specular: 0x8a7a50, shininess: 50 }));
+    g
+}
+
+/// Its leaf alone, off its hinges, its knob gone and its bore empty: the
+/// geometry with its origin at its foot's middle, as a barricade sets it
+/// (`core_props::barricade`)
+pub fn interior_leaf_loose() -> Geo {
+    let g = part("InteriorDoor__leaf").duplicate();
+    g.translate(0.0, -I_Y0, -(I_Z0 + I_T / 2.0));
+    g
+}

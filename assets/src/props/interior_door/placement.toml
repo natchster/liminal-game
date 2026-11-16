@@ -1,0 +1,21 @@
+# Where the interior door stands, and why (docs/design/ASSETS.md, *Things
+# the layout makes*): a placer stands it in its frame against a wall
+# (`place_wall_doors`), and a home's barricade nails it across a doorway
+# (`core_props::barricade`).
+by = "layout"
+count = [0, 2]
+levels = [5, 999]
+
+[[rule]]
+at = "wall"
+purposes = ["living quarters", "office wing", "parlour", "storage hall", "maintenance", "play area", "party room"]
+why = "rooms with doors were walled over, and the door of one was left in its frame on this side"
+
+[[rule]]
+at = "barricade"
+purposes = ["living quarters", "parlour"]
+why = "someone took a door off its hinges in their rooms and nailed it across the doorway with the dresser"
+
+[never]
+purposes = ["washrooms", "pool hall", "shrine", "showroom"]
+why = "a flat's door is not a washroom's, a pool's, a shrine's, nor the spotless Showroom's"

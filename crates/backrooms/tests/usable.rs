@@ -553,7 +553,7 @@ fn what_the_rules_place_keeps_its_rules() {
 
 /// Rules the layout's makers do not ask yet (`docs/plan/DOORS.md`: each
 /// milestone makes its own and takes it off this list)
-const NOT_YET: [(&str, &str); 2] = [("interior_door", "wall"), ("interior_door", "barricade")];
+const NOT_YET: [(&str, &str); 0] = [];
 
 /// What the floor's layout makes (the doors: `docs/plan/DOORS.md`) stands
 /// where a rule of its asset allows it (`place_by_layout`): the rule names

@@ -250,7 +250,12 @@ impl Game {
             Kind::Planks => self.planks(&g, span, top),
             Kind::Office => self.office_pile(&g, span, top),
             Kind::Storage => self.storage_pile(&g, span, top),
-            Kind::Home => self.home_pile(&g, span, top),
+            Kind::Home => {
+                // (its door held to its rule: `assets/src/props/interior_door/`,
+                // "barricade"; the opening's zone, as `kind_for` reads it)
+                let _ = self.place_by_layout("interior_door", "barricade", self.wx(o.x), self.wz(o.z));
+                self.home_pile(&g, span, top)
+            }
         };
         let mid = (o.lo + o.hi) / 2.0;
         let (cx, cz) = if o.along_x { (self.wx(o.x), mid) } else { (mid, self.wz(o.z)) };
@@ -520,11 +525,13 @@ impl Game {
     /// how deep it is
     fn home_pile(&mut self, g: &Obj, span: f64, top: f64) -> f64 {
         let ticking = mattress_mat();
-        let primer = lambert!({ color: 0xcfc8b6 });
+        let primer = crate::core_props::doors::interior_paint(0);
         let veneer = lambert!({ color: 0x6b4a30 });
         let stud_m = stud_mat();
         let mattress = part("Barricade__mattress", 0.97, 0.2, 1.91);
-        let door = part("Barricade__door", 0.81, 2.03, 0.035);
+        // (the interior door, the asset pipeline's: `core_props::doors`,
+        // `assets/src/props/interior_door/`, off its hinges)
+        let door = crate::core_props::doors::interior_leaf_loose();
         let dresser = part("Barricade__dresser", 0.78, 0.82, 0.47);
         let stud = part("Barricade__stud", 2.44, 0.089, 0.038);
         let mut x = -span / 2.0;

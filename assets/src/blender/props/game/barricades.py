@@ -188,23 +188,6 @@ def mattress():
     return (s + sum(tape)).move(0, T / 2, 0)
 
 
-def door_leaf():
-    """A hollow-core interior door, 0.81 x 2.03 x 0.035 m, moulded with six
-    panels, the bore for its knob, its hinge mortises; x across, y up, z
-    out of its face"""
-    W, H, T = 0.81, 2.03, 0.035
-    s = rbox(W, H, T, r=0.002, seg=1).move(0, H / 2, 0)
-    panels = []
-    for (y0, y1) in ((0.12, 0.78), (0.9, 1.5), (1.6, 1.92)):
-        for sx in (-1, 1):
-            r = rbox(0.27, y1 - y0, 0.01, r=0.01, seg=2).move(sx * 0.17, (y0 + y1) / 2, T / 2)
-            panels.append(r)
-    s = cut(s, *panels)
-    bore = cyl(0.027, h=0.05, seg=12, bevel_r=0).rot(math.pi / 2, 0, 0).move(W / 2 - 0.07, 0.91, 0)
-    mortises = [box(0.006, 0.09, 0.03).move(-W / 2, y, 0) for y in (0.25, 1.8)]
-    return cut(s, bore, *mortises)
-
-
 def dresser():
     """A chest of drawers, 0.76 x 0.82 x 0.45 m, veneered chipboard: its
     carcass, four drawers with their pulls; x across, y up, z out of its front"""
@@ -244,5 +227,4 @@ auto('Barricade__pallet', pallet, 1200)
 auto('Barricade__shelving', shelving, 1600)
 auto('Barricade__shelfDeck', shelf_deck, 60)
 auto('Barricade__mattress', mattress, 1800)
-auto('Barricade__door', door_leaf, 1200)
 auto('Barricade__dresser', dresser, 1400)

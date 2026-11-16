@@ -1627,10 +1627,7 @@ place_wall_coat_hooks	2	c76cfcc8ffb16919	5f440681267976b1
 place_wall_coat_hooks	7	1b782f963c66acd2	30b005d3fafc9090
 place_wall_coat_hooks	11	9fa3619b636ec702	db07c7ac3dd07c17
 place_wall_coat_hooks	19	7797940e142c764a	5c5fbe4bd2b64a08
-place_wall_doors	41	1e039315b8bb9d1f	c4a5fe39c564e920
-place_wall_doors	53	4bd95eb33bc75fb0	917f339f46182b8f
-place_wall_doors	78	ea82904ee0cee830	3024fd629d119c0f
-place_wall_doors	88	343862c7cc5e399b	ee9e0febb1814da4
+place_wall_doors	-	placed nothing in 256 levels	-
 place_wall_drain_grates	41	b8077ef742ad5684	62a113db3f7222bb
 place_wall_drain_grates	53	818a06087d8f8c17	5b2c6b240050f828
 place_wall_drain_grates	78	11e8e60535886a6e	cb4e8b2948571e51

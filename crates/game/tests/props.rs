@@ -26,6 +26,9 @@ const RETIRED: &[(&str, &str)] = &[
     ("Props__brokenElevator_frame", "the doors made real (docs/plan/DOORS.md D4): LiftDoors__frame"),
     ("Props__brokenElevator_doorL", "the doors made real (docs/plan/DOORS.md D4): LiftDoors__panelForced"),
     ("Props__brokenElevator_doorR", "the doors made real (docs/plan/DOORS.md D4): LiftDoors__panel"),
+    ("WallDoors__slab", "the doors made real (docs/plan/DOORS.md D5): InteriorDoor__leaf"),
+    ("WallDoors__panel", "the doors made real (docs/plan/DOORS.md D5): InteriorDoor__leaf"),
+    ("WallDoors__knob", "the doors made real (docs/plan/DOORS.md D5): InteriorDoor__knob"),
 ];
 
 /// The engine primitive built from these recorded constructor parameters.

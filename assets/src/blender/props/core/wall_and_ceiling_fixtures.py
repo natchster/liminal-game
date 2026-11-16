@@ -7,7 +7,7 @@ place_wall_intercoms         faceplate, speaker grille, grille bars, talk button
 place_bottle_caps            crimped crown cap
 place_single_socks           flattened sock foot, ribbed cuff, soft bands
 place_motion_detector_domes   ceiling mounting ring (the dome is transparent)
-place_wall_doors             door slab with moulding grooves, fielded panels, knob
+place_wall_doors             (the interior door now: game/doors.py InteriorDoor__*)
 place_wall_outlets           duplex cover plate, moulded plug, cord
 place_card_readers           reader housing with slot hood and tap ring
 place_extinguisher_cabinets  recessed cabinet tub, extinguisher cylinder, valve head
@@ -305,35 +305,7 @@ part('MotionDetectorDomes__base', f_cyl(0.045, 0.045, 0.005), motion_base)
 
 
 # ------------------------------------------------------------ wall door --
-def door_slab():
-    # a painted slab with eased edges and a sunk moulding groove framing
-    # each raised panel
-    w, h, d = 0.70, 1.90, 0.030
-    s = rbox(w, h, d, r=0.004, seg=2)
-    for py in (-0.35, 0.35):
-        s = cut(s, frame_ring(0.545, 0.645, 0.505, 0.605, 0.008, z=d / 2).move(y=py))
-    # a kick-rail line near the floor
-    s = cut(s, rbox(0.62, 0.006, 0.006, r=0.002, seg=1).move(y=-0.83, z=d / 2))
-    return s
-
-def door_panel():
-    # raised and fielded panel: a thin tongue, a sloped fielding, a flat field
-    w, h = 0.50, 0.60
-    return plate(w, h, [(0.0, -0.005), (0.0, -0.0015), (0.004, -0.0005), (0.036, 0.0042), (0.038, 0.005)],
-                 r=0.004, seg=1)
-
-def door_knob():
-    # a round brass knob on its rose, pointing out of the door (+Z); the
-    # rose sits on the door face 10 mm behind the knob's centre line
-    prof = [(0.0, -0.014), (0.0145, -0.014), (0.0145, -0.0095), (0.0110, -0.0078), (0.0050, -0.0072),
-            (0.0046, -0.0035), (0.0065, -0.0003), (0.0120, 0.0040), (0.0140, 0.0085), (0.0120, 0.0128),
-            (0.0, 0.0140)]
-    s = on_z(lathe(prof, seg=14))
-    return s.fit((-0.014, -0.015, -0.014), (0.014, 0.015, 0.014))
-
-part('WallDoors__slab', f_box(0.70, 1.90, 0.030), door_slab)
-part('WallDoors__panel', f_box(0.50, 0.60, 0.010), door_panel)
-part('WallDoors__knob', f_cyl(0.014, 0.014, 0.030), door_knob, smooth=45)
+# (the door to nowhere: the asset pipeline's interior door now, game/doors.py)
 
 
 # ---------------------------------------------------------- wall outlet --
