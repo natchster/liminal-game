@@ -564,8 +564,9 @@ fn hud_logic() {
 
 /// Issue #14: the screen is not a camera's recording. Nothing laid over the
 /// view changes by chance from one frame to the next: at the lowest nerve,
-/// where the film grain was thickest, the overlays draw nothing from the
-/// frame stream, no layer is noise, and two frames at rest composite alike.
+/// where the film grain was thickest, the overlays and the layers they paint
+/// draw nothing from the frame stream, no layer is noise, and eight frames
+/// at rest in a row composite alike (the grain repainted every fourth one).
 #[test]
 fn the_screen_lays_no_noise() {
     let mut g = game();
@@ -576,18 +577,20 @@ fn the_screen_lays_no_noise() {
         g.now_ms += 1000.0 / 60.0;
         g.update_overlays(1.0 / 60.0);
     }
-    assert_eq!(game::base::rng::native_draws(), d0, "the overlays drew from the frame stream");
     assert!(g.aberration_opacity_cur > 0.9, "the nerve's overlay is still eased in");
-    let frame = |g: &mut Game| {
+    let mut frames = vec![];
+    for _ in 0..8 {
         g.now_ms += 1000.0 / 60.0;
         g.update_overlays(1.0 / 60.0);
         let layers = g.hud_layers(W, H, DPR);
         assert!(!g.hud_ui.painted.contains(&"grain"), "a grain layer");
-        composite(&layers, 640, 400)
-    };
-    let (a, b) = (frame(&mut g), frame(&mut g));
-    let differ = a.iter().zip(&b).filter(|(x, y)| x != y).count();
-    assert_eq!(differ, 0, "two frames at rest differ in {differ} channels");
+        frames.push(composite(&layers, 640, 400));
+    }
+    assert_eq!(game::base::rng::native_draws(), d0, "the overlays or their layers drew from the frame stream");
+    for (i, f) in frames.iter().enumerate().skip(1) {
+        let differ = f.iter().zip(&frames[0]).filter(|(x, y)| x != y).count();
+        assert_eq!(differ, 0, "frame {i} at rest differs from the first in {differ} channels");
+    }
 }
 
 /// The frame over the flat stand-in at the lowest nerve, the nerve's

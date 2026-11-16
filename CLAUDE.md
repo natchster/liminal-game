@@ -158,7 +158,7 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
    the same on every Mac); clippy refuses std's `sin` and kin, which differ. A new
    random draw in a placer shifts every later placer: re-record and say so.
    Likewise a native draw added or removed at a level's start shifts every
-   frame after it (grain, animation, every golden): reuse an existing draw.
+   frame after it (flicker, dust, animation, every golden): reuse an existing draw.
 2. **Light and sound belong to places.** Never tie ambient light, fog or
    ambience to the player's position, and no lamp cones; light comes from the
    light map, and sounds come from props or fixed anchors (`play_from`).

@@ -339,8 +339,7 @@ impl Game {
     }
 
     /// The tail of `update_entities`: audio and screen pressure
-    /// from the nearest entity, the vignette's pulses, the sanity hue shift,
-    /// the sagging hum, the stamina breath, the heartbeat and the sanity drain.
+    /// from the nearest entity, the vignette's pulses, the sagging hum, the stamina breath, the heartbeat and the sanity drain.
     fn update_entity_pressure(&mut self, dt: f64, nearest: f64, any_hunt: bool) {
         let wk = self.weather_key();
         if let Some(dg) = &self.audio.drone_gain {

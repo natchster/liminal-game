@@ -21,7 +21,8 @@ sees one order only, mostly measures its own bias.
    `target/xtask/ab/pairs/`, with `target/xtask/ab/pairs/questions.md`; the key stays in
    `target/xtask/ab/.key.json`. Ask one question per review (realism, dread,
    how frightening a creature is, what is broken). It prints how much of
-   each image changed (pixels moved by more than the film grain) and warns
+   each image changed (pixels moved by more than 12/255 in a channel: `ab.rs`
+   `CHANGED`) and warns
    when an image hardly differs: such a pair can only tie, so choose
    cameras where the change shows, or report its ties as "not seen", not
    as "no preference".

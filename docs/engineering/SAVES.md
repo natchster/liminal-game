@@ -94,7 +94,7 @@ file is written again whenever a key changes. A headless run, a
 
 | Key | Value | Written | Read |
 |---|---|---|---|
-| `settings` | the player's settings as JSON (`Settings::to_json`: look, invertY, fov, fovRev, bob, shake, grain, runToggle, volume, brightness, focusPause, binds) | when a setting changes | at the boot (`load_settings`) |
+| `settings` | the player's settings as JSON (`Settings::to_json`: look, invertY, fov, fovRev, bob, shake, runToggle, volume, brightness, focusPause, binds) | when a setting changes | at the boot (`load_settings`) |
 | `opencarole.backrooms.save.v2` | **the save**, as JSON (below) | on entering a floor (each way in: `begin_level`) and at a death (`on_death`) | by the title (Continue's line and its floor), New descent (to ask first), Continue |
 
 (The key's `v2` is older than this numbering: the descent once began in

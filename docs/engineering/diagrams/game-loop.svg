@@ -97,7 +97,7 @@
   <rect x="330" y="356" width="220" height="200" rx="10" class="box"/>
   <text x="346" y="384" class="h3">4 · Present</text>
   <text x="346" y="410">the light map, fog, the HUD,</text>
-  <text x="346" y="430">grain and flicker → Metal</text>
+  <text x="346" y="430">overlays, flicker → Metal</text>
   <text x="346" y="456">every sound from a place:</text>
   <text x="346" y="476">props, anchors, the creatures</text>
   <text x="346" y="496">→ the CoreAudio graph</text>

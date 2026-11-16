@@ -130,8 +130,8 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
      at both.
 
    The tour and `--shots-at` settle the lamps' pooled light the same way,
-   so the light matches. The film grain and the panels' flicker differ per
-   run, so do not compare bytes. A finding you cannot see when reproduced
+   so the light matches. The panels' flicker differs per run, so do not
+   compare bytes. A finding you cannot see when reproduced
    is not acted on: record it as not reproduced.
 
    Reproduce from a stand a player can reach. The tour's cameras are: its

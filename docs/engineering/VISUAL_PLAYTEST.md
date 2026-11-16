@@ -62,8 +62,8 @@ never the gate. What the design took:
    any stream), sampled across the level to a budget, filtered to an area
    when asked.
 2. **Five renders a view** (`backrooms --tour`): the look as a player sees
-   it (the HUD's grain and vignette on, the lamp lit where it is dark); and,
-   bare (no HUD layer, so no grain to change between them), the scene
+   it (the HUD's vignette on, the lamp lit where it is dark); and,
+   bare (no HUD layer), the scene
    cleared to magenta, cleared to green, and cleared to magenta again with
    the camera turned by 0.02° (about a tenth of a pixel) one way and then
    the other. The colour filter runs over the whole frame, the clear colour

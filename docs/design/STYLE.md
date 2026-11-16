@@ -59,8 +59,9 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
   number a frame: `tests/hud.rs`, `the_screen_lays_no_noise`), no colour
   fringes, no colour drifting as on a worn tape, no interference. No bloom,
   no lens flares. A failing nerve shows as the world's colour going and the
-  dark closing in at the edges, never as the camera failing
-  (`the_nerves_overlay_keeps_its_light_and_lays_no_colour`).
+  dark closing in at the edges, never as the camera failing (the overlay's
+  fringes: `the_nerves_overlay_keeps_its_light_and_lays_no_colour`; the
+  vignette never filtered, drifting or kicked: `tests/entities_smoke.rs`).
 
 ## Type (the screen's three voices)
 

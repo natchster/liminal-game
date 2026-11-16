@@ -86,6 +86,11 @@ fn entities_smoke() {
                 }
             }
             assert!(g.player.sanity.is_finite());
+            // nothing of a camera's (issue #14): the nerve at 12 from frame
+            // 1500 once drifted the vignette's hue, and the static kicked its
+            // saturation and contrast; the vignette is never filtered now
+            let filter = g.ui.vignette.style("filter").unwrap_or("");
+            assert!(filter.is_empty(), "seed {seed} frame {k}: the vignette filtered ({filter})");
             hunted += g.entities.iter().filter(|e| e.state == "hunt").count();
             voiced = voiced.max(g.ent_ext.values().filter(|x| x.voice.is_some()).count());
         }
