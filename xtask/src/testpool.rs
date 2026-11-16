@@ -43,13 +43,17 @@ pub struct Outcome {
     pub workers: usize,
 }
 
+/// The profile the tests are built and run with (`Cargo.toml`: release
+/// without link-time optimisation; the same bits, a tenth of the relinking)
+pub const PROFILE: &str = "fasttest";
+
 /// Build, list and run every test of the workspace, the names `skip` matches
 /// (as `--skip` does: a part of the name) left out; everything said goes to
 /// `log`
 pub fn run(skip: &[&str], log: &mut std::fs::File) -> Result<Outcome, String> {
     let mut out = Outcome { built: false, passed: 0, failed: 0, ignored: 0, skipped: 0, workers: 0 };
     let built = cargo()
-        .args(["test", "--workspace", "--release", "--no-run", "--message-format=json-render-diagnostics"])
+        .args(["test", "--workspace", "--profile", PROFILE, "--no-run", "--message-format=json-render-diagnostics"])
         .output()
         .map_err(|e| format!("cargo test --no-run: {e}"))?;
     log.write_all(&built.stderr).map_err(|e| e.to_string())?;
@@ -211,6 +215,22 @@ fn list(b: &Binary, ignored: bool) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The tests' profile is the release one without link-time optimisation,
+    /// and the release one keeps it: the game, the goldens and the bench are
+    /// measured as they ship, and the tests relink in seconds (`Cargo.toml`)
+    #[test]
+    fn the_tests_profile_is_release_without_lto() {
+        let text = std::fs::read_to_string(crate::root().join("Cargo.toml")).unwrap();
+        let cargo: toml::Value = toml::from_str(&text).unwrap();
+        let profile = |name: &str| cargo["profile"].get(name).unwrap_or_else(|| panic!("no profile {name}")).clone();
+        let tests = profile(PROFILE);
+        assert_eq!(tests["inherits"].as_str(), Some("release"), "{PROFILE} is not release's");
+        assert_eq!(tests["lto"].as_bool(), Some(false), "{PROFILE} links with LTO again");
+        let keys: Vec<_> = tests.as_table().unwrap().keys().cloned().collect();
+        assert_eq!(keys, ["inherits", "lto"], "{PROFILE} differs from release in more than LTO: {keys:?}");
+        assert_eq!(profile("release")["lto"].as_str(), Some("thin"), "release lost its LTO");
+    }
 
     #[test]
     fn the_times_kept_are_the_tests_there_are() {

@@ -203,7 +203,7 @@ pub fn nightly(_args: &[String]) -> Result<(), String> {
     }
     let sweep = cargo()
         .env("SWEEP_CASES", "200")
-        .args(["test", "--release", "-q", "-p", "backrooms", "--test", "level_sweep", "generated"])
+        .args(["test", "--profile", crate::testpool::PROFILE, "-q", "-p", "backrooms", "--test", "level_sweep", "generated"])
         .status()
         .map_err(|e| e.to_string())?;
     if !sweep.success() {

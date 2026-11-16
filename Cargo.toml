@@ -101,3 +101,15 @@ lto = "thin"
 codegen-units = 16
 debug = false
 panic = "unwind"
+
+# The tests' profile: `cargo xtask check` (and `drift`'s sweep) build and run
+# the tests with it, as `cargo test --profile fasttest`. It is the release
+# profile without link-time optimisation: after a change to the game crate
+# the check relinks about 85 test binaries, and with thin LTO each ran it over
+# the whole game (377 s of the test step, 4,610 s of CPU; 39 s without). The
+# same bits come out (Rust contracts no float operation; the whole suite
+# passes against fixtures recorded under `release`); the tests run about 12%
+# longer. The game, the goldens, the bench and the tools keep `release`.
+[profile.fasttest]
+inherits = "release"
+lto = false

@@ -153,7 +153,11 @@ Levels must be a pure function of `(run_seed, level)`:
   it passes or fails with the clock and with the tests run before it on
   its thread. To see that its thresholds are not one lucky seed, give the
   seed a shift you can set from outside (`PACING_NATIVE`,
-  `AMBIENT_NATIVE`) and try several.
+  `AMBIENT_NATIVE`, `LISTEN_NATIVE`) and try several. `listen.rs`'s `start`
+  seeds it from the floor's seed and level unless the test seeded it first
+  (its own `seed_native` says so): one of its tests had been heard from
+  the clock and failed now and then on a signature after the line it
+  measured.
 * Keep draw order stable: a new random draw in a placer shifts every later
   placer. If you change a placer on purpose, re-record the reference levels
   (below) and say so in the commit.
@@ -275,7 +279,21 @@ Levels must be a pure function of `(run_seed, level)`:
   3,700 to about 1,000 s (four floor-building tests alone: 25 → 3.7 s,
   17 → 2.9 s, 30 → 1.2 s, 36 → 6.3 s), its test step with nothing to
   rebuild to about two minutes.
-* `cargo test --workspace --release` runs every test directly.
+* **Tests are built without link-time optimisation** (`Cargo.toml`'s
+  `fasttest` profile: `release` with `lto = false`; `testpool::PROFILE`).
+  After a change to the game crate a check relinks about 85 test
+  binaries, and with thin LTO each ran it over the whole game: 377 s of
+  the test step and 4,610 s of CPU, 39 s and 347 s without; the fast
+  check's test step after such a change 519 → 151 s. The tests come out
+  the same (Rust contracts no float operation, so inlining across crates
+  moves no bit; the whole suite passes against fixtures recorded under
+  `release`) and run about 12% longer (the fast suite's test work 1,234 →
+  1,384 s). The game, the goldens, the bench and every tool that runs the
+  game keep `release`. A test the check names is rerun as it says:
+  `cargo test --profile fasttest -p game --test x`; `--release` gives the
+  same answer after relinking with LTO, and re-recording a fixture works
+  under either.
+* `cargo test --workspace --profile fasttest` runs every test directly.
 * **Golden frames.** `cargo xtask shots` renders 56 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
   anomalies' figures in their own places: the staff, the shadows, the

@@ -26,7 +26,26 @@ struct Run {
     pcm: Vec<f32>,
 }
 
+thread_local! {
+    /// whether this test seeded the per-frame stream since its last `start`
+    static SEEDED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+/// Seed the per-frame stream (and say so to `start`)
+fn seed_native(s: u64) {
+    game::base::rng::seed_native(s);
+    SEEDED.with(|c| c.set(true));
+}
+/// A new game on `level` of `seed`, its audio rendered offline. The
+/// per-frame stream is seeded from them unless the test seeded it first:
+/// the stream starts from the clock, and a floor heard from it was another
+/// each run (an aside's test once failed at 0 dBFS on what it heard after
+/// the aside: a dial tone's signature). `LISTEN_NATIVE` shifts that seed, to
+/// hear the spread.
 fn start(seed: u32, level: i32) -> Run {
+    if !SEEDED.with(|c| c.replace(false)) {
+        let shift: u64 = std::env::var("LISTEN_NATIVE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+        game::base::rng::seed_native(0x115E_A000 ^ (u64::from(seed) << 8) ^ level as u64 ^ shift.wrapping_mul(1_000_003));
+    }
     let mut g = Game::new_bare();
     placers::register_all(&mut g.placers);
     g.launch_flags = format!("seed={seed}&level={level}");
@@ -205,7 +224,7 @@ fn signatures_are_heard() {
         // (the per-frame stream seeded for each run: the tests run side by
         // side, and a shared stream made the signatures' times depend on
         // what the others drew)
-        game::base::rng::seed_native(0x115E_0000 ^ u64::from(seed) ^ ((level as u64) << 32));
+        seed_native(0x115E_0000 ^ u64::from(seed) ^ ((level as u64) << 32));
         let mut r = start(seed, level);
         let mut times = vec![];
         let mut last = String::new();
@@ -346,8 +365,8 @@ fn an_arrival_is_your_voice_under_your_breath() {
     play(&mut r, ARRIVAL_AFTER + 0.5, hold_creatures);
     assert!(!r.g.asides.log.iter().any(|(_, w)| w.starts_with("say:")), "said before you walked: {:?}", r.g.asides.log);
     let at = r.pcm.len() / 2;
-    // (the voice director's clock: its log's times)
-    let t_at = r.g.asides.clock;
+    // (the voice director's clock: its log's times; the game's: the voice's end)
+    let (t_at, p_at) = (r.g.asides.clock, r.g.perf_t);
     play(&mut r, 7.0, |g| {
         hold_creatures(g);
         g.keys.insert("KeyW".into());
@@ -360,7 +379,12 @@ fn an_arrival_is_your_voice_under_your_breath() {
     // your steps before you spoke, and your voice in the 1.5 s after
     let steps = w[b..s].iter().copied().fold(0.0, f64::max);
     let voice = w[s..(s + 30).min(w.len())].iter().copied().fold(0.0, f64::max);
-    let top = r.pcm[said * 2..].iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
+    // the aside's own peak, while it sounds (`voice_until`: its line's end);
+    // what follows is not it (a dial tone's signature a second before the
+    // render's end peaks at -1.4 dBFS on some streams)
+    let end = (at + ((r.g.asides.voice_until - p_at) * SR) as usize).min(r.pcm.len() / 2);
+    assert!(end > said, "the aside's line has no length");
+    let top = r.pcm[said * 2..end * 2].iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
     save("aside_arrive_4242_L5", &r.pcm, &[at as f64 / SR, said as f64 / SR]);
     // your cry on the same floor, measured the same way
     let mut c = start(4242, 5);
@@ -371,8 +395,9 @@ fn an_arrival_is_your_voice_under_your_breath() {
     let cw = windows_band(&c.pcm, 200.0, 3000.0);
     let cry = db(cw[cat / WIN..].iter().copied().fold(0.0, f64::max) / median(&cw[20..cat / WIN]));
     println!(
-        "{what}, {:.1} s after the first steps: {:.1} dB over the room, {:.1} dB over your steps, peak {:.1} dBFS; your cry {cry:.1} dB over the room",
+        "{what}, {:.1} s after the first steps, {:.1} s long: {:.1} dB over the room, {:.1} dB over your steps, peak {:.1} dBFS; your cry {cry:.1} dB over the room",
         t_said - t_at,
+        (end - said) as f64 / SR,
         db(voice / bed),
         db(voice / steps),
         db(top)
@@ -466,7 +491,7 @@ fn the_door_is_heard() {
 /// `level`, with the door calling or not: the recording, the call times and
 /// the straight distance to the door. None when no tile is that far.
 fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>, Vec<f64>, f64)> {
-    game::base::rng::seed_native(seed as u64);
+    seed_native(seed as u64);
     let mut r = start(seed, level);
     // the door against the place, not against a creature: none stands on
     // the floor (one standing near, frozen or not, sounds its drone, and
@@ -513,7 +538,7 @@ fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>,
 /// (`docs/design/MEGASTRUCTURE.md`, B5).
 #[test]
 fn the_siren_is_heard() {
-    game::base::rng::seed_native(0x5135_0001);
+    seed_native(0x5135_0001);
     let mut r = start(4242, 1);
     assert!(!r.g.building_speakers.is_empty(), "the Well has loudspeakers");
     // a stretch of the quiet, then the siren
@@ -679,7 +704,7 @@ fn door_lamp(g: &Game, d: &game::world::knock::KnockDoor) -> f64 {
 /// `target/listen/{name}.wav`
 fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize)) -> Knocked {
     use game::world::knock::{ANSWER_AFTER, BACK_AFTER, OUT_AFTER, RAP};
-    game::base::rng::seed_native(0x4B0C_0001);
+    seed_native(0x4B0C_0001);
     let mut r = start(seed, 1);
     // the knock's sound alone: your asides say nothing here (your voice is
     // heard in its own test; `tests/knock.rs` holds an aside after the raps)
@@ -867,7 +892,7 @@ fn a_knock_is_heard_beside_a_lamp() {
 fn the_wheel_is_tried_and_the_door_gives() {
     use game::world::assembly::Stage;
     use game::world::cell_knock::{GIVE, Visit};
-    game::base::rng::seed_native(0xCE11_0006);
+    seed_native(0xCE11_0006);
     let mut r = start(4242, 1);
     let camp = r.g.story.camp.as_ref().map(|c| c.tile);
     let cells = r.g.building.as_ref().unwrap().cells.clone();
@@ -995,7 +1020,7 @@ struct Going {
 fn cell_going(how: &str) -> Going {
     use game::world::assembly::Stage;
     use game::world::cell_knock::Visit;
-    game::base::rng::seed_native(0xCE11_0013);
+    seed_native(0xCE11_0013);
     let mut r = start(4242, 1);
     let camp = r.g.story.camp.as_ref().map(|c| c.tile);
     let cells = r.g.building.as_ref().unwrap().cells.clone();
@@ -1313,7 +1338,7 @@ fn the_one_in_the_corner_hums() {
     // test heard another hum with the clock and with the tests before it);
     // `LISTEN_NATIVE` shifts it, to see the spread
     let shift: u64 = std::env::var("LISTEN_NATIVE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
-    game::base::rng::seed_native(0xC04E + shift * 1_000_003);
+    seed_native(0xC04E + shift * 1_000_003);
     let mut r = start(4242, 6);
     hold_creatures(&mut r.g);
     let ei = {
@@ -1401,7 +1426,7 @@ fn the_reader_whispers() {
 fn the_vending_machine_is_heard() {
     use game::core_props::vending::model::D;
     use game::core_props::vending::rules::Verb;
-    game::base::rng::seed_native(0x7E2D_0001);
+    seed_native(0x7E2D_0001);
     // a floor with a lit machine
     let found = [(4242u32, 9), (4242, 6), (4242, 5), (4242, 4), (77, 4), (77, 6)].into_iter().find_map(|(seed, level)| {
         let r = start(seed, level);

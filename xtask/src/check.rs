@@ -243,7 +243,7 @@ fn test_errors(text: &str) -> Vec<String> {
         }
         // error: test failed, to rerun pass `-p game --test entities`
         if let Some(rest) = l.strip_prefix("error: test failed, to rerun pass ") {
-            out.push(format!("rerun with: cargo test --release {}", rest.trim_matches('`')));
+            out.push(format!("rerun with: cargo test --profile {} {}", crate::testpool::PROFILE, rest.trim_matches('`')));
         }
     }
     out.retain(|e| !e.starts_with("test failed"));
@@ -262,7 +262,7 @@ mod tests {
             e,
             vec![
                 "a::b panicked at crates/game/tests/x.rs:10:5: assertion failed: left == right",
-                "rerun with: cargo test --release -p game --test x"
+                "rerun with: cargo test --profile fasttest -p game --test x"
             ]
         );
     }
