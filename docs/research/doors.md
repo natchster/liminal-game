@@ -570,3 +570,198 @@ Two families, both real:
 - A perished, cracked seal and a residential-block basement entrance in a free photo.
 - Masses differ between makers (e.g. ДУ-I-7: 620 [13] vs 745 [12]).
 - The SHA-1s are as reported by the Commons API, not re-hashed locally.
+
+## 4. The lift doors (`lift_doors`)
+The subject is a passenger lift's landing entrance seen from the corridor (1980s-2000s office): two centre-opening
+stainless (or painted) panels in a landing frame, the sill, the hall call station and the lantern or indicator. The
+notes also cover how the entrance ages, how a forced one fails, and how a dead one is taped off.
+
+Status markers: **VERIFIED** means read on the page or document. **SEARCH-ONLY** means seen only in a search-result
+summary. **DERIVED** means computed, with the working shown. **ESTIMATE** means there is no source.
+Ref numbers [n] match the order of the `[[ref]]` entries in `lift_doors.toml`.
+
+### References
+
+Free (Wikimedia Commons). Each SHA-1 was read from the Commons API (`prop=imageinfo&iiprop=sha1|url|extmetadata`).
+I tried to download the originals to re-hash them locally, but upload.wikimedia.org answered HTTP 429, so the hashes
+are the API values only. I viewed every image as a Commons thumbnail (960 px; refs 1, 2 and 4 also at 3648-3840 px).
+
+1. **Hotel Sun Queen 3F elevator door** (CC BY-SA 4.0, Solomon203)
+   https://commons.wikimedia.org/wiki/File:Hotel_Sun_Queen_3F_elevator_door_20191111.jpg. Viewed.
+   - Frontal view of a closed centre-opening hairline door with a narrow stainless frame and head.
+   - The hall station is a separate faceplate on the wall: amber indicator on top, two small square buttons below.
+   - The floor tiles run into the reveal, and the jamb returns and head soffit are visible as darker bands.
+   - Hotel, not office, but the entrance is the generic one.
+2. **BankTaiwan Securities 1F elevator** (CC BY-SA 4.0, GaCush VonmaHao spko)
+   https://commons.wikimedia.org/wiki/File:BankTaiwan_Securities_1F_elevator_20190815.jpg. Viewed.
+   - Office headquarters ground floor. Centre-opening stainless doors (halves 352/348 px at 3648 px).
+   - Wide stainless transom with a green 7-segment floor indicator, star "1" plate on the jamb.
+   - Lit by fluorescent tubes. The finish is a fine non-directional texture with smudges, and a red poster reflects in it.
+3. **Elevator hall ready to be demolished** (CC BY-SA 2.0, Mzximvs VdB)
+   https://commons.wikimedia.org/wiki/File:Elevator_hall_ready_to_be_demolished_(10686084925).jpg. Viewed.
+   - Former BACOB bank headquarters in Brussels, Nov 2013. A lobby of six entrances with no doors visible: every
+     opening is black.
+   - Stone-clad jambs on plinths, debris, one window. Watermarked.
+4. **Rouses Market parking-garage elevator out of order** (CC BY-SA 4.0, Infrogmation)
+   https://commons.wikimedia.org/wiki/File:Rouses_Market,_Baronne_Street_New_Orleans,_May_2026_-_Parking_garage_elevator_out_of_order.jpg. Viewed.
+   - Centre-opening No.4 brushed stainless door in a wide stainless frame. A paper "OUT OF ORDER" sheet is taped to
+     the right jamb at about shoulder height, and the up/down lantern arrows are on the same jamb.
+   - The panels are visibly wavy (oil-canning), streaked and scuffed low down, and the sill nose is grimy.
+5. **Vandalized elevator in Sham Shui Po station** (CC BY-SA 4.0, Owennson)
+   https://commons.wikimedia.org/wiki/File:Vandalized_elevator_in_Sham_Shui_Po_station.jpg. Viewed.
+   - The doors are gone. Four sagging strips of salmon-red barrier tape cross the opening, fixed at each jamb with
+     darker tape patches, and one printed notice hangs on the strips. Hong Kong MTR station, 2020.
+6. **Elevator door with occupancy limit sign, Motel 6 Oceanside** (CC BY-SA 4.0, Xnatedawgx)
+   https://commons.wikimedia.org/wiki/File:Elevator_door_with_occupancy_limit_sign,_Motel_6_Oceanside,_CA_2020-11-22.jpg. Viewed.
+   - The frame and a single side-sliding panel are painted cream. A notice is fixed with blue tape.
+   - Floor plates sit on both jambs. Scrapes run along the bottom ~150 mm of the panel, the strike jamb edge is
+     chipped, and the sill is dark.
+7. **Elevator button (7209336446)** (CC BY 2.0, Yuya Tamai)
+   https://commons.wikimedia.org/wiki/File:Elevator_button_(7209336446).jpg. Viewed.
+   - A narrow hairline faceplate with an amber dot-matrix "3" and arrow, and one round call button.
+   - The button's cap is missing: the lit yellow-orange lamp shows through the round hole.
+8. **1991 ADA Accessibility Guidelines, 4.10 Elevators** (US federal work, public domain; `sampled = false`)
+   https://www.access-board.gov/adaag-1991-2002.html. Read on the page.
+
+Limited (looked at and measured only):
+
+9. **ISO 4190/1-1980, Table 1** (iTeh preview)
+   https://cdn.standards.iteh.ai/samples/9962/909cde1184fc464c9410a0d301170809/ISO-4190-1-1980.pdf.
+   I rendered page 6 to an image and read the table.
+10. **KONE MonoSpace 4 DX Core & Pro planning guide**
+    https://www.kone.co.uk/Images/KONE-MonoSpace-4-DX-Core-and-Pro-Planning-Guide-GBIR_tcm45-139450.pdf. Read the text.
+11. **Mitsubishi NexWay product guide**
+    https://elevator.mitsubishi-electric.vn/documents/43/01_NexWay_Product_Guide.pdf. Read the text; it has no fixture sizes.
+12. **TK Elevator / Vertical Express, Traditional Entrance Installation Manual** (2021)
+    https://shop-us.tkelevator.com/media/download_files/component_manuals/traditional_entrance.pdf.
+    Read the text and viewed the rendered Fig. 2 (sill profile).
+13. **NY State OGS MasterSpec 142821, Elevator Hoistway Entrances**
+    https://online2.ogs.ny.gov/dnc/masterspec24/docs/Division14ConveyingEquipment/142821.0ElevatorHoistwayEntrances.docx. Read the text.
+14. **TK Elevator Series 50 landing fixtures** (EOX brochure)
+    https://digital.brochure.tkelevator.com/brochure/eox1b/series-50-landing-fixtures/. Read via fetch.
+15. **Technical Safety BC incident report II-952859-2019** (#16111)
+    https://www.technicalsafetybc.ca/regulatory-resources/incident-investigations/elevator-car-and-hoistway-door-sustained-damage-due-impact-motorized-scooter.
+    Read the PDF text and viewed photos 3-5.
+
+### The opening and the panels
+
+| Figure | Value | Status / source |
+|---|---|---|
+| Office lift 630 kg and 800 kg: door | 800 x 2000 mm, centre-opening | VERIFIED [9] Table 1 |
+| Office lift 1000, 1250 and 1600 kg: door | 1100 x 2100 mm, centre-opening | VERIFIED [9] |
+| 630 kg car (W x D x H) / well | 1100 x 1400 x 2200 / 1800 x 2100 mm | VERIFIED [9] |
+| 1000 kg car / well | 1600 x 1400 x 2300 / 2400 x 2300 mm | VERIFIED [9] |
+| 1250 kg car / well | 1950 x 1400 x 2300 / 2600 x 2300 mm | VERIFIED [9] |
+| Clear widths for a 630 kg car (1100 x 1400), centre-opening | 800 / 900 / 1000 mm | VERIFIED [10] |
+| Clear widths for 1000-1150 kg cars | 900 / 1000 / 1100 mm | VERIFIED [10] |
+| Door heights | 2000 / 2100 / 2200 / 2300 mm | VERIFIED [10] |
+| Raw wall opening, centre-opening frame door | clear width + 300 mm | VERIFIED [10] (900 -> 1200, 1000 -> 1300, 1100 -> 1400) |
+| Raw opening height | door height + 80 mm (narrow frame), + 180 mm (frame) | VERIFIED [10] |
+| Minimum floor-to-floor for a 2000 / 2100 mm landing door | 2450 / 2550 mm | VERIFIED in the ISO 4190-1:1990 preview (https://cdn.standards.iteh.ai/samples/9963/7e01650705a24772a17f6948047fcca8/ISO-4190-1-1990.pdf); not a toml ref |
+| 1275 kg rating with 1100 mm doors (later ISO 4190-1 editions) | — | SEARCH-ONLY; I could not open the 2010 table |
+| Width of each panel (centre-opening) | about LL/2 + 20-30 mm (480 mm for 900 clear) | DERIVED from the geometry (each half must clear LL/2 and lap behind the jamb); the 20-30 mm lap is an ESTIMATE |
+| Panel thickness | at least 1-1/4 in (32 mm), flush hollow metal | VERIFIED [13] (US spec) |
+| Panel skin | 16 ga (0.0598 in = 1.52 mm), stiffeners at most 8 in (203 mm) apart | VERIFIED [13]; mm conversion DERIVED |
+| European panel skin | 1.5 mm sheet + internal reinforcement | SEARCH-ONLY (SLYCMA GAIA landing-door sheet; the PDF returned 403) |
+| Panel to frame column and panel to sill clearance | 1/4 in (6.35 mm) shims | VERIFIED [12] |
+| Gaps between panels and to the frame, EN 81 | at most 6 mm, up to 10 mm with wear | SEARCH-ONLY (Elevator World article summary; page 403). An older UK code on vLex says "less than 1/4 in (6 mm)", VERIFIED there |
+| Centre meeting gap seen in a photo | ~6 mm | DERIVED [2]: seam 5-6 px FWHM at 3648 px; panels 700 px across = 800-900 mm, so 1.14-1.29 mm/px |
+| Visible height / width, frontal photo | 2.41 | DERIVED [1]: 1572 / 652 px at 3840 px; the halves are 322 and 330 px, so the door is centre-opening |
+| Bottom guides | 2 gibs + 1 safety retainer per panel, in the sill groove with 1/8 in (3 mm) clearance | VERIFIED [12]; [13] also asks for 2 replaceable plastic gibs per panel |
+| Meeting edges | sight guards on each meeting edge of centre-opening doors | VERIFIED [13] |
+| Finish | hairline (SUS-HL) or painted steel sheet (Asia/EU); No.4 satin or prime coat (US) | VERIFIED [11]; US: Mitsubishi DiamondTrac brochure https://mitsubishielevator.com/uploads/files/DiamondTracStreamlineNov2024R.pdf lists "SUS #4" or "Prime coating" for door, jamb and transom, read in text, not a toml ref |
+| Door strength, EN 81-20 | 300 N gives at most 1 mm permanent and 15 mm elastic deformation; 1000 N gives no significant permanent deformation | VERIFIED on a secondary wiki only (https://www.designingbuildings.co.uk/wiki/Lift_Standards%3A_EN_81-20_and_EN_81-50); not checked against the standard |
+
+### Landing frame, head, sill
+
+| Figure | Value | Status / source |
+|---|---|---|
+| Frame face, standard frame door | 120 mm jambs, 150 mm head | VERIFIED [10] |
+| Narrow frame | 50 mm all round | VERIFIED [10] (the KONE MonoSpace 500 guide also lists 120 / 50 mm) |
+| Frame sheet (US) | #14 USS gauge (5/64 in = 1.98 mm) | VERIFIED [13]; mm DERIVED |
+| Frame depth | equal to the shaft wall thickness, including plaster | VERIFIED [13] (freight section of the same spec) |
+| Jamb styles | narrow, square, splayed, each with or without a transom panel | VERIFIED [11] |
+| Wide "architrave" look | a stainless jamb face ~12% of the door width (~45 of 370 px in [4]); transom panel with the indicator in [2] | ESTIMATE from photos [2] and [4]; no mm figure |
+| Sill material | extruded hard aluminium standard, stainless optional | VERIFIED [11]; [13] asks for extruded aluminium, one piece |
+| Sill thickness / nosing | at least 3/4 in (19 mm) / about 1 in (25 mm) deep | VERIFIED [13] |
+| Sill depth, front to back | 75 mm for a 2-panel centre-opening door (Fermator Platinum), 110-120 mm for 2-panel side-opening | SEARCH-ONLY (the catalogue PDF sits behind a form) |
+| Sill grooves | one groove per moving panel line; Fig. 2 shows two grooves and a nose | VERIFIED [12] (drawing, no dimensions) |
+| Car sill to landing sill gap | 1-1/4 in (32 mm) | VERIFIED [12] and [8] (maximum) |
+
+### Hall call station, lantern, indicator
+
+| Figure | Value | Status / source |
+|---|---|---|
+| Hall call buttons, centre height | 42 in (1065 mm) | VERIFIED [8]. NY OGS 142861 also says 42 in (SEARCH-ONLY) |
+| Button size | at least 3/4 in (19 mm); up button on top; raised or flush | VERIFIED [8] |
+| Lit button colours | yellow-orange, white or blue halo; hairline stainless buttons | VERIFIED [11] |
+| Call station faceplate (modern) | 91 x 171 x 19 mm, brushed stainless | VERIFIED [14] (LOP 51) |
+| Direction indicator / position indicator | 91 x 101 x 19 / 260 x 91 x 19 mm | VERIFIED [14] |
+| Faceplate with indicator + two buttons | aspect 1 : 5.6 | DERIVED [1] (76 x 422 px). At a 91 mm width that is ~510 mm tall, an ESTIMATE |
+| Hall lantern centreline | at least 72 in (1830 mm) | VERIFIED [8] |
+| Lantern visual element | at least 2-1/2 in (64 mm) | VERIFIED [8] |
+| Floor numbers on both jambs | 2 in (50 mm) high, centred at 60 in (1525 mm) | VERIFIED [8] and [13] |
+| Landing controls 900-1100 mm (EN 81-70) | — | not verified (see the end) |
+
+The photos agree with these figures: the Sun Queen faceplate's buttons sit at roughly hip-to-waist height ([1]). The
+BankTaiwan indicator is in the transom above the doors ([2]). The Rouses lantern arrows are on the jamb near the head ([4]).
+
+### Ageing, broken and dead
+
+- **Scratches and fingerprints**: smudges and wipe streaks run horizontally across the panels at hand height ([2], [4]).
+  The non-directional texture of [2] hides scratches better than hairline does.
+- **Kick-height wear**: [6] shows scrapes along the bottom ~150 mm of a painted panel and chips on the jamb edge (ESTIMATE
+  from the photo). [4] is scuffed in the lower third. [15] gives a real impact height of about 11 in (280 mm).
+- **Bent panel**: [4] shows waviness across the panel width, which reads as rippled reflections. No source gives mm.
+- **Forced open** ([15], VERIFIED):
+  - The door is pushed in at the bottom, the gib brackets bend and leave the sill groove, and the lower door section is bent.
+  - The panel stays hung from its top track: the upthrust eccentrics and top retainers held.
+  - Photo 3 shows a gib as a steel L-bracket with a green plastic shoe. Photo 5 shows the corroded bottom of the panel.
+  - For a game image (ESTIMATE): one panel pushed back into its pocket and the other bowed inward at the bottom,
+    swinging free of the sill, with the black shaft behind ([3]).
+- **Dead / taped off**: a paper "OUT OF ORDER" sheet taped to the jamb ([4]); tape strips across the opening at roughly
+  1.0-1.6 m with a notice hung on them ([5], heights an ESTIMATE from the photo); a notice taped to the panel ([6]).
+- **Abandoned lobby**: open entrances read as flat black (sRGB 2,2,2 in [3]), with stone jambs and dust and debris on the floor.
+
+### Palette
+
+All values are sRGB, the mean (or median, where stated) of a pixel patch in a Commons thumbnail. They depend on the
+camera's white balance, so treat them as estimates. Boxes are given in thumbnail pixels (x0,y0,x1,y1).
+
+| What | sRGB | Ref, patch |
+|---|---|---|
+| Hairline stainless, upper panel under fluorescent light | 176,177,185 | [2] 960 px (515,330,580,420) |
+| Same, mid panel | 143,147,156 | [2] (515,440,580,520) |
+| Same, darker reflection low on the panel | 90,91,96 | [2] (515,540,580,630) |
+| Stainless jamb return in shadow | 74,72,74 | [2] (688,250,700,600) |
+| No.4 stainless, band facing a fluorescent tube | 164,173,188 | [4] (180,320,255,360); the brightest streaks are 255 |
+| No.4 stainless, dark band | 79,79,77 | [4] (180,420,255,500) |
+| Aluminium sill nose (worn, lit edge) | 114,114,111 | [4] 3840 px rows 2074-2078. The grimy sill top is ~55,52,47; low confidence |
+| Painted frame, cream, lit | 206,203,197 | [6] (378,300,392,480) |
+| Painted frame, shaded | 157,150,137 | [6] (378,650,392,900) |
+| Painted door panel | 166,158,146 | [6] (450,700,600,850) |
+| Painted panel, scuffed kick zone | 126,114,101 | [6] (450,950,600,1080) |
+| Faceplate steel, dim light | 74,78,74 | [7] (495,400,515,700) |
+| Lit button core, yellow-orange | 243,209,5 | [7] (560,960,600,990) |
+| Lit button rim, orange | 212,89,0 | [7] median of (550,935,600,975) |
+| Open shaft | 2,2,2 | [3] (90,200,150,500) |
+| Barrier tape strip / anchor patch | 237,141,135 / 215,67,84 | [5] medians |
+
+Mitsubishi [11] lists the lit-button colours as yellow-orange, white or blue, consistent with [7].
+
+### Could not verify
+
+- The **EN 81-20 text** itself (paywalled): the 6 mm / 10 mm gap limits, the strength tests and how panels must be
+  guided at the bottom are all secondary.
+- **ISO 4190-1:2010** (or ISO 8100-30): the 900 mm / 1275 kg rows. I read only the 1980 table and the 1990 front matter.
+- **Sill depth** in mm from a maker's drawing: Fermator's 75 mm is SEARCH-ONLY, and neither [12] nor [13] gives it.
+- **Panel lap behind the jamb**, and so the exact width of each panel: ESTIMATE.
+- **EN 81-70 landing control height** (900-1100 mm) and button size: from memory, not found in a readable source.
+- **Hall station sizes of the 1980s-90s**: only a modern product [14]. The longer combined indicator-and-button plates
+  in [1] and [7] are measured only as ratios.
+- **A photograph of a forced or jammed centre-opening landing door on a black shaft**: none found on Commons. [3] shows
+  open shafts with the doors gone, and [15] describes and partly shows a forced door.
+- **Hairline vs No.4**: [11] confirms hairline in Asia/EU and the DiamondTrac brochure confirms No.4 in the US. The
+  finish in [2] looks non-directional rather than hairline.
+- **Photo geometry**: [1] has deep or splayed jamb returns, so frame face widths in mm could not be taken from it.
+  Only the panel ratio (panel plane) and the faceplate aspect are given.

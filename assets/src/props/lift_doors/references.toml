@@ -1,0 +1,369 @@
+# The references of lift_doors (docs/design/ASSETS.md), gathered on
+# 2026-11-16 by a research agent (its notes: docs/research/doors.md);
+# `cargo xtask asset refs lift_doors` fetches them into
+# target/asset-refs/lift_doors/. Its surfaces are painted from its own
+# palette (`core_props::doors`), never sampled from these; the palette is
+# photo-sampled, each photo's light in it.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/7b/Hotel_Sun_Queen_3F_elevator_door_20191111.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Hotel_Sun_Queen_3F_elevator_door_20191111.jpg"
+shows = "the thing: a closed two-panel centre-opening hairline stainless landing door seen straight on from the corridor, narrow stainless frame and head, hall station (position indicator + two buttons) on the wall beside it, floor tiles running into the reveal"
+class = "free"
+licence = "CC BY-SA 4.0, Solomon203"
+sha1 = "ce506a10bfdd79cd86dcc874c55d372793bbdbb6"
+notes = "Best frontal view for proportions: the two panels are equal (322 vs 330 px) and the visible door is 2.41x as tall as wide. Hotel corridor, Taiwan, 2019, warm downlights. Viewed at 960 and 3840 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/4b/BankTaiwan_Securities_1F_elevator_20190815.jpg"
+page = "https://commons.wikimedia.org/wiki/File:BankTaiwan_Securities_1F_elevator_20190815.jpg"
+shows = "the thing / a place with one: ground-floor lift of an office headquarters (BankTaiwan Securities, Taipei); centre-opening stainless doors under fluorescent light, wide stainless transom with a 7-segment floor indicator, star floor plate on the jamb, small hall station on the pink tiled wall"
+class = "free"
+licence = "CC BY-SA 4.0, GaCush VonmaHao spko"
+sha1 = "e9e883646543aa078c202d103ef51350b23df850"
+notes = "Palette source for stainless lit by fluorescent tubes (bright top, dark bottom reflecting the floor). Panels have a fine non-directional texture with smudges and a red reflection from a poster. Centre seam 5-6 px wide at 3648 px. Viewed at 960 and 3648 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/8/83/Elevator_hall_ready_to_be_demolished_%2810686084925%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Elevator_hall_ready_to_be_demolished_(10686084925).jpg"
+shows = "a place with one: abandoned office lift lobby (former BACOB bank headquarters, Brussels, Nov 2013, before demolition), six lift entrances with doors gone or open on pitch-black shafts, stone-clad jambs, dust and debris on the floor, one window at the end"
+class = "free"
+licence = "CC BY-SA 2.0, Mzximvs VdB (M. Van den Bossche)"
+sha1 = "0cc5e925c24a9de8fd1078c46d908097e1050c55"
+notes = "Mood and lighting reference for a dead lift lobby; the open shafts read as flat black (sRGB ~2,2,2). Photographer's watermark across the middle. No door panels are visible, so it does not show a forced panel. Viewed at 960 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/f/fb/Rouses_Market%2C_Baronne_Street_New_Orleans%2C_May_2026_-_Parking_garage_elevator_out_of_order.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Rouses_Market,_Baronne_Street_New_Orleans,_May_2026_-_Parking_garage_elevator_out_of_order.jpg"
+shows = "the thing, dead: a centre-opening No.4 brushed stainless door in a wide stainless frame with an OUT OF ORDER sheet taped to the right jamb; up/down hall lantern arrows on the jamb; fluorescent garage lighting"
+class = "free"
+licence = "CC BY-SA 4.0, Infrogmation"
+sha1 = "8e2de1bbca75367685771e5d7792a123aeb635bd"
+notes = "Wear: wavy (oil-canned) panels, horizontal wipe streaks, scuffed lower third, a dirty sill nose. Palette source for the bright fluorescent band, the dark band and the worn aluminium sill nose. Parking garage, New Orleans, 2026. Viewed at 960 and 3840 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/75/Vandalized_elevator_in_Sham_Shui_Po_station.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Vandalized_elevator_in_Sham_Shui_Po_station.jpg"
+shows = "the thing, taped off: a vandalised lift entrance with its doors missing, four strips of red-pink barrier tape stretched across the opening and anchored with darker tape patches, a printed notice hung in the middle; stored items visible behind"
+class = "free"
+licence = "CC BY-SA 4.0, Owennson"
+sha1 = "dc8e691bd149d389825b86f514938ac0f59f8dfb"
+notes = "How a dead lift is closed off: sagging tape strips at roughly 1.0-1.6 m, taped at both jambs, one A4 notice. MTR station, Hong Kong, January 2020 (not an office). Viewed at 960 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/1/1b/Elevator_door_with_occupancy_limit_sign%2C_Motel_6_Oceanside%2C_CA_2020-11-22.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Elevator_door_with_occupancy_limit_sign,_Motel_6_Oceanside,_CA_2020-11-22.jpg"
+shows = "the thing, painted: a single-slide landing door and frame both painted cream, a notice taped to the panel with blue tape, floor plates on both jambs, scrape marks along the bottom of the panel and paint chips on the strike jamb"
+class = "free"
+licence = "CC BY-SA 4.0, Xnatedawgx"
+sha1 = "babda6fda90038abe7646ee1c0b82db571795cdb"
+notes = "Painted-finish option and wear at kick height (scuffs in the lowest ~150 mm, chips on the jamb edge). Side-sliding, not centre-opening. Motel stairwell, California, 2020. Viewed at 960 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/d/db/Elevator_button_%287209336446%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Elevator_button_(7209336446).jpg"
+shows = "the hall station: a narrow hairline stainless faceplate with a dot-matrix amber floor indicator and one round call button whose cap is missing, so the lit yellow-orange lamp shows through the hole"
+class = "free"
+licence = "CC BY 2.0, Yuya Tamai"
+sha1 = "306160992c0a84e05f0c582cca02d6426445d68e"
+notes = "Palette source for the faceplate steel in dim corridor light and the lit yellow-orange button. Also a ready-made 'broken button' detail. Japan, 2012. Viewed at 960 px."
+
+[[ref]]
+url = "https://www.access-board.gov/adaag-1991-2002.html"
+page = "https://www.access-board.gov/adaag-1991-2002.html"
+shows = "a measurement: 1991 ADA Accessibility Guidelines, 4.10 Elevators (hall call buttons, hall lanterns, jamb floor characters, sill gap)"
+class = "free"
+licence = "Public domain (US federal government work), U.S. Access Board"
+sampled = false
+notes = "The US rules in force for 1990s-2000s buildings: buttons centred at 42 in (1065 mm), at least 3/4 in (19 mm); lantern centreline at least 72 in (1830 mm); jamb characters 2 in high at 60 in; car-to-landing sill gap at most 1-1/4 in (32 mm). Read on the page."
+
+[[ref]]
+url = "https://cdn.standards.iteh.ai/samples/9962/909cde1184fc464c9410a0d301170809/ISO-4190-1-1980.pdf"
+page = "https://standards.iteh.ai/catalog/standards/iso/4ff46617-2f08-42a9-a931-b7370c5c5c3f/iso-4190-1-1980"
+shows = "a measurement: ISO 4190/1-1980 Table 1, standard electric lifts class I; office (non-residential) column gives car, door and well sizes for 630-1600 kg"
+class = "limited"
+licence = "ISO, all rights reserved (iTeh preview)"
+notes = "Office lifts: 630 and 800 kg have 800 x 2000 mm centre-opening doors; 1000, 1250 and 1600 kg have 1100 x 2100 mm. Read from a rendered image of the table on page 6 of the preview."
+
+[[ref]]
+url = "https://www.kone.co.uk/Images/KONE-MonoSpace-4-DX-Core-and-Pro-Planning-Guide-GBIR_tcm45-139450.pdf"
+page = "https://www.kone.co.uk/Images/KONE-MonoSpace-4-DX-Core-and-Pro-Planning-Guide-GBIR_tcm45-139450.pdf"
+shows = "a maker's sheet: KONE MonoSpace 4 DX planning guide (EN 81-20/50); centre-opening KES 202/602 tables, door types and frame widths"
+class = "limited"
+licence = "KONE Corporation, all rights reserved"
+notes = "Clear widths 600-1100 mm, heights 2000/2100/2200/2300 mm; centre-opening raw opening width = clear width + 300 mm; frame 120 mm at the sides and 150 mm at the head, narrow frame 50 mm all round. A current product, but these opening sizes have not changed. Read in the PDF text."
+
+[[ref]]
+url = "https://elevator.mitsubishi-electric.vn/documents/43/01_NexWay_Product_Guide.pdf"
+page = "https://elevator.mitsubishi-electric.vn/documents/43/01_NexWay_Product_Guide.pdf"
+shows = "a maker's sheet: Mitsubishi NexWay product guide, Hall Designs (jamb types E-102 narrow, E-202 square, E-302 splayed, E-212/E-312 with transom), finishes and hall fixtures"
+class = "limited"
+licence = "Mitsubishi Electric Corporation, all rights reserved"
+notes = "Landing doors and jambs come in hairline stainless (SUS-HL) or painted steel sheet. The landing sill is extruded hard aluminium as standard, stainless optional. Buttons are hairline stainless with an LED halo in yellow-orange, white or blue. Read in the PDF text. Gives no fixture sizes in mm."
+
+[[ref]]
+url = "https://shop-us.tkelevator.com/media/download_files/component_manuals/traditional_entrance.pdf"
+page = "https://shop-us.tkelevator.com/media/download_files/component_manuals/traditional_entrance.pdf"
+shows = "a maker's sheet: TK Elevator / Vertical Express Traditional Entrance Installation Manual (single-speed, two-speed and centre-opening hoistway entrances); sill profile drawing, gibs, clearances"
+class = "limited"
+licence = "Vertical Express (TK Elevator), all rights reserved"
+notes = "Landing sill set 1-1/4 in from the car sill. Doors hung with a 1/4 in shim under each edge and a 1/4 in shim between the panel's leading edge and the frame column. Gibs run in the sill groove with 1/8 in clearance. Each panel has two gibs and one safety retainer. Figure 2 shows the extruded sill with two grooves and a nose. Read in the text and in rendered figures."
+
+[[ref]]
+url = "https://online2.ogs.ny.gov/dnc/masterspec24/docs/Division14ConveyingEquipment/142821.0ElevatorHoistwayEntrances.docx"
+page = "https://online2.ogs.ny.gov/dnc/masterspec24/docs/Division14ConveyingEquipment/142821.0ElevatorHoistwayEntrances.docx"
+shows = "a measurement: New York State OGS MasterSpec Section 142821 Elevator Hoistway Entrances (passenger entrance frames, door panels, sills, gibs)"
+class = "limited"
+licence = "New York State Office of General Services, all rights reserved (no licence stated)"
+notes = "Door panels are flush hollow metal at least 1-1/4 in thick, with 16-gauge faces and vertical stiffeners at most 8 in apart. Frames are #14 USS gauge. The one-piece extruded aluminium sill is at least 3/4 in thick, with a nosing about 1 in deep. Two plastic gibs per panel. Centre-opening doors carry sight guards on the meeting edges. Read in the document text."
+
+[[ref]]
+url = "https://digital.brochure.tkelevator.com/brochure/eox1b/series-50-landing-fixtures/"
+page = "https://digital.brochure.tkelevator.com/brochure/eox1b/series-50-landing-fixtures/"
+shows = "a maker's sheet: TK Elevator Series 50 landing operating panels and indicators (EOX brochure), sizes W x H x D"
+class = "limited"
+licence = "TK Elevator, all rights reserved"
+notes = "LOP 51 call station 91 x 171 x 19 mm with a brushed stainless faceplate. LID 50 direction indicator 91 x 101 x 19 mm. LIP 50 position indicator 260 x 91 x 19 mm. A current product: older fixtures were often longer. Read on the page."
+
+[[ref]]
+url = "https://files.technicalsafetybc.ca/v3/assets/bltdec2ded849740f4d/bltf03159085b512f72/6332706b8804663c59ee9c7d/16111_-_Incident_Summary_Report_II-952859-2019_(16111)_Final.pdf"
+page = "https://www.technicalsafetybc.ca/regulatory-resources/incident-investigations/elevator-car-and-hoistway-door-sustained-damage-due-impact-motorized-scooter"
+shows = "how a broken one looks: incident report of a landing door forced into the shaft by a scooter hitting it about 11 in above the floor; the gibs and safety retainer failed, the lower door section was bent, corroded gib screws; photos of a bent gib bracket and the bottom of the door"
+class = "limited"
+licence = "Technical Safety BC, all rights reserved"
+notes = "The real failure mode of a forced landing door: the bottom is pushed into the shaft, the gib brackets bend out of the sill groove and the panel hangs from its top track. Read in the text, photos 3-5 viewed."
+
+[[measure]]
+what = "clear opening, office lift 630 kg and 800 kg (ISO 4190/1-1980, centre-opening)"
+value = "800 x 2000 mm"
+ref = 9
+
+[[measure]]
+what = "clear opening, office lift 1000 / 1250 / 1600 kg (ISO 4190/1-1980, centre-opening)"
+value = "1100 x 2100 mm"
+ref = 9
+
+[[measure]]
+what = "car inside W x D x H, 630 kg office lift (ISO 4190/1-1980)"
+value = "1100 x 1400 x 2200 mm"
+ref = 9
+
+[[measure]]
+what = "car inside W x D x H, 1000 kg office lift (ISO 4190/1-1980)"
+value = "1600 x 1400 x 2300 mm"
+ref = 9
+
+[[measure]]
+what = "well (shaft) W x D, 630 kg / 1000 kg office lift (ISO 4190/1-1980)"
+value = "1800 x 2100 mm / 2400 x 2300 mm"
+ref = 9
+
+[[measure]]
+what = "centre-opening clear widths offered for a 630 kg car 1100 x 1400 (KONE KES 202/602)"
+value = "800 / 900 / 1000 mm"
+ref = 10
+
+[[measure]]
+what = "door clear heights offered (KONE)"
+value = "2000 / 2100 / 2200 / 2300 mm"
+ref = 10
+
+[[measure]]
+what = "raw wall opening width, centre-opening frame door (KONE)"
+value = "clear width + 300 mm (900 -> 1200, 1100 -> 1400)"
+ref = 10
+
+[[measure]]
+what = "landing frame face width, standard frame door (KONE)"
+value = "120 mm jambs, 150 mm head"
+ref = 10
+
+[[measure]]
+what = "landing frame face width, narrow frame (KONE)"
+value = "50 mm all round"
+ref = 10
+
+[[measure]]
+what = "raw wall opening height (KONE)"
+value = "door height + 80 mm (narrow frame) / + 180 mm (frame)"
+ref = 10
+
+[[measure]]
+what = "shaft W x D, 630 kg, 900 mm centre-opening (KONE MonoSpace 4 DX)"
+value = "1940 x 1690 mm"
+ref = 10
+
+[[measure]]
+what = "door panel thickness, minimum (US spec)"
+value = "1-1/4 in (32 mm), flush hollow metal, 16 ga (1.5 mm) faces, vertical stiffeners <= 8 in (203 mm) apart"
+ref = 13
+
+[[measure]]
+what = "landing sill, extruded aluminium, thickness / nosing depth (US spec)"
+value = ">= 3/4 in (19 mm) thick / nosing ~1 in (25 mm)"
+ref = 13
+
+[[measure]]
+what = "landing frame sheet (US spec)"
+value = "#14 USS gauge (~1.98 mm) steel"
+ref = 13
+
+[[measure]]
+what = "landing sill edge to car sill edge"
+value = "1-1/4 in (32 mm)"
+ref = 12
+
+[[measure]]
+what = "panel bottom above sill (running clearance)"
+value = "1/4 in (6 mm)"
+ref = 12
+
+[[measure]]
+what = "panel leading edge to frame column clearance"
+value = "1/4 in (6 mm)"
+ref = 12
+
+[[measure]]
+what = "bottom guides per panel, running in the sill groove"
+value = "2 gibs + 1 safety retainer, 1/8 in (3 mm) clearance in the groove"
+ref = 12
+
+[[measure]]
+what = "centre meeting gap between closed panels (DERIVED from photo: 5-6 px FWHM at ~1.1-1.3 mm/px, assuming an 800-900 mm opening)"
+value = "~6 mm (blur inflates it)"
+ref = 2
+
+[[measure]]
+what = "visible door height / width, frontal photo (DERIVED: 1572 px / 652 px; halves 322 / 330 px)"
+value = "2.41 (2000/800 = 2.50, 2100/900 = 2.33)"
+ref = 1
+
+[[measure]]
+what = "hall station faceplate aspect, indicator + two buttons (DERIVED from photo, 76 x 422 px)"
+value = "1 : 5.6 (width : height)"
+ref = 1
+
+[[measure]]
+what = "hall call button centre height above floor (US, 1991)"
+value = "42 in (1065 mm)"
+ref = 8
+
+[[measure]]
+what = "hall call button minimum size (US, 1991)"
+value = "3/4 in (19 mm); up button on top"
+ref = 8
+
+[[measure]]
+what = "hall lantern centreline above floor, minimum / visual element minimum (US, 1991)"
+value = "72 in (1830 mm) / 2-1/2 in (64 mm)"
+ref = 8
+
+[[measure]]
+what = "raised floor numbers on both jambs: height / centreline above floor"
+value = "2 in (50 mm) / 60 in (1525 mm)"
+ref = 8
+
+[[measure]]
+what = "car sill to landing sill gap, maximum (US, 1991)"
+value = "1-1/4 in (32 mm)"
+ref = 8
+
+[[measure]]
+what = "landing call station faceplate W x H x D (TK Series 50 LOP 51)"
+value = "91 x 171 x 19 mm"
+ref = 14
+
+[[measure]]
+what = "landing direction indicator / position indicator W x H x D (TK Series 50 LID 50 / LIP 50)"
+value = "91 x 101 x 19 mm / 260 x 91 x 19 mm"
+ref = 14
+
+[[measure]]
+what = "impact height that forced a landing door into the shaft"
+value = "about 11 in (280 mm) above floor"
+ref = 15
+
+[[palette]]
+what = "hairline stainless, upper panel lit by fluorescent light (estimated from photo: mean of a 65 x 90 px patch, 960 px thumbnail)"
+srgb = [176, 177, 185]
+ref = 2
+
+[[palette]]
+what = "hairline stainless, mid panel (estimated from photo)"
+srgb = [143, 147, 156]
+ref = 2
+
+[[palette]]
+what = "hairline stainless, darker reflection at the bottom of the panel, reflecting the floor (estimated from photo)"
+srgb = [90, 91, 96]
+ref = 2
+
+[[palette]]
+what = "stainless jamb return in shadow (estimated from photo)"
+srgb = [74, 72, 74]
+ref = 2
+
+[[palette]]
+what = "No.4 brushed stainless, band facing a fluorescent tube (estimated from photo; brightest streaks clip to 255)"
+srgb = [164, 173, 188]
+ref = 4
+
+[[palette]]
+what = "No.4 brushed stainless, dark lower band (estimated from photo)"
+srgb = [79, 79, 77]
+ref = 4
+
+[[palette]]
+what = "aluminium sill nose, worn, garage fluorescent light (estimated from photo: 2 px line, 3840 px thumbnail; sill top beyond it is grime ~55,52,47)"
+srgb = [114, 114, 111]
+ref = 4
+
+[[palette]]
+what = "painted steel frame (cream), lit upper jamb (estimated from photo)"
+srgb = [206, 203, 197]
+ref = 6
+
+[[palette]]
+what = "painted steel frame, shaded lower jamb (estimated from photo)"
+srgb = [157, 150, 137]
+ref = 6
+
+[[palette]]
+what = "painted door panel, mid height (estimated from photo)"
+srgb = [166, 158, 146]
+ref = 6
+
+[[palette]]
+what = "painted door panel, scuffed kick zone at the bottom (estimated from photo)"
+srgb = [126, 114, 101]
+ref = 6
+
+[[palette]]
+what = "hall station faceplate steel, hairline, dim corridor light (estimated from photo)"
+srgb = [74, 78, 74]
+ref = 7
+
+[[palette]]
+what = "lit call button, yellow-orange lamp core (estimated from photo)"
+srgb = [243, 209, 5]
+ref = 7
+
+[[palette]]
+what = "lit call button, orange rim of the lit opening (estimated from photo, median)"
+srgb = [212, 89, 0]
+ref = 7
+
+[[palette]]
+what = "open lift shaft seen from the lobby (estimated from photo)"
+srgb = [2, 2, 2]
+ref = 3
+
+[[palette]]
+what = "barrier tape across a dead lift, salmon-red strip (estimated from photo)"
+srgb = [237, 141, 135]
+ref = 5
+
+[[palette]]
+what = "barrier tape anchor patches, darker red (estimated from photo)"
+srgb = [215, 67, 84]
+ref = 5

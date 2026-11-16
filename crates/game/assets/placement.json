@@ -211,6 +211,33 @@
         }
       ]
     },
+    "lift_doors": {
+      "by": "layout",
+      "count": [
+        1,
+        3
+      ],
+      "levels": [
+        4,
+        999
+      ],
+      "rule": [
+        {
+          "at": "lift",
+          "purposes": [
+            "*"
+          ],
+          "why": "an office floor has its lifts against a wall, wherever its rooms are, and the floor kept them"
+        },
+        {
+          "at": "broken lift",
+          "purposes": [
+            "*"
+          ],
+          "why": "one of the floor's lifts was forced open and left that way"
+        }
+      ]
+    },
     "steel_door": {
       "by": "layout",
       "count": [

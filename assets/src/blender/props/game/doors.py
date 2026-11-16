@@ -66,6 +66,21 @@ HermeticDoor__*      the hermetic door (assets/src/props/hermetic_door/): a
                      at the latch and the head, the threshold plate
   __faceFrame        a gallery door's frame on the block's face (no opening
                      behind it): its band 75 mm beyond the leaf, 35 mm deep
+LiftDoors__*         the lift's landing doors (assets/src/props/lift_doors/), in
+                     the lift's frame: x across, y up, z out, the wall's face
+                     at z = -0.075 (`tail_elevators` stands it 7.5 cm off it):
+  __frame            the landing entrance's stainless frame round a 1100 x
+                     2100 mm opening (a 1000 kg car's, ISO 4190), 120 mm at
+                     the jambs and 150 at the head, its face 16 cm out
+  __panel            one of the two centre-opening panels, hairline stainless,
+                     572 x 2094 x 32 mm, centred (the game sets each)
+  __panelForced      the broken lift's panel that was forced: kicked in a
+                     third of the way up, its foot pushed in toward the
+                     shaft (it hangs from its top track; refs 7, 15)
+  __sill             the extruded aluminium sill under them, its two grooves
+  __callPlate        the hall call station's faceplate, 91 x 171 x 6 mm, on
+                     the wall beside the frame, 1065 mm up
+  __button           a 25 mm push button, centred (the game sets two)
 SteelDoor__hinges    three 4-1/2" butt hinges' knuckles at the hinge edge,
                      seen from the side that pulls (the hinge edge on the
                      right from there)
@@ -348,3 +363,67 @@ auto('HermeticDoor__wheel', hermetic_wheel, 480)
 auto('HermeticDoor__wheelFar', hermetic_wheel_far, 200)
 auto('HermeticDoor__frame', hermetic_frame, 600)
 auto('HermeticDoor__faceFrame', hermetic_face_frame, 300)
+
+
+# ------------------------------------------------------------ lift doors --
+# the lift's frame: the wall's face at z = -0.075; the entrance's face 16 cm
+# out, the panels just behind it (the shaft's look takes them there: its
+# cutscene, assets/src/cutscenes/shaft.toml)
+L_WALL, L_FACE = -0.075, 0.16
+L_OW, L_OH = 1.10, 2.10
+L_JAMB, L_HEAD = 0.12, 0.15
+LIFT_CALL_X, LIFT_CALL_Y = 0.80, 1.065
+
+
+def lift_frame():
+    d = L_FACE - L_WALL
+    W, H = L_OW + 2 * L_JAMB, L_OH + L_HEAD
+    s = ring_u(W, H, L_OW, L_OH, d, r=0.003, seg=1)
+    return s.move(y=H / 2, z=(L_FACE + L_WALL) / 2)
+
+
+def lift_panel():
+    return rbox(0.572, 2.094, 0.032, r=0.0015, seg=1)
+
+
+def lift_panel_forced():
+    # a grid sheet to bend: a kick's dent near the leading edge low, the
+    # foot pushed back into the shaft (-z), the leading edge's foot most
+    w, h, t = 0.572, 2.094, 0.032
+    s = slab(w, h, t, nx=6, ny=14)
+
+    def beat(p):
+        u, v = p.x / (w / 2), p.y / (h / 2)
+        p.z -= 0.014 * math.exp(-((u - 0.45) / 0.35) ** 2 - ((v + 0.45) / 0.25) ** 2)
+        p.z -= 0.06 * max(0.0, -v - 0.6) ** 2 * (0.4 + 0.6 * max(0.0, u))
+        return p
+    return noisy(s.warp(beat), 0.0015, scale=6, seed=7)
+
+
+def lift_sill():
+    # the sill under the panels, flush with the floor: its nosing to the
+    # landing, two grooves the panels' gibs run in
+    z0, z1 = 0.110, 0.205
+    out = None
+    for (a, b) in [(z0, 0.120), (0.127, 0.150), (0.157, z1)]:
+        st = box(L_OW, 0.008, b - a).move(y=0.004, z=(a + b) / 2)
+        out = st if out is None else out + st
+    under = box(L_OW, 0.004, z1 - z0).move(y=0.002, z=(z0 + z1) / 2)
+    return out + under
+
+
+def lift_call_plate():
+    s = rbox(0.091, 0.171, 0.006, r=0.002, seg=1)
+    return s.move(x=LIFT_CALL_X, y=LIFT_CALL_Y, z=L_WALL + 0.003)
+
+
+def lift_button():
+    return lathe([(0.0, 0.0), (0.0125, 0.0), (0.0125, 0.003), (0.0105, 0.006), (0.0, 0.0065)], seg=20).rot(x=math.pi / 2)
+
+
+auto('LiftDoors__frame', lift_frame, 300)
+auto('LiftDoors__panel', lift_panel, 100)
+auto('LiftDoors__panelForced', lift_panel_forced, 600)
+auto('LiftDoors__sill', lift_sill, 150)
+auto('LiftDoors__callPlate', lift_call_plate, 150)
+auto('LiftDoors__button', lift_button, 150)

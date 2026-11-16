@@ -1001,48 +1001,52 @@ impl Game {
         let g = group();
         g.set_pos_v(&off_wall(&spot, 0.075));
         g.rotation().y = spot.yaw;
-        // outer frame — battered darker metal
-        let frame_mat = lambert!({ color: 0x2a2e34 });
-        let outer = mesh(pg("Props__brokenElevator_frame", box_geo!(1.7, 2.5, 0.15)), &frame_mat);
-        outer.position().y = 1.25;
-        g.add(&outer);
-        // pitch-black shaft behind the jammed doors
-        let shaft = mesh(box_geo!(1.35, 2.1, 0.06), basic_mat!({ color: 0x000000 }));
-        shaft.set_pos(0, 1.10, 0.10);
+        // (its doors held to their rule: `assets/src/props/lift_doors/`, "broken lift")
+        let _ = self.place_by_layout("lift_doors", "broken lift", spot.pos.x, spot.pos.z);
+        // the landing entrance, the asset pipeline's (`core_props::doors`,
+        // `assets/src/props/lift_doors/`); its panels jammed apart on the black
+        // between them (the shaft's look takes the gap from x -0.075 to 0.47,
+        // the black at z 0.10: `assets/src/cutscenes/shaft.toml`)
+        use crate::core_props::doors::{LIFT_FACE, LIFT_FRAME_HALF, LIFT_PANEL_W, LIFT_PANEL_Y, LIFT_PANEL_Z};
+        crate::core_props::doors::lift_entrance(&g);
+        let shaft = mesh(box_geo!(1.10, 2.1, 0.06), basic_mat!({ color: 0x000000 }));
+        shaft.set_pos(0, 1.05, 0.10);
         g.add(&shaft);
-        // two doors wedged half-open — left mostly closed, right mostly open
-        let door_mat = lambert!({ color: 0x5a5f65, emissive: 0x0a0d10 });
-        let door_l = mesh(pg("Props__brokenElevator_doorL", box_geo!(0.65, 2.05, 0.05)), &door_mat);
-        door_l.set_pos(-0.40, 1.05, 0.13);
+        // the left one most of the way shut, the right one slid further back,
+        // the most of it in its pocket behind the jamb (what shows of it, and
+        // the frame's depth: no more of it than that)
+        let door_l = crate::core_props::doors::lift_panel_forced();
+        door_l.set_pos(-0.075 - LIFT_PANEL_W / 2.0, LIFT_PANEL_Y, LIFT_PANEL_Z);
         g.add(&door_l);
-        let door_r = mesh(pg("Props__brokenElevator_doorR", box_geo!(0.30, 2.05, 0.05)), &door_mat);
-        door_r.set_pos(0.62, 1.05, 0.13);
+        let door_r = crate::core_props::doors::lift_panel();
+        let wr = LIFT_FRAME_HALF - 0.47;
+        door_r.scale().x = wr / LIFT_PANEL_W;
+        door_r.set_pos(0.47 + wr / 2.0, LIFT_PANEL_Y, LIFT_PANEL_Z);
         g.add(&door_r);
-        // dents on both doors
+        // (its dents are the forced panel's own now, kicked in and its foot
+        // pushed back: the five dents drawn on it keep their draws)
         for _ in 0..5 {
-            let dent = mesh(sphere_geo!(rand2(0.06, 0.1), 6, 4), lambert!({ color: 0x1a1c22 }));
-            dent.scale().set(1, 1, 0.15);
-            let side = choice(&[door_l.clone(), door_r.clone()]);
-            dent.set_pos(rand2(-0.25, 0.25), rand2(-0.7, 0.7), 0.032);
-            side.add(&dent);
+            let _ = rand2(0.06, 0.1);
+            let _ = choice(&[0, 1]);
+            let _ = (rand2(-0.25, 0.25), rand2(-0.7, 0.7));
         }
-        // dangling wires from the top of the shaft
+        // dangling wires in the black, before it (they hung inside it)
         let wire_mat = lambert!({ color: 0x2a1a08 });
         for _ in 0..4 {
             let wire = mesh(pg("Props__brokenElevator_wire", cyl_geo!(0.006, 0.006, rand2(0.4, 0.9), 4)), &wire_mat);
-            wire.set_pos(rand2(-0.4, 0.4), 1.85 - rand2(0.0, 0.4), 0.11);
+            wire.set_pos(rand2(-0.4, 0.4), 1.85 - rand2(0.0, 0.4), 0.135);
             wire.rotation().z = rand2(-0.15, 0.15);
             g.add(&wire);
         }
-        // red emergency warning bar above the doors
-        let warn_bar = mesh(box_geo!(1.5, 0.08, 0.04), basic_mat!({ color: 0xff2020 }));
-        warn_bar.set_pos(0, 2.28, 0.11);
+        // red emergency warning bar over the frame
+        let warn_bar = mesh(box_geo!(1.2, 0.08, 0.04), basic_mat!({ color: 0xff2020 }));
+        warn_bar.set_pos(0, 2.31, 0.12);
         g.add(&warn_bar);
         // pulsing red glow in front of the shaft (driven by `update_broken_elevator`)
         let red_light = point_light!(0xff2020, 0, 4, 1.8);
         red_light.set_pos(0, 2.28, 0.4);
         g.add(&red_light);
-        // hand-written out-of-service placard
+        // written across the gap, on the panels
         let oos = mesh(
             plane_geo!(1.0, 0.22),
             basic_mat!({
@@ -1053,30 +1057,32 @@ impl Game {
                 transparent: true,
             }),
         );
-        oos.set_pos(0, 1.9, 0.14);
+        oos.set_pos(0, 1.9, LIFT_FACE - 0.003);
         g.add(&oos);
-        // the side call panel is dead
-        let panel = mesh(pg("Props__elevator_callPanel", box_geo!(0.15, 0.28, 0.03)), lambert!({ color: 0x1a1a1a }));
-        panel.set_pos(0.94, 1.4, 0.12);
-        g.add(&panel);
-        let dead_btn = mesh(pg("Props__elevator_button", cyl_geo!(0.03, 0.03, 0.01, 12)), lambert!({ color: 0x3a3025 }));
-        dead_btn.rotation().x = PI / 2.0;
-        dead_btn.set_pos(0.94, 1.4, 0.14);
-        g.add(&dead_btn);
-        // scorch marks around the door edges
-        let scorch_tex = canvas_tex_opt(64, 64, false, |ctx, w, h| {
+        // its call station dead
+        crate::core_props::doors::lift_call_station(&g, false);
+        // scorch marks round its edges, on the frame's face
+        // (soot: soft and round, thickest at the frame's edges; a blotch's
+        // centres were two, and drew shards across the panels)
+        let scorch_tex = canvas_tex_opt(64, 128, false, |ctx, w, h| {
             ctx.set_fill_style("rgba(0,0,0,0)");
             ctx.fill_rect(0, 0, w, h);
-            for _ in 0..12 {
-                let grad = ctx.create_radial_gradient(rand1(w), rand1(h), 2, rand1(w), rand1(h), rand2(8.0, 22.0));
-                grad.add_color_stop(0, "rgba(10,10,10,0.85)");
-                grad.add_color_stop(1, "rgba(10,10,10,0)");
+            for i in 0..14 {
+                let (x, y) = if i % 2 == 0 {
+                    (if rnd() < 0.5 { rand1(w * 0.18) } else { w - rand1(w * 0.18) }, rand1(h))
+                } else {
+                    (rand1(w), rand1(h * 0.12))
+                };
+                let r = rand2(8.0, 20.0);
+                let grad = ctx.create_radial_gradient(x, y, 0, x, y, r);
+                grad.add_color_stop(0, "rgba(12,11,10,0.55)");
+                grad.add_color_stop(1, "rgba(12,11,10,0)");
                 ctx.set_fill_style(&grad);
-                ctx.fill_rect(0, 0, w, h);
+                ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
             }
         });
-        let scorch = mesh(plane_geo!(1.6, 2.2), basic_mat!({ map: scorch_tex, transparent: true }));
-        scorch.set_pos(0, 1.1, 0.14);
+        let scorch = mesh(plane_geo!(1.4, 2.3), basic_mat!({ map: scorch_tex, transparent: true }));
+        scorch.set_pos(0, 1.12, LIFT_FACE + 0.002);
         g.add(&scorch);
         self.world.add(&g);
         // ---- bloody handprints trailing along the wall away from the shaft ----
@@ -1338,6 +1344,8 @@ impl Game {
             built.g.set_pos_v(&off_wall(&spot, 0.075));
             built.g.rotation().y = spot.yaw;
             self.world.add(&built.g);
+            // (its doors held to their rule: `assets/src/props/lift_doors/`, "lift")
+            let _ = self.place_by_layout("lift_doors", "lift", spot.pos.x, spot.pos.z);
             if functional {
                 let mut use_pos = off_wall(&spot, 1.0);
                 use_pos.y = EYE;

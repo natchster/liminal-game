@@ -235,13 +235,10 @@ impl Game {
     fn usable_dead_lift(&mut self, o: &Obj, r: &mut SplitMix64) {
         let passes = r.next() < LIFT_PASSES;
         o.update_world_matrix(true, true);
-        let buttons: Vec<Obj> = o
-            .children()
-            .into_iter()
-            .filter(|c| c.is_mesh() && (c.pos().x - 0.88).abs() < 0.02 && c.pos().y > 1.3 && c.pos().y < 1.5 && c.pos().z > 0.09)
-            .collect();
-        let pos = o.local_to_world(&v3(0.88, 1.4, 0.7));
-        let at = o.local_to_world(&v3(0.88, 1.4, 0.1));
+        let buttons: Vec<Obj> = o.children().into_iter().filter(|c| c.name() == "lift-button").collect();
+        let (cx, cy) = crate::core_props::doors::LIFT_CALL;
+        let pos = o.local_to_world(&v3(cx, cy, 0.7));
+        let at = o.local_to_world(&v3(cx, cy, -0.06));
         let shaft = o.local_to_world(&v3(0.0, 1.2, -0.3));
         self.interact(
             pos,

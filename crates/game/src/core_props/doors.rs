@@ -619,3 +619,109 @@ pub fn rubber() -> Mat {
 pub fn part_geo(name: &str) -> Geo {
     part(name)
 }
+
+// -------------------------------------------------------------- lift doors
+/// The lift's landing entrance (`LiftDoors__*`, in the lift's frame: the
+/// wall's face 7.5 cm behind its origin): the frame's face, the panels'
+/// middle (their faces 5 mm behind the frame's), a panel's size and middle
+/// height, the opening's half width, the frame's outer half width
+pub const LIFT_FACE: f64 = 0.16;
+pub const LIFT_PANEL_W: f64 = 0.572;
+pub const LIFT_PANEL_Z: f64 = LIFT_FACE - 0.005 - 0.016;
+pub const LIFT_PANEL_Y: f64 = 0.006 + 2.094 / 2.0;
+pub const LIFT_OPEN_HALF: f64 = 0.55;
+pub const LIFT_FRAME_HALF: f64 = 0.67;
+/// The hall call station: its middle on the wall beside the frame, and its
+/// buttons (up, down) about it; a button is named `lift-button`
+pub const LIFT_CALL: (f64, f64) = (0.80, 1.065);
+const LIFT_WALL_Z: f64 = -0.075;
+const LIFT_BUTTONS: [f64; 2] = [0.035, -0.035];
+
+thread_local! {
+    static HAIRLINE: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
+}
+
+/// Hairline stainless (`assets/src/props/lift_doors/references.toml`, its
+/// palette), as a panel's face takes it whole: fine vertical lines, hands'
+/// prints at hand height toward the middle where they meet, scuffs low
+fn hairline_tex() -> Tex {
+    HAIRLINE.with(|c| {
+        c.get_or_init(|| {
+            canvas_tex_opt(256, 512, false, |ctx, w, h| {
+                ctx.set_fill_style("#8c8e92");
+                ctx.fill_rect(0, 0, w, h);
+                for _ in 0..420 {
+                    let x = rnd() * w;
+                    ctx.set_fill_style(if rnd() < 0.5 { "rgba(255,255,255,0.06)" } else { "rgba(30,32,36,0.06)" });
+                    ctx.fill_rect(x, 0, 0.6 + rnd() * 1.2, h);
+                }
+                // the light down it, as a brushed sheet takes a ceiling's
+                let g = ctx.create_linear_gradient(0, 0, 0, h);
+                g.add_color_stop(0.0, "rgba(255,255,255,0.08)");
+                g.add_color_stop(0.6, "rgba(0,0,0,0)");
+                g.add_color_stop(1.0, "rgba(20,20,24,0.10)");
+                ctx.set_fill_style(&g);
+                ctx.fill_rect(0, 0, w, h);
+                // prints, 1.0-1.4 m up (0.33-0.52 down the texture), at both edges
+                for _ in 0..26 {
+                    let x = if rnd() < 0.5 { w * rnd() * 0.25 } else { w * (1.0 - rnd() * 0.25) };
+                    let y = h * (0.33 + rnd() * 0.19);
+                    let r = 4.0 + rnd() * 7.0;
+                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+                    gr.add_color_stop(0.0, "rgba(60,58,52,0.14)");
+                    gr.add_color_stop(1.0, "rgba(60,58,52,0)");
+                    ctx.set_fill_style(&gr);
+                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+                }
+                // scuffs at kick height
+                for _ in 0..16 {
+                    let (x, y) = (rnd() * w, h * (0.86 + rnd() * 0.1));
+                    ctx.set_fill_style(format!("rgba(40,40,40,{:.3})", 0.06 + rnd() * 0.10));
+                    ctx.fill_rect(x, y, 8.0 + rnd() * 30.0, 1.0 + rnd() * 2.0);
+                }
+            })
+        })
+        .clone()
+    })
+}
+
+/// Hairline stainless (the panels, the frame, the call station)
+pub fn hairline() -> Mat {
+    phong!({ color: 0xffffff, map: &hairline_tex(), specular: 0x8e8e8c, shininess: 42 })
+}
+
+/// The lift's landing entrance on the wall at `g`'s origin: its stainless
+/// frame and its aluminium sill
+pub fn lift_entrance(g: &Obj) {
+    add(g, &part("LiftDoors__frame"), &phong!({ color: 0x909295, specular: 0x7a7a78, shininess: 40 }));
+    add(g, &part("LiftDoors__sill"), &phong!({ color: 0x7c7c78, specular: 0x4a4a48, shininess: 24 }));
+}
+
+/// One of its two panels, centred (its maker sets it)
+pub fn lift_panel() -> Obj {
+    mesh(part("LiftDoors__panel"), hairline())
+}
+/// The broken lift's panel that was forced: kicked in, its foot pushed
+/// toward the shaft, hanging from its top track
+pub fn lift_panel_forced() -> Obj {
+    mesh(part("LiftDoors__panelForced"), hairline())
+}
+
+/// The hall call station beside the frame: its faceplate and its two
+/// buttons, lit (`lit`) where the lift still comes; the buttons are named
+/// `lift-button` and returned
+pub fn lift_call_station(g: &Obj, lit: bool) -> Vec<Obj> {
+    add(g, &part("LiftDoors__callPlate"), &phong!({ color: 0x909295, specular: 0x7a7a78, shininess: 40 }));
+    let mat = if lit { lambert!({ color: 0xf0d090, emissive: 0x2a2010 }) } else { lambert!({ color: 0x3a3025 }) };
+    let button = part("LiftDoors__button");
+    LIFT_BUTTONS
+        .iter()
+        .map(|dy| {
+            let b = mesh(&button, &mat);
+            b.set_name("lift-button");
+            b.position().set(LIFT_CALL.0, LIFT_CALL.1 + dy, LIFT_WALL_Z + 0.006);
+            g.add(&b);
+            b
+        })
+        .collect()
+}

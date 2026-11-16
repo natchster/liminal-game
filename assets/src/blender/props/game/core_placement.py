@@ -1198,46 +1198,10 @@ part('Props__window_muntinH', f_box(1.4, 0.04, 0.03), lambda: side_prism([(z, y)
 
 
 # --------------------------------------------------------------- elevator --
-def casing(W, H, ow, oh, d, band=0.02, dent=0.0, seed=0):
-    """Steel surround: U-frame around an ow×oh opening from the floor, a
-    raised face band, a far back panel; `dent` adds battering."""
-    base = ring_u(W, H, ow, oh, d - 0.02, r=0.006, seg=1).move(z=-0.01)
-    face = ring_u(W - 0.02, H - 0.01, ow + 2 * band, oh + band, 0.03, r=0.008, seg=2).move(y=-0.005, z=d / 2 - 0.015)
-    back = box(ow + 0.02, oh + 0.01, 0.01).move(y=-H / 2 + (oh + 0.01) / 2, z=-d / 2 + 0.005)
-    s = base + face + back
-    if dent:
-        s = noisy(s, dent, scale=3, seed=seed)
-    return F(s, f_box(W, H, d))
-
-part('Props__elevator_frame', f_box(1.6, 2.4, 0.15), lambda: casing(1.6, 2.4, 1.44, 2.1, 0.15))
-
-
-def elevator_door(w, h, dent=0.0, seed=0):
-    s = rbox(w, h, 0.05, r=0.004, seg=1)
-    s = cut(s, box(w + 0.01, 0.004, 0.006).move(y=-h / 2 + 0.3, z=0.025),
-            box(w + 0.01, 0.004, 0.006).move(y=h / 2 - 0.12, z=0.025))
-    if dent:
-        s = noisy(subdivide(grid_box(w, h, 0.05, 6), 0) if False else s, dent, scale=4, seed=seed)
-    return F(s, f_box(w, h, 0.05))
-
-part('Props__elevator_door', f_box(0.7, 2.05, 0.05), lambda: elevator_door(0.7, 2.05))
+# (its frame, doors, call panel, buttons and strip: the asset pipeline's
+# now, doors.py LiftDoors__*; its dark indicator stays here)
 part('Props__elevator_display', f_box(0.5, 0.12, 0.02),
      lambda: cut(rbox(0.5, 0.12, 0.02, r=0.008, seg=2), box(0.46, 0.09, 0.01).move(z=0.01)))
-
-
-def call_panel():
-    s = bevel(box(0.15, 0.28, 0.027), 0.005, seg=1).move(z=-0.0015)
-    for sy in (-1, 1):
-        s = s + screw_head(0.005, 0.0025).rot(x=math.pi / 2).move(y=sy * 0.12, z=0.012)
-    return s
-
-part('Props__elevator_callPanel', f_box(0.15, 0.28, 0.03), call_panel)
-part('Props__elevator_button', f_cyl(0.03, 0.03, 0.01),
-     lambda: lathe([(0, -0.005), (0.03, -0.005), (0.03, -0.002), (0.028, 0.0), (0.023, 0.0), (0.022, 0.003),
-                    (0.02, 0.0045), (0.012, 0.005), (0, 0.005)], seg=20))
-part('Props__elevator_strip', f_box(1.5, 0.04, 0.03),
-     lambda: side_prism([(-0.015, -0.02), (-0.015, 0.02), (0.005, 0.02), (0.013, 0.014), (0.015, 0.0),
-                         (0.013, -0.014), (0.005, -0.02)], 1.5))
 
 
 # ------------------------------------------------------------ paper pile --
@@ -1510,23 +1474,7 @@ part('Props__safeRoom_benchLeg', f_box(0.06, 0.42, 0.24), bench_leg)
 
 
 # ------------------------------------------------------- broken elevator --
-part('Props__brokenElevator_frame', f_box(1.7, 2.5, 0.15), lambda: casing(1.7, 2.5, 1.35, 2.1, 0.15, dent=0.004, seed=5))
-
-
-def battered_door(w, h, seed):
-    s = grid_box(w, h, 0.05, 7)
-
-    def beat(p):
-        u, v = p.x / (w / 2), p.y / (h / 2)
-        if p.z > 0:
-            p.z -= 0.012 * math.exp(-((u - 0.2) / 0.5) ** 2 - ((v + 0.1) / 0.3) ** 2)    # kicked-in dent
-        p.z += 0.03 * max(0.0, -v - 0.7) ** 2 * max(0.0, u)                        # bottom corner peeled out
-        return p
-    s = noisy(s.warp(beat), 0.004, scale=6, seed=seed)
-    return F(s, f_box(w, h, 0.05))
-
-part('Props__brokenElevator_doorL', f_box(0.65, 2.05, 0.05), lambda: battered_door(0.65, 2.05, 1), smooth=50)
-part('Props__brokenElevator_doorR', f_box(0.30, 2.05, 0.05), lambda: battered_door(0.30, 2.05, 2), smooth=50)
+# (its frame and doors: the asset pipeline's now, doors.py LiftDoors__*)
 part('Props__brokenElevator_wire', f_cyl(0.006, 0.006, 0.65),
      lambda: tube([(0.004 * math.sin(i * 0.8), 0.325 - 0.65 * i / 9, 0.003 * math.cos(i * 1.1)) for i in range(10)],
                   0.006, seg=6, smooth=1, r_end=0.0035), smooth=60)

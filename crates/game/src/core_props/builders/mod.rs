@@ -4,7 +4,7 @@
 use crate::base::records::Drawer;
 use crate::core_props::{Built, PropsCtx};
 use crate::prelude::*;
-use crate::visuals::textures::{HandOpts, TextTexOpts, handwritten_tex, text_tex};
+use crate::visuals::textures::{HandOpts, handwritten_tex};
 use std::collections::HashMap;
 
 mod books;
@@ -35,10 +35,6 @@ pub(crate) fn attach(parent: &Obj, object: &Obj) {
 /// `handwritten_tex` options from the usual few fields
 fn hand(color: &str, thickness: f64, jitter: f64, wobble: f64, w: f64, h: f64) -> HandOpts {
     HandOpts { color: color.into(), thickness, jitter, wobble, w, h, ..Default::default() }
-}
-/// `text_tex(text, ..)` with size, font, colour and glow
-fn ttex(text: &str, w: f64, h: f64, font: &str, color: &str, glow: f64) -> Tex {
-    text_tex(text, &TextTexOpts { w, h, font: font.into(), color: color.into(), glow, ..Default::default() })
 }
 
 /// Three drawers that slide out on use (`drawers`)
@@ -1318,72 +1314,33 @@ fn ceiling_tile_tex() -> Tex {
 
 /// Two doors set in wall, call button, floor indicator
 pub fn build_elevator(g: &mut Game, cx: &mut PropsCtx, functional: bool) -> Built {
-    let _ = cx;
+    use crate::core_props::doors::{LIFT_FACE, LIFT_PANEL_W, LIFT_PANEL_Y, LIFT_PANEL_Z};
+    let _ = (g, cx);
     let eg = group();
-    // frame around
-    let outer = mesh(pg("Props__elevator_frame", box_geo!(1.6, 2.4, 0.15)), lambert!({ color: 0x3a3f45 }));
-    outer.position().y = 1.2;
-    eg.add(&outer);
-    // two doors that meet in the middle
-    let door_mat = lambert!({ color: 0x6a7078, emissive: 0x101215 });
+    // the landing entrance, the asset pipeline's (`core_props::doors`,
+    // `assets/src/props/lift_doors/`): its frame and sill, and its two
+    // panels shut, meeting in the middle
+    crate::core_props::doors::lift_entrance(&eg);
     for s in [-1.0, 1.0] {
-        let door = mesh(pg("Props__elevator_door", box_geo!(0.7, 2.05, 0.05)), &door_mat);
-        door.position().set(s * 0.36, 1.05, 0.08);
-        eg.add(&door);
-        // subtle seam highlight
-        let seam = mesh(box_geo!(0.005, 2.0, 0.01), &g.mats.dark);
-        seam.position().set(s * 0.005, 1.05, 0.11);
-        eg.add(&seam);
+        let p = crate::core_props::doors::lift_panel();
+        p.position().set(s * (LIFT_PANEL_W / 2.0 + 0.0015), LIFT_PANEL_Y, LIFT_PANEL_Z);
+        eg.add(&p);
     }
-    // floor number indicator (small LED display above doors)
+    // its position indicator over it, dark: it shows no floor (`LORE.md`:
+    // where a car goes is never said); the floor it once showed keeps its draw
     let display = mesh(pg("Props__elevator_display", box_geo!(0.5, 0.12, 0.02)), lambert!({ color: 0x1a1a1a }));
-    display.position().set(0, 2.32, 0.09);
+    display.position().set(0, 2.32, LIFT_FACE - 0.012);
     eg.add(&display);
-    let num_text = if functional { fmt_num(irand(1, 9) as f64) } else { "--".to_string() };
-    let display_num = mesh(
-        plane_geo!(0.44, 0.08),
-        basic_mat!({
-            map: ttex(&num_text, 128.0, 64.0, "bold 44px \"Courier New\", monospace", if functional { "#f04010" } else { "#603010" }, 6.0),
-            transparent: true,
-        }),
-    );
-    display_num.position().set(0, 2.32, 0.10);
-    eg.add(&display_num);
-    // call button panel to the right
-    let panel = mesh(pg("Props__elevator_callPanel", box_geo!(0.15, 0.28, 0.03)), lambert!({ color: 0x2a2f35 }));
-    panel.position().set(0.88, 1.4, 0.08);
-    eg.add(&panel);
-    // up/down buttons (chrome triangles)
-    let btn_mat = lambert!({
-        color: if functional { 0xf0d090u32 } else { 0x3a3025 },
-        emissive: if functional { 0x2a2010u32 } else { 0x000000 },
-    });
-    for b in 0..2 {
-        let btn = mesh(pg("Props__elevator_button", cyl_geo!(0.03, 0.03, 0.01, 12)), &btn_mat);
-        btn.rotation().x = PI / 2.0;
-        btn.position().set(0.88, 1.5 - b as f64 * 0.15, 0.10);
-        eg.add(&btn);
+    if functional {
+        let _ = irand(1, 9);
     }
-    // out-of-service sign hanging over non-functional elevators
+    // the call station beside it, its buttons lit where the lift still comes
+    crate::core_props::doors::lift_call_station(&eg, functional);
+    // (a dead one carries no notice: pressing its button is how it is
+    // found dead; the notice's tilt keeps its draw)
     if !functional {
-        let sign = mesh(
-            plane_geo!(1.2, 0.28),
-            basic_mat!({
-                map: handwritten_tex("OUT OF SERVICE", &HandOpts {
-                    color: "rgba(160,30,20,0.98)".into(), thickness: 8.0, jitter: 2.2, wobble: 1.6,
-                    w: 1024.0, h: 220.0, double_stroke: true, drip: true, ..Default::default()
-                }),
-                transparent: true,
-            }),
-        );
-        sign.position().set(0, 1.6, 0.11);
-        sign.rotation().z = rand2(-0.05, 0.05);
-        eg.add(&sign);
+        let _ = rand2(-0.05, 0.05);
     }
-    // brushed strip above doors
-    let strip = mesh(pg("Props__elevator_strip", box_geo!(1.5, 0.04, 0.03)), &g.mats.chrome);
-    strip.position().set(0, 2.13, 0.09);
-    eg.add(&strip);
     Built::new(eg, 2.4)
 }
 

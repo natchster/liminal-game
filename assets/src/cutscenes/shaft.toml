@@ -4,8 +4,9 @@
 # a cable scrapes far up, a breath comes from far down; two points of
 # eyeshine open low in the black, and are gone with a clank; you start
 # back, and your eyes are yours again. The thing is the lift's frame: x to
-# its right, y up, z out of its face (its doors at z 0.13, the black at
-# z 0.10, the gap between the doors from x -0.075 to 0.47).
+# its right, y up, z out of its face (its doors' middle at z 0.14, the
+# frame's face at 0.16, the black at z 0.10, the gap between the doors from
+# x -0.075 to 0.47: `core_props::doors`, the lift doors).
 id = "shaft"
 about = "Looking into a broken lift's shaft: the black, a breath, what looks back"
 world = "live"
