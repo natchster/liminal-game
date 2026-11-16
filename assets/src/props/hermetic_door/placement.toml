@@ -1,0 +1,16 @@
+# Where the hermetic door stands, and why (docs/design/ASSETS.md, *Things
+# the layout makes*): the Building's dressing makes it in every cell's
+# front and along the Well's galleries (`world::building_dress`).
+by = "layout"
+count = [1, 200]
+levels = [1, 3]
+
+[[rule]]
+at = "cell"
+purposes = ["well", "stair halls", "works"]
+why = "a cell was cut into the building to be shut against what comes, and its door is a shelter's"
+
+[[rule]]
+at = "gallery"
+purposes = ["well"]
+why = "the block's flats open onto its galleries, every front door a shelter's, sealed from inside by whoever still lives there"

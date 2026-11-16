@@ -45,6 +45,27 @@ SteelDoor__plaque    an engraved two-layer plastic plaque, 203 x 51 x 1.6 mm
 SteelDoor__pushBar   a rim exit device across the push side: the mechanism
                      case at the latch edge, the touch bar, the end cap at
                      the hinge edge, its centreline 1011 mm up
+HermeticDoor__*      the hermetic door (assets/src/props/hermetic_door/): a
+                     Soviet shelter's ДУ-IV-2-sized steel door, its leaf in the
+                     frame of its hinge (x from the hinge axis across it, y
+                     up from the floor, z out of its outer face's side):
+  __leaf             the steel leaf, 1240 x 2060 x 90 mm, its outer face plain
+                     plate, its edges eased (its hatch, marks and tape lie on
+                     that face: they are the game's)
+  __inner            its inner face (a cell's, seen from inside): the rib grid
+                     of channels, the gearbox the wheel turns, the screw rods
+                     to the wedges at its head and foot
+  __seal             the rubber seal round the inner face's edge
+  __hinges           its two heavy hinges on the axis, their pins and straps
+  __wheel            the hand wheel in its own frame (axis z, its hub's foot
+                     at z = 0): a 420 mm rim, four spokes, the hub and nut
+  __wheelFar         the same, lighter, for the storeys across the void
+  __frame            a cell's frame in its opening (1.3 x 2.1 m through a
+                     0.3 m wall; centred, z out of the walk side): the lining,
+                     the face band on the walk side, the stop on the cell side
+                     at the latch and the head, the threshold plate
+  __faceFrame        a gallery door's frame on the block's face (no opening
+                     behind it): its band 75 mm beyond the leaf, 35 mm deep
 SteelDoor__hinges    three 4-1/2" butt hinges' knuckles at the hinge edge,
                      seen from the side that pulls (the hinge edge on the
                      right from there)
@@ -211,3 +232,119 @@ auto('SteelDoor__leaf', steel_leaf, 200)
 auto('SteelDoor__plaque', steel_plaque, 200)
 auto('SteelDoor__pushBar', steel_push_bar, 600)
 auto('SteelDoor__hinges', steel_hinges, 700)
+
+
+# --------------------------------------------------------- hermetic door --
+# the leaf in its hinge's frame (the game's `door_leaf`): x from the hinge
+# axis, y from the floor, z out of the outer face's side
+H_LW, H_LH, H_T, H_Y0 = 1.24, 2.06, 0.09, 0.02
+H_WHEEL_Y = 1.05
+
+
+def hermetic_leaf():
+    s = rbox(H_LW, H_LH, H_T, r=0.008, seg=1)
+    return s.move(x=H_LW / 2, y=H_Y0 + H_LH / 2)
+
+
+def hermetic_inner():
+    zf = -H_T / 2                       # the inner face
+    out = None
+    def add(sh):
+        nonlocal out
+        out = sh if out is None else out + sh
+    # the rib grid: channels round the edge, two across, two up
+    c = 0.05
+    d = 0.035
+    for (w, h, x, y) in [(H_LW, c, H_LW / 2, H_Y0 + c / 2), (H_LW, c, H_LW / 2, H_Y0 + H_LH - c / 2),
+                         (c, H_LH - 2 * c, c / 2, H_Y0 + H_LH / 2), (c, H_LH - 2 * c, H_LW - c / 2, H_Y0 + H_LH / 2),
+                         (H_LW - 2 * c, c, H_LW / 2, 0.58), (H_LW - 2 * c, c, H_LW / 2, 1.58),
+                         (c, H_LH - 2 * c, 0.31, H_Y0 + H_LH / 2), (c, H_LH - 2 * c, 0.93, H_Y0 + H_LH / 2)]:
+        add(rbox(w, h, d, r=0.004, seg=1).move(x=x, y=y, z=zf - d / 2))
+    # the gearbox the wheel turns, and its rods to the wedges at head and foot
+    gz = zf - 0.03
+    add(rbox(0.17, 0.17, 0.06, r=0.012, seg=1).move(x=H_LW / 2, y=H_WHEEL_Y, z=gz))
+    for (y0, y1) in [(H_WHEEL_Y + 0.085, H_Y0 + H_LH - 0.09), (H_Y0 + 0.09, H_WHEEL_Y - 0.085)]:
+        add(cyl(0.013, 0.013, y1 - y0, seg=8).move(x=H_LW / 2, y=(y0 + y1) / 2, z=gz))
+    for y in (H_Y0 + H_LH - 0.06, H_Y0 + 0.06):
+        add(rbox(0.13, 0.07, 0.05, r=0.006, seg=1).move(x=H_LW / 2, y=y, z=gz))
+    return out
+
+
+def hermetic_seal():
+    w, h = H_LW - 0.004, H_LH - 0.004
+    ring = ring_u(w, h, w - 0.06, h - 0.06, 0.012, r=0.0, seg=1)
+    # (closed at the foot: a ring, not a casing)
+    foot = box(w, 0.03, 0.012).move(y=-h / 2 + 0.015)
+    return (ring + foot).move(x=H_LW / 2, y=H_Y0 + H_LH / 2, z=-H_T / 2 - 0.006)
+
+
+def hermetic_hinges():
+    out = None
+    for yc in (0.45, 1.85):
+        barrel = cyl(0.032, 0.032, 0.20, seg=12, bevel_r=0.004)
+        pin = cyl(0.014, 0.014, 0.26, seg=8)
+        strap = rbox(0.32, 0.07, 0.012, r=0.003, seg=1).move(x=0.16 + 0.02, z=-H_T / 2 - 0.006)
+        h = (barrel + pin + strap).move(y=yc)
+        out = h if out is None else out + h
+    return out
+
+
+def hermetic_wheel():
+    R, r = 0.21 - 0.0125, 0.0125
+    rim = torus(R, r, seg=20, tseg=5).move(z=0.048)
+    hub = cyl(0.036, 0.036, 0.05, seg=10, bevel_r=0.004).rot(x=math.pi / 2).move(z=0.025)
+    nut = cyl(0.016, 0.016, 0.012, seg=6).rot(x=math.pi / 2).move(z=0.056)
+    spokes = None
+    for k in range(4):
+        a = k * math.pi / 2 + math.pi / 4
+        sp = tube([(math.cos(a) * 0.03, math.sin(a) * 0.03, 0.040), (math.cos(a) * R, math.sin(a) * R, 0.048)], 0.010, seg=5)
+        spokes = sp if spokes is None else spokes + sp
+    return rim + hub + nut + spokes
+
+
+# a cell's opening (`level::building`: CELL_DOOR x CELL_DOOR_H through
+# CELL_FRONT), the frame centred in the wall, z out of the walk side
+C_W, C_H, C_D = 1.3, 2.1, 0.3
+
+
+def hermetic_frame():
+    lining = ring_u(C_W + 0.01, C_H + 0.005, C_W - 0.01, C_H - 0.005, C_D, r=0.002, seg=1).move(y=(C_H + 0.005) / 2)
+    band = ring_u(C_W + 0.15, C_H + 0.075, C_W - 0.01, C_H - 0.005, 0.008, r=0.002, seg=1)
+    band = band.move(y=(C_H + 0.075) / 2, z=C_D / 2 + 0.004)
+    stop_latch = rbox(0.05, C_H - 0.06, 0.02, r=0.003, seg=1).move(x=C_W / 2 - 0.03, y=(C_H - 0.06) / 2, z=-C_D / 2 + 0.01)
+    stop_head = rbox(1.1, 0.05, 0.02, r=0.003, seg=1).move(x=0.08, y=C_H - 0.03, z=-C_D / 2 + 0.01)
+    sill = box(C_W - 0.01, 0.006, C_D).move(y=0.003)
+    return lining + band + stop_latch + stop_head + sill
+
+
+def hermetic_face_frame():
+    # round the leaf (the game sets its hinge 0.62 m left of the middle):
+    # the band 75 mm beyond it, 35 mm off the face; the leaf laps 33 mm
+    lw2 = H_LW / 2
+    W, H = H_LW + 0.15, H_Y0 + H_LH + 0.075
+    s = ring_u(W, H, H_LW - 0.066, H_LH - 0.066, 0.035, r=0.004, seg=1)
+    foot = box(W, 0.075 + H_Y0, 0.035).move(y=-H / 2 + (0.075 + H_Y0) / 2)
+    return (s + foot).move(y=H / 2, z=0.0175)
+
+
+def hermetic_wheel_far():
+    # the same wheel for the doors of the storeys above and below, across
+    # the void: its rim coarser, its spokes bars, the hub a block
+    R, r = 0.21 - 0.0125, 0.0125
+    rim = torus(R, r, seg=14, tseg=4).move(z=0.048)
+    hub = box(0.07, 0.07, 0.05).move(z=0.025)
+    spokes = None
+    for k in range(2):
+        sp = box(2 * R, 0.02, 0.016).rot(z=k * math.pi / 2 + math.pi / 4).move(z=0.046)
+        spokes = sp if spokes is None else spokes + sp
+    return rim + hub + spokes
+
+
+auto('HermeticDoor__leaf', hermetic_leaf, 200)
+auto('HermeticDoor__inner', hermetic_inner, 900)
+auto('HermeticDoor__seal', hermetic_seal, 200)
+auto('HermeticDoor__hinges', hermetic_hinges, 600)
+auto('HermeticDoor__wheel', hermetic_wheel, 480)
+auto('HermeticDoor__wheelFar', hermetic_wheel_far, 200)
+auto('HermeticDoor__frame', hermetic_frame, 600)
+auto('HermeticDoor__faceFrame', hermetic_face_frame, 300)

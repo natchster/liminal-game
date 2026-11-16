@@ -1,0 +1,362 @@
+# The references of hermetic_door (docs/design/ASSETS.md), gathered on
+# 2026-11-16 by a research agent (its notes: docs/research/doors.md);
+# `cargo xtask asset refs hermetic_door` fetches them into
+# target/asset-refs/hermetic_door/. Its surfaces are painted from its own
+# palette (`core_props::doors`), never sampled from these; the palette is
+# photo-sampled, each photo's light in it.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/2/26/Germa-1.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Germa-1.jpg"
+shows = "the thing: a grey hermetic door (гермодверь) to the shaft of bunker ЧЗ-703, Moscow, standing open about 90 deg in a wide steel frame cast into a concrete wall, with a red 4-spoke handwheel (штурвал) at mid-height and a small red latch lever on the closing edge"
+class = "free"
+licence = "CC BY-SA 4.0, Petr.efimenko"
+sha1 = "d8dcbf99057a8992135051a1c247a4e9b121ede0"
+notes = "Viewed (1920 px thumb). The only free photo found of a Soviet hermetic door worked by a central wheel. Shows a flat leaf face, a 4-spoke wheel with a round rim and a hub nut, the wheel's shadow showing that it stands proud of the face, pale ochre drip streaks running down the grey enamel, a steel floor plate across the threshold, and peeling plaster on the concrete reveal. The wheel size is estimated from this photo."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/0/0a/Door_DG-3.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Door_DG-3.JPG"
+shows = "the thing: a cream hermetic door stencilled ДГ-3 (дверь герметическая) in a missile command post (Strategic Missile Forces Museum, Ukraine), with a red 3-spoke handwheel, red ОТКР/ЗАКР arrows round the wheel, a stencilled register box and a vertical pull handle"
+class = "free"
+licence = "CC BY 3.0, Michael"
+sha1 = "accec1252d3b68a46a9516e5537b775ed409cb2a"
+notes = "Viewed (960 px thumb). Best reference for the stencils: 'ДГ·3', 'ПРИ ОТКРЫТЫХ ДЗГ 1,2 НЕ ОТКРЫВАТЬ!' and a box reading 'Рег.№ 24/028 / Р.раз. 250кгс / Не более 3-х чел. / Ср.оч.осв.', in red on cream. Shows a 3-spoke wheel, a raised panel inside the leaf border, and paint chipped down to a dark undercoat near the handle. The warm tungsten light tints the whole frame orange."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/0/08/Underground_Moscow_museum_-_2026-05_-_p01.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Underground_Moscow_museum_-_2026-05_-_p01.jpg"
+shows = "the thing: a red-brown hermetic door stencilled 'ГЕРМОДВЕРЬ' with a ringed '1', with four wedge-clamp levers (задрайки) painted red, two near the top and two near the bottom, white 0/3 arrows at each lever, and horizontal channel ribs across the face (bunker museum 'Подземная Москва')"
+class = "free"
+licence = "CC0, Александр Сигачёв"
+sha1 = "a22ecf0ff9b7fcdc87c0cf728ea0184a30a2f37f"
+notes = "Viewed (1920 px thumb). Main reference for the lever-clamp type: each lever is a flat bar on a hex boss, with a white arrow marking its open and closed positions. Shows white stencil lettering, the red-brown paint, the leaf set in a steel frame in a rough black-painted wall, and a sign above it reading 'Узел связи (секретный бункер)'."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/4d/Underground_Moscow_museum_-_2026-05_-_p52.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Underground_Moscow_museum_-_2026-05_-_p52.jpg"
+shows = "the thing, inside face: a large hermetic leaf swung open, showing its grid of welded channel ribs (4 x 4 cells), a dark rubber seal in a channel round the leaf perimeter with rounded corners, lever clamps with red handles, a stencilled '№1' on a rib, a dark green-grey steel frame (коробка) round the opening, and heavy barrel hinges with protruding pins"
+class = "free"
+licence = "CC0, Александр Сигачёв"
+sha1 = "2444cba3148914bb30dedeaccf1e4b90ee12fe85"
+notes = "Viewed (1920 px thumb, crops of the leaf edge and the hinges). Best free view of the rib side and the seal channel. The hinge post at the right may be the hinge edge of a second leaf rather than the frame; I cannot tell which from this view. Green-grey paint, worn pins and the seal colour were sampled here."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/75/%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3%2C_%D0%BE%D1%81%D0%BE%D0%B1%D0%BD%D1%8F%D0%BA_%D0%A0%D1%83%D0%BC%D1%8F%D0%BD%D1%86%D0%B5%D0%B2%D0%B0%2C_%D0%B3%D0%B5%D1%80%D0%BC%D0%BE%D0%B4%D0%B2%D0%B5%D1%80%D0%B8.jpg"
+page = "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%B0%D0%BD%D0%BA%D1%82-%D0%9F%D0%B5%D1%82%D0%B5%D1%80%D0%B1%D1%83%D1%80%D0%B3,_%D0%BE%D1%81%D0%BE%D0%B1%D0%BD%D1%8F%D0%BA_%D0%A0%D1%83%D0%BC%D1%8F%D0%BD%D1%86%D0%B5%D0%B2%D0%B0,_%D0%B3%D0%B5%D1%80%D0%BC%D0%BE%D0%B4%D0%B2%D0%B5%D1%80%D0%B8.jpg"
+shows = "the thing: a red-brown hermetic leaf with its steel frame, displayed free-standing in a museum (Rumyantsev mansion, St Petersburg), with four L-shaped wedge-clamp levers (two on each vertical edge, near the top and bottom), a small grab handle, and the ribbed frame section visible edge-on"
+class = "free"
+licence = "CC BY-SA 4.0, Nikolai Bulykin"
+sha1 = "d77c1cf24d91f77ce10a0c1440354593067c7fa2"
+notes = "Viewed (1920 px thumb). Shows an older type with lever clamps on the leaf face, no wheel. Several coats of red-brown paint are visible, with drips and a rough brushed texture. The frame shows the receiving wedges and the cross ribs of its section. The red-brown paint was sampled here."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/a/ac/%D0%A2%D0%B0%D0%B3%D0%B0%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_%D0%97%D0%9A%D0%9F_%D0%B3%D0%B5%D1%80%D0%BC%D0%B5%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D0%B4%D0%B2%D0%B5%D1%80%D1%8C.JPG"
+page = "https://commons.wikimedia.org/wiki/File:%D0%A2%D0%B0%D0%B3%D0%B0%D0%BD%D1%81%D0%BA%D0%B8%D0%B9_%D0%97%D0%9A%D0%9F_%D0%B3%D0%B5%D1%80%D0%BC%D0%B5%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B0%D1%8F_%D0%B4%D0%B2%D0%B5%D1%80%D1%8C.JPG"
+shows = "a place with one: two green hermetic doors in series in a green-painted passage of Bunker-42 (Taganka command post, Moscow), with clamp levers on the leaf, the frame flush in the wall, and a red stencilled number on the wall beside the door"
+class = "free"
+licence = "CC BY-SA 3.0, Карма2"
+sha1 = "fbb6c407393bec4b94871c39ef7f58ea3d63c582"
+notes = "Viewed (1024 px original). Shows a door painted green to match the walls rather than the grey of the rules, which shows that real paint colours vary. Also shows a red wall number, worn paint at the leaf edges, and a second door visible through the first (an airlock pair). Flash photo at low resolution."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/6/61/Strategic_Missile_Forces_Museum_-_heavy_door_gets_opened.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Strategic_Missile_Forces_Museum_-_heavy_door_gets_opened.JPG"
+shows = "the thing: a cream protective-hermetic door stencilled 'ДЗГ-1', 'ВНИМАНИЕ!' and 'НЕ СТОЙ В СЕНТОРЕ ДВЕРИ' in red, being pushed open by a man (scale), with clamp levers on the closing edge and a round valve port in the leaf"
+class = "free"
+licence = "CC BY 3.0, Michael"
+sha1 = "f4daaa644935e2ab5c739e6eb71c331b98c993ab"
+notes = "Viewed (1280 px thumb). The man pushing the leaf gives a rough scale only, since he stands nearer the camera. Shows red stencil lettering, cream enamel, clamp levers on the leaf's closing edge, and two small brackets or rollers under its bottom edge. Warm tungsten light."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Decommissioned_Soviet_Missile_Base_near_Pervomaysk_Ukraine_%2816173700489%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Decommissioned_Soviet_Missile_Base_near_Pervomaysk_Ukraine_(16173700489).jpg"
+shows = "a place with them: a corridor of two ДЗГ doors in series (Commons caption 'Двери защитно-герметические ДЗГ'), both open, with thick leaves, round wedge-lock bosses at the leaf edges, lever handles, a frame with rounded corners, a raised sill, and paint chipped to rust on the frame edge"
+class = "free"
+licence = "CC BY-SA 2.0, Clay Gilliland"
+sha1 = "e50b83ec2308775cab9df12133d49c2bac2bfb23"
+notes = "Viewed (960 px thumb). Shows the depth of the leaves, the airlock arrangement, and the near-neutral ivory enamel, which is the best-lit cream sample. Rust chips run along the frame edge where the leaf strikes it. Visitors give the scale."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/5/57/Nh_schrony_018.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Nh_schrony_018.jpg"
+shows = "a place with one: an abandoned fallout-shelter hermetic door half open in a dark, damp concrete passage (Nowa Huta steelworks shelters, Poland, Soviet-bloc design), its edges rusted through the paint, with lever clamps and white-painted grips"
+class = "free"
+licence = "CC BY-SA 4.0, Dwxn"
+sha1 = "151c24defbc44e439198ac24f1a63168680acc07"
+notes = "Viewed (1280 px thumb). Main reference for decay: rust on the top and side edges of the leaf, mottled and flaking paint on the face, rusty lever bosses, and a seal recess in the frame. The photo is underexposed, so the samples taken here are dark."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/40/%D0%91%D1%8B%D0%B2%D1%88%D0%B5%D0%B5_%D0%B1%D0%BE%D0%BC%D0%B1%D0%BE%D1%83%D0%B1%D0%B5%D0%B6%D0%B8%D1%89%D0%B5_%D0%B7%D0%B0%D0%B2%D0%BE%D0%B4%D0%B0._%D0%A1%D0%B5%D0%B9%D1%87%D0%B0%D1%81_%D0%B1%D0%B0%D1%80.jpg"
+page = "https://commons.wikimedia.org/wiki/File:%D0%91%D1%8B%D0%B2%D1%88%D0%B5%D0%B5_%D0%B1%D0%BE%D0%BC%D0%B1%D0%BE%D1%83%D0%B1%D0%B5%D0%B6%D0%B8%D1%89%D0%B5_%D0%B7%D0%B0%D0%B2%D0%BE%D0%B4%D0%B0._%D0%A1%D0%B5%D0%B9%D1%87%D0%B0%D1%81_%D0%B1%D0%B0%D1%80.jpg"
+shows = "a place with one: the entrance block of a former factory shelter (Aleksandrovsky works, Petrozavodsk) with 'УБЕЖИЩЕ 1' in black letters across the facade above the doorway"
+class = "free"
+licence = "CC BY-SA 4.0, Гудкова Наталья"
+sha1 = "b76ac3362d35bd6ca3d14e25de134b706a84bb25"
+notes = "Viewed (1920 px thumb). Lettering reference for the shelter name: a plain sans-serif 'УБЕЖИЩЕ' followed by a number, in black on a beige render. The shelter is now a bar, and a modern grille has replaced the outer door."
+
+[[ref]]
+url = "https://files.stroyinf.ru/Data1/11/11507/index.htm"
+page = "https://files.stroyinf.ru/Data1/11/11507/index.htm"
+shows = "a measurement: Правила эксплуатации защитных сооружений гражданской обороны (Приказ МЧС России от 15.12.2002 N 583): door colour, door numbering, shelter signs, and seal care"
+class = "free"
+licence = "Public domain (official normative act, ГК РФ ст. 1259 п. 6), МЧС России"
+sampled = false
+notes = "Read, not sampled. §3.2.10: metal doors and shutters are painted with synthetic paints, ЗГД, ГД, shutters, gates and КИД in grey, and the rubber seal parts must not be painted. §6.2.2: each door gets a sequence number ('Дверь N 1') in white paint on both faces. §6.2.1 (also read on zakonbase.ru/content/part/292684): the entrance sign is at least 50 x 60 cm, white field, black letters 3-5 cm high. §6.2.3: route arrows are 50 x 15 cm, white with 'УБЕЖИЩЕ' and the distance in metres. §4.2.4: all clamps should press the leaf with about equal force."
+
+[[ref]]
+url = "https://exp-plant.ru/pages/dveri.html"
+page = "https://exp-plant.ru/pages/dveri.html"
+shows = "a maker's sheet: the ОЗОЗС catalogue of ДУ doors (серия 01.036-1, ТУ 25.99.21-005-52404267-2018), a type table with opening sizes and masses, and series drawings of ДУ-IV-2, ДУ-III-5, ДУ-II-2 and ДУ-IV-3 (elevation, sections А-А and Б-Б)"
+class = "limited"
+licence = "ООО «ОЗОЗС» (exp-plant.ru), all rights reserved"
+notes = "Drawings viewed and measured, e.g. https://exp-plant.ru/public/uploads/pages/24548fc42a060dd039dca0975a7199bccbf.jpg (ДУ-IV-2), .../245346fb730e0cea7c65d2d071bd8a90d4f.jpg (ДУ-III-5), .../245f83f865454c668d6d840399ba1bc130e.jpg (ДУ-II-2). They give frame and leaf outer sizes, overall depth, the two hinges and their spacing, and the gear layout: a central bevel gearbox with screw rods running to wedges at the top and bottom. The sections show the leaf as a face plate with channel ribs and the seal in a channel. The sections are schematic, not to scale. The page also says doors are set 150 mm above the finished floor. Catalogue photo f2532.jpg shows the rib side with its gearbox and rods."
+
+[[ref]]
+url = "https://balama.ru/products/germodver/"
+page = "https://balama.ru/products/germodver/"
+shows = "a maker's sheet: ЗАО «БАЛАМА» hermetic doors (ДУ-I-7): frame, wedge lock, seal, primer and mass"
+class = "limited"
+licence = "ЗАО «БАЛАМА», all rights reserved"
+notes = "Read only. Quotes: 'Коробка - представляет собой раму, которая сварена из углового проката'; 'стальная коробка приваривается к закладной арматуре проема, отверстия запениваются'; 'Полный ход клина в затворе - 85 мм'; 'Максимальное усилие на рукоятке - 2 кг'; 'резиновыми уплотнителями, монтирующимися по контуру коробки'; 'обязательно окрашиваются грунтом ГФ - красно-коричневого цвета'; ДУ-I-7 'Масса - 620 кг'."
+
+[[ref]]
+url = "https://hkz.ru/catalog/collective-protection/protective-hermetic-doors-menu/259-protective-hermetic-door-du"
+page = "https://hkz.ru/catalog/collective-protection/protective-hermetic-doors-menu/259-protective-hermetic-door-du"
+shows = "a maker's sheet: Химкомплектзащита ДУ protective-hermetic door: the parts and what each does, the closing gear and the seal"
+class = "limited"
+licence = "ООО «Химкомплектзащита», all rights reserved"
+notes = "Read only. Quotes: the closing gear 'Включает в себя конический редуктор, винтовые тяги с клиньями и двумя штурвалами (рукоятками)' and 'Располагается с внутренней стороны изделия и обеспечивает открывание и закрывание с обеих сторон'; the seal 'уплотнителем из пористой резины, расположенным по периметру полотна'; the frame (комингс) carries the load to the walls. This conflicts with ref 13, which puts the seal on the frame."
+
+[[ref]]
+url = "https://www.elesa.com/siteassets/PDF/PDF_EN/DIN%20950.pdf"
+page = "https://www.elesa.com/siteassets/PDF/PDF_EN/DIN%20950.pdf"
+shows = "a measurement: Elesa+Ganter datasheet for DIN 950 cast-iron spoked handwheels: rim diameter, rim section, hub size and spoke count"
+class = "limited"
+licence = "Elesa S.p.A. / Ganter Norm, all rights reserved"
+notes = "Read and drawing viewed. A generic engineering standard for spoked handwheels, used for the wheel's proportions: the d1 = 250 mm row has a 26 mm rim section, a 45 mm hub of 28 mm length, a 50 mm overall dish, and 5 spokes. Wheels of 200 mm and under have 3 spokes. Sizes of 315, 400 and 500 mm are special executions. The rim is a turned oval section."
+
+[[measure]]
+what = "standard opening sizes, width x height (series 01.036-1 ДУ doors)"
+value = "600 x 1600, 800 x 1800, 800 x 2000, 1200 x 2000 mm hinged; 1800 x 2400 mm sliding"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2 (class IV, hinged, 1200 x 2000 opening): frame outer size, width x height"
+value = "1416 x 2216 mm"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2: leaf outer size, width x height"
+value = "1266 x 2066 mm"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2: frame band visible round the opening, per side (DERIVED: (1416-1200)/2, (2216-2000)/2)"
+value = "108 mm"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2: leaf lap over the opening, per side (DERIVED: (1266-1200)/2, (2066-2000)/2)"
+value = "33 mm"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2: overall depth, frame plus leaf plus closing gear"
+value = "318 mm"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2: mass"
+value = "403 kg"
+ref = 12
+
+[[measure]]
+what = "ДУ-IV-2: hinges, count and placement (axis gaps)"
+value = "2 hinges on the frame side, 1400 mm apart; lower one 333 mm above the frame bottom; 10 mm gap between the knuckle halves"
+ref = 12
+
+[[measure]]
+what = "ДУ-III-5 (class III, 1200 x 2000): frame outer / leaf outer / overall depth"
+value = "1536 x 2336 / 1310 x 2100 / 388 mm"
+ref = 12
+
+[[measure]]
+what = "ДУ-III-5: hinge spacing and height of the lower hinge"
+value = "1580 mm apart; lower 468 mm above the frame bottom"
+ref = 12
+
+[[measure]]
+what = "ДУ-II-2 (class II, 1200 x 2000): frame outer / leaf outer / overall depth / mass"
+value = "1536 x 2336 / 1316 x 2106 / 440 mm / 850 kg"
+ref = 12
+
+[[measure]]
+what = "masses of other hinged doors: ДУ-IV-3 800 x 1800 / ДУ-I-8 1200 x 2000"
+value = "325 kg / 890 kg"
+ref = 12
+
+[[measure]]
+what = "height of the door's sill above the finished floor at installation"
+value = "150 mm"
+ref = 12
+
+[[measure]]
+what = "closing gear of the ДУ series: wedge locks and drive"
+value = "2 wedges, top centre and bottom centre, driven by vertical screw rods from a central bevel gearbox; a handle or wheel on each face at the gearbox, about mid-height; plus a blocking device and a pull handle on the closing side"
+ref = 12
+
+[[measure]]
+what = "full travel of the wedge in its lock (ДУ-I-7)"
+value = "85 mm"
+ref = 13
+
+[[measure]]
+what = "maximum force at the handle (ДУ-I-7)"
+value = "2 kg"
+ref = 13
+
+[[measure]]
+what = "frame (коробка) section and anchoring"
+value = "welded frame of steel angle; welded to the opening's embedded rebar, gaps foamed"
+ref = 13
+
+[[measure]]
+what = "lever-clamp door: number and placement of the clamps (ESTIMATE from photo)"
+value = "4 levers: 2 near the top and 2 near the bottom; lever about 250-300 mm long on a 60-80 mm hex boss"
+ref = 3
+
+[[measure]]
+what = "lever-clamp leaf: height of the clamps (ESTIMATE from photo)"
+value = "2 on each vertical edge, about 20% of the leaf height from the top and from the bottom"
+ref = 5
+
+[[measure]]
+what = "central handwheel: rim diameter and spokes (ESTIMATE: wheel is 0.21 of the leaf height in the photo; leaf assumed 2.0-2.1 m)"
+value = "about 400-430 mm, 4 spokes, round rim about 25 mm thick, hub with nut"
+ref = 1
+
+[[measure]]
+what = "central handwheel, second example (ESTIMATE: wheel is 0.41 of the leaf width; leaf width unknown)"
+value = "about 350-400 mm, 3 spokes, with 'ОТКР' / 'ЗАКР' arrows stencilled round it"
+ref = 2
+
+[[measure]]
+what = "spoked handwheel, DIN 950, d1 = 250 mm: rim section / hub dia / hub length / overall dish / spokes"
+value = "26 / 45 / 28 / 50 mm / 5 spokes (3 spokes up to d1 = 200 mm)"
+ref = 15
+
+[[measure]]
+what = "shelter entrance sign: size, colours, letter height"
+value = "at least 500 x 600 mm; white field, black letters 30-50 mm high, 5-10 mm stroke"
+ref = 11
+
+[[measure]]
+what = "route sign 'УБЕЖИЩЕ' with the distance to the entrance"
+value = "500 x 150 mm, white with black letters"
+ref = 11
+
+[[palette]]
+what = "grey enamel leaf under a work lamp (sampled from photo)"
+srgb = [180, 180, 169]
+ref = 1
+
+[[palette]]
+what = "red handwheel enamel, lit (sampled from photo, saturated pixels only)"
+srgb = [216, 106, 87]
+ref = 1
+
+[[palette]]
+what = "pale ochre drip streak running down the grey enamel (sampled from photo)"
+srgb = [173, 169, 130]
+ref = 1
+
+[[palette]]
+what = "red handwheel enamel in dim warm light (sampled from photo)"
+srgb = [125, 18, 8]
+ref = 2
+
+[[palette]]
+what = "red stencil lettering 'ДГ-3', warm light (sampled from photo)"
+srgb = [135, 50, 10]
+ref = 2
+
+[[palette]]
+what = "red-brown leaf paint, lit, warm museum light (sampled from photo); cf. the red-brown ГФ primer of ref 13"
+srgb = [197, 126, 90]
+ref = 3
+
+[[palette]]
+what = "white stencil lettering 'ГЕРМОДВЕРЬ' (sampled from photo)"
+srgb = [243, 248, 242]
+ref = 3
+
+[[palette]]
+what = "red clamp lever (sampled from photo)"
+srgb = [217, 98, 66]
+ref = 3
+
+[[palette]]
+what = "green-grey (khaki) enamel on frame and leaf edge (sampled from photo)"
+srgb = [148, 141, 109]
+ref = 4
+
+[[palette]]
+what = "olive-drab rib in shadow, inside face (sampled from photo)"
+srgb = [109, 87, 49]
+ref = 4
+
+[[palette]]
+what = "worn steel of a hinge pin, dull and handled (sampled from photo)"
+srgb = [158, 132, 104]
+ref = 4
+
+[[palette]]
+what = "rubber seal in its channel round the leaf (ESTIMATE: darkest pixels of a small patch in the photo)"
+srgb = [43, 24, 24]
+ref = 4
+
+[[palette]]
+what = "red-brown leaf, older paint, museum light (sampled from photo)"
+srgb = [114, 63, 41]
+ref = 5
+
+[[palette]]
+what = "green enamel leaf, flash (sampled from photo)"
+srgb = [64, 101, 81]
+ref = 6
+
+[[palette]]
+what = "red stencilled number on the wall (sampled from photo)"
+srgb = [108, 29, 26]
+ref = 6
+
+[[palette]]
+what = "red stencil 'ВНИМАНИЕ!' on a cream leaf, warm light (sampled from photo)"
+srgb = [154, 56, 24]
+ref = 7
+
+[[palette]]
+what = "ivory / cream enamel leaf, near-neutral light (sampled from photo)"
+srgb = [204, 197, 181]
+ref = 8
+
+[[palette]]
+what = "rust chip on the cream frame edge where the leaf strikes (sampled from photo)"
+srgb = [68, 45, 25]
+ref = 8
+
+[[palette]]
+what = "worn steel boss of a wedge lock, partly bare (sampled from photo)"
+srgb = [92, 76, 58]
+ref = 8
+
+[[palette]]
+what = "rust along the top edge of an abandoned leaf, dim light (sampled from photo)"
+srgb = [85, 53, 38]
+ref = 9
+
+[[palette]]
+what = "black letters 'УБЕЖИЩЕ' on the facade (sampled from photo)"
+srgb = [22, 18, 6]
+ref = 10

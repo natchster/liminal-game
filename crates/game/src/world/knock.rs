@@ -473,7 +473,8 @@ impl Game {
         self.world.add(&obj);
         let hatch = (!gift.is_note()).then(|| {
             let (frame, hinge) = self.knock_hatch();
-            frame.position().copy(&door.point(0.006, 0.0, 0.0));
+            // (on the leaf's face: `core_props::doors`)
+            frame.position().copy(&door.point(crate::core_props::doors::GALLERY_LEAF_FRONT + 0.002, 0.0, 0.0));
             frame.rotation().y = door.yaw();
             frame.set_visible((0.0..1.2).contains(&t));
             self.world.add(&frame);

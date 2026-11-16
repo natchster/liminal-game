@@ -447,3 +447,126 @@ Method: ffmpeg crops of the 1920 px Commons thumbnails, then an area-average to 
 - Frame depth for CMU stair walls (8-3/4 in): ESTIMATE.
 - Steelcraft B-series edge seams, Hager hinge data, Rhodes lever length and the 2.875 x 7.875 in tactile level sign: SEARCH-ONLY.
 - Reference count is 18 (9 free, 9 limited), above the 10-14 aim, because each hardware item has its own maker sheet. Refs 7, 15 and 17 are the easiest to drop.
+
+## 3. The hermetic door (`hermetic_door`)
+Researched 2026-11-16. The reference numbers [n] match the `[[ref]]` order in `hermetic_door.toml`.
+Status markers:
+- **VERIFIED**: I read it on the page or measured it on a drawing myself.
+- **SEARCH-ONLY**: I saw it only in a search summary.
+- **DERIVED**: computed from other figures (working shown).
+- **ESTIMATE**: measured by proportion in a photo, with an assumed size; no source gives it.
+
+### Terms
+- **ЗГД / ДЗГ**: защитно-герметическая дверь, a door that resists blast and seals against gas.
+- **ГД / ДГ**: герметическая дверь, a door that seals only; lighter.
+- **ДУ-<class>-<n>**: the unified series designation. The Roman numeral is the shelter class (I is the strongest), e.g. ДУ-IV-2. The series is 01.036-1 [12].
+- Makers say the protective and the plain hermetic doors are built the same way and differ in steel thickness, leaf thickness and mass (protivogaz.com/pages/dveri.html, not numbered: SEARCH-ONLY plus a fetched summary).
+
+### References (all images viewed by me, at thumb size 640-1920 px unless noted)
+1. **Germa-1.jpg**: a grey door with a red **4-spoke wheel**, open, Bunker-703 shaft (ЧЗ-703), Moscow. CC BY-SA 4.0. Viewed; wheel and leaf crops made.
+2. **Door DG-3.JPG**: a cream ДГ-3 door with a red **3-spoke wheel** and stencils, Strategic Missile Forces Museum, Ukraine. CC BY 3.0. Viewed; door crop made.
+3. **Underground Moscow museum p01**: a red-brown 'ГЕРМОДВЕРЬ (1)' door with **4 lever clamps** and white arrows. CC0. Viewed.
+4. **Underground Moscow museum p52**: the inside face of a large leaf (rib grid, seal channel, red levers, '№1'), a green-grey frame, barrel hinges. CC0. Viewed; crops of the leaf edge and hinges made.
+5. **Rumyantsev mansion гермодвери**: a red-brown leaf and frame shown free-standing, with 4 L-levers. CC BY-SA 4.0. Viewed.
+6. **Таганский ЗКП герметическая дверь**: green doors in a green passage, with a red wall number (Bunker-42). CC BY-SA 3.0. Viewed (1024 px original).
+7. **SMF museum, heavy door gets opened**: a cream 'ДЗГ-1' door with red warning stencils and a man for scale. CC BY 3.0. Viewed.
+8. **Pervomaysk missile base, ДЗГ**: a corridor of two open ДЗГ doors in series (an airlock), with rust chips. CC BY-SA 2.0. Viewed.
+9. **Nh schrony 018**: an abandoned shelter door in Nowa Huta, Poland, rusted, with lever clamps. CC BY-SA 4.0. Viewed (underexposed).
+10. **Бывшее бомбоубежище завода**: 'УБЕЖИЩЕ 1' lettering on a factory shelter facade, Petrozavodsk. CC BY-SA 4.0. Viewed.
+11. **Приказ МЧС N 583, Правила эксплуатации ЗС ГО** (files.stroyinf.ru). An official act, which is not copyrightable under ГК РФ 1259 п.6. Read (`sampled = false`).
+12. **ОЗОЗС catalogue, exp-plant.ru/pages/dveri.html**: the type table plus series drawings. All rights reserved. Table read; four drawings viewed and measured.
+13. **БАЛАМА, balama.ru/products/germodver/**: a maker's text (ДУ-I-7). All rights reserved. Read; quotes taken.
+14. **Химкомплектзащита, hkz.ru ДУ**: a maker's text on the parts. All rights reserved. Read; quotes taken.
+15. **Elesa DIN 950 datasheet (PDF)**: generic spoked handwheels. All rights reserved. Rendered and read.
+
+All SHA-1s were read from the Commons API (`prop=imageinfo&iiprop=sha1|url|extmetadata`). They were not recomputed locally, because upload.wikimedia.org refused to serve originals to this client.
+
+### Leaf
+- Standard openings: 600x1600, 800x1800, 800x2000, 1200x2000 (hinged), 1800x2400 (sliding) [12]. **VERIFIED** (exp-plant table; the same table is on go-zaschita.ru and protivogaz.com).
+- The 1200x2000 leaf is larger than its opening. ДУ-IV-2 leaf **1266 x 2066** [12] **VERIFIED** (drawing). ДУ-III-5 **1310 x 2100**, ДУ-II-2 **1316 x 2106** [12] **VERIFIED** (the ДУ-II-2 drawing is low-resolution; I read "1316" with moderate confidence).
+- Lap over the opening for ДУ-IV-2: (1266-1200)/2 = 33 mm per side, and (2066-2000)/2 = 33 mm [12]. **DERIVED**.
+- Construction: a face plate (полотно) with **channel ribs** welded on the inside. Section A-A of ДУ-IV-2 shows C-section ribs; ДУ-II-2 / ДУ-III-5 show a box leaf with 6-7 rib cells [12]. **VERIFIED** (drawings). Photo [4] shows a **4 x 4 cell** rib grid on a large leaf, and catalogue photo f2532 [12] shows horizontal ribs with a central gearbox. Makers: "сварено из стального листового и профильного проката" [13] **VERIFIED**.
+- Leaf thickness (plate plus ribs): **not given anywhere I could read.** The drawings are schematic. The horizontal 318 mm dimension and the vertical 2000 mm dimension give two different scales (about 1.2 vs 2.7 mm/px), so the leaf depth measures between about 95 and 200 mm. **ESTIMATE: 100-150 mm box depth for a class IV door**, deeper for class I-II. Overall depths including the gear: ДУ-IV-2 **318**, ДУ-III-5 **388**, ДУ-II-2 **440 mm** [12] **VERIFIED**. Other figures: ДУ-III-2 overall 1400x2200x**330**, ДУ-IV-6 841x1870x**205** [12] **VERIFIED** (table). The face-plate steel thickness is **not found**.
+- Masses [12] **VERIFIED**: ДУ-IV-2 (1200x2000) **403 kg**; ДУ-IV-3 (800x1800) 325 kg; ДУ-III-5 673 kg; ДУ-II-2 850 kg; ДУ-I-8 890 kg. Sources conflict: go-zaschita.ru lists ДУ-III-2 at 456 kg and ДУ-IV-3 at 287 kg, and protivogaz's text gives ДУ-IV-2 as 320 kg (SEARCH-ONLY plus a fetched summary). [13] gives ДУ-I-7 (800x1800) as **620 kg**, while the [12] table gives 745 kg. Masses vary by maker.
+- Install height: "на высоту 150 мм от уровня чистого пола" [12] **VERIFIED** (page text). This is the raised sill / threshold that you step over.
+
+### Frame (коробка / комингс)
+- ДУ-IV-2 frame outer **1416 x 2216** [12] **VERIFIED**. The band round the opening is (1416-1200)/2 = **108 mm** per side [12] **DERIVED**. ДУ-III-5 / ДУ-II-2 frame **1536 x 2336**, giving a 168 mm band [12] **VERIFIED / DERIVED**.
+- Section: "рама, которая сварена из углового проката" [13] **VERIFIED**. The Б-Б sections show an angle or channel flange that stands proud of the wall face (dimensioned "60" deep and "80" wide on ДУ-IV-2), with the seal pressed against it. Those two figures are read off a schematic, so treat them as **VERIFIED labels with an uncertain meaning**.
+- Anchoring: "стальная коробка приваривается к закладной арматуре проема, отверстия запениваются" [13] **VERIFIED**. The frame is welded to rebar embedded in the concrete opening. Photos [1][4][6] show the frame flush with the wall, or standing a little proud, painted the door colour.
+- Frame corners are rounded on some doors ([8] **VERIFIED** viewed; [4] leaf corners rounded).
+
+### Seal (уплотнитель)
+- Material: porous (sponge) rubber, "уплотнителем из пористой резины, расположенным по периметру полотна" [14] **VERIFIED**.
+- Location conflict: [14] puts it on the **leaf perimeter**; [13] says "монтирующимися по контуру коробки" (on the **frame**). Photo [4] shows a dark strip in a channel round the leaf perimeter, with rounded corners (**VERIFIED** viewed). The ДУ-IV-2 Б-Б section shows hatched seal blocks at the leaf edges [12]. **Use: a channel on the leaf's inner perimeter with a black rubber strip, pressing on the frame flange.** Seal section size: **not found**.
+- The rules forbid painting the rubber: "Не допускается окрашивать резиновые детали уплотнения" [11] §3.2.10 **VERIFIED**. So in game the seal should stay black or dark grey while everything round it is painted.
+
+### Closing gear
+Two families, both real:
+1. **Lever clamps (задрайки / клиновые затворы)** on the leaf edges, each a lever on a boss that turns a wedge onto the frame.
+   - [3]: **4 levers**, 2 near the top and 2 near the bottom, with white arrows marking the 0 / 3 (open / closed) positions. **VERIFIED** (viewed).
+   - [5]: 4 L-levers, 2 per vertical edge at about 20% of the height from the top and the bottom. **ESTIMATE** by proportion.
+   - Lever about 250-300 mm on a 60-80 mm hex boss. **ESTIMATE** (from [3], assuming the leaf is about 0.9 m wide).
+   - [6][8][9] show further lever doors. The rules require that "затворы должны прижимать полотно примерно с одинаковым усилием" [11] §4.2.4 **VERIFIED**.
+2. **Central gear (ДУ series)**: "конический редуктор, винтовые тяги с клиньями и двумя штурвалами (рукоятками)", located on the inside and operable from both sides [14] **VERIFIED**. The drawings show the gearbox at the leaf centre (about mid-height) with rods to **2 wedges, top centre and bottom centre** [12] **VERIFIED**. On the ДУ drawings the operator is a two-arm handle bar; photos [1][2] show a **round wheel** instead. Wedge travel **85 mm**; max handle force **2 kg** [13] **VERIFIED**. go-zaschita.ru gives 15 kg to dog the door and 10 kg to swing it, with 15 s to open or close (fetched summary).
+- Both types have a **blocking device** (блокировочное устройство) and a **pull handle** on the closing side [12] **VERIFIED** (drawing legend; the DG-3 handle is visible in [2]).
+
+### Handwheel (штурвал)
+- [1]: **4 spokes**, a round rim, a hub with a nut, painted red; the shadow shows it stands well proud of the face (roughly 80-120 mm, **ESTIMATE**). Rim diameter: the wheel spans 0.206 of the leaf height at its position (116 px of about 562 px, interpolated along the perspective). For a 2.0-2.1 m leaf that gives **about 400-430 mm** (**ESTIMATE**). Rim section is about 6% of the diameter, i.e. **about 25 mm** (**ESTIMATE**).
+- [2]: **3 spokes**, red, with stencilled "ОТКР" (left) and "ЗАКР" (right) arrows over it. The wheel is 146 px against a 355 px leaf width, a ratio of 0.41. The leaf width is unknown, so I give it as **about 350-400 mm** (**ESTIMATE**).
+- Generic spoked handwheels, DIN 950 [15] **VERIFIED**: the d1 = 250 mm wheel has a rim section b = **26**, hub d3 = **45**, hub length l1 = **28**, overall dish l2 = **50 mm**, **5 spokes**. d1 of 200 and under has 3 spokes. 315, 400 and 500 mm are special sizes. A Ganter row for d1 = 400 reads d3 65, b 32, l1 38, l2 63, 5 spokes (**SEARCH-ONLY**: from a search snippet; the PDF host refused me).
+- Ship doors: Soviet ОСТ 5.2256-78 sets a 40 kgf maximum force on a clamp handle and 5 s to dog (**SEARCH-ONLY**). Ship doors "с центральным задраиванием" exist, but **no wheel diameter was found** for them.
+- **Modelling call**: a 400 mm rim of 25-30 mm round or oval section, 3 or 4 spokes (5 if following DIN at 400 mm), a 60-70 mm hub with a nut, standing 80-120 mm off the face, at about 1.0-1.1 m above the floor. The diameter and height are ESTIMATES.
+
+### Hinges
+- **2 hinges** on the hinge side [12] **VERIFIED**.
+  - ДУ-IV-2: 1400 mm apart, the lower 333 mm above the frame bottom, so the upper is 1733 mm up (**DERIVED**); a 10 mm gap between knuckle halves.
+  - ДУ-III-5: 1580 apart, lower at 468. ДУ-II-2: 1400 apart.
+- The hinges are external and heavy: blocks bolted to the frame, with an arm to the leaf. The ДУ-II-2 overall width is 1656 mm, against a 1536 mm frame, because of the hinge blocks [12] **VERIFIED**. In ДУ-II-2 / ДУ-III-5 they are the boxed brackets beside the frame.
+- Photo [4]: barrel knuckles welded between plate cheeks, with a **pin protruding** about 0.3-0.5 of the barrel diameter. **VERIFIED** viewed; **sizes ESTIMATE**, roughly a 100-150 mm barrel and a 50-60 mm pin.
+
+### Markings
+- Door number: "Дверь N 1" in **white paint on both faces** [11] §6.2.2 **VERIFIED**. Photos show 'ГЕРМОДВЕРЬ (1)' in white [3], '№1' on a rib [4], and red numbers on walls [6].
+- Entrance sign: at least **50 x 60 cm**, white field, black letters 3-5 cm high with a 0.5-1.0 cm stroke. It gives the inventory number, the owner, and where the keys are [11] §6.2.1 **VERIFIED** (zakonbase.ru/content/part/292684).
+- Route arrows: **50 x 15 cm**, white, "УБЕЖИЩЕ" and the distance in metres [11] §6.2.3 **VERIFIED**.
+- Facade lettering 'УБЕЖИЩЕ 1' in black sans-serif [10] **VERIFIED** viewed.
+- Stencils seen on real doors:
+  - 'ГЕРМОДВЕРЬ' [3]
+  - 'ДЗГ-1 / ВНИМАНИЕ! / НЕ СТОЙ В СЕНТОРЕ ДВЕРИ' (sic) [7]
+  - 'ДГ·3 / ПРИ ОТКРЫТЫХ ДЗГ 1,2 НЕ ОТКРЫВАТЬ!' and a box 'Рег.№ 24/028 / Р.раз. 250кгс / Не более 3-х чел. / Ср.оч.осв.' [2] (read from a 960 px thumb; small text, moderate confidence)
+  - 'ЗАКРЫТО / ОТКРЫТО' with red triangles on a shutter (File:Tight_door.jpg, PD, viewed, not numbered).
+- **Maker's plates: none seen and none documented.** A cast or riveted plate is plausible but **unverified**.
+
+### Paint colours
+- Rule: "в серый - ЗГД, ГД, ставни, ворота, КИДы", painted with synthetic paints [11] §3.2.10 **VERIFIED**. **Grey is the regulation colour** (post-2002 rules).
+- Factory primer: "грунтом ГФ - красно-коричневого цвета" [13] **VERIFIED**. This is the red-brown primer coat. Many museum and old doors are red-brown overall ([3][5]).
+- In practice: grey [1], green-grey or khaki [4], green to match the walls [6], cream or ivory in missile posts [2][7][8], red-brown [3][5]. Wheels and levers are often picked out in red ([1][2][3][4]).
+- Palette values in the TOML are photo samples (patch means, filtered by hue or brightness), taken under museum, tungsten or flash light. They are labelled as photo samples. Warm-lit samples ([2][3][7]) read orange; [8] is the most neutral cream. **No colour standard (RAL / ГОСТ shade) was found for the grey.**
+
+### Ageing (from the photos, viewed)
+- Paint chipped to rust along the frame edge where the leaf strikes, and round the hinges [8][9].
+- Rust over the whole top and side edges of a leaf left in the damp [9].
+- Pale ochre drip streaks running down the face from above [1].
+- Thick multiple coats with brush drips and sags (red-brown over a dark undercoat) [5][2].
+- Worn bare steel on hinge pins and lock bosses [4][8].
+- Peeling plaster and limewash on the concrete reveal round the frame [1].
+- A perished, cracked seal is **not seen clearly in any free photo**: [4] shows the strip intact, [9] is too dark. **Unverified.**
+
+### Places
+- Basement or industrial shelter entrance: [10] (facade), [9] (abandoned passage), [1] (shaft door with a concrete reveal).
+- Corridors and airlock pairs: [6] (two doors in series in a green passage), [8] (a two-door airlock corridor).
+- Not used but viewed: Taganka 'внутренний КПП' (a green corridor with a grey door, CC BY-SA 3.0), Evak.jpg (a corridor of Bunker-703, CC BY-SA 4.0), and a Donetsk 2020 photo with a painted 'БОМБОУБЕЖИЩЕ' wall stencil (CC BY-SA 3.0).
+- No free photo found of a **residential (khrushchyovka) basement** shelter door specifically.
+
+### Samosbor
+- The Samosbor setting is user-created (a 2ch origin) "без единого автора, канона" (igm.gg summary, **SEARCH-ONLY**). Hermetic doors appear in it as a cell's protection. **No canonical description of the door was found**, so the game's door rests on the real references above.
+
+### Could not verify
+- Leaf **thickness** and face-plate **steel thickness** (no readable figure; the drawings are schematic).
+- **Seal** cross-section size and its exact seat (leaf vs frame: the makers disagree, [13] vs [14]).
+- **Wheel rim diameter** on a real Soviet hermetic door. Only estimates from [1][2]; the DIN 400 mm row is SEARCH-ONLY.
+- Number and placement of lever clamps as a **standard**. Only seen in photos (4 is common; series ДУ uses 2 central-driven wedges).
+- **Maker's plate** design. The shade of the regulation grey.
+- A perished, cracked seal and a residential-block basement entrance in a free photo.
+- Masses differ between makers (e.g. ДУ-I-7: 620 [13] vs 745 [12]).
+- The SHA-1s are as reported by the Commons API, not re-hashed locally.

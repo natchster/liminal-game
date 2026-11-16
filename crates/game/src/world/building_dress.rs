@@ -23,6 +23,7 @@
 //!   nobody can reach crossing the void, iron lanterns.
 //! * The Works: a ceiling far up with its rows of dead fittings, gantries
 //!   under it, pipes along the walls.
+use crate::core_props::doors;
 use crate::level::archgen::{DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_VOID, Ground, build_ground_solids, segment_clear_3d};
 use crate::level::building::{
     BuildingPlan, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, ROOM_DOOR, ROOM_DOOR_H, ROOM_HEADROOM, STOREY, Style, VOID_DEPTH,
@@ -30,6 +31,19 @@ use crate::level::building::{
 use crate::prelude::*;
 use crate::visuals::textures::{TextTexOpts, text_tex};
 use crate::world::knock::{KnockDoor, Mark};
+
+/// The hermetic door's materials (`core_props::doors`), one set a floor:
+/// its enamel, its wheel's red, its seal's rubber
+struct HermeticMats {
+    enamel: Mat,
+    wheel: Mat,
+    rubber: Mat,
+}
+impl HermeticMats {
+    fn new() -> HermeticMats {
+        HermeticMats { enamel: doors::hermetic_enamel(), wheel: doors::hermetic_wheel_paint(), rubber: doors::rubber() }
+    }
+}
 
 /// The salt of the stream the dressing draws from
 pub const DRESS_SALT: u64 = 0xB01D_0D2E_55ED_0001;
@@ -85,12 +99,6 @@ fn boxm(c: Vec3, yaw: f64, s: Vec3) -> Mat4 {
 /// The yaw that turns an object's +z toward `DIRS[d]`
 fn yaw_to(d: usize) -> f64 {
     (DIRS[d][0] as f64).datan2(DIRS[d][1] as f64)
-}
-
-/// A door wheel's ring and its spoke (shared by every door)
-fn door_wheel_geos() -> (Geo, Geo) {
-    thread_local! { static G: std::cell::RefCell<Option<(Geo, Geo)>> = const { std::cell::RefCell::new(None) }; }
-    G.with(|g| g.borrow_mut().get_or_insert_with(|| (torus_geo!(0.2, 0.022, 6, 18), box_geo!(0.4, 0.028, 0.028))).clone())
 }
 
 impl Game {
@@ -163,85 +171,67 @@ impl Game {
         }
     }
 
-    /// A hermetic door: its frame in the opening (a box each side and one
-    /// over it), its leaf (closed, or swung open `open` radians inward on
-    /// its left hinge), the wheel on it. `at` is the middle of the opening's
-    /// floor on the face, `yaw` turns +z out of the face.
-    fn hermetic_door(&self, parts: &mut Parts, at: Vec3, yaw: f64, open: f64, steel: &Mat) {
-        self.door_frame(parts, at, yaw, steel);
-        let frame_geo = self.unit_box_geo.clone();
+    /// A gallery door, sealed (`core_props::doors`, the hermetic door's
+    /// parts): on the block's face with no opening behind it, its face frame
+    /// round it, its leaf in front (its hinge 0.62 m left of the middle),
+    /// the wheel on it. `at` is the foot of the face under its middle,
+    /// `yaw` turns +z out of the face.
+    /// (`far`: a storey above or below, across the void: its lighter wheel)
+    fn hermetic_door(&self, parts: &mut Parts, at: Vec3, yaw: f64, mats: &HermeticMats, far: bool) {
         let (c, s) = (yaw.dcos(), yaw.dsin());
         let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
-        let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
-        // the leaf, hinged at its left edge
-        let leaf = parts.part(&frame_geo, steel);
-        let (lw, lh) = (CELL_DOOR - 0.06, hh - 0.04);
-        // (turned by `open` about the hinge: inward, into the room)
-        let hinge = (-hw + 0.03, -0.08);
-        let a = open;
-        let mid = (hinge.0 + (lw / 2.0) * a.dcos(), hinge.1 - (lw / 2.0) * a.dsin());
-        parts.put(leaf, boxm(to_w(mid.0, lh / 2.0 + 0.02, mid.1), yaw + a, Vec3::new(lw, lh, 0.09)));
-        // the wheel, on the leaf's outer face: a ring and two spokes
-        let (ring_geo, spoke_geo) = door_wheel_geos();
-        let ring = parts.part(&ring_geo, steel);
-        let spoke = parts.part(&spoke_geo, steel);
-        let wc = to_w(mid.0 + 0.07 * a.dsin(), 1.05, mid.1 + 0.07 * a.dcos());
-        parts.put(ring, boxm(wc, yaw + a, Vec3::new(1.0, 1.0, 1.0)));
-        for k in [0.0, PI / 2.0] {
-            let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), yaw + a);
-            q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), k + 0.4));
-            parts.put(spoke, Mat4::compose(&wc, &q, &Vec3::new(1.0, 1.0, 1.0)));
-        }
+        let one = Vec3::new(1.0, 1.0, 1.0);
+        let frame = parts.part(&doors::part_geo("HermeticDoor__faceFrame"), &mats.enamel);
+        parts.put(frame, boxm(at, yaw, one));
+        let leaf = parts.part(&doors::part_geo("HermeticDoor__leaf"), &mats.enamel);
+        parts.put(leaf, boxm(to_w(-doors::H_LW / 2.0, 0.0, doors::GALLERY_LEAF_Z), yaw, one));
+        // the wheel on its outer face, turned as it was left
+        let wheel = parts.part(&doors::part_geo(if far { "HermeticDoor__wheelFar" } else { "HermeticDoor__wheel" }), &mats.wheel);
+        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), yaw);
+        q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), 0.4));
+        parts.put(wheel, Mat4::compose(&to_w(0.0, doors::H_WHEEL_Y, doors::GALLERY_LEAF_FRONT), &q, &one));
     }
 
-    /// A doorway's steel frame: a box each side and one over it
-    fn door_frame(&self, parts: &mut Parts, at: Vec3, yaw: f64, steel: &Mat) {
-        let frame_geo = self.unit_box_geo.clone();
-        let frame = parts.part(&frame_geo, steel);
-        let (c, s) = (yaw.dcos(), yaw.dsin());
-        // local (x along the face to the right seen from outside, z out) → world
-        let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
-        let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
-        // the frame lines the opening a few millimetres proud of its
-        // reveal and its lintel (on them, its faces fought the wall's at
-        // every cell door: docs/research/playtests/visual/2026-11-13-building-1-3.md, F1)
-        for sx in [-1.0, 1.0] {
-            parts.put(frame, boxm(to_w(sx * (hw + 0.06 - FRAME_PROUD), hh / 2.0, 0.02), yaw, Vec3::new(0.12, hh, 0.32)));
-        }
-        parts.put(frame, boxm(to_w(0.0, hh + 0.06 - FRAME_PROUD, 0.02), yaw, Vec3::new(CELL_DOOR + 0.24, 0.12, 0.32)));
+    /// A cell doorway's steel frame (`HermeticDoor__frame`): the lining of
+    /// its opening, its face band on the walk's side, the stop on the cell's
+    /// at the latch and the head, its threshold. `at` is the middle of the
+    /// opening's floor in the middle of the wall
+    fn door_frame(&self, parts: &mut Parts, at: Vec3, yaw: f64, mats: &HermeticMats) {
+        let frame = parts.part(&doors::part_geo("HermeticDoor__frame"), &mats.enamel);
+        parts.put(frame, boxm(at, yaw, Vec3::new(1.0, 1.0, 1.0)));
     }
 
     /// A cell's door leaf and its wheel, as an object that turns on its
-    /// hinge (its rotation is the face's `yaw` plus how far it stands open),
-    /// and the wheel on its spindle through the leaf, a ring and two spokes
-    /// on either face (it turns about its local z: `world::cell_knock`)
-    fn door_leaf(&self, at: Vec3, yaw: f64, steel: &Mat, worn: &Mat) -> (Obj, Obj) {
+    /// hinge (its rotation is the face's `yaw` plus how far it stands open):
+    /// the hermetic door's leaf, its inner face (ribs, gearbox, rods, wedges),
+    /// seal and hinges; the wheel on its spindle through the leaf, on its
+    /// outer face and on the gearbox inside (the one turned from in the
+    /// cell), turning about its local z (`world::cell_knock`)
+    fn door_leaf(&self, at: Vec3, yaw: f64, mats: &HermeticMats) -> (Obj, Obj) {
         let (c, s) = (yaw.dcos(), yaw.dsin());
-        let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
-        let (lw, lh) = (CELL_DOOR - 0.06, hh - 0.04);
+        let hw = CELL_DOOR / 2.0;
         let (hx, hz) = (-hw + 0.03, -0.08);
         let g = group();
         g.position().set(at.x + hx * c + hz * s, at.y, at.z - hx * s + hz * c);
         g.rotation().y = yaw;
-        let leaf = mesh(&self.unit_box_geo, steel);
-        leaf.position().set(lw / 2.0, lh / 2.0 + 0.02, 0.0);
-        leaf.scale().set(lw, lh, 0.09);
-        g.add(&leaf);
-        let (ring_geo, spoke_geo) = door_wheel_geos();
-        let wheel = group();
-        wheel.position().set(lw / 2.0, 1.05, 0.0);
-        // outside, and inside (the one turned from in the cell)
-        for z in [0.07, -0.07] {
-            let ring = mesh(&ring_geo, worn);
-            ring.position().z = z;
-            wheel.add(&ring);
-            for k in [0.0, PI / 2.0] {
-                let sp = mesh(&spoke_geo, worn);
-                sp.position().z = z;
-                sp.rotation().z = k + 0.4;
-                wheel.add(&sp);
-            }
+        for (name, mat) in [
+            ("HermeticDoor__leaf", &mats.enamel),
+            ("HermeticDoor__inner", &mats.enamel),
+            ("HermeticDoor__seal", &mats.rubber),
+            ("HermeticDoor__hinges", &mats.enamel),
+        ] {
+            g.add(&mesh(doors::part_geo(name), mat));
         }
+        let wheel = group();
+        wheel.position().set(doors::H_LW / 2.0, doors::H_WHEEL_Y, 0.0);
+        let geo = doors::part_geo("HermeticDoor__wheel");
+        let outer = mesh(&geo, &mats.wheel);
+        outer.position().z = doors::H_T / 2.0;
+        wheel.add(&outer);
+        let inner = mesh(&geo, &mats.wheel);
+        inner.position().z = -doors::H_T / 2.0 - doors::H_GEARBOX;
+        inner.rotation().y = PI;
+        wheel.add(&inner);
         g.add(&wheel);
         g.user().gameplay = true;
         g.user().set("yaw", yaw);
@@ -413,10 +403,9 @@ impl Game {
         let wall_mat = self.arch_mat(&format!("{}:1", self.building_wall_kind()));
         let unit = self.unit_box_geo.clone();
         let wall = parts.part(&unit, &wall_mat);
-        let steel = lambert!({ color: 0x4d5650 });
-        // (a cell's wheel is bare where hands have turned it: paler than its
+        // (a cell's wheel is worn where hands have turned it: paler than its
         // painted leaf, so it reads in the dark of the cell)
-        let worn = lambert!({ color: 0x80857e });
+        let mats = HermeticMats::new();
         let dark = lambert!({ color: 0x2c2f2c });
         let bench = parts.part(&unit, &dark);
         let cage = parts.part(&unit, &self.mats.metal);
@@ -445,8 +434,10 @@ impl Game {
             // the door, open into the room; turn its wheel from inside to
             // shut it (the shelter from the self-assembly), and again to open
             let at = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, h);
-            self.door_frame(parts, at, yaw, &steel);
-            let (leaf, wheel) = self.door_leaf(at, yaw, &steel, &worn);
+            // (its door held to its rule: `assets/src/props/hermetic_door/`, "cell")
+            let _ = self.place_by_layout("hermetic_door", "cell", at.x, at.z);
+            self.door_frame(parts, at, yaw, &mats);
+            let (leaf, wheel) = self.door_leaf(at, yaw, &mats);
             let open = crate::world::assembly::OPEN + r.range(-0.1, 0.1);
             leaf.rotation().y = yaw + open;
             self.world.add(&leaf);
@@ -558,7 +549,7 @@ impl Game {
         let wall_mat = self.arch_mat("poured:2");
         let deck = parts.part(&unit, &deck_mat);
         let parapet = parts.part(&unit, &wall_mat);
-        let steel = lambert!({ color: 0x47504a });
+        let mats = HermeticMats::new();
         let red = lambert!({ color: 0x7a2a22 });
         let tape = lambert!({ color: 0x9a927c });
         let marks = parts.part(&unit, &red);
@@ -602,31 +593,32 @@ impl Game {
                     if self.off_face(plan, mx, mz, d ^ 1, h, h + door_h) {
                         continue;
                     }
-                    let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.04, h);
-                    self.hermetic_door(parts, at, yaw, 0.0, &steel);
+                    let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.0, h);
+                    let _ = self.place_by_layout("hermetic_door", "gallery", at.x, at.z);
+                    self.hermetic_door(parts, at, yaw, &mats, false);
                     let mark = match v {
                         // the cleaners' mark: painted red across it
                         v if v < 0.12 => {
                             for k in [-1.0, 1.0] {
-                                let c = self.face_point(mx, mz, d ^ 1, 0.0, 0.11, h + 1.05);
+                                // (painted on the leaf's face)
+                                let c = self.face_point(mx, mz, d ^ 1, 0.0, doors::GALLERY_LEAF_FRONT + 0.001, h + 1.05);
                                 let q = {
                                     let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), yaw);
                                     q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), k * 0.95));
                                     q
                                 };
-                                parts.put(marks, Mat4::compose(&c, &q, &Vec3::new(1.5, 0.09, 0.01)));
+                                parts.put(marks, Mat4::compose(&c, &q, &Vec3::new(1.5, 0.09, 0.002)));
                             }
                             Mark::Red
                         }
                         // taped round, from inside out
                         v if v < 0.22 => {
-                            for (lx, ly, sx, sy) in [
-                                (0.0, CELL_DOOR_H, CELL_DOOR + 0.1, 0.07),
-                                (-(CELL_DOOR / 2.0), CELL_DOOR_H / 2.0, 0.07, CELL_DOOR_H),
-                                (CELL_DOOR / 2.0, CELL_DOOR_H / 2.0, 0.07, CELL_DOOR_H),
-                            ] {
-                                let c = self.face_point(mx, mz, d ^ 1, lx, 0.1, h + ly);
-                                parts.put(taped, boxm(c, yaw, Vec3::new(sx, sy, 0.005)));
+                            // (along the leaf's edges, on its face)
+                            let e = doors::H_LW / 2.0 - 0.035;
+                            for (lx, ly, sx, sy) in [(0.0, 2.08 - 0.035, doors::H_LW, 0.07), (-e, 1.05, 0.07, 2.06), (e, 1.05, 0.07, 2.06)]
+                            {
+                                let c = self.face_point(mx, mz, d ^ 1, lx, doors::GALLERY_LEAF_FRONT + 0.0015, h + ly);
+                                parts.put(taped, boxm(c, yaw, Vec3::new(sx, sy, 0.003)));
                             }
                             Mark::Taped
                         }
@@ -680,8 +672,8 @@ impl Game {
                     for &d in &faces {
                         let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
                         if r.next() < 0.6 && hung && !self.off_face(plan, mx, mz, d ^ 1, y, y + door_h) {
-                            let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.04, y);
-                            self.hermetic_door(parts, at, yaw_to(d ^ 1), 0.0, &steel);
+                            let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.0, y);
+                            self.hermetic_door(parts, at, yaw_to(d ^ 1), &mats, true);
                         }
                     }
                 }
@@ -1419,11 +1411,6 @@ pub(crate) fn flight_rise(s: usize, n: usize) -> f64 {
     let held = s.saturating_sub(land).min(LANDING - 1);
     (s - held) as f64 / n as f64
 }
-
-/// How far a cell door's frame stands into its opening, proud of the
-/// reveal and the lintel it lines (metres): far enough that the two never
-/// share a depth, too little to see
-const FRAME_PROUD: f64 = 0.005;
 
 #[cfg(test)]
 mod flight_tests {

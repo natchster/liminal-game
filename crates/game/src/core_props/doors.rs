@@ -508,3 +508,114 @@ pub fn sign_face_geo(w: f64, h: f64) -> Geo {
     g.translate(0.0, 0.0, SIGN_FACE_Z - WALL_Z);
     g
 }
+
+// ------------------------------------------------------------ hermetic door
+/// The hermetic door's leaf (`HermeticDoor__*`, in its hinge's frame: x from
+/// the hinge axis): its width, its thickness, the wheel's height
+pub const H_LW: f64 = 1.24;
+pub const H_T: f64 = 0.09;
+pub const H_WHEEL_Y: f64 = 1.05;
+/// The gearbox's depth on the inner face (the inner wheel turns on it)
+pub const H_GEARBOX: f64 = 0.06;
+/// A gallery door on the block's face (no opening behind it): its leaf's
+/// middle and its outer face, out from the face; its face frame between
+pub const GALLERY_LEAF_Z: f64 = 0.002 + H_T / 2.0;
+pub const GALLERY_LEAF_FRONT: f64 = GALLERY_LEAF_Z + H_T / 2.0;
+
+thread_local! {
+    static HERMETIC: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
+}
+
+/// A shelter door's enamel, grey-green over red-brown primer, many coats
+/// (`assets/src/props/hermetic_door/references.toml`, its palette), as its
+/// leaf's face takes it whole (u from the hinge side, the top its head):
+/// mottled where coats differ, worn through to the primer and the steel
+/// along its edges and round the wheel's hub, rust run down from the hinges
+/// and come up at its foot
+fn hermetic_tex() -> Tex {
+    HERMETIC.with(|c| {
+        c.get_or_init(|| {
+            canvas_tex_opt(512, 1024, false, |ctx, w, h| {
+                ctx.set_fill_style("#59645c");
+                ctx.fill_rect(0, 0, w, h);
+                // the coats: patches a shade apart, laid on over the years
+                for _ in 0..60 {
+                    let (x, y, r) = (rnd() * w, rnd() * h, 20.0 + rnd() * 90.0);
+                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+                    gr.add_color_stop(0.0, if rnd() < 0.5 { "rgba(120,132,118,0.12)" } else { "rgba(52,60,54,0.12)" });
+                    gr.add_color_stop(1.0, "rgba(0,0,0,0)");
+                    ctx.set_fill_style(&gr);
+                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+                }
+                // worn at its edges: chips to the primer, a few to the steel
+                for _ in 0..260 {
+                    let side = (rnd() * 4.0) as i32;
+                    let t = rnd();
+                    let e = rnd() * rnd() * 18.0;
+                    let (x, y) = match side {
+                        0 => (e, t * h),
+                        1 => (w - e, t * h),
+                        2 => (t * w, e),
+                        _ => (t * w, h - e),
+                    };
+                    let r = 0.8 + rnd() * 2.6;
+                    ctx.set_fill_style(if rnd() < 0.7 { "rgba(122,59,40,0.85)" } else { "rgba(140,140,134,0.85)" });
+                    ctx.begin_path();
+                    ctx.ellipse(x, y, r, r * (0.5 + rnd()), rnd() * 3.0, 0, PI * 2.0);
+                    ctx.fill();
+                }
+                // round the hub (the wheel 1.05 m up of 2.06 from 0.02: 0.5
+                // down the texture), where hands turned it
+                let (cx, cy) = (w * 0.5, h * 0.5);
+                for _ in 0..70 {
+                    let a = rnd() * PI * 2.0;
+                    let d = w * (0.06 + rnd() * 0.36);
+                    let (x, y) = (cx + a.dcos() * d, cy + a.dsin() * d * 0.5);
+                    ctx.set_fill_style(if rnd() < 0.6 { "rgba(122,59,40,0.7)" } else { "rgba(150,150,144,0.7)" });
+                    ctx.fill_rect(x, y, 1.0 + rnd() * 2.5, 1.0 + rnd() * 2.0);
+                }
+                // rust run down from the hinges (0.45 and 1.85 m up: 0.79 and
+                // 0.11 down the texture), along the hinge edge
+                for hy in [0.11, 0.79] {
+                    for _ in 0..9 {
+                        let x = rnd() * w * 0.07;
+                        let len = h * (0.04 + rnd() * 0.12);
+                        let gr = ctx.create_linear_gradient(x, h * hy, x, h * hy + len);
+                        gr.add_color_stop(0.0, "rgba(110,58,28,0.55)");
+                        gr.add_color_stop(1.0, "rgba(110,58,28,0)");
+                        ctx.set_fill_style(&gr);
+                        ctx.fill_rect(x, h * hy, 1.5 + rnd() * 3.0, len);
+                    }
+                }
+                // and come up at its foot, where the floor's wet stood
+                let gr = ctx.create_linear_gradient(0, h * 0.93, 0, h);
+                gr.add_color_stop(0.0, "rgba(100,56,30,0)");
+                gr.add_color_stop(1.0, "rgba(100,56,30,0.6)");
+                ctx.set_fill_style(&gr);
+                ctx.fill_rect(0, h * 0.93, w, h * 0.07);
+            })
+        })
+        .clone()
+    })
+}
+
+/// The hermetic door's enamel (its leaf, frames, hinges, inner face)
+pub fn hermetic_enamel() -> Mat {
+    phong!({ color: 0xffffff, map: &hermetic_tex(), specular: 0x262826, shininess: 16 })
+}
+/// Its wheel, worn to the steel where hands have turned it: paler than the
+/// leaf, so it reads in the dark of a cell. (Many such wheels are painted
+/// red, ref 1; here red is the cleaners' mark, and a red wheel on every
+/// door would say what only a marked one says: `LORE.md`, *Knocking*)
+pub fn hermetic_wheel_paint() -> Mat {
+    phong!({ color: 0x83877f, specular: 0x5a5c58, shininess: 34 })
+}
+/// Its seal's rubber
+pub fn rubber() -> Mat {
+    lambert!({ color: 0x1d1c1b })
+}
+/// A door's part as modelled (`HermeticDoor__leaf`, …), for its maker's own
+/// placing (the Building's instances, a cell's swinging leaf)
+pub fn part_geo(name: &str) -> Geo {
+    part(name)
+}
