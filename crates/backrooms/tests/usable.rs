@@ -506,6 +506,7 @@ fn what_the_rules_place_keeps_its_rules() {
                             .collect();
                         assert!(on, "{here}: not resting on anything it may stand on; under it {met:?}");
                     }
+                    On::Layout => panic!("{here}: placed by the rules pass with a rule of the layout's"),
                     On::Floor => {
                         assert!((w.y - g.floor_y_at(w.x, w.z)).abs() < 1e-6, "{here}: off the floor");
                         if r.near != Some(Near::Open) {
@@ -524,7 +525,7 @@ fn what_the_rules_place_keeps_its_rules() {
         }
         // and as far from those of their kinds that others made (her camp's)
         for (k, t) in &things {
-            let Some(kind) = k.strip_prefix("core_").filter(|k| pr::of(k).is_some()) else { continue };
+            let Some(kind) = k.strip_prefix("core_").filter(|k| pr::of(k).is_some_and(|a| a.by == pr::By::Rules)) else { continue };
             let p = t.world_position();
             for a in &at {
                 let apart = if a.2 == kind { pr::APART } else { pr::APART_KINDS };
@@ -546,6 +547,66 @@ fn what_the_rules_place_keeps_its_rules() {
                 };
                 assert!(exists, "{}: stands on {k}, which nothing places", a.name);
             }
+        }
+    }
+}
+
+/// Rules the layout's makers do not ask yet (`docs/plan/DOORS.md`: each
+/// milestone makes its own and takes it off this list)
+const NOT_YET: [(&str, &str); 8] = [
+    ("exit_door", "loop"),
+    ("steel_door", "stairwell"),
+    ("hermetic_door", "cell"),
+    ("hermetic_door", "gallery"),
+    ("lift_doors", "lift"),
+    ("lift_doors", "broken lift"),
+    ("interior_door", "wall"),
+    ("interior_door", "barricade"),
+];
+
+/// What the floor's layout makes (the doors: `docs/plan/DOORS.md`) stands
+/// where a rule of its asset allows it (`place_by_layout`): the rule names
+/// its place in the layout, its purposes take the zone's and the asset
+/// never fits none of it, on a floor in its levels, in its counts; every
+/// floor of the rooms and of the Building has its one way down; and every
+/// rule is one some floor's layout makes (a rule nothing makes is a lie)
+#[test]
+fn what_the_layout_places_keeps_its_rules() {
+    use game::world::placement_rules::{self as pr, By};
+    let levels: Vec<i32> = (1..=12).collect();
+    let floors = each_floor(&levels, |seed, l| {
+        let g = floor(seed, l);
+        let here = format!("seed {seed} L{l} {:?}", g.level_scp);
+        let ways = g.layout_things.iter().filter(|t| t.at == "way down").count();
+        assert_eq!(ways, 1, "{here}: {ways} ways down");
+        let mut made = std::collections::BTreeMap::<&str, usize>::new();
+        let mut at = std::collections::BTreeSet::new();
+        for t in &g.layout_things {
+            let a = pr::of(t.asset).unwrap_or_else(|| panic!("{here}: {} has no rules", t.asset));
+            assert_eq!(a.by, By::Layout, "{here}: {} is the rules pass's", t.asset);
+            let r = &a.rules[t.rule];
+            let what = format!("{here}: {} at {} ({:.2}, {:.2}; {}, rule {})", t.asset, t.at, t.x, t.z, t.purpose, t.rule);
+            assert_eq!(r.at, t.at, "{what}: its rule is for {}", r.at);
+            assert!(r.purposes.iter().any(|p| p == "*" || p == t.purpose), "{what}: not a purpose of its rule ({:?})", r.purposes);
+            assert!(!a.never.iter().any(|p| p == t.purpose), "{what}: a purpose it never fits");
+            assert!((a.levels.0..=a.levels.1).contains(&l), "{what}: not on its floors {:?}", a.levels);
+            assert_eq!(g.purpose_label_at(t.x, t.z), t.purpose, "{what}: its purpose as recorded");
+            *made.entry(t.asset).or_default() += 1;
+            at.insert((t.asset.to_string(), t.at.to_string()));
+        }
+        for (asset, n) in &made {
+            let a = pr::of(asset).unwrap();
+            assert!(*n <= a.count.1, "{here}: {n} {asset}, past its most {}", a.count.1);
+        }
+        at
+    });
+    let made: std::collections::BTreeSet<(String, String)> = floors.into_iter().flatten().collect();
+    for a in pr::all().iter().filter(|a| a.by == By::Layout) {
+        for r in &a.rules {
+            let key = (a.name.clone(), r.at.clone());
+            let pending = NOT_YET.iter().any(|&(n, at)| n == a.name && at == r.at);
+            assert!(made.contains(&key) || pending, "{}: no floor's layout makes one at {}", a.name, r.at);
+            assert!(!(made.contains(&key) && pending), "{}: made at {} now: take it off NOT_YET", a.name, r.at);
         }
     }
 }

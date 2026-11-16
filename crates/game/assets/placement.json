@@ -154,6 +154,60 @@
           "why": "dropped in a dark corner by someone changing a torch's cells by feel"
         }
       ]
+    },
+    "exit_door": {
+      "by": "layout",
+      "count": [
+        1,
+        2
+      ],
+      "levels": [
+        1,
+        999
+      ],
+      "rule": [
+        {
+          "at": "way down",
+          "purposes": [
+            "*"
+          ],
+          "why": "an office floor's stair is at its far end, and its door is the last one on the floor, whatever the room in front of it became"
+        },
+        {
+          "at": "loop",
+          "purposes": [
+            "*"
+          ],
+          "why": "a row of small offices has a door to the corridor in the side wall: the one you came in by, and the first room's"
+        }
+      ]
+    },
+    "steel_door": {
+      "by": "layout",
+      "count": [
+        1,
+        2
+      ],
+      "levels": [
+        5,
+        12
+      ],
+      "rule": [
+        {
+          "at": "way down",
+          "purposes": [
+            "*"
+          ],
+          "why": "the floor's stair is at its far end, behind a fire door someone made up as a janitor's closet"
+        },
+        {
+          "at": "stairwell",
+          "purposes": [
+            "*"
+          ],
+          "why": "a concrete stair has a steel door where it meets a floor: the one you came in by, and one at the bottom"
+        }
+      ]
     }
   }
 }

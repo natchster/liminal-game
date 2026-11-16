@@ -201,6 +201,7 @@ impl Game {
         self.floor_holes.clear();
         self.barricade_tiles.clear();
         self.barricades.clear();
+        self.layout_things.clear();
         self.pool_bounds = None;
         self.papers.clear();
         self.paper_markers.clear();

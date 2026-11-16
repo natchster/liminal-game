@@ -519,12 +519,16 @@ impl Game {
         // the rooms' yellow round it, warm (her page there: "a small door that
         // was warm behind it")
         if plan.style == Style::Works {
+            // (on the wall, 3 mm off it: the door stands on its face, the
+            // leaf's back on the wall, and the paper round it)
             let paper = self.arch_mat("wp:0");
             let m = mesh(plane_geo!(2.6, 3.3), &paper);
             m.set_name("lobby-paper");
-            m.position().set(spot.pos.x + spot.normal.x * 0.03, spot.pos.y + 1.65, spot.pos.z + spot.normal.z * 0.03);
+            let off = crate::core_props::doors::WALL_Z + 0.003;
+            m.position().set(spot.pos.x + spot.normal.x * off, spot.pos.y + 1.65, spot.pos.z + spot.normal.z * off);
             m.rotation().y = spot.yaw;
             self.world.add(&m);
+            self.world.add(&crate::core_props::doors::warm_under(&spot));
             let warm = point_light!(0xffd890, 3.0, 7, 1.6);
             warm.position().set(spot.pos.x + spot.normal.x * 0.8, spot.pos.y + 2.2, spot.pos.z + spot.normal.z * 0.8);
             self.world.add(&warm);

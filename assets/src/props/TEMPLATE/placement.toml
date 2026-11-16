@@ -2,6 +2,9 @@
 # Every rule is one way it comes to be somewhere; its `why` is the story a
 # player could tell.
 
+# by = "layout"  # made by the floor's layout where its plan has one (a door), not put down by
+#                # the placement pass: each rule says `at` (where in the layout) for `on`/`near`,
+#                # and `levels` may start at 1 (docs/design/ASSETS.md, *Things the layout makes*)
 count = [0, 0]   # how many a floor: least (its maker makes them), most (the rest are dropped)
 levels = [5, 99] # from which floor down (4 at the least: the Building's floors place their own)
 

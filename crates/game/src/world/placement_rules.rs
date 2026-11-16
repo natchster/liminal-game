@@ -17,6 +17,15 @@
 //! asset's name), never the level's: no floor's draws move. Each moved thing
 //! keeps which rule placed it (`user.s["rule"]`), so a test can hold it to
 //! it.
+//!
+//! Some things are not put down by that pass but made by the floor's layout
+//! where its plan has one (a door: the far wall's, a cell's front, a
+//! gallery's; `by = "layout"`). Their rules name the place in the layout
+//! each stands at (`at`), with its purposes and its why, on any floor its
+//! `levels` say (the Building's too). The layout asks `place_by_layout`
+//! before it makes one: a rule that allows it is recorded with it
+//! (`Game::layout_things`), and a thing no rule allows is not made (its
+//! maker keeps its draws).
 use super::N4;
 use crate::base::rng::SplitMix64;
 use crate::prelude::*;
@@ -46,6 +55,16 @@ pub const FIRST_LEVEL: i32 = 4;
 pub enum On {
     Floor,
     Surface,
+    /// made by the floor's layout, at the place its rule names (`Rule::at`)
+    Layout,
+}
+/// Who puts an asset's things where they are
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum By {
+    /// the placement pass, once the floor has settled (`place_by_rules`)
+    Rules,
+    /// the floor's layout, where its plan has one (`place_by_layout`)
+    Layout,
 }
 /// Near what, on the floor
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -68,12 +87,16 @@ pub struct Rule {
     pub dark: bool,
     pub weight: f64,
     pub why: String,
+    /// (made by the layout) the place in it the thing stands at: "way down",
+    /// "cell", "gallery", …
+    pub at: String,
 }
 
 /// An asset's rules
 #[derive(Clone, Debug)]
 pub struct AssetRules {
     pub name: String,
+    pub by: By,
     pub count: (usize, usize),
     pub levels: (i32, i32),
     pub rules: Vec<Rule>,
@@ -95,16 +118,25 @@ pub fn parse(text: &str) -> Result<Vec<AssetRules>, String> {
     let mut out = vec![];
     for (name, a) in v["assets"].as_object().ok_or("no assets")? {
         let count = pair(&a["count"], |x| x.as_u64().map(|n| n as usize)).ok_or(format!("{name}: count"))?;
+        let by = match a["by"].as_str() {
+            None | Some("rules") => By::Rules,
+            Some("layout") => By::Layout,
+            o => return Err(format!("{name}: by {o:?}: \"rules\" or \"layout\"")),
+        };
         let levels = pair(&a["levels"], |x| x.as_i64().map(|n| n as i32)).unwrap_or((FIRST_LEVEL, 999));
-        if levels.0 < FIRST_LEVEL {
+        if by == By::Rules && levels.0 < FIRST_LEVEL {
             return Err(format!("{name}: levels from {}: the rules place from level {FIRST_LEVEL} down", levels.0));
         }
         let mut rules = vec![];
         for r in a["rule"].as_array().into_iter().flatten() {
-            let on = match r["on"].as_str() {
-                Some("floor") => On::Floor,
-                Some("surface") => On::Surface,
-                o => return Err(format!("{name}: on {o:?}: \"floor\" or \"surface\" (hung on a wall: not yet)")),
+            let at = r["at"].as_str().unwrap_or("").to_string();
+            let on = match (by, r["on"].as_str()) {
+                (By::Layout, None) if !at.is_empty() => On::Layout,
+                (By::Layout, _) => return Err(format!("{name}: made by the layout: each rule says `at` (where in it), not `on`")),
+                (By::Rules, _) if !at.is_empty() => return Err(format!("{name}: `at` is for things the layout makes")),
+                (By::Rules, Some("floor")) => On::Floor,
+                (By::Rules, Some("surface")) => On::Surface,
+                (By::Rules, o) => return Err(format!("{name}: on {o:?}: \"floor\" or \"surface\" (hung on a wall: not yet)")),
             };
             let near = match r["near"].as_str() {
                 Some("wall") => Some(Near::Wall),
@@ -121,9 +153,10 @@ pub fn parse(text: &str) -> Result<Vec<AssetRules>, String> {
                 dark: r["dark"].as_bool().unwrap_or(false),
                 weight: r["weight"].as_f64().unwrap_or(1.0),
                 why: r["why"].as_str().unwrap_or("").to_string(),
+                at,
             });
         }
-        out.push(AssetRules { name: name.clone(), count, levels, rules, never: strs(&a["never"]["purposes"]) });
+        out.push(AssetRules { name: name.clone(), by, count, levels, rules, never: strs(&a["never"]["purposes"]) });
     }
     Ok(out)
 }
@@ -156,6 +189,21 @@ pub struct Spot {
 
 fn fits(purposes: &[String], label: &str) -> bool {
     purposes.iter().any(|p| p == "*" || p == label)
+}
+
+/// A thing the floor's layout made where a rule of its asset allowed it
+/// (`Game::place_by_layout`)
+#[derive(Clone, Debug)]
+pub struct LayoutThing {
+    pub asset: &'static str,
+    /// the place in the layout it stands at (its rule's `at`)
+    pub at: &'static str,
+    pub x: f64,
+    pub z: f64,
+    /// the purpose of the zone it stands in ("empty" where none is said)
+    pub purpose: &'static str,
+    /// the rule that allowed it (its index among the asset's)
+    pub rule: usize,
 }
 
 /// The level faces of `o`'s meshes, in the world (either way up: a face
@@ -309,6 +357,27 @@ impl Game {
         self.zone_purpose_at(self.tx(x), self.tz(z)).map_or("empty", |p| p.label)
     }
 
+    /// Whether the rules of `asset` (a thing the layout makes) allow one at
+    /// `at` in the layout, standing at (x, z) on this floor: the first rule
+    /// for `at` whose purposes take the zone's (and none the asset never
+    /// fits), on a floor in its levels. One allowed is recorded with its
+    /// rule (`layout_things`) and the rule's index returned; one no rule
+    /// allows is not made (its maker keeps its draws)
+    pub fn place_by_layout(&mut self, asset: &str, at: &str, x: f64, z: f64) -> Option<usize> {
+        let a = of(asset).unwrap_or_else(|| panic!("{asset}: no placement rules (assets/src/props/{asset}/, cargo xtask asset write)"));
+        assert!(a.by == By::Layout, "{asset}: placed by the rules pass, not by the layout");
+        if self.level_num < a.levels.0 || self.level_num > a.levels.1 {
+            return None;
+        }
+        let purpose = self.purpose_label_at(x, z);
+        if a.never.iter().any(|p| p == purpose) {
+            return None;
+        }
+        let (rule, r) = a.rules.iter().enumerate().find(|(_, r)| r.at == at && fits(&r.purposes, purpose))?;
+        self.layout_things.push(LayoutThing { asset: a.name.as_str(), at: r.at.as_str(), x, z, purpose, rule });
+        Some(rule)
+    }
+
     /// The things on the floor (top-level, made by a placer or the core
     /// props), each with its kind and its world box; not those the rules
     /// place (they are being moved)
@@ -338,7 +407,8 @@ impl Game {
     /// Every spot the rules of `a` allow on this floor, and whether each is
     /// reachable; `dist` the walk from where you arrive (`bfs_open`)
     pub fn rule_spots(&self, a: &AssetRules) -> Vec<Spot> {
-        if self.level_num < a.levels.0 || self.level_num > a.levels.1 {
+        // (what the layout makes stands where its plan has it)
+        if a.by == By::Layout || self.level_num < a.levels.0 || self.level_num > a.levels.1 {
             return vec![];
         }
         let (sx, sz) = (self.tx(self.spawn_pos.x), self.tz(self.spawn_pos.z));
@@ -386,6 +456,7 @@ impl Game {
         let mut out = vec![];
         for (ri, rule) in a.rules.iter().enumerate() {
             match rule.on {
+                On::Layout => {}
                 On::Surface => {
                     for (o, kind, bb) in &things {
                         if !rule.of.iter().any(|k| k == kind) {
@@ -496,8 +567,9 @@ impl Game {
                 (true, None) => {
                     o.user().s.insert("rule".into(), "unruled".into());
                 }
-                (false, Some(a)) => taken.push((o.pos(), a.name.as_str())),
-                (false, None) => {}
+                // (one the layout made, a door, is not one of theirs)
+                (false, Some(a)) if a.by == By::Rules => taken.push((o.pos(), a.name.as_str())),
+                (false, _) => {}
             }
         }
         // each asset's things, its spots and its own stream

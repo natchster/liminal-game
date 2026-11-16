@@ -363,6 +363,13 @@ stands near where a floor begins, shuts the way to the door or shuts away
 anything there is to pick up. Somebody built them; who, and against what,
 is never said.
 
+**A door to nowhere.** Now and then (on about one floor in twenty-five,
+never the Lobby, nor a floor with rules of its own) an ordinary door
+stands shut against a wall of a place that had rooms with doors (someone's
+rooms, an office wing, a parlour, a storage hall, a maintenance run), in
+its frame, its knob on it. It does not open, and behind it is the wall;
+why it is there is never said.
+
 ## M.'s descent
 
 Someone came this way before you, and you can follow her down.

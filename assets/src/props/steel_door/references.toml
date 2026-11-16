@@ -1,0 +1,524 @@
+# The references of steel_door (docs/design/ASSETS.md), gathered on
+# 2026-11-16 by a research agent (its notes: docs/research/doors.md);
+# `cargo xtask asset refs steel_door` fetches them into target/asset-refs/steel_door/.
+# Its surfaces are painted from its own palette (`core_props::doors`),
+# never sampled from these; the palette is photo-sampled, each photo's
+# light in it.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/9/9e/2020-11-05_20_33_20_Door_to_the_lobby_on_the_bottom_landing_of_the_central_stairwell_within_the_Ramada_by_Wyndham_Rochelle_Park_in_Rochelle_Park_Township%2C_Bergen_County%2C_New_Jersey.jpg"
+page = "https://commons.wikimedia.org/wiki/File:2020-11-05_20_33_20_Door_to_the_lobby_on_the_bottom_landing_of_the_central_stairwell_within_the_Ramada_by_Wyndham_Rochelle_Park_in_Rochelle_Park_Township,_Bergen_County,_New_Jersey.jpg"
+shows = "a place with one: the bottom-landing door of a painted-CMU hotel exit stair, seen from inside the stair - red-brown painted leaf, beige hollow-metal frame, narrow wired-glass vision lite in black trim, overhead closer (regular arm) with bronze-tone cover, brass kick plate, lever, brass 'Lobby' plaque; standpipe cabinet beside it"
+class = "free"
+licence = "CC BY-SA 4.0, Famartin"
+sha1 = "5a7d79d9274bfb2f6fee3f9e093a709a3d245a97"
+notes = "Viewed at 960 and 1920 px. Best whole-door reference: lite, kick plate (~10 in high), closer at the head, frame face against painted block. Leaf looks smooth painted steel (not confirmed). Notes taped on the wall above. Rochelle Park NJ, 2020."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/70/2020-11-05_20_30_32_The_top_landing_of_the_central_stairwell_within_the_Ramada_by_Wyndham_Rochelle_Park_in_Rochelle_Park_Township%2C_Bergen_County%2C_New_Jersey.jpg"
+page = "https://commons.wikimedia.org/wiki/File:2020-11-05_20_30_32_The_top_landing_of_the_central_stairwell_within_the_Ramada_by_Wyndham_Rochelle_Park_in_Rochelle_Park_Township,_Bergen_County,_New_Jersey.jpg"
+shows = "a place with one: the top landing of the same stair - beige painted steel door (roof access) on its push side with a rim push bar, parallel-arm closer, FIRE DOOR KEEP CLOSED and DANGER signs, black bottom sweep; beside it a grey painted leaf in a dark red frame; painted CMU, grey concrete landing with yellow/black nosing tape, conduit, fire alarm pull station"
+class = "free"
+licence = "CC BY-SA 4.0, Famartin"
+sha1 = "1cd210adc064e76b2b0e18976e05411d7f4ae9cb"
+notes = "Viewed at 960 and 1920 px, with crops of the door's top and bottom. Wear: scuffs on the lower leaf, worn and chipped paint on the sill under the door showing lighter layers, a dirt line along the sweep. Warm lighting (white wall samples 235,219,193)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/c/ce/Texas_hotel_fire_door_stairway.png"
+page = "https://commons.wikimedia.org/wiki/File:Texas_hotel_fire_door_stairway.png"
+shows = "the thing: a hotel stair door from the corridor side - wood-grain leaf (veneer or print, not confirmed steel), beige hollow-metal frame with 3 butt hinges, narrow vision lite in beige trim, overhead closer, lever; tactile and Braille stair sign beside it (LEVEL 4 / STAIR 1 / NO ROOF ACCESS / 1 THROUGH 4 / DOWN TO LEVEL 1 FOR EXIT DISCHARGE)"
+class = "free"
+licence = "CC BY 3.0, Achim Hering"
+sha1 = "09c78b54ed1cc6a87ef63591a9b32291eeb65086"
+notes = "Viewed at 960 and 1920 px. Use for the stair sign (grey face, dark raised letters, Braille, large photoluminescent-looking floor number), the hinge rhythm and the closer position, not the leaf finish. 2014."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/1/19/Set_of_Crash_Bar_Doors.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Set_of_Crash_Bar_Doors.jpg"
+shows = "the thing: two pairs of stair doors in a US school corridor (the stair is visible through the lites) - near-black brown leaves, dark slate frames, satin-aluminium push bars with vertical rods and top (Pullman) latches, overhead closers, narrow lites in stainless trim, an 'S3' stair label on the frame head, red EXIT sign"
+class = "free"
+licence = "CC BY-SA 4.0, Scott Brody"
+sha1 = "937fb2c2d91016c3c5207bf93f8f533dedb17df1"
+notes = "Viewed at 960 and 1920 px. Push-bar shape and finish, lite proportions, closer bodies. These are pairs with vertical-rod devices, not the single-leaf rim device of the brief."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/a/af/Fire_door.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Fire_door.jpg"
+shows = "the thing: close-up of an off-white painted hollow-metal door - narrow wired-glass vision lite (diamond mesh) in mitred steel trim, lever on a long escutcheon; orange painted CMU beside the frame"
+class = "free"
+licence = "Public domain, Interiot (en.wikipedia)"
+sha1 = "dc9ca0cfc6882aebdec97d7ce246b1b216e38781"
+notes = "Viewed at full size (668 x 1124 px); SHA-1 checked against a download. Glass aspect ~6.1:1 fits a 4 x 25 in lite. Strong yellow-green cast."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/f/f9/Janitor%27s_Closet.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Janitor%27s_Closet.JPG"
+shows = "the thing (plaque only): a janitor's closet door in a stone-clad lobby corridor with an engraved name plaque 'JANITORS CLOSET' (silver face, black letters); the leaf is brushed stainless with a reeded band, not painted hollow metal"
+class = "free"
+licence = "CC BY-SA 4.0, Ukelady123"
+sha1 = "3909db688b1f432d65b5efee7bbbbd2c3fee55b7"
+notes = "Viewed at 960 and 1920 px. Plaque aspect ~4.4:1, centred on the leaf at about eye height; the door face is dented and scratched. 570 Lexington Ave, New York, 2015."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c3/Dark_Exit_%2816536230456%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Dark_Exit_(16536230456).jpg"
+shows = "a place with one: the back exit door of an abandoned milk factory - off-white steel leaf with an overhead closer, wire-guarded lite, painted 'EXIT DOOR DO NOT OBSTRUCT', pull plate, dark kick plate; debris on the floor"
+class = "free"
+licence = "CC BY 2.0, darkday (Brisbane, Australia)"
+sha1 = "5fc2a1db2cf9b58ee542d9f08112e6e43b5a5845"
+notes = "Viewed at 960 and 1920 px. Ageing: hand smears, drips and scuffs on the lower leaf, grimy kick plate, cobwebs at the frame. Not a stair door and not US; heavily processed (HDR look)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/9/94/%E8%BB%8D%E4%BA%8B%E7%94%A8%E9%80%9A%E8%A8%8A%E6%89%80%E7%9A%84%E5%8E%9A%E9%87%8D%E9%8B%BC%E9%96%80.jpg"
+page = "https://commons.wikimedia.org/wiki/File:%E8%BB%8D%E4%BA%8B%E7%94%A8%E9%80%9A%E8%A8%8A%E6%89%80%E7%9A%84%E5%8E%9A%E9%87%8D%E9%8B%BC%E9%96%80.jpg"
+shows = "rust: heavy steel doors and frames of an abandoned military communications post in Taiwan - rusted frames, rust blooms and streaks through grey paint, delaminating plate"
+class = "free"
+licence = "CC BY-SA 4.0, Astraea1020"
+sha1 = "727aae0bbe6790833f00232997e296974a9121cb"
+notes = "Viewed at 960 px (and an upscaled 1920 px thumbnail for sampling). For rust colour and pattern only; these are blast/security doors, not hollow-metal leaves. 2013, overcast light."
+
+[[ref]]
+url = "https://www.access-board.gov/ada/chapter/ch07"
+page = "https://www.access-board.gov/ada/chapter/ch07"
+shows = "a measurement: 2010 ADA Standards chapter 7 - 703.4 height and location of tactile signs, 703.2 raised characters"
+class = "free"
+licence = "Public domain (U.S. federal government work), U.S. Access Board"
+sampled = false
+notes = "Read, not sampled. Gives the mounting band for the tactile floor/room sign beside the stair or closet door."
+
+[[ref]]
+url = "https://steeldoor.org/wp-content/uploads/2020/02/A250_8-1.pdf"
+page = "https://steeldoor.org/ansi-250-8/"
+shows = "a measurement: ANSI/SDI A250.8-2017 (SDI-100), Specifications for Standard Steel Doors and Frames - levels and face gauges, cores, edges, clearances, standard sizes, frame gauges, prime paint, hardware locations"
+class = "limited"
+licence = "Steel Door Institute, all rights reserved"
+notes = "Read the PDF text (32 pages). Tables 1-5 and sections 2.1.3, 2.1.8, 2.3, 3.1.5. Table 5 text layout makes the panic-device row's value inferred (see md)."
+
+[[ref]]
+url = "https://allegion.ca/content/dam/allegion-us-2/web-files/steelcraft/technical-documents/Section__2__Frames_variations_&_options_and_anchoring_systems_110553.pdf"
+page = "https://allegion.ca/content/dam/allegion-us-2/web-files/steelcraft/technical-documents/Section__2__Frames_variations_&_options_and_anchoring_systems_110553.pdf#page=6"
+shows = "a maker's sheet: Steelcraft Technical Data Manual section 2, F Series flush frames - double/single rabbet profile (face, stop, return, rabbets), elevation with hinge and strike centrelines, gauges, hinge prep"
+class = "limited"
+licence = "Allegion (Steelcraft), all rights reserved"
+notes = "Read the text and viewed manual page 26 (PDF page 6) rendered as an image. Book rev. 10/28/16."
+
+[[ref]]
+url = "https://cdn.shopify.com/s/files/1/0562/3493/4478/files/Von_Duprin_98.99.pdf"
+page = "https://cdn.shopify.com/s/files/1/0562/3493/4478/files/Von_Duprin_98.99.pdf#page=1"
+shows = "a maker's sheet: Von Duprin 98/99 rim exit device - lengths, centreline height, centre case and mechanism case sizes, projection, latch, finishes"
+class = "limited"
+licence = "Allegion (Von Duprin), all rights reserved"
+notes = "Read the text (catalogue pages 8-9, hosted on a reseller's CDN). The 99 has a grooved case, the 98 a smooth one."
+
+[[ref]]
+url = "https://cdn.shopify.com/s/files/1/0562/3493/4478/files/LCN_4040XP_Catalog.pdf"
+page = "https://cdn.shopify.com/s/files/1/0562/3493/4478/files/LCN_4040XP_Catalog.pdf#page=2"
+shows = "a maker's sheet: LCN 4040XP surface closer - hinge-side (regular arm) mounting drawing with body and arm dimensions; mountings; finishes"
+class = "limited"
+licence = "Allegion (LCN), all rights reserved"
+notes = "Read the text and viewed catalogue page 37 rendered as an image. Same figures appear in the Allegion cut sheet (allegion.ca, LCN_4040XP_Cut_Sheet_113110.pdf)."
+
+[[ref]]
+url = "https://cdn.shopify.com/s/files/1/0562/3493/4478/files/Rockwood_K1050_Cut_Sheet.pdf"
+page = "https://cdn.shopify.com/s/files/1/0562/3493/4478/files/Rockwood_K1050_Cut_Sheet.pdf"
+shows = "a maker's sheet: Rockwood K1050 kick plate - material and thickness, width rule push/pull side, bevelled edges, screws, finishes, NFPA 80 note"
+class = "limited"
+licence = "ASSA ABLOY (Rockwood Manufacturing), all rights reserved"
+notes = "Read the PDF text (CS-K1050, 12/21). Heights are ordered to size; the sheet gives no standard height."
+
+[[ref]]
+url = "https://doorwaysplus.com/shop/ngp-l-fra100-steel-door-window-lite-kit-with-diamond-wire-glass-fire-rated-2284"
+page = "https://doorwaysplus.com/shop/ngp-l-fra100-steel-door-window-lite-kit-with-diamond-wire-glass-fire-rated-2284"
+shows = "a maker's sheet: NGP L-FRA100 low-profile steel vision lite kit with diamond wire glass (retailer listing) - visible-glass sizes, 18 ga frame, glass thickness, primer finishes"
+class = "limited"
+licence = "Doorways Plus / National Guard Products, all rights reserved"
+notes = "Read via a page summary. Says the wired glass kit does not meet IBC 2006+ impact rules for doors, so new stair doors use ceramic glass; old ones keep wired glass."
+
+[[ref]]
+url = "https://www.iccsafe.org/?p=171866"
+page = "https://www.iccsafe.org/?p=171866"
+shows = "a measurement: ICC Building Safety Journal, 'Stairway signage demystified' (K. Paarlberg, 2017-10-01) - IBC stairway identification sign size, height, content, tactile floor sign at the latch side"
+class = "limited"
+licence = "International Code Council, all rights reserved"
+notes = "Read via a page summary. Explains the large stair ID sign inside the stair versus the small tactile sign beside each door."
+
+[[ref]]
+url = "https://allegion.ca/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_ND_Series_Data_Sheet_106486.pdf"
+page = "https://allegion.ca/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_ND_Series_Data_Sheet_106486.pdf"
+shows = "a maker's sheet: Schlage ND series cylindrical (bored) lever lock - rose diameter, backset, strike, lever designs (Rhodes, Sparta ...)"
+class = "limited"
+licence = "Allegion (Schlage), all rights reserved"
+notes = "Read the PDF text (4 pages). Lever length is not in the sheet."
+
+[[ref]]
+url = "https://www.hcbrands.com/engraved-sign-horizontal-2-x-8"
+page = "https://www.hcbrands.com/engraved-sign-horizontal-2-x-8"
+shows = "a maker's sheet: 2 x 8 in engraved two-colour plastic door sign - size, thickness, engraving through the top layer, colour pairs"
+class = "limited"
+licence = "HC Brands, all rights reserved"
+notes = "Read via a page summary. Most popular pair: black face with white letters."
+
+[[measure]]
+what = "leaf nominal opening width x height x thickness"
+value = "3'0 x 7'0 x 1-3/4 in (914 x 2134 x 44.5 mm)"
+ref = 10
+
+[[measure]]
+what = "leaf actual size: opening less 1/8 in at jambs and head and a 3/4 in undercut (DERIVED)"
+value = "35-3/4 x 83-1/8 in (908 x 2111 mm)"
+ref = 10
+
+[[measure]]
+what = "face sheet minimum thickness: Level 1 (20 ga) / Level 2 heavy-duty (18 ga) / Level 3 extra heavy-duty (16 ga)"
+value = "0.032 / 0.042 / 0.053 in (0.8 / 1.0 / 1.3 mm)"
+ref = 10
+
+[[measure]]
+what = "core types that meet A250.8"
+value = "kraft-paper honeycomb, polystyrene, polyurethane, mineral board, vertical steel stiffeners"
+ref = 10
+
+[[measure]]
+what = "edges: full flush allows a full-height seam on the edges; seamless has filled or welded edge seams; standard lock-edge bevel"
+value = "bevel 1/8 in in 2 in (3.2 mm in 50.8 mm)"
+ref = 10
+
+[[measure]]
+what = "top and bottom closure channels, flush or inverted, minimum thickness"
+value = "0.042 in (1.0 mm)"
+ref = 10
+
+[[measure]]
+what = "clearances: door to frame max / undercut max / door face to stop"
+value = "1/8 in (3.2 mm) / 3/4 in (19.1 mm) / 1/16 - 3/32 in (1.6 - 2.4 mm)"
+ref = 10
+
+[[measure]]
+what = "hinge count for a 7'0 leaf (min 3 up to 7'6, min 4 above)"
+value = "3"
+ref = 10
+
+[[measure]]
+what = "hinge location limits: top hinge CL below head rabbet / bottom hinge CL above frame bottom"
+value = "up to 11-3/4 in (298.5 mm) / up to 13 in (330.2 mm), intermediate equally spaced"
+ref = 10
+
+[[measure]]
+what = "lock strike CL above bottom of frame, locks and latches (panic devices listed in the same row)"
+value = "38 - 42 in (965 - 1067 mm)"
+ref = 10
+
+[[measure]]
+what = "frame steel for Level 2/3 doors (16 ga)"
+value = "min 0.053 in (1.3 mm); nominal 16 ga 0.059 in (1.5 mm)"
+ref = 10
+
+[[measure]]
+what = "frame profile (Steelcraft F16 double rabbet): face / stop height / return"
+value = "2 in (50 mm) / 5/8 in (16 mm) / 1/2 in (13 mm), return 7/16 in (11 mm) on a 5-3/4 in depth"
+ref = 11
+
+[[measure]]
+what = "frame rabbets: door side / opposite side"
+value = "1-15/16 in (49 mm) / 1-9/16 in (40 mm)"
+ref = 11
+
+[[measure]]
+what = "jamb depth"
+value = "5-3/4 in (146 mm) as specified; double rabbet made 4-1/2 - 20 in (114 - 508 mm) in 1/8 in steps"
+ref = 11
+
+[[measure]]
+what = "stop (soffit) width at 5-3/4 in depth, DERIVED: 5-3/4 - 1-15/16 - 1-9/16"
+value = "2-1/4 in (57 mm)"
+ref = 11
+
+[[measure]]
+what = "frame head"
+value = "2 in (50 mm) face, as the jambs; optional 4 in (102 mm) head for masonry"
+ref = 11
+
+[[measure]]
+what = "hinge centrelines on the frame: top below head rabbet / bottom above floor"
+value = "9-3/4 in (248 mm) / 10-3/8 in (264 mm), middle hinge equally spaced"
+ref = 11
+
+[[measure]]
+what = "hinge spacing for a 7'0 opening, DERIVED: (84 - 9-3/4 - 10-3/8) / 2"
+value = "31-15/16 in (811 mm)"
+ref = 11
+
+[[measure]]
+what = "strike centreline above floor"
+value = "40-5/16 in (1024 mm)"
+ref = 11
+
+[[measure]]
+what = "butt hinge size and leaf thickness"
+value = "4-1/2 in (114 mm) standard, 5 in (127 mm) optional; leaf 0.134 in (3.3 mm) standard weight, 0.180 in (4.7 mm) heavy"
+ref = 11
+
+[[measure]]
+what = "strike preparation (ASA strike)"
+value = "4-7/8 in (124 mm) tall"
+ref = 11
+
+[[measure]]
+what = "rim exit device length for a 3'0 leaf"
+value = "3 ft device, fits doors 2'4 - 3'0 (711 - 914 mm)"
+ref = 12
+
+[[measure]]
+what = "exit device centreline above finished floor"
+value = "39-13/16 in (1011 mm)"
+ref = 12
+
+[[measure]]
+what = "exit device centre case L x H x D / mechanism case (bar) section"
+value = "8 x 2-3/4 x 2-3/8 in (203 x 70 x 60 mm) / 2-1/4 x 2-1/4 in (57 x 57 mm)"
+ref = 12
+
+[[measure]]
+what = "exit device projection from the door face: at rest / pushed"
+value = "3-13/16 in (97 mm) / 3-1/16 in (78 mm)"
+ref = 12
+
+[[measure]]
+what = "exit device latch bolt"
+value = "deadlocking, 3/4 in (19 mm) throw; 299 rim strike, dull black"
+ref = 12
+
+[[measure]]
+what = "push bar centre above floor in the photo, DERIVED from door height in pixels (perspective, about +-2 in)"
+value = "~40 - 42 in (1020 - 1070 mm)"
+ref = 2
+
+[[measure]]
+what = "closer body length x projection from the door face"
+value = "12-1/4 x 2-1/4 in (311 x 57 mm)"
+ref = 13
+
+[[measure]]
+what = "closer body height, DERIVED from the drawing scale (12-1/4 in = 283 px, height 80 px); drawing callouts 3-1/2 in (89 mm) and 3-3/4 in (95 mm)"
+value = "~3-1/2 in (89 mm)"
+ref = 13
+
+[[measure]]
+what = "closer regular arm reach from the door face at 90 deg / body start from the hinge-side line"
+value = "11 in (279 mm) / 5/8 in (16 mm)"
+ref = 13
+
+[[measure]]
+what = "closer finishes"
+value = "689 Aluminum powder coat standard; 690/691/695 bronzes, 693 black, 696 brass; plated optional"
+ref = 13
+
+[[measure]]
+what = "kick plate thickness, edges, screws"
+value = "0.050 in (1.27 mm), all edges bevelled, #6 x 5/8 in oval-head screws"
+ref = 14
+
+[[measure]]
+what = "kick plate width: push side / pull side"
+value = "door width - 2 in (34 in on a 36 in leaf, DERIVED) / door width - 1-1/2 in"
+ref = 14
+
+[[measure]]
+what = "kick plate label exemption (NFPA 80 as quoted on the sheet)"
+value = "no label if the plate top is at most 16 in (406 mm) above the door bottom"
+ref = 14
+
+[[measure]]
+what = "kick plate height in the photo, DERIVED from door height in pixels"
+value = "~10 in (254 mm)"
+ref = 1
+
+[[measure]]
+what = "narrow vision lite: visible-glass sizes offered"
+value = "4 x 25, 5 x 20, 6 x 30, 10 x 10 in (102 x 635, 127 x 508, 152 x 762, 254 x 254 mm)"
+ref = 15
+
+[[measure]]
+what = "vision lite kit frame and glass"
+value = "18 ga cold-rolled steel, mitred welded corners; diamond wire glass 3/16, 1/4 or 5/16 in (4.8, 6.4, 7.9 mm)"
+ref = 15
+
+[[measure]]
+what = "4 x 25 in glass area, DERIVED (the usual 100 sq in cap for 60/90-min doors)"
+value = "100 sq in (645 cm2)"
+ref = 15
+
+[[measure]]
+what = "lite in the photo, DERIVED from pixels: glass aspect / trim width / wire diamond across (assuming 4 in glass)"
+value = "~6.1:1 (fits 4 x 25 in) / ~1-1/4 in (32 mm) / ~1 in (25 mm)"
+ref = 5
+
+[[measure]]
+what = "lite in the photo, DERIVED from pixels (+-15%, perspective): glass / over trim"
+value = "~5 x 23 in (127 x 584 mm) / ~8 x 27 in (203 x 686 mm)"
+ref = 1
+
+[[measure]]
+what = "stairway identification sign (inside the stair, each floor landing, stairs over 3 stories): min size / bottom edge"
+value = "18 x 12 in (457 x 305 mm) / about 5 ft (1524 mm) above floor"
+ref = 16
+
+[[measure]]
+what = "tactile sign height: baseline of lowest tactile character / of highest"
+value = "48 in (1220 mm) min / 60 in (1525 mm) max above floor"
+ref = 9
+
+[[measure]]
+what = "tactile sign clear floor space, centred on the characters, beyond the door swing"
+value = "18 x 18 in (455 x 455 mm) min"
+ref = 9
+
+[[measure]]
+what = "raised characters: case / relief / height"
+value = "uppercase / 1/32 in (0.8 mm) min / 5/8 - 2 in (16 - 51 mm)"
+ref = 9
+
+[[measure]]
+what = "lever lock rose diameter / backset / strike"
+value = "3-7/16 in (87 mm) / 2-3/4 in (70 mm) / 1-1/4 x 4-7/8 in (32 x 124 mm)"
+ref = 17
+
+[[measure]]
+what = "engraved name plaque size x thickness"
+value = "2 x 8 in x 1/16 in (51 x 203 x 1.6 mm)"
+ref = 18
+
+[[measure]]
+what = "janitor plaque aspect in the photo, DERIVED from pixels"
+value = "~4.4:1 (e.g. 2 x 9 in)"
+ref = 6
+
+[[measure]]
+what = "brass 'Lobby' plaque on the stair side in the photo, DERIVED from pixels (+-15%)"
+value = "~10 x 4 in (254 x 102 mm)"
+ref = 1
+
+[[palette]]
+what = "red-brown leaf enamel, photo-sampled (mean of a 400 x 400 px patch, indoor light)"
+srgb = [50, 23, 14]
+ref = 1
+
+[[palette]]
+what = "beige / almond frame enamel, photo-sampled"
+srgb = [194, 162, 120]
+ref = 1
+
+[[palette]]
+what = "brass kick plate (US3/US4 look), photo-sampled"
+srgb = [164, 129, 73]
+ref = 1
+
+[[palette]]
+what = "bronze-tone closer cover with arm, photo-sampled"
+srgb = [152, 126, 76]
+ref = 1
+
+[[palette]]
+what = "beige leaf enamel, stair side, photo-sampled under warm light"
+srgb = [161, 133, 90]
+ref = 2
+
+[[palette]]
+what = "grey leaf enamel, photo-sampled under warm light (white wall reads 235,219,193)"
+srgb = [76, 68, 52]
+ref = 2
+
+[[palette]]
+what = "dark red frame enamel, photo-sampled"
+srgb = [42, 18, 12]
+ref = 2
+
+[[palette]]
+what = "push bar, satin aluminium/stainless, photo-sampled under warm light"
+srgb = [148, 133, 108]
+ref = 2
+
+[[palette]]
+what = "black vinyl door-bottom sweep, photo-sampled"
+srgb = [29, 23, 17]
+ref = 2
+
+[[palette]]
+what = "worn, chipped sill paint under the door, photo-sampled"
+srgb = [132, 113, 81]
+ref = 2
+
+[[palette]]
+what = "near-black brown leaf enamel (school stair doors), photo-sampled"
+srgb = [42, 42, 41]
+ref = 4
+
+[[palette]]
+what = "dark slate frame enamel, photo-sampled"
+srgb = [49, 46, 43]
+ref = 4
+
+[[palette]]
+what = "push bar, satin aluminium, photo-sampled under cool light"
+srgb = [172, 181, 181]
+ref = 4
+
+[[palette]]
+what = "off-white / putty leaf enamel, photo-sampled (photo has a yellow-green cast)"
+srgb = [172, 162, 127]
+ref = 5
+
+[[palette]]
+what = "satin chrome (US26D) lever escutcheon, photo-sampled (yellow-green cast, reads dark)"
+srgb = [79, 78, 57]
+ref = 5
+
+[[palette]]
+what = "beige frame enamel, corridor side, photo-sampled"
+srgb = [235, 203, 151]
+ref = 3
+
+[[palette]]
+what = "grey tactile stair sign face, photo-sampled"
+srgb = [175, 170, 172]
+ref = 3
+
+[[palette]]
+what = "engraved plaque face, silver / aluminium-look, photo-sampled"
+srgb = [155, 149, 122]
+ref = 6
+
+[[palette]]
+what = "plaque black face for white-on-black two-ply, ESTIMATE (named colour only, no value given)"
+srgb = [24, 24, 24]
+ref = 18
+
+[[palette]]
+what = "grimy off-white leaf of an abandoned exit door, photo-sampled"
+srgb = [93, 85, 72]
+ref = 7
+
+[[palette]]
+what = "grimy kick plate of an abandoned exit door, photo-sampled"
+srgb = [21, 17, 11]
+ref = 7
+
+[[palette]]
+what = "dark rust on a steel frame, photo-sampled (overcast)"
+srgb = [64, 45, 36]
+ref = 8
+
+[[palette]]
+what = "rust bloom through grey paint, photo-sampled (mean of the 10% most orange pixels)"
+srgb = [149, 105, 87]
+ref = 8
+
+[[palette]]
+what = "rust scale on plate, mixed, photo-sampled"
+srgb = [121, 97, 78]
+ref = 8
+
+[[palette]]
+what = "weathered grey paint with rust streaks, photo-sampled"
+srgb = [135, 133, 148]
+ref = 8

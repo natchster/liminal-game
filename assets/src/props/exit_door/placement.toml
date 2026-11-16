@@ -1,0 +1,17 @@
+# Where the exit door stands, and why (docs/design/ASSETS.md, *Things the
+# layout makes*): the floor's layout makes it where its plan has the way
+# down (`core_props::build_exit_door`), and the Loop where its rooms have
+# their side doors (`modes::loop_rooms`); each is held to a rule here.
+by = "layout"
+count = [1, 2]
+levels = [1, 999]
+
+[[rule]]
+at = "way down"
+purposes = ["*"]
+why = "an office floor's stair is at its far end, and its door is the last one on the floor, whatever the room in front of it became"
+
+[[rule]]
+at = "loop"
+purposes = ["*"]
+why = "a row of small offices has a door to the corridor in the side wall: the one you came in by, and the first room's"

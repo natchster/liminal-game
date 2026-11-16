@@ -10,10 +10,10 @@
 //! cargo xtask asset write         every dossier's placement rules compiled into
 //!                                 crates/game/assets/placement.json and its MANIFEST.json entry
 //! cargo xtask asset rules         every asset's rules as one table (for an agent making a place)
-//! cargo xtask asset sheet NAME [--seeds 4242,77] [--levels 5,6,7,8,9]
-//!                                 frames of it where the game put it (the census), and a
-//!                                 questions file, in target/asset-sheet/NAME/: the playtest's
-//!                                 "why could this be here?"
+//! cargo xtask asset sheet NAME [--seeds 4242,77] [--levels 5,6,7,8,9] [--kinds core_a,place_b]
+//!                                 frames of it where the game put it (the census of its kinds:
+//!                                 core_NAME unless said), and a questions file, in
+//!                                 target/asset-sheet/NAME/: the playtest's "why could this be here?"
 //! ```
 //!
 //! This file knows the *format*; whether a kind or a purpose a rule names
@@ -23,13 +23,16 @@ use serde_json::{Value, json};
 use std::path::PathBuf;
 
 const USAGE: &str =
-    "usage: cargo xtask asset new NAME | check [NAME] | refs NAME | write | rules | sheet NAME [--seeds S,…] [--levels L,…]";
+    "usage: cargo xtask asset new NAME | check [NAME] | refs NAME | write | rules | sheet NAME [--seeds S,…] [--levels L,…] [--kinds K,…]";
 
 /// The brief's sections, in order
 pub const BRIEF: [&str; 5] = ["What it is", "How it came here", "How it fits", "What a hand does", "Where it would be found"];
-/// Where a rule puts a thing
 /// Where a rule may put a thing (hung on a wall: not yet, the game refuses it)
 pub const ON: [&str; 2] = ["floor", "surface"];
+/// Who puts an asset's things where they are: the placement pass, or the
+/// floor's layout where its plan has one (a door; each rule names `at`,
+/// the place in the layout, and `levels` may start on the Building's)
+pub const BY: [&str; 2] = ["rules", "layout"];
 /// The first floor the rules place on (`game::world::placement_rules::FIRST_LEVEL`:
 /// the rooms'; the Building's floors place their own)
 const FIRST_LEVEL: i64 = 4;
@@ -169,9 +172,19 @@ fn problems_in(dir: &std::path::Path, name: &str) -> Vec<String> {
             if !matches!(count.as_deref(), Some([a, b]) if 0 <= *a && a <= b) {
                 say("placement.toml: count = [least, most] a floor".into());
             }
+            let by = t.get("by").and_then(|v| v.as_str()).unwrap_or("rules");
+            if !BY.contains(&by) {
+                say(format!("placement.toml: by = {by:?} (one of {BY:?})"));
+            }
+            let layout = by == "layout";
+            let first = if layout { 1 } else { FIRST_LEVEL };
             let levels = t.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect::<Vec<_>>());
-            if !matches!(levels.as_deref(), Some([a, b]) if FIRST_LEVEL <= *a && a <= b) {
-                say(format!("placement.toml: levels = [first, last], from {FIRST_LEVEL} down (the rules place on the rooms' floors)"));
+            if !matches!(levels.as_deref(), Some([a, b]) if first <= *a && a <= b) {
+                say(if layout {
+                    "placement.toml: levels = [first, last], from 1 down".into()
+                } else {
+                    format!("placement.toml: levels = [first, last], from {FIRST_LEVEL} down (the rules place on the rooms' floors)")
+                });
             }
             let rules = t.get("rule").and_then(|v| v.as_array()).cloned().unwrap_or_default();
             if rules.is_empty() {
@@ -179,6 +192,27 @@ fn problems_in(dir: &std::path::Path, name: &str) -> Vec<String> {
             }
             for (i, r) in rules.iter().enumerate() {
                 let s = |k: &str| r.get(k).and_then(|v| v.as_str()).unwrap_or("");
+                if layout {
+                    // made by the layout: where in it, its purposes and its why
+                    if s("at").trim().is_empty() {
+                        say(format!("placement.toml: rule {}: made by the layout: at = where in it (\"way down\", \"cell\", …)", i + 1));
+                    }
+                    for k in ["on", "of", "near", "dark"] {
+                        if r.get(k).is_some() {
+                            say(format!("placement.toml: rule {}: `{k}` is the placement pass's; the layout says `at`", i + 1));
+                        }
+                    }
+                    if r.get("purposes").and_then(|v| v.as_array()).is_none_or(|a| a.is_empty()) {
+                        say(format!("placement.toml: rule {}: no purposes (\"*\" for any)", i + 1));
+                    }
+                    if s("why").trim().len() < 12 {
+                        say(format!("placement.toml: rule {}: its why (the story a player could tell)", i + 1));
+                    }
+                    continue;
+                }
+                if r.get("at").is_some() {
+                    say(format!("placement.toml: rule {}: `at` is for things the layout makes (by = \"layout\")", i + 1));
+                }
                 if !ON.contains(&s("on")) {
                     say(format!("placement.toml: rule {}: on = {:?} (one of {ON:?})", i + 1, s("on")));
                 }
@@ -315,12 +349,16 @@ fn rules() -> Result<(), String> {
             let list =
                 |k: &str| r[k].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).collect::<Vec<_>>().join(", ")).unwrap_or_default();
             let of = if r["on"] == "surface" { list("of") } else { r["near"].as_str().unwrap_or("").to_string() };
+            // made by the layout: where in it
+            let (on, of) = match r["at"].as_str() {
+                Some(at) => ("layout", at.to_string()),
+                None => (r["on"].as_str().unwrap_or(""), of),
+            };
             println!(
-                "| {n} | {} | {} | {of} | {} | {} | {} |",
+                "| {n} | {} | {on} | {of} | {} | {} | {} |",
                 a["count"],
-                r["on"].as_str().unwrap_or(""),
                 list("purposes"),
-                r["weight"],
+                r["weight"].as_f64().map(|w| format!("{w}")).unwrap_or_default(),
                 r["why"].as_str().unwrap_or("")
             );
         }
@@ -336,6 +374,8 @@ fn rules() -> Result<(), String> {
 fn sheet(name: &str, args: &[String]) -> Result<(), String> {
     let seeds = crate::opt(args, "--seeds").unwrap_or("4242,77,202");
     let levels = crate::opt(args, "--levels").unwrap_or("5,6,7,8,9");
+    let own = format!("core_{name}");
+    let kinds = crate::opt(args, "--kinds").unwrap_or(&own);
     run(cargo().args(["build", "--release", "-p", "backrooms"]))?;
     let out = root().join("target/asset-sheet").join(name);
     let _ = std::fs::remove_dir_all(&out);
@@ -355,7 +395,7 @@ fn sheet(name: &str, args: &[String]) -> Result<(), String> {
             "--prop-census",
             "3",
             "--census-only",
-            &format!("core_{name}"),
+            kinds,
             "--width",
             "960",
             "--height",
@@ -419,5 +459,35 @@ mod tests {
         for want in ["section 1 (What it is) is empty or TODO", "is free and has no SHA-1", "rule 1: its why"] {
             assert!(p.iter().any(|x| x.contains(want)), "the template passes `{want}`: {p:#?}");
         }
+    }
+
+    /// A thing the layout makes says where in the layout (`at`), not where
+    /// the placement pass would put it (`on`), and may stand on the
+    /// Building's floors; one the pass places may not
+    #[test]
+    fn a_rule_of_the_layout_says_where_in_it() {
+        let d = root().join("target/xtask/asset-test/door");
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(&d).unwrap();
+        for f in ["brief.md", "references.toml", "playtest.md"] {
+            std::fs::copy(src_dir().join("battery").join(f), d.join(f)).unwrap();
+        }
+        let rules = |by: &str, rule: &str| {
+            std::fs::write(
+                d.join("placement.toml"),
+                format!("{by}count = [1, 1]\nlevels = [1, 99]\n\n[[rule]]\n{rule}purposes = [\"*\"]\nwhy = \"the far end of a floor, where its stair is\"\n"),
+            )
+            .unwrap();
+            problems_in(&d, "door")
+        };
+        assert!(rules("by = \"layout\"\n", "at = \"way down\"\n").is_empty(), "{:#?}", rules("by = \"layout\"\n", "at = \"way down\"\n"));
+        let p = rules("by = \"layout\"\n", "on = \"floor\"\n");
+        assert!(p.iter().any(|x| x.contains("at = where in it")) && p.iter().any(|x| x.contains("`on` is the placement pass's")), "{p:#?}");
+        let p = rules("", "on = \"floor\"\nat = \"way down\"\nweight = 1\n");
+        assert!(
+            p.iter().any(|x| x.contains("`at` is for things the layout makes")) && p.iter().any(|x| x.contains("from 4 down")),
+            "{p:#?}"
+        );
+        let _ = std::fs::remove_dir_all(&d);
     }
 }

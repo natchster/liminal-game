@@ -240,6 +240,9 @@ pub struct Game {
     pub barricade_tiles: Vec<usize>,
     /// The barricades as built: the slab each closes its opening with
     pub barricades: Vec<Barricade>,
+    /// What the floor's layout made by its placement rules (the doors:
+    /// `world::placement_rules::Game::place_by_layout`), each with its rule
+    pub layout_things: Vec<crate::world::placement_rules::LayoutThing>,
     pub pool_bounds: Option<PoolBounds>,
     pub papers: Vec<PaperPile>,
     pub lore_notes: Vec<LoreNote>,
@@ -883,6 +886,7 @@ impl Game {
             floor_holes: vec![],
             barricade_tiles: vec![],
             barricades: vec![],
+            layout_things: vec![],
             pool_bounds: None,
             papers: vec![],
             lore_notes: vec![],

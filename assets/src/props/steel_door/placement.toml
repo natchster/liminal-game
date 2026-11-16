@@ -1,0 +1,17 @@
+# Where the steel door stands, and why (docs/design/ASSETS.md, *Things the
+# layout makes*): the floor's layout makes it in the exit door's place on
+# the floor whose way down is the Stairwell (`core_props::build_exit_door`),
+# and the Stairwell its top and bottom doors (`modes::stairwell`).
+by = "layout"
+count = [1, 2]
+levels = [5, 12]
+
+[[rule]]
+at = "way down"
+purposes = ["*"]
+why = "the floor's stair is at its far end, behind a fire door someone made up as a janitor's closet"
+
+[[rule]]
+at = "stairwell"
+purposes = ["*"]
+why = "a concrete stair has a steel door where it meets a floor: the one you came in by, and one at the bottom"

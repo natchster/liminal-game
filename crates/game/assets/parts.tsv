@@ -589,6 +589,12 @@ prop	EmptyPaintingOutlines__wire	cyl	228	260	-0.0008,-0.0300,-0.0008	0.0008,0.03
 prop	ExitArrowSigns__head	cyl	48	52	-0.0286,-0.0300,-0.0173	0.0286,0.0262,0.0331
 prop	ExitArrowSigns__panel	box	138	118	-0.1500,-0.0700,-0.0050	0.1500,0.0700,0.0050
 prop	ExitArrowSigns__shaft	box	80	44	-0.0800,-0.0140,-0.0030	0.0800,0.0140,0.0030
+prop	ExitDoor__closer	box	678	800	-0.4290,2.0255,-0.0265	0.1460,2.1330,0.0575
+prop	ExitDoor__frame	box	384	184	-0.5080,0.0000,-0.0600	0.5080,2.1850,0.0050
+prop	ExitDoor__kickPlate	box	420	404	-0.4315,0.0230,-0.0148	0.4315,0.2770,-0.0124
+prop	ExitDoor__leaf	box	96	44	-0.4540,0.0190,-0.0590	0.4540,2.1300,-0.0150
+prop	ExitDoor__lever	box	618	1052	0.2497,0.9805,-0.0150	0.4275,1.0675,0.0550
+prop	ExitSign__housing	box	172	152	-0.2150,2.3550,-0.0600	0.2150,2.5850,-0.0050
 prop	ExitSigns__housing	box	550	568	-0.2100,-0.1000,-0.0200	0.2100,0.1000,0.0204
 prop	ExtensionCords__plug	box	274	236	-0.0250,-0.0150,-0.0175	0.0250,0.0150,0.0175
 prop	ExtensionCords__prong	box	96	44	-0.0100,-0.0015,-0.0015	0.0100,0.0015,0.0015
@@ -1374,9 +1380,6 @@ prop	Props__elevator_display	box	120	124	-0.2500,-0.0600,-0.0100	0.2500,0.0600,0
 prop	Props__elevator_door	box	144	76	-0.3500,-1.0250,-0.0250	0.3500,1.0250,0.0250
 prop	Props__elevator_frame	box	380	324	-0.8000,-1.2000,-0.0750	0.8000,1.2000,0.0750
 prop	Props__elevator_strip	box	40	24	-0.7500,-0.0200,-0.0150	0.7500,0.0200,0.0150
-prop	Props__exitDoor_frame	box	560	544	-0.7500,-1.2500,-0.0900	0.7500,1.2500,0.0900
-prop	Props__exitDoor_leaf	box	746	732	-0.5500,-1.1000,-0.0500	0.5500,1.1000,0.0500
-prop	Props__exitSign_housing	box	120	124	-0.6800,-0.2700,-0.0200	0.6800,0.2700,0.0200
 prop	Props__extinguisher_bracket	box	510	320	-0.1200,-0.0300,-0.0200	0.1200,0.0300,0.0200
 prop	Props__extinguisher_carryHandle	box	274	144	-0.0450,-0.0100,-0.0800	0.0450,0.0100,0.0800
 prop	Props__extinguisher_gauge	cyl	182	216	-0.0276,-0.0100,-0.0280	0.0276,0.0100,0.0280
@@ -3563,6 +3566,10 @@ prop	StandingMirrors__base	cyl	338	448	-0.0650,-0.0050,-0.0650	0.0650,0.0050,0.0
 prop	StandingMirrors__frame	torus	468	520	-0.0610,-0.0610,-0.0060	0.0610,0.0610,0.0060
 prop	StandingMirrors__peg	cyl	120	96	-0.0048,-0.0050,-0.0050	0.0048,0.0050,0.0050
 prop	StandingMirrors__stem	cyl	102	160	-0.0048,-0.0350,-0.0050	0.0048,0.0350,0.0050
+prop	SteelDoor__hinges	box	540	648	0.4480,0.1990,-0.0149	0.4630,1.9510,0.0009
+prop	SteelDoor__leaf	box	96	44	-0.4540,0.0190,-0.0590	0.4540,2.1300,-0.0150
+prop	SteelDoor__plaque	box	96	44	-0.1015,1.4945,-0.0150	0.1015,1.5455,-0.0134
+prop	SteelDoor__pushBar	box	384	176	-0.4190,0.9760,-0.0150	0.4240,1.0460,0.0570
 prop	StillLifes__outer	box	208	204	-0.1700,-0.1400,-0.0080	0.1700,0.1400,0.0080
 prop	StillLifes__slip	box	176	188	-0.1550,-0.1250,-0.0060	0.1550,0.1250,0.0060
 prop	Store__bed_duvet	box	874	1744	-0.8000,-0.0740,-0.6750	0.8000,0.0400,0.6750

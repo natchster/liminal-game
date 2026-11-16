@@ -107,9 +107,11 @@ part('Radiators__body', f_box(0.70, 0.50, 0.10), radiator_body)   # build is a f
   copy.
 - Tiny bits (under ~1 cm: rivets, ticks, pins) only need a rounded or chamfered
   version (cheap), or can stay primitives. Say which in the notes.
-- Gameplay-critical objects (the exit door, pickups, notes, switches, phones)
-  may be refined, but must keep exactly the same bounds. They do, by
-  construction.
+- Gameplay-critical objects fitted to their primitives (notes, switches,
+  phones) may be refined, but must keep exactly the same bounds. They do, by
+  construction. What the asset pipeline made real (almond water, the
+  battery, the doors: `docs/design/ASSETS.md`) is at its real size, used as
+  modelled, and its maker's code says where it stands.
 
 ## Workflow
 

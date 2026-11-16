@@ -15,6 +15,9 @@ const RETIRED: &[(&str, &str)] = &[
     ("Props__almond_cap", "issue #13: almond water made real, AlmondWater__*"),
     ("Props__battery_body", "issue #13: the battery made real, Battery__*"),
     ("Props__battery_tip", "issue #13: the battery made real, Battery__*"),
+    ("Props__exitDoor_frame", "the doors made real (docs/plan/DOORS.md D1): ExitDoor__*"),
+    ("Props__exitDoor_leaf", "the doors made real (docs/plan/DOORS.md D1): ExitDoor__*"),
+    ("Props__exitSign_housing", "the doors made real (docs/plan/DOORS.md D1): ExitSign__housing"),
 ];
 
 /// The engine primitive built from these recorded constructor parameters.

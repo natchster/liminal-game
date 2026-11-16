@@ -85,51 +85,7 @@ def ring_u(w_out, h_out, w_in, h_in, d, r=0.004, seg=1, open_bottom=True):
     return bevel(s, r, seg=seg, angle=30) if r > 0 else s
 
 
-# -------------------------------------------------------------- exit door --
-def exit_frame():
-    # moulded door casing: U-shaped architrave around a 1.14 x 2.22 opening,
-    # stepped profile (outer back band + flat face + quarter round at the
-    # opening), with a stop panel far behind so the jamb never shows through
-    W, H = 1.5, 2.5
-    base = ring_u(W, H, 1.14, 2.22, 0.14, r=0.006).move(z=-0.02)
-    band = ring_u(1.47, 2.485, 1.30, 2.40, 0.05, r=0.014, seg=2).move(y=-0.0075, z=0.065)
-    bead = ring_u(1.21, 2.255, 1.14, 2.22, 0.03, r=0.01, seg=2).move(y=-0.0175, z=0.06)
-    stop = box(1.16, 2.23, 0.02).move(y=-H / 2 + 2.23 / 2, z=-0.08)
-    return base + band + bead + stop
-
-part('Props__exitDoor_frame', f_box(1.5, 2.5, 0.18), exit_frame)
-
-
-def exit_leaf():
-    # a four-rail panelled door: stiles/rails with two recessed raised-and-
-    # fielded panels, lever handle on the latch side (clear of the light gap)
-    W, H = 1.1, 2.2
-    leaf = rbox(W, H, 0.075, r=0.006, seg=2).move(z=-0.0125)
-    front = 0.025
-    panels = [(-0.50, 0.70), (0.50, 0.90)]      # (centre y, height)
-    for cy, ph in panels:
-        leaf = cut(leaf, box(0.82, ph, 0.03).move(y=cy, z=front))
-    for cy, ph in panels:
-        fld = bevel(box(0.74, ph - 0.08, 0.011), 0.012, seg=1, angle=30)
-        leaf = leaf + fld.move(y=cy, z=front - 0.012 + 0.0055)
-    hx, hy = 0.36, -0.10
-    rose = cyl(0.03, 0.03, 0.008, seg=20).rot(x=math.pi / 2).move(x=hx, y=hy, z=front + 0.004)
-    lever = tube([(hx, hy, front + 0.004), (hx, hy, 0.04), (hx - 0.03, hy, 0.041), (hx - 0.12, hy, 0.041)],
-                 0.009, seg=10, smooth=1)
-    esc = rbox(0.022, 0.06, 0.006, r=0.002).move(x=hx, y=hy - 0.12, z=front + 0.003)
-    return leaf + rose + lever + esc
-
-part('Props__exitDoor_leaf', f_box(1.1, 2.2, 0.1), exit_leaf)
-
-
-def exit_sign_housing():
-    # dark sign box: rounded tray whose face is recessed 6 mm inside a 3 cm
-    # bezel, so the glowing sign panel sits in it instead of z-fighting
-    s = rbox(1.36, 0.54, 0.04, r=0.008, seg=2)
-    s = cut(s, box(1.305, 0.485, 0.02).move(z=0.02))
-    return s
-
-part('Props__exitSign_housing', f_box(1.36, 0.54, 0.04), exit_sign_housing)
+# (the exit door and its sign: the asset pipeline's now, doors.py)
 
 
 # ------------------------------------------------------------ soft helpers --

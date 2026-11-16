@@ -19,6 +19,7 @@ macro_rules! kind {
 
 pub mod barricade;
 pub mod builders;
+pub mod doors;
 pub mod graffiti;
 pub mod pickups;
 pub mod seam;
@@ -30,7 +31,7 @@ pub mod window;
 
 use crate::base::records::*;
 use crate::prelude::*;
-use crate::visuals::textures::{HandOpts, TextTexOpts, handwritten_tex, text_tex};
+use crate::visuals::textures::{HandOpts, handwritten_tex};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -405,83 +406,6 @@ fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo) {
     g.drawer_props.push(DrawerProp { cabinet: built.g.clone(), drawers: built.drawers.clone() });
 }
 
-// the exit sign face (ISO 7010 green, running person + arrow + EXIT)
-fn exit_sign_tex() -> Tex {
-    canvas_tex_opt(512, 192, false, |ctx, w, h| {
-        // ISO 7010 green (E002)
-        ctx.set_fill_style("#0a8a3c");
-        ctx.fill_rect(0, 0, w, h);
-        // thin darker border
-        ctx.set_stroke_style("rgba(0,0,0,0.35)");
-        ctx.set_line_width(4);
-        ctx.stroke_rect(2, 2, w - 4.0, h - 4.0);
-        // running-person pictogram (left half)
-        ctx.set_fill_style("#ffffff");
-        let (cx, cy) = (96.0, 96.0);
-        // head
-        ctx.begin_path();
-        ctx.arc(cx - 6.0, cy - 46.0, 14, 0, PI * 2.0);
-        ctx.fill();
-        // torso (leaning forward)
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(-0.18);
-        ctx.fill_rect(-12, -34, 20, 44);
-        ctx.restore();
-        // front leg (kicked forward)
-        ctx.save();
-        ctx.translate(cx + 4.0, cy + 4.0);
-        ctx.rotate(-0.5);
-        ctx.fill_rect(-6, 0, 12, 42);
-        ctx.restore();
-        // back leg (pushing off)
-        ctx.save();
-        ctx.translate(cx - 8.0, cy + 10.0);
-        ctx.rotate(0.55);
-        ctx.fill_rect(-6, 0, 12, 40);
-        ctx.restore();
-        // front arm swinging forward
-        ctx.save();
-        ctx.translate(cx + 12.0, cy - 20.0);
-        ctx.rotate(-0.9);
-        ctx.fill_rect(-5, 0, 10, 36);
-        ctx.restore();
-        // back arm swinging back
-        ctx.save();
-        ctx.translate(cx - 18.0, cy - 20.0);
-        ctx.rotate(0.8);
-        ctx.fill_rect(-5, 0, 10, 36);
-        ctx.restore();
-        // "door frame" pictogram the person is running toward
-        ctx.set_stroke_style("#ffffff");
-        ctx.set_line_width(6);
-        ctx.stroke_rect(150, 42, 32, 108);
-        // arrow pointing right (below the person, ISO 7010-style)
-        ctx.begin_path();
-        ctx.move_to(56, 168);
-        ctx.line_to(148, 168);
-        ctx.line_to(148, 158);
-        ctx.line_to(178, 174);
-        ctx.line_to(148, 190);
-        ctx.line_to(148, 180);
-        ctx.line_to(56, 180);
-        ctx.close_path();
-        ctx.fill();
-        // EXIT text (right half) — bold sans, white
-        ctx.set_fill_style("#ffffff");
-        ctx.set_font("bold 120px Helvetica, Arial, sans-serif");
-        ctx.set_text_baseline("middle");
-        ctx.fill_text("EXIT", 220, 96);
-        // subtle inner glow around border for the emissive feel
-        let grad = ctx.create_linear_gradient(0, 0, 0, h);
-        grad.add_color_stop(0, "rgba(255,255,255,0.10)");
-        grad.add_color_stop(0.5, "rgba(255,255,255,0)");
-        grad.add_color_stop(1, "rgba(0,0,0,0.15)");
-        ctx.set_fill_style(&grad);
-        ctx.fill_rect(0, 0, w, h);
-    })
-}
-
 impl Game {
     /// The first half here, then `place_props_tail`.
     pub fn place_props(&mut self, dist: &[i32]) {
@@ -614,49 +538,36 @@ impl Game {
 
     /// The way down at `spot` (on the floor, against its wall): the door,
     /// its EXIT sign and lights, `exit_data` and its use (the Stairwell's
-    /// steel door, the Loop's plain office door).
+    /// steel door, the Loop's ordinary office door with no sign and no
+    /// green light). The doors are the asset pipeline's (`core_props::doors`;
+    /// `assets/src/props/exit_door/`, `steel_door/`), held to their rules
+    /// (`place_by_layout`, "way down").
     pub(crate) fn build_exit_door(&mut self, spot: &WallSpot) {
         let g = self;
+        let to_stairs = level_has_stairwell(g, g.level_num);
+        let in_loop = g.level_scp.as_deref() == Some("loop");
         let dg = group();
         dg.position().copy(&spot.pos);
         dg.rotation().y = spot.yaw;
-        let frame = mesh(pg("Props__exitDoor_frame", box_geo!(1.5, 2.5, 0.18)), &g.mats.wood);
-        frame.position().y = 1.25;
-        dg.add(&frame);
-        let door_mat = lambert!({ color: 0x6b5636, emissive: 0x1a1408 });
-        let door = mesh(pg("Props__exitDoor_leaf", box_geo!(1.1, 2.2, 0.1)), &door_mat);
-        door.position().set(0, 1.1, 0.06);
-        dg.add(&door);
-        let gap = mesh(plane_geo!(0.1, 2.2), basic_mat!({ color: 0xfff6d8 }));
-        gap.position().set(0.5, 1.1, 0.12);
-        dg.add(&gap);
-        // ---- proper green office EXIT sign: running person + arrow + EXIT text ----
-        let exit_sign = exit_sign_tex();
-        // The sign is an unlit (basic) material so it self-illuminates even in the dark.
-        let sign_mat = basic_mat!({ map: &exit_sign });
-        let sign = mesh(plane_geo!(1.30, 0.48), &sign_mat);
-        sign.position().set(0, 2.68, 0.14);
-        dg.add(&sign);
-        // recessed housing behind the sign so it reads as a mounted fixture
-        let sign_back = mesh(pg("Props__exitSign_housing", box_geo!(1.36, 0.54, 0.04)), lambert!({ color: 0x1a1a1a }));
-        sign_back.position().set(0, 2.68, 0.12);
-        dg.add(&sign_back);
-        // tiny mounting hooks at top corners
-        for s in [-1.0, 1.0] {
-            let hook = mesh(cyl_geo!(0.015, 0.015, 0.06, 6), &g.mats.chrome);
-            // standoff from the wall face (z -0.06) to the housing's back (z 0.10);
-            // it was buried inside the housing
-            hook.rotation().x = PI / 2.0;
-            hook.scale().y = 2.67;
-            hook.position().set(s * 0.6, 2.92, 0.02);
-            dg.add(&hook);
+        if to_stairs {
+            // a steel door made up to look like a janitor's closet
+            let _ = g.place_by_layout("steel_door", "way down", spot.pos.x, spot.pos.z);
+            doors::steel_door(&dg, doors::SteelSide::Floor);
+            doors::exit_door_sign(&dg);
+        } else {
+            // the Loop's way in is an ordinary office door: no EXIT sign over
+            // it and no green light (`modes::loop_rooms`)
+            let _ = g.place_by_layout("exit_door", "way down", spot.pos.x, spot.pos.z);
+            doors::exit_door(&dg, !in_loop);
         }
         g.world.add(&dg);
         // greenish emergency-exit light (weaker + tinted so it colors the sign area)
         let light = point_light!(0x9ce8b0, 3.5, 6, 1.6);
         light.position().copy(&spot.pos).add_scaled_vector(&spot.normal, 0.6);
         light.position().y = spot.pos.y + 2.5;
-        g.world.add(&light);
+        if !in_loop {
+            g.world.add(&light);
+        }
         // second warmer light for the door itself
         let door_light = point_light!(0xffe9b8, 4, 5, 1.6);
         door_light.position().copy(&spot.pos).add_scaled_vector(&spot.normal, 1.0);
@@ -667,33 +578,6 @@ impl Game {
         use_pos.y = spot.pos.y + EYE;
         g.exit_data = Some(ExitData { pos: use_pos, normal: spot.normal, door: None });
         dg.user().gameplay = true;
-        let to_stairs = level_has_stairwell(g, g.level_num);
-        if to_stairs {
-            // a steel door made up to look like a janitor's closet
-            door_mat.m().color.set_hex(0x59606a);
-            door_mat.m().emissive.set_hex(0x0a0c0e);
-            let plaque = mesh(
-                plane_geo!(0.34, 0.1),
-                basic_mat!({
-                    map: text_tex("STAIRS", &TextTexOpts { w: 256.0, h: 76.0, font: "bold 44px Helvetica, Arial, sans-serif".into(), color: "#e8e2d0".into(), glow: 2.0, ..Default::default() }),
-                    transparent: true,
-                }),
-            );
-            plaque.position().set(0, 1.62, 0.115);
-            dg.add(&plaque);
-        }
-        if g.level_scp.as_deref() == Some("loop") {
-            // the Loop's way in is an ordinary office door: no EXIT sign over it and
-            // no green light (`modes::loop_rooms`)
-            for c in dg.children() {
-                if c.pos().y > 2.5 {
-                    c.set_visible(false);
-                }
-            } // the sign, its housing, its hooks
-            g.world.remove(&light);
-            door_mat.m().color.set_hex(0x8a7a5c);
-            door_mat.m().emissive.set_hex(0x120e08);
-        }
         g.interact(
             use_pos,
             1.7,

@@ -19,7 +19,7 @@ belongs to the creatures: not wrapped.
 
 ## Per object kind
 
-- **Exit door**: `exitDoor_frame` (stepped U casing, jamb reveal, stop panel), `exitDoor_leaf` (4-rail door, 2 raised-and-fielded panels, lever + escutcheon clear of the light gap), `exitSign_housing` (tray with a 6 mm recessed face inside a 3 cm bezel). Left: gap/sign/STAIRS planes; hook cylinders (hidden, see below). Placement: sign plane sat exactly on the housing front (z 0.14, z-fighting) — the recess fixes it visually; the two mounting hooks (y 2.92, z 0.10) are buried entirely inside the housing.
+- **Exit door** (retired 2026-11-16: the doors made real by the asset pipeline, `game/doors.py`, `docs/plan/DOORS.md`): `exitDoor_frame` (stepped U casing, jamb reveal, stop panel), `exitDoor_leaf` (4-rail door, 2 raised-and-fielded panels, lever + escutcheon clear of the light gap), `exitSign_housing` (tray with a 6 mm recessed face inside a 3 cm bezel). Left: gap/sign/STAIRS planes; hook cylinders (hidden, see below). Placement: sign plane sat exactly on the housing front (z 0.14, z-fighting) — the recess fixes it visually; the two mounting hooks (y 2.92, z 0.10) are buried entirely inside the housing.
 - **Almond water**: `almond_bottle` (PET bottle: base, grip grooves, shoulder, neck ring), `almond_cap` (knurled screw cap). Also wrapped in the drawer-content copies. No placement issues.
 - **Battery**: `battery_body` (cell with rolled ends + crimp groove), `battery_tip` (stepped + terminal). Placement: the drawer-content battery has no tip.
 - **Chair**: seat, domed `chair_cushion` with button dimple, piping, `chair_tuft` button, post with ball finial, rails, waisted slats, `chair_backPad`, tapered leg halves, foot glide, turned round stretchers. Left: nothing.

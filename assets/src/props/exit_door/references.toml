@@ -1,0 +1,422 @@
+# The references of exit_door (docs/design/ASSETS.md), gathered on
+# 2026-11-16 by a research agent (its notes: docs/research/doors.md);
+# `cargo xtask asset refs exit_door` fetches them into target/asset-refs/exit_door/.
+# Its surfaces are painted from its own palette (`core_props::doors`),
+# never sampled from these; the palette is photo-sampled, each photo's
+# light in it.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/6/6f/Wooden_fire_door.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Wooden_fire_door.JPG"
+shows = "the thing: a flush wood-veneer fire door in an office building (Palo Alto, CA, 2008), light maple/birch veneer, lever on a narrow escutcheon, surface closer with regular arm on the top rail, dark-painted pressed-steel frame"
+class = "free"
+licence = "CC BY-SA 3.0, BrokenSphere"
+sha1 = "bc324fff4e870365f2fa8b58539bdbe9493e41d2"
+notes = "Best single view of the leaf: veneer colour with ambered clear finish, closer body placement near the hinge edge, frame face width against leaf width, office corridor behind. Viewed. Warm white balance (wall reads 192,181,169)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/c/ce/Texas_hotel_fire_door_stairway.png"
+page = "https://commons.wikimedia.org/wiki/File:Texas_hotel_fire_door_stairway.png"
+shows = "the thing: a stairwell fire door seen from the corridor, dark walnut-look veneer leaf, almond-painted hollow metal frame, three butt hinges, closer on the pull side, cylindrical lever on a round rose, narrow vision lite, stair ID sign beside it"
+class = "free"
+licence = "CC BY 3.0, Achim Hering"
+sha1 = "09c78b54ed1cc6a87ef63591a9b32291eeb65086"
+notes = "The full assembly in one frame: hinge count and spacing, lever height, closer and arm over the head, frame profile and colour. Hotel (2014), not an office, but the same door type. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/78/Door_closer.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Door_closer.jpg"
+shows = "a measurement: close-up of a surface closer (aluminium cover) and regular arm on a fire-exit stairwell door, dark-stained veneer leaf, cream-painted steel frame head with its stop"
+class = "free"
+licence = "Public domain, Wesha"
+sha1 = "028058137073e43f28ec206fc47925038ee175f1"
+notes = "Closer body proportions and colour, arm geometry to the frame head, the head's face and stop edges. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/ec/Empty_hallway_with_exit_sign.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Empty_hallway_with_exit_sign.jpg"
+shows = "a place with one: a plain office/commercial corridor (Herndon, VA, 2021) with a white thermoplastic red-letter EXIT sign on a ceiling canopy, khaki-painted hollow metal door and frame, lay-in ceiling, carpet"
+class = "free"
+licence = "CC BY-SA 4.0, Yitzilitt"
+sha1 = "f534b9ba6e043f5135288e1059e217a1cf6efe67"
+notes = "Corridor mood and the North American sign: housing about 1.6:1, red stencil letters, chevron. Painted steel door/frame colour common in the era. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/f/f9/Faculty_Office_Building_hallway_%2830016016168%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Faculty_Office_Building_hallway_(30016016168).jpg"
+shows = "a place with one: an office-building corridor (BYU Faculty Office Building, 2018) with a green-letter EXIT sign hung from the ceiling over the walkway"
+class = "free"
+licence = "CC BY-SA 2.0, Ben P L"
+sha1 = "f22c33f11a3c3a54fafe8ed080d4cdbe12fcd815"
+notes = "The green-letter variant of the North American sign, off-white face, chevrons. Sign is small in frame; colour sampled from a 3 px wide letter stroke. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/1/1c/Basement_Exit_Sign.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Basement_Exit_Sign.jpg"
+shows = "the thing aged: a grimy, discoloured thermoplastic stencil EXIT sign, hanging askew from its conduit on a painted brick basement wall, cobwebs, lit red letters"
+class = "free"
+licence = "CC0, MarkBuckawicki"
+sha1 = "aa8d6aafc1ad2e812dab9c5a4a6d1117fbecf9b3"
+notes = "Neglect reference for the sign: yellow-grey housing, dirt in the corners, label on the face, cobwebs. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/3/30/Emergency_exit_UK_001.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Emergency_exit_UK_001.jpg"
+shows = "the thing (European): an internally lit Thorn box sign, ISO running man plus down arrow on green, mounted on the wall just above a door head; two surface closers on the leaves below"
+class = "free"
+licence = "CC BY 4.0, User:HarJIT"
+sha1 = "0076f9dbd4d1f80b63820ca8d0f65818a3b4f274"
+notes = "Box proportions, its silver/white housing with diffuser slots, mounting gap above the door head, closer on the push side. UK, 2019. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/8/8e/Fire_exit_door_in_a_bright_blue_frame%2C_propped_open_with_a_security_cord%2C_showing_%27Fire_Exit%27_signs_and_surrounding_metal_debris_in_an_abandoned_corridor%2C_Buzz_Bingo_hall%2C_Chatham%2C_Kent%2C_England_%282025-05-11%29.png"
+page = "https://commons.wikimedia.org/wiki/File:Fire_exit_door_in_a_bright_blue_frame,_propped_open_with_a_security_cord,_showing_%27Fire_Exit%27_signs_and_surrounding_metal_debris_in_an_abandoned_corridor,_Buzz_Bingo_hall,_Chatham,_Kent,_England_(2025-05-11).png"
+shows = "a place with one, abandoned: a fire exit door at the end of a stripped corridor in an abandoned building (Chatham, UK, 2025), green running-man box sign above the door head, Fire Exit and Push bar to open stickers, debris, plywood"
+class = "free"
+licence = "CC BY-SA 4.0, OathOn"
+sha1 = "e4323f099908c4402459231743e29fa783555f4d"
+notes = "The only free abandoned-building exit door found: a bingo hall (former cinema), not an office, and the door is painted steel with a push bar. Use for neglect mood and sign placement, not for the leaf. Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/c/c2/Fire_door_label.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Fire_door_label.jpg"
+shows = "the thing aged: a Steelcraft fire door rating label (1-1/2 hour B, UL) on painted steel, the paint around it chipped and dirty"
+class = "free"
+licence = "CC BY-SA 3.0, Ben Schumin"
+sha1 = "de7a97d96bdc5027c11e76fadf94f29fcc479e89"
+notes = "Worn paint on pressed steel: chips at fastener heads, dirt film, cobwebs. Parking garage (2012). Viewed."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/5/57/ISO_7010_E001.svg"
+page = "https://commons.wikimedia.org/wiki/File:ISO_7010_E001.svg"
+shows = "a measurement: the ISO 7010 E001 emergency exit pictogram (running man through a door, white on green), vector drawing"
+class = "free"
+licence = "Public domain, MaxxL"
+sha1 = "ae249d8f35a6c430952fb99faf430233c94155de"
+notes = "Exact figure geometry for the European legend; green fill in the file is #237F52. E002 (mirror) is File:ISO_7010_E002.svg, sha1 dd4b9544f3c2c96eefccb70619b7087e9d36ec2e. Viewed; sha1 checked against the downloaded file."
+
+[[ref]]
+url = "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.37"
+page = "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.37"
+shows = "a measurement: US OSHA 29 CFR 1910.37(b), exit sign letter height, stroke width and illumination"
+class = "free"
+licence = "Public domain (US federal government work), OSHA"
+sampled = false
+notes = "Read only. EXIT letters at least 6 in (15.2 cm) high with principal strokes at least 3/4 in (1.9 cm); sign face lit to at least 5 fc (54 lux)."
+
+[[ref]]
+url = "https://allegion.ca/content/dam/allegion-us-2/web-files/lcn/information-documents/LCN_4040XP_Cut_Sheet_113110.pdf"
+page = "https://allegion.ca/content/dam/allegion-us-2/web-files/lcn/information-documents/LCN_4040XP_Cut_Sheet_113110.pdf"
+shows = "a maker's sheet: LCN 4040XP surface closer (successor of the 4041 common in 1980s-2000s offices), dimensioned mounting drawings, finishes"
+class = "limited"
+licence = "Allegion plc, all rights reserved"
+notes = "Body 12-1/4 x 3-1/2 in; mounts hinge (pull) side, top jamb or parallel arm; 689 aluminium is the stock powder-coat finish; text mentions leak-resisting bearings and valves (closers weep oil). Text extracted from the PDF; drawings not viewed as images."
+
+[[ref]]
+url = "https://allegion.ca/content/dam/allegion-us-2/web-files/steelcraft/technical-documents/Section__2__Frames_variations_&_options_and_anchoring_systems_110553.pdf"
+page = "https://allegion.ca/content/dam/allegion-us-2/web-files/steelcraft/technical-documents/Section__2__Frames_variations_&_options_and_anchoring_systems_110553.pdf"
+shows = "a maker's sheet: Steelcraft Technical Data Manual, frames section; F-series flush hollow metal frame profile, gauges, hinge and strike preparation"
+class = "limited"
+licence = "Allegion plc (Steelcraft), all rights reserved"
+notes = "2 in face, 5/8 in stop, 1-15/16 in door rabbet, 1/2 in return, double rabbet standard, jamb depths 4-1/2 to 20 in, 16/14/12 gauge, strike at 40-5/16 in, optional 4 in head face. Text extracted; profile drawing not viewed as an image."
+
+[[ref]]
+url = "https://hagerco.com/Files/Files/2016_hager_catalog_commhinges_rev5_v151.pdf"
+page = "https://hagerco.com/Files/Files/2016_hager_catalog_commhinges_rev5_v151.pdf"
+shows = "a maker's sheet: Hager commercial hinge catalogue 2016, BB1279 5-knuckle ball-bearing butt, sizing and hinge-count rules"
+class = "limited"
+licence = "Hager Companies, all rights reserved"
+notes = "Names the 3 ft 0 in x 7 ft 0 in x 1-3/4 in (914 x 2134 x 44 mm) door as the reference opening with three hinges; 4-1/2 in hinge for 1-3/4 in doors up to 36 in wide; 0.134 in leaf; ball-bearing hinges where a closer is fitted."
+
+[[ref]]
+url = "https://allegion.ca/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_ND_Series_Data_Sheet_106486.pdf"
+page = "https://allegion.ca/content/dam/allegion-us-2/web-files/schlage/information-documents/Schlage_ND_Series_Data_Sheet_106486.pdf"
+shows = "a maker's sheet: Schlage ND series Grade 1 cylindrical lever lockset (keyed lever on a round rose)"
+class = "limited"
+licence = "Allegion plc (Schlage), all rights reserved"
+notes = "Rose diameter 3-7/16 in; default latch 2-3/4 in backset with 1-1/8 x 2-1/4 in faceplate; ANSI strike 1-1/4 x 4-7/8 in; finishes incl. 626 satin chrome, 630 satin stainless. Lever length not stated on the sheet."
+
+[[ref]]
+url = "https://www.doorwaysplus.com/shop/rockwood-k1050-10-tall-kick-plate-us32d-287"
+page = "https://www.doorwaysplus.com/shop/rockwood-k1050-10-tall-kick-plate-us32d-287"
+shows = "a maker's sheet (dealer listing): Rockwood K1050 stainless kick plate, 10 in high, 0.050 in, US32D/630 satin stainless, four edges bevelled"
+class = "limited"
+licence = "Doorways Plus / Rockwood Manufacturing, all rights reserved"
+notes = "Sizing: typically 2 in less than door width; #6 x 5/8 in stainless screws. Page text read; product photo not used."
+
+[[ref]]
+url = "https://idighardware.com/2022/07/decoded-allowable-clearances-for-fire-door-assemblies/"
+page = "https://idighardware.com/2022/07/decoded-allowable-clearances-for-fire-door-assemblies/"
+shows = "a measurement: NFPA 80 (2022) clearances for fire door assemblies, head/jamb gaps and bottom undercut"
+class = "limited"
+licence = "Lori Greene / idighardware.com, all rights reserved"
+notes = "Flush wood doors rated over 20 min: 1/8 in max at head and jambs; bottom 3/4 in max to finished floor. Secondary source quoting NFPA 80; the standard itself not read."
+
+[[ref]]
+url = "https://lsicorp.com/lsi/wp-content/uploads/documents/products/ex-specsheet.pdf"
+page = "https://lsicorp.com/lsi/wp-content/uploads/documents/products/ex-specsheet.pdf"
+shows = "a maker's sheet: LSI EX thermoplastic LED exit sign, white or black housing, red or green letters, canopy for wall/ceiling/end mount"
+class = "limited"
+licence = "LSI Industries Inc., all rights reserved"
+notes = "6 in characters, 3/4 in stroke; dimension labels 11.81, 7.25, 1.81 in (plus 8.25 and 4.63 in for the canopy). A current LED sign; 1980s-90s signs were incandescent and often deeper steel or aluminium boxes."
+
+[[ref]]
+url = "https://www.jewson.co.uk/p/premdor-interior-flush-veneer-fireshield-door-2040-x-926-x-44mm-oak-PCD25329"
+page = "https://www.jewson.co.uk/p/premdor-interior-flush-veneer-fireshield-door-2040-x-926-x-44mm-oak-PCD25329"
+shows = "a maker's sheet (merchant listing): Premdor flush oak-veneer FD30 fire door, 2040 x 926 x 44 mm, UK metric"
+class = "limited"
+licence = "Jewson / Premdor (Masonite), all rights reserved"
+notes = "European variant of the leaf: veneered edge to edge with concealed vertical edge lippings; factory lacquered; 45.28 kg."
+
+[[ref]]
+url = "https://www.whitecroftlighting.com/content/files/knowledge_source/page_102_1.pdf"
+page = "https://www.whitecroftlighting.com/content/files/knowledge_source/page_102_1.pdf"
+shows = "a measurement: Whitecroft Lighting, Emergency lighting: a practical guide (UK, era of BS 5266-1:1988 and prEN 1838); exit sign viewing distances and the change from EXIT wording to the EC Signs Directive pictogram"
+class = "limited"
+licence = "Whitecroft Lighting Ltd, all rights reserved"
+notes = "Maximum viewing distance = 200 x legend panel height if internally lit, 100 x if externally lit; notes the larger green area of the new pictogram signs cuts light output. Text extracted from the PDF."
+
+[[measure]]
+what = "leaf, North America, nominal width x height x thickness (3 ft 0 in x 7 ft 0 in x 1-3/4 in)"
+value = "914 x 2134 x 44 mm"
+ref = 14
+
+[[measure]]
+what = "leaf, UK metric FD30, width x height x thickness"
+value = "926 x 2040 x 44 mm"
+ref = 19
+
+[[measure]]
+what = "butt hinge, BB1279 5-knuckle ball bearing, height x open width x leaf thickness"
+value = "114 x 114 x 3.4 mm (4-1/2 x 4-1/2 x 0.134 in)"
+ref = 14
+
+[[measure]]
+what = "hinges per leaf for a door over 60 in and not over 90 in high"
+value = "3"
+ref = 14
+
+[[measure]]
+what = "hollow metal frame face width, jambs and head (standard)"
+value = "51 mm (2 in; Steelcraft prints 50 mm)"
+ref = 13
+
+[[measure]]
+what = "frame stop height"
+value = "16 mm (5/8 in)"
+ref = 13
+
+[[measure]]
+what = "frame door rabbet width for a 1-3/4 in leaf"
+value = "49 mm (1-15/16 in)"
+ref = 13
+
+[[measure]]
+what = "frame backbend return"
+value = "13 mm (1/2 in); 11 mm (7/16 in) on the 5-3/4 in depth"
+ref = 13
+
+[[measure]]
+what = "frame jamb depth range, double rabbet (typical stud-wall size 5-3/4 in)"
+value = "114 to 508 mm (4-1/2 to 20 in); typical 146 mm"
+ref = 13
+
+[[measure]]
+what = "frame steel thickness, 16 / 14 gauge"
+value = "1.3 mm / 1.7 mm"
+ref = 13
+
+[[measure]]
+what = "optional wide head face (masonry walls)"
+value = "102 mm (4 in)"
+ref = 13
+
+[[measure]]
+what = "strike centreline above finished floor (a cylindrical lever sits on the same centreline)"
+value = "1024 mm (40-5/16 in)"
+ref = 13
+
+[[measure]]
+what = "top of frame head above floor, DERIVED: 2134 mm opening + 51 mm head face"
+value = "2185 mm"
+ref = 13
+
+[[measure]]
+what = "clearance leaf to frame at head and jambs, rated flush wood door (max)"
+value = "3 mm (1/8 in)"
+ref = 17
+
+[[measure]]
+what = "undercut, bottom of leaf to finished floor (max, NFPA 80)"
+value = "19 mm (3/4 in)"
+ref = 17
+
+[[measure]]
+what = "closer body length x height x projection (LCN 4040XP, cover on)"
+value = "311 x 89 x 57 mm (12-1/4 x 3-1/2 x 2-1/4 in)"
+ref = 12
+
+[[measure]]
+what = "minimum top rail of leaf under a hinge-side (pull side) closer before a drop plate is needed"
+value = "95 mm (3-3/4 in)"
+ref = 12
+
+[[measure]]
+what = "closer maximum opening, hinge-side regular arm"
+value = "120 degrees"
+ref = 12
+
+[[measure]]
+what = "lever rose diameter (Schlage ND)"
+value = "87 mm (3-7/16 in)"
+ref = 15
+
+[[measure]]
+what = "latch backset / latch faceplate / ANSI strike"
+value = "70 mm (2-3/4 in) / 29 x 57 mm (1-1/8 x 2-1/4 in) / 32 x 124 mm (1-1/4 x 4-7/8 in)"
+ref = 15
+
+[[measure]]
+what = "kick plate height x width x thickness on a 914 mm leaf (width = door width minus 2 in)"
+value = "254 x 864 x 1.27 mm (10 x 34 x 0.050 in)"
+ref = 16
+
+[[measure]]
+what = "North American EXIT letters, minimum height / principal stroke"
+value = "152 mm / 19 mm (6 in / 3/4 in)"
+ref = 11
+
+[[measure]]
+what = "North American exit sign face illumination (externally lit signs, minimum)"
+value = "54 lux (5 fc)"
+ref = 11
+
+[[measure]]
+what = "North American thermoplastic exit sign housing, width x height x depth (LSI EX; axis assignment read from drawing labels)"
+value = "300 x 184 x 46 mm (11.81 x 7.25 x 1.81 in)"
+ref = 18
+
+[[measure]]
+what = "European sign maximum viewing distance"
+value = "200 x legend panel height (internally lit); 100 x (externally lit)"
+ref = 20
+
+[[measure]]
+what = "European legend panel height for a 24 m rated box, DERIVED: 24 m / 200"
+value = "120 mm"
+ref = 20
+
+[[measure]]
+what = "European box sign housing width : height, DERIVED from the photo (perspective, approximate)"
+value = "about 1.8 : 1"
+ref = 7
+
+[[measure]]
+what = "gap from top of door head to bottom of the sign box, DERIVED from the photo, assuming a 190 mm box"
+value = "about 150 to 250 mm"
+ref = 7
+
+[[measure]]
+what = "bottom of an over-door sign above floor, DERIVED: 2185 mm head top + 100 to 250 mm gap (ESTIMATE of the gap)"
+value = "about 2290 to 2435 mm"
+ref = 7
+
+[[palette]]
+what = "maple/birch veneer, clear finish ambered, upper leaf under ceiling light (estimated from photo, warm white balance uncorrected)"
+srgb = [165, 126, 62]
+ref = 1
+
+[[palette]]
+what = "same maple/birch veneer at lever height near the latch edge (estimated from photo)"
+srgb = [161, 123, 69]
+ref = 1
+
+[[palette]]
+what = "walnut-look dark veneer, stair door, upper leaf (estimated from photo)"
+srgb = [80, 56, 41]
+ref = 2
+
+[[palette]]
+what = "dark cherry/mahogany-stained veneer in shadow under the closer (estimated from photo)"
+srgb = [36, 25, 20]
+ref = 3
+
+[[palette]]
+what = "hollow metal frame, dark grey paint (estimated from photo)"
+srgb = [98, 103, 109]
+ref = 1
+
+[[palette]]
+what = "hollow metal frame, almond/beige paint, lit jamb (estimated from photo)"
+srgb = [209, 190, 160]
+ref = 2
+
+[[palette]]
+what = "hollow metal frame head, cream paint (estimated from photo)"
+srgb = [171, 154, 114]
+ref = 3
+
+[[palette]]
+what = "hollow metal door and frame, khaki/olive paint (estimated from photo)"
+srgb = [155, 137, 91]
+ref = 4
+
+[[palette]]
+what = "painted steel, aged, dirty grey-beige around chips (estimated from photo)"
+srgb = [163, 158, 149]
+ref = 9
+
+[[palette]]
+what = "closer cover, aluminium powder coat (689-type) (estimated from photo)"
+srgb = [144, 143, 141]
+ref = 3
+
+[[palette]]
+what = "satin chrome lever (626); use as proxy for satin stainless kick plate (630), takes the room's colour (estimated from photo)"
+srgb = [107, 103, 100]
+ref = 2
+
+[[palette]]
+what = "red EXIT letters, lit, clean sign (estimated from photo)"
+srgb = [224, 83, 93]
+ref = 4
+
+[[palette]]
+what = "red EXIT letters, lit, aged sign (estimated from photo)"
+srgb = [211, 39, 52]
+ref = 6
+
+[[palette]]
+what = "green EXIT letters, lit, North American sign (estimated from photo, 3 px stroke)"
+srgb = [28, 104, 55]
+ref = 5
+
+[[palette]]
+what = "white thermoplastic sign face and housing, clean, under corridor light (estimated from photo)"
+srgb = [165, 152, 147]
+ref = 4
+
+[[palette]]
+what = "thermoplastic sign housing, aged: yellowed and grimy (estimated from photo)"
+srgb = [154, 147, 131]
+ref = 6
+
+[[palette]]
+what = "thermoplastic sign housing, aged, dirt in the lower edge shadow (estimated from photo)"
+srgb = [124, 115, 100]
+ref = 6
+
+[[palette]]
+what = "European box sign green panel, internally lit (estimated from photo, overexposed)"
+srgb = [2, 194, 138]
+ref = 7
+
+[[palette]]
+what = "European box sign housing, white/silver side with diffuser slots (estimated from photo)"
+srgb = [156, 168, 172]
+ref = 7
+
+[[palette]]
+what = "ISO 7010 safety green as drawn in the E001 file (#237F52), unlit printed colour"
+srgb = [35, 127, 82]
+ref = 10

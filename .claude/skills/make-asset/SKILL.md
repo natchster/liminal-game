@@ -51,7 +51,12 @@ commands and gates. One asset at a time: its dossier is
    thing (a list of pickups) must let go of the ones the pass removes:
    `place_by_rules` does it for the pickups' lists. The rules test
    (`what_the_rules_place_keeps_its_rules`, `tests/usable.rs`) holds every
-   placed one to its rules, whatever its asset.
+   placed one to its rules, whatever its asset. A thing the floor's layout
+   makes (a door) says `by = "layout"`, and each rule `at` (its place in the
+   layout) for `on`: its maker asks `place_by_layout` before it makes one,
+   and `what_the_layout_places_keeps_its_rules` holds it (`ASSETS.md`,
+   *Things the layout makes*). Its sheet: `cargo xtask asset sheet NAME
+   --kinds <the census kinds that hold it>`.
 8. **The playtest question.** `cargo xtask asset sheet <name>`: frames of
    it where the rules put it. Give them to a fresh agent playtester
    (general-purpose, `.claude/agents/placement-critic.md` as its brief: it
