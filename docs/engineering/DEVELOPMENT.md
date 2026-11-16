@@ -368,7 +368,11 @@ Levels must be a pure function of `(run_seed, level)`:
   kept, through the steps their tests take:
   `cargo test --release -p game --test core_props_head -- --ignored rerecord`
   and `cargo test --release -p game --test core_props_tail -- --ignored rerecord`.
-  On unchanged code each reproduces every value its tests read.
+  On unchanged code each reproduces every value its tests read. The
+  Stairwell's recording is the old game's but for its doors, the asset
+  pipeline's (`docs/plan/DOORS.md` D2): `cargo test --release -p game
+  --test stairwell -- --ignored rerecord_doors` writes the build's tree and
+  each enter's bottom from the build as it is; only the doors may move.
 * The level-generation fixtures re-record themselves from the current code
   (keeping each case's seeds and query points); run the ones a deliberate
   change affects, then review the diff:
@@ -655,7 +659,11 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   `loop-figure-near`) puts you in the Loop on the lap its seated man comes,
   2.5 m (1.6 m) in front of him; `--screen loop-water` (`loop-battery`)
   1.25 m from its first almond water on a desk (cell on a cabinet), out of
-  reach, looking down at it; `--screen put-away:<id>` (`yellow_water`,
+  reach, looking down at it; `--screen loop-exit` (`loop-door`) 1.6 m
+  before the Loop's first room's EXIT door (the side door you came in by),
+  `--screen stair-bottom` (`stair-top`) 1.3 m before the Stairwell's bottom
+  door (the one behind you at its top), looking at it (the doors:
+  `docs/plan/DOORS.md`); `--screen put-away:<id>` (`yellow_water`,
   `coin`, …: a thing put away, `secrets::SPECIAL`) sets it on the floor
   1.2 m before you, a sealed almond water to its right, looked at, without
   opening a hiding place; `--screen nerve` your nerve all but spent (5),

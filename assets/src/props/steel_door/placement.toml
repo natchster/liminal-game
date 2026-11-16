@@ -3,7 +3,7 @@
 # the floor whose way down is the Stairwell (`core_props::build_exit_door`),
 # and the Stairwell its top and bottom doors (`modes::stairwell`).
 by = "layout"
-count = [1, 2]
+count = [1, 3]
 levels = [5, 12]
 
 [[rule]]

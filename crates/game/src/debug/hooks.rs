@@ -1065,6 +1065,16 @@ impl Game {
             self.player.pitch = -(EYE - 0.1).datan2(1.2);
             return;
         }
+        // the doors of the places a way down leads to (`core_props::doors`):
+        // the Loop's side doors, the Stairwell's top and bottom, from 1.6 m
+        if name == "loop-door" || name == "loop-exit" {
+            self.debug_loop_door(name == "loop-exit", 1.6);
+            return;
+        }
+        if name == "stair-top" || name == "stair-bottom" {
+            self.debug_stair_door(name == "stair-bottom", 1.3);
+            return;
+        }
         // the Loop's pickups (`core_props::pickups`' parts, instanced): its
         // first almond water on a desk, its first cell on a cabinet, 1.25 m
         // off (out of reach: within 0.97 m it is taken)

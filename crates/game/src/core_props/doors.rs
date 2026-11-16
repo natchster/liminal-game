@@ -38,6 +38,8 @@ thread_local! {
     static VENEER: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
     static FRAME: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
     static ENAMEL: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
+    static ENAMEL_PULL: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
+    static SIGN: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() };
 }
 
 /// Red oak, plain sliced, under a clear lacquer gone amber
@@ -227,6 +229,10 @@ fn frame_tex() -> Tex {
 /// running man through a doorway on its green, and the word EXIT; no arrow
 /// (nothing points the way: `LORE.md`, *The descent*). Lit from inside.
 pub fn exit_sign_tex() -> Tex {
+    SIGN.with(|c| c.get_or_init(paint_exit_sign).clone())
+}
+
+fn paint_exit_sign() -> Tex {
     canvas_tex_opt(512, 256, false, |ctx, w, h| {
         ctx.set_fill_style("#1e8f57");
         ctx.fill_rect(0, 0, w, h);
@@ -273,66 +279,82 @@ pub fn exit_sign_tex() -> Tex {
 /// A hollow-metal door's grey enamel, as its leaf takes it whole: chipped
 /// to the primer and the steel round the lock (0.92 across, 1024 mm up) and
 /// along its foot, where rust has come through; a dent low on it where a
-/// cart hit it; the grime of hands where it is pushed
-fn enamel_tex() -> Tex {
-    ENAMEL.with(|c| {
-        c.get_or_init(|| {
-            canvas_tex_opt(256, 512, false, |ctx, w, h| {
-                ctx.set_fill_style("#73777a");
-                ctx.fill_rect(0, 0, w, h);
-                for _ in 0..70 {
-                    let (x, y, r) = (rnd() * w, rnd() * h, 8.0 + rnd() * 30.0);
-                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
-                    gr.add_color_stop(0.0, if rnd() < 0.5 { "rgba(255,255,255,0.04)" } else { "rgba(20,22,24,0.05)" });
-                    gr.add_color_stop(1.0, "rgba(0,0,0,0)");
-                    ctx.set_fill_style(&gr);
-                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
-                }
-                // hands, round the lock and above it
-                for (x, y, r, col) in [(0.92, 0.52, 0.18, "rgba(40,38,34,0.26)"), (0.85, 0.40, 0.14, "rgba(45,42,38,0.16)")] {
-                    let (x, y, r) = (x * w, y * h, r * w);
-                    let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
-                    gr.add_color_stop(0.0, col);
-                    gr.add_color_stop(1.0, "rgba(0,0,0,0)");
-                    ctx.set_fill_style(&gr);
-                    ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
-                }
-                // chips round the lock, to the primer and the steel
-                for _ in 0..14 {
-                    let (x, y) = (w * (0.86 + rnd() * 0.12), h * (0.49 + rnd() * 0.07));
-                    let (cw, ch) = (1.2 + rnd() * 3.5, 1.2 + rnd() * 3.5);
-                    ctx.set_fill_style("rgba(36,36,36,0.5)");
-                    ctx.fill_rect(x - 0.5, y - 0.5, cw + 1.0, ch + 1.0);
-                    ctx.set_fill_style(if rnd() < 0.6 { "#8c5a3c" } else { "#9a9b9a" });
-                    ctx.fill_rect(x, y, cw, ch);
-                }
-                // the foot: rust come through along it, run up a little
-                let gr = ctx.create_linear_gradient(0, h * 0.955, 0, h);
-                gr.add_color_stop(0.0, "rgba(104,60,30,0)");
-                gr.add_color_stop(0.6, "rgba(104,60,30,0.45)");
-                gr.add_color_stop(1.0, "rgba(80,44,22,0.75)");
-                ctx.set_fill_style(&gr);
-                ctx.fill_rect(0, h * 0.955, w, h * 0.045);
-                for _ in 0..22 {
-                    let x = rnd() * w;
-                    ctx.set_fill_style(format!("rgba(98,56,28,{:.3})", 0.15 + rnd() * 0.3));
-                    ctx.fill_rect(x, h * (0.93 + rnd() * 0.03), 1.0 + rnd() * 2.0, h * 0.04);
-                }
-                // a cart's dent, low on the hinge side: lit above, shaded below
-                let (dx, dy, dr) = (w * 0.3, h * 0.83, w * 0.09);
-                for (oy, col) in [(-0.3, "rgba(255,255,255,0.10)"), (0.3, "rgba(0,0,0,0.16)")] {
-                    let gr = ctx.create_radial_gradient(dx, dy + oy * dr, 0, dx, dy + oy * dr, dr);
-                    gr.add_color_stop(0.0, col);
-                    gr.add_color_stop(1.0, "rgba(0,0,0,0)");
-                    ctx.set_fill_style(&gr);
-                    ctx.fill_rect(dx - dr, dy - dr * 1.4, dr * 2.0, dr * 2.8);
-                }
-            })
-        })
-        .clone()
-    })
+/// cart hit it; the grime of hands where it is pushed. From the side that
+/// pulls (`pull`) the leaf's face is seen the other way round: the lock's
+/// side on its left. (Each a painter of its own, painted once a thread:
+/// cached, a painter's one paint never hangs on what was painted before.)
+fn enamel_tex(pull: bool) -> Tex {
+    if pull {
+        ENAMEL_PULL.with(|c| c.get_or_init(|| canvas_tex_opt(256, 512, false, |ctx, w, h| paint_enamel(ctx, w, h, true))).clone())
+    } else {
+        ENAMEL.with(|c| c.get_or_init(|| canvas_tex_opt(256, 512, false, |ctx, w, h| paint_enamel(ctx, w, h, false))).clone())
+    }
 }
 
+fn paint_enamel(ctx: &mut Canvas, w: f64, h: f64, pull: bool) {
+    // (across the leaf, from the hinges on the side that pushes)
+    let u = |x: f64| if pull { 1.0 - x } else { x };
+    ctx.set_fill_style("#73777a");
+    ctx.fill_rect(0, 0, w, h);
+    for _ in 0..70 {
+        let (x, y, r) = (rnd() * w, rnd() * h, 8.0 + rnd() * 30.0);
+        let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+        gr.add_color_stop(0.0, if rnd() < 0.5 { "rgba(255,255,255,0.04)" } else { "rgba(20,22,24,0.05)" });
+        gr.add_color_stop(1.0, "rgba(0,0,0,0)");
+        ctx.set_fill_style(&gr);
+        ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+    }
+    // hands, round the lock and above it
+    for (x, y, r, col) in [(0.92, 0.52, 0.18, "rgba(40,38,34,0.26)"), (0.85, 0.40, 0.14, "rgba(45,42,38,0.16)")] {
+        let (x, y, r) = (u(x) * w, y * h, r * w);
+        let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+        gr.add_color_stop(0.0, col);
+        gr.add_color_stop(1.0, "rgba(0,0,0,0)");
+        ctx.set_fill_style(&gr);
+        ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+    }
+    // chips round the lock, to the primer and the steel
+    for _ in 0..14 {
+        let (x, y) = (w * u(0.86 + rnd() * 0.12), h * (0.49 + rnd() * 0.07));
+        let (cw, ch) = (1.2 + rnd() * 3.5, 1.2 + rnd() * 3.5);
+        ctx.set_fill_style("rgba(36,36,36,0.5)");
+        ctx.fill_rect(x - 0.5, y - 0.5, cw + 1.0, ch + 1.0);
+        ctx.set_fill_style(if rnd() < 0.6 { "#8c5a3c" } else { "#9a9b9a" });
+        ctx.fill_rect(x, y, cw, ch);
+    }
+    // the foot: rust come through along it, run up a little
+    let gr = ctx.create_linear_gradient(0, h * 0.955, 0, h);
+    gr.add_color_stop(0.0, "rgba(104,60,30,0)");
+    gr.add_color_stop(0.6, "rgba(104,60,30,0.45)");
+    gr.add_color_stop(1.0, "rgba(80,44,22,0.75)");
+    ctx.set_fill_style(&gr);
+    ctx.fill_rect(0, h * 0.955, w, h * 0.045);
+    for _ in 0..22 {
+        let x = rnd() * w;
+        ctx.set_fill_style(format!("rgba(98,56,28,{:.3})", 0.15 + rnd() * 0.3));
+        ctx.fill_rect(x, h * (0.93 + rnd() * 0.03), 1.0 + rnd() * 2.0, h * 0.04);
+    }
+    // a cart's dent, low on the hinge side: lit above, shaded below
+    let (dx, dy, dr) = (w * u(0.3), h * 0.83, w * 0.09);
+    for (oy, col) in [(-0.3, "rgba(255,255,255,0.10)"), (0.3, "rgba(0,0,0,0.16)")] {
+        let gr = ctx.create_radial_gradient(dx, dy + oy * dr, 0, dx, dy + oy * dr, dr);
+        gr.add_color_stop(0.0, col);
+        gr.add_color_stop(1.0, "rgba(0,0,0,0)");
+        ctx.set_fill_style(&gr);
+        ctx.fill_rect(dx - dr, dy - dr * 1.4, dr * 2.0, dr * 2.8);
+    }
+}
+
+fn veneer() -> Mat {
+    phong!({ color: 0xffffff, map: &veneer_tex(), specular: 0x1c1a16, shininess: 14 })
+}
+fn frame_paint() -> Mat {
+    phong!({ color: 0xffffff, map: &frame_tex(), specular: 0x262626, shininess: 22 })
+}
+/// White thermoplastic, a little yellowed
+fn sign_housing() -> Mat {
+    phong!({ color: 0xc8c1b1, specular: 0x222222, shininess: 16 })
+}
 fn satin_chrome() -> Mat {
     phong!({ color: 0xa9a9a5, specular: 0x8c8c88, shininess: 46 })
 }
@@ -347,11 +369,9 @@ fn sprayed_aluminium() -> Mat {
 /// frame, lever, closer and kick plate, and, with `sign`, the lit sign over
 /// it (the Loop's way in has none). The leaf is named `exit-door-leaf`.
 pub fn exit_door(dg: &Obj, sign: bool) {
-    let veneer = phong!({ color: 0xffffff, map: &veneer_tex(), specular: 0x1c1a16, shininess: 14 });
-    let frame_paint = phong!({ color: 0xffffff, map: &frame_tex(), specular: 0x262626, shininess: 22 });
-    let leaf = add(dg, &part("ExitDoor__leaf"), &veneer);
+    let leaf = add(dg, &part("ExitDoor__leaf"), &veneer());
     leaf.set_name("exit-door-leaf");
-    add(dg, &part("ExitDoor__frame"), &frame_paint);
+    add(dg, &part("ExitDoor__frame"), &frame_paint());
     add(dg, &part("ExitDoor__lever"), &satin_chrome());
     add(dg, &part("ExitDoor__closer"), &sprayed_aluminium());
     add(dg, &part("ExitDoor__kickPlate"), &stainless());
@@ -395,7 +415,7 @@ pub fn warm_under(spot: &WallSpot) -> Obj {
 pub fn exit_door_sign(dg: &Obj) {
     let sign = group();
     sign.set_name("exit-sign");
-    add(&sign, &part("ExitSign__housing"), &phong!({ color: 0xc8c1b1, specular: 0x222222, shininess: 16 }));
+    add(&sign, &part("ExitSign__housing"), &sign_housing());
     let face = mesh(plane_geo!(SIGN_FACE.0, SIGN_FACE.1), basic_mat!({ map: &exit_sign_tex() }));
     face.position().set(0, SIGN_Y, SIGN_FACE_Z);
     sign.add(&face);
@@ -420,11 +440,10 @@ pub enum SteelSide {
 /// (its leaf is named `steel-door-leaf`). The sign over it, its lights and
 /// its use are its maker's.
 pub fn steel_door(dg: &Obj, side: SteelSide) {
-    let enamel = phong!({ color: 0xffffff, map: &enamel_tex(), specular: 0x2a2a2a, shininess: 18 });
-    let frame_paint = phong!({ color: 0xffffff, map: &frame_tex(), specular: 0x262626, shininess: 22 });
+    let enamel = phong!({ color: 0xffffff, map: &enamel_tex(side == SteelSide::Top), specular: 0x2a2a2a, shininess: 18 });
     let leaf = add(dg, &part("SteelDoor__leaf"), &enamel);
     leaf.set_name("steel-door-leaf");
-    add(dg, &part("ExitDoor__frame"), &frame_paint);
+    add(dg, &part("ExitDoor__frame"), &frame_paint());
     match side {
         SteelSide::Floor => {
             add(dg, &part("ExitDoor__lever"), &satin_chrome());
@@ -457,3 +476,35 @@ pub fn steel_door(dg: &Obj, side: SteelSide) {
 /// The STAIRS plaque's middle and the face its letters lie on
 const PLAQUE_Y: f64 = 1.52;
 const PLAQUE_FACE_Z: f64 = -0.015 + 0.0016 + 0.0004;
+
+/// The exit door's parts as instanced meshes take them (the Loop's: one
+/// mesh a material, `modes::loop_rooms`), the wall's face at z = 0: the
+/// door's (leaf, frame, lever, closer, kick plate), and its sign's housing
+/// with its material, centred on the sign's middle (its maker says how
+/// high: the Loop's hangs lower, under its low ceiling)
+pub fn exit_door_instanced_parts() -> (Vec<(Geo, Mat)>, (Geo, Mat)) {
+    let at = |name: &str| {
+        let g = part(name).duplicate();
+        g.translate(0.0, 0.0, -WALL_Z);
+        g
+    };
+    let housing = at("ExitSign__housing");
+    housing.translate(0.0, -SIGN_Y, 0.0);
+    let door = vec![
+        (at("ExitDoor__leaf"), veneer()),
+        (at("ExitDoor__frame"), frame_paint()),
+        (at("ExitDoor__lever"), satin_chrome()),
+        (at("ExitDoor__closer"), sprayed_aluminium()),
+        (at("ExitDoor__kickPlate"), stainless()),
+    ];
+    (door, (housing, sign_housing()))
+}
+
+/// A lit sign face `w` x `h` in the exit sign's housing, the wall's face at
+/// z = 0, centred on the sign's middle (the Loop's own face, its plain
+/// EXIT: `modes::loop_rooms`)
+pub fn sign_face_geo(w: f64, h: f64) -> Geo {
+    let g = plane_geo!(w, h);
+    g.translate(0.0, 0.0, SIGN_FACE_Z - WALL_Z);
+    g
+}

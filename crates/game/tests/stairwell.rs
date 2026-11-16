@@ -218,7 +218,9 @@ fn stairwell_enter_matches_reference() {
             assert_vec_close(&[p.x, p.y, p.z], &j.get("p").fs(), TOL, &format!("{w}: marker {i} position"));
             assert_vec_close(&[r.x, r.y, r.z], &j.get("r").fs(), TOL, &format!("{w}: marker {i} rotation"));
         }
-        for (i, (o, j)) in [&s.exit_door, &s.exit_glow, &s.exit_handle, &s.floor].iter().zip(e.get("bottom").arr()).enumerate() {
+        let bottom = e.get("bottom").arr();
+        assert_eq!(bottom.len(), 3, "{w}: the bottom's door, its glow and the floor");
+        for (i, (o, j)) in [&s.exit_door, &s.exit_glow, &s.floor].iter().zip(bottom).enumerate() {
             let p = o.pos();
             let r = o.rot();
             assert_vec_close(&[p.x, p.y, p.z], &j.get("p").fs(), TOL, &format!("{w}: bottom {i} position"));
@@ -359,4 +361,81 @@ fn hypot_is_exact() {
     assert_eq!(hypot2(f64::INFINITY, f64::NAN), f64::INFINITY);
     assert!(hypot2(1.0, f64::NAN).is_nan());
     assert_eq!(hypot3(0.0, -0.0, 0.0), 0.0);
+}
+
+fn ser_mat(m: &Mat) -> serde_json::Value {
+    use engine::material::Side;
+    let r = m.r();
+    let side = match r.side {
+        Side::Front => 0,
+        Side::Back => 1,
+        Side::Double => 2,
+    };
+    serde_json::json!({
+        // (the recording keeps an emissive for a lambert only)
+        "type": mat_type(m), "color": r.color.get_hex(),
+        "emissive": if mat_type(m) == "lambert" { serde_json::json!(r.emissive.get_hex()) } else { serde_json::Value::Null },
+        "map": r.map.is_some(),
+        "side": side, "vc": r.vertex_colors, "fog": r.fog, "tr": r.transparent, "op": r.opacity, "dw": r.depth_write,
+        "po": r.polygon_offset, "pof": r.polygon_offset_factor, "pou": r.polygon_offset_units,
+    })
+}
+
+/// A scene tree as `assert_tree` reads it
+fn ser_tree(o: &Obj) -> serde_json::Value {
+    let kind = if o.is_instanced() {
+        "inst"
+    } else if o.is_mesh() {
+        "mesh"
+    } else {
+        "group"
+    };
+    let (p, r) = (o.pos(), o.rot());
+    let mut m = serde_json::json!({"k": kind, "v": o.visible(), "p": [p.x, p.y, p.z], "r": [r.x, r.y, r.z]});
+    if o.is_mesh() {
+        let g = o.geo();
+        let mut gj = vec![serde_json::json!(geo_kind(&g))];
+        gj.extend(geo_params(&g).into_iter().map(|x| serde_json::json!(x)));
+        m["g"] = serde_json::json!(gj);
+        m["vc"] = serde_json::json!(g.vertex_count());
+        m["ic"] = g.r().index.as_ref().map_or(serde_json::Value::Null, |i| serde_json::json!(i.len()));
+        m["m"] = ser_mat(&o.mat());
+    }
+    if o.is_instanced() {
+        m["count"] = serde_json::json!(o.instance_count());
+        let mats: Vec<Vec<f64>> = instance_matrices(o).iter().map(|x| x.e.iter().map(|&v| f32r(v)).collect()).collect();
+        m["mats"] = serde_json::json!(mats);
+    }
+    let kids = o.children();
+    if !kids.is_empty() {
+        m["c"] = serde_json::json!(kids.iter().map(ser_tree).collect::<Vec<_>>());
+    }
+    m
+}
+
+/// The Stairwell's doors are the asset pipeline's (`docs/plan/DOORS.md` D2:
+/// the steel door's two sides, `core_props::doors`), not the recording's:
+/// the build's tree and each enter's `bottom` written from the build as it
+/// is, the rest of the recording as it was. Read the diff (only the doors'
+/// nodes may move) and say why in the commit:
+///   cargo test --release -p game --test stairwell -- --ignored rerecord_doors
+#[test]
+#[ignore]
+fn rerecord_doors() {
+    let path = format!("{}/tests/fixtures/stairwell.json", env!("CARGO_MANIFEST_DIR"));
+    let mut v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let (mut s, _, _) = make(1234, None);
+    v["build"]["tree"] = ser_tree(&s.group);
+    s.enter(10); // as stairwell_enter_matches_reference does
+    let n = v["enters"].as_array().unwrap().len();
+    for i in 0..n {
+        let flights = v["enters"][i]["flights"].as_f64().unwrap();
+        s.enter(engine::math::to_i32(flights));
+        let pr = |o: &Obj| {
+            let (p, r) = (o.pos(), o.rot());
+            serde_json::json!({"p": [p.x, p.y, p.z], "r": [r.x, r.y, r.z]})
+        };
+        v["enters"][i]["bottom"] = serde_json::json!([pr(&s.exit_door), pr(&s.exit_glow), pr(&s.floor)]);
+    }
+    std::fs::write(&path, serde_json::to_string(&v).unwrap()).unwrap();
 }

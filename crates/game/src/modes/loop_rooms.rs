@@ -752,8 +752,10 @@ pub struct LoopMode {
     pub m_almond: Vec<Obj>,
     pub m_battery: Vec<Obj>,
     pub m_figure: Obj,
-    pub m_door: Obj,
-    pub m_sign: Obj,
+    /// the exit door's parts, the leaf's first (`core_props::doors`)
+    pub m_door: Vec<Obj>,
+    /// the sign's lit face, then its housing
+    pub m_sign: Vec<Obj>,
     owned_geos: Vec<Geo>,
     owned_mats: Vec<Mat>,
     owned_texs: Vec<Tex>,
@@ -1136,32 +1138,18 @@ impl LoopMode {
             }
             b.build(og)
         };
-        // a plain panelled interior door on the wall plane z = 0, facing +z
-        let door_geo = {
-            let mut b = Builder::new();
-            const WOOD: u32 = 0x6a5236;
-            const LEAF: u32 = 0x7c5f40;
-            const PANEL: u32 = 0x70553a;
-            const BRASS: u32 = 0xb0914e;
-            for s in [-1.0f64, 1.0] {
-                b.add(bevel_box(0.075, 2.14, 0.025, 0.005), &mt(s * 0.535, 1.07, 0.0125), WOOD);
-            }
-            b.add(bevel_box(1.145, 0.075, 0.025, 0.005), &mt(0.0, 2.1775, 0.0125), WOOD);
-            b.add(bevel_box(0.95, 2.1, 0.04, 0.006), &mt(0.0, 1.05, 0.012), LEAF);
-            b.add(bevel_box(0.66, 0.8, 0.014, 0.012), &mt(0.0, 0.56, 0.036), PANEL);
-            b.add(bevel_box(0.66, 0.9, 0.014, 0.012), &mt(0.0, 1.55, 0.036), PANEL);
-            b.add(cyl_geo!(0.03, 0.03, 0.012, 14), &mtr(0.38, 1.0, 0.038, PI / 2.0, 0.0, 0.0), BRASS);
-            b.add(bevel_box(0.13, 0.022, 0.022, 0.008), &mt(0.33, 1.0, 0.065), BRASS);
-            b.build(og)
-        };
-        let sign_geo = Builder::new()
-            .quad(
-                [[-0.19, -0.07, 0.03], [0.19, -0.07, 0.03], [0.19, 0.07, 0.03], [-0.19, 0.07, 0.03]],
-                [0.0, 0.0, 1.0],
-                |x, y, _z| [(x + 0.19) / 0.38, (y + 0.07) / 0.14],
-                0xffffff,
-            )
-            .build(og);
+        // the exit door, the asset pipeline's (`core_props::doors`,
+        // `assets/src/props/exit_door/`): an ordinary office door in its
+        // frame on the wall plane z = 0, facing +z, a mesh a material; and
+        // its sign's housing, the Loop's own plain EXIT lit in it ("a small
+        // green EXIT sign"), its face as long as its paint (256 x 96)
+        let (door_parts, (sign_box_geo, sign_box_mat)) = crate::core_props::doors::exit_door_instanced_parts();
+        for (g, m) in door_parts.iter().chain([&(sign_box_geo.clone(), sign_box_mat.clone())]) {
+            og.push(g.clone());
+            owned_mats.push(m.clone());
+        }
+        let sign_geo = crate::core_props::doors::sign_face_geo(0.36, 0.135);
+        og.push(sign_geo.clone());
         // stains: a pool on the carpet, runs down the left wall, a smear on
         // the far wall, a leak above the desk (left half of the atlas: blots, right: runs)
         let stain_geo = {
@@ -1254,8 +1242,12 @@ impl LoopMode {
             bottle_parts.iter().zip(["almond", "almondBottle", "almondCap"]).map(|((g, m), name)| inst(g, m, NN, name)).collect();
         let m_battery: Vec<Obj> = cell_parts.iter().zip(["battery", "batteryEnds"]).map(|((g, m), name)| inst(g, m, NN, name)).collect();
         let m_figure = inst(&figure_geo, &paint_mat, NS + 1, "figure");
-        let m_door = inst(&door_geo, &paint_mat, NN + 1, "doors");
-        let m_sign = inst(&sign_geo, &sign_mat, NN, "exitSign");
+        let m_door: Vec<Obj> = door_parts
+            .iter()
+            .zip(["doors", "doorFrame", "doorLever", "doorCloser", "doorKick"])
+            .map(|((g, m), name)| inst(g, m, NN + 1, name))
+            .collect();
+        let m_sign = vec![inst(&sign_geo, &sign_mat, NN, "exitSign"), inst(&sign_box_geo, &sign_box_mat, NN, "exitSignBox")];
         let ghost_door = mesh(&ghost_door_geo, &ghost_mat);
         ghost_door.set_visible(false);
         ghost_door.rotation().y = -PI / 2.0;
@@ -1387,8 +1379,13 @@ impl LoopMode {
                 }
             }
             if lk.exit && r == LOOP::EXIT_ROOM {
-                put1(&self.m_door, -W / 2.0, 0.0, zc + FURN.exit_door_v, PI / 2.0);
-                put1(&self.m_sign, -W / 2.0, 2.36, zc + FURN.exit_door_v, PI / 2.0);
+                for m in &self.m_door {
+                    put1(m, -W / 2.0, 0.0, zc + FURN.exit_door_v, PI / 2.0);
+                }
+                // (6 cm over the frame: the ceiling is 2.7 m)
+                for m in &self.m_sign {
+                    put1(m, -W / 2.0, 2.36, zc + FURN.exit_door_v, PI / 2.0);
+                }
             }
         }
         // the side door you came in by, until you turn round; then only a
@@ -1396,7 +1393,9 @@ impl LoopMode {
         let eg = self.entry_g();
         let ez = (eg - base) as f64 * P + P / 2.0 + FURN.entry_door_v;
         if self.st.entry_door && (eg - self.win_g).abs() <= KN {
-            put1(&self.m_door, W / 2.0, 0.0, ez, -PI / 2.0);
+            for m in &self.m_door {
+                put1(m, W / 2.0, 0.0, ez, -PI / 2.0);
+            }
         }
         self.ghost_door.set_visible(!self.st.entry_door && self.st.started && (eg - self.win_g).abs() <= KN);
         if self.ghost_door.visible() {
@@ -1517,6 +1516,18 @@ impl LoopMode {
             self.place(l, z, f.x - f.x.signum() * dist, Some(toward));
         }
         Some(Vec3::new(f.x, f.y, z))
+    }
+    /// (tools) `dist` m before one of the Loop's side doors, looking at it:
+    /// the first room's EXIT door on the lap it shows (`exit`), or the side
+    /// door you came in by, turned round to it as you arrive
+    pub fn face_door(&mut self, exit: bool, dist: f64) {
+        if exit {
+            let z = LOOP::EXIT_ROOM as f64 * P + P / 2.0 + FURN.exit_door_v;
+            self.place(0, z, -W / 2.0 + dist, Some(PI / 2.0));
+        } else {
+            let (lap, z) = (self.st.lap, self.st.z);
+            self.place(lap, z, W / 2.0 - dist, Some(-PI / 2.0));
+        }
     }
     /// Put the player at (lap, z, x) directly (tests, tools).
     pub fn place(&mut self, lap: i32, z: f64, x: f64, yaw: Option<f64>) {

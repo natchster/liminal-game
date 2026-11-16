@@ -553,9 +553,7 @@ fn what_the_rules_place_keeps_its_rules() {
 
 /// Rules the layout's makers do not ask yet (`docs/plan/DOORS.md`: each
 /// milestone makes its own and takes it off this list)
-const NOT_YET: [(&str, &str); 8] = [
-    ("exit_door", "loop"),
-    ("steel_door", "stairwell"),
+const NOT_YET: [(&str, &str); 6] = [
     ("hermetic_door", "cell"),
     ("hermetic_door", "gallery"),
     ("lift_doors", "lift"),
@@ -575,10 +573,26 @@ fn what_the_layout_places_keeps_its_rules() {
     use game::world::placement_rules::{self as pr, By};
     let levels: Vec<i32> = (1..=12).collect();
     let floors = each_floor(&levels, |seed, l| {
-        let g = floor(seed, l);
+        let mut g = floor(seed, l);
         let here = format!("seed {seed} L{l} {:?}", g.level_scp);
         let ways = g.layout_things.iter().filter(|t| t.at == "way down").count();
         assert_eq!(ways, 1, "{here}: {ways} ways down");
+        // through the way down where it leads to a place of its own: its doors
+        let mode = if g.level_scp.as_deref() == Some("loop") {
+            g.enter_loop();
+            Some("loop")
+        } else if g.layout_things.iter().any(|t| t.asset == "steel_door") {
+            g.enter_stairwell();
+            Some("stairwell")
+        } else {
+            None
+        };
+        if let Some(m) = mode {
+            g.now_ms += 1000.0;
+            g.run_scheduled();
+            let n = g.layout_things.iter().filter(|t| t.at == m).count();
+            assert_eq!(n, 2, "{here}: {n} doors in the {m}");
+        }
         let mut made = std::collections::BTreeMap::<&str, usize>::new();
         let mut at = std::collections::BTreeSet::new();
         for t in &g.layout_things {

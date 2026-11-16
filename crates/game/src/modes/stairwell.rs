@@ -274,9 +274,9 @@ pub struct Stairwell {
     pub chunks: Vec<StairChunk>,
     pub top: Obj,
     pub bottom: Obj,
+    /// the steel door at the bottom (its parts: `core_props::doors`)
     pub exit_door: Obj,
     pub exit_glow: Obj,
-    pub exit_handle: Obj,
     pub floor: Obj,
     pub leds: Vec<Obj>,
     /// whether each LED blinks
@@ -313,6 +313,11 @@ pub fn seg_y(seg: i32, _x: f64, z: f64) -> f64 {
     let i = 0f64.max(((STEPS - 1) as f64).min((along / RUN).floor()));
     -(k as f64) * DROP - (i + 1.0) * RISE
 }
+
+/// How far a door's origin stands in from the landing's curved wall on its
+/// axis: its frame's corners (0.508 m out) stand clear of the curve
+/// (`R` + 0.02) only 1.3845 m or less from its middle
+pub const DOOR_OFF: f64 = 0.075;
 
 pub fn landing_point(landing_seg: i32, on_wall: f64) -> LandingPoint {
     let k = (landing_seg - 1) / 2;
@@ -381,7 +386,6 @@ impl Stairwell {
         let step_mat = lambert!({ map: &step_tex });
         let slab_mat = lambert!({ map: &wall_tex });
         let rail_mat = lambert!({ color: 0x3b3a36 });
-        let door_mat = lambert!({ color: 0x4d5357 });
         let dark_mat = basic_mat!({ color: 0x000000 });
 
         // ---------------------------------------------------------- chunk ---
@@ -493,12 +497,15 @@ impl Stairwell {
             let sp = mesh(box_geo!(SPINE * 2.0, 3, FL), &wall_mat);
             sp.position().set(0, 1.4, FL / 2.0);
             top.add(&sp);
-            // the door behind you: steel, disguised as a janitor's closet
-            let door = mesh(box_geo!(0.95, 2.05, 0.08), &door_mat);
-            door.position().set(0, 1.02, -R + 0.05);
+            // the door behind you, seen from the stair: the steel door's
+            // side that pulls, its hinges and nothing to take hold of
+            // (`core_props::doors`, `assets/src/props/steel_door/`)
+            let door = group();
+            door.position().set(0, 0, -R + DOOR_OFF);
+            crate::core_props::doors::steel_door(&door, crate::core_props::doors::SteelSide::Top);
             top.add(&door);
             let strip = mesh(plane_geo!(0.9, 0.03), basic_mat!({ color: 0xfff1c8 }));
-            strip.position().set(0, 0.015, -R + 0.1);
+            strip.position().set(0, 0.002, -R + DOOR_OFF + 0.01);
             strip.rotation().x = -PI / 2.0;
             top.add(&strip); // light under the door
             root.add(&top);
@@ -506,13 +513,13 @@ impl Stairwell {
 
         // bottom piece: the final landing's door, and a floor under it
         let bottom = group();
-        let exit_door = mesh(box_geo!(0.95, 2.05, 0.08), &door_mat);
+        // the steel door's side that pushes, its push bar (`core_props::doors`)
+        let exit_door = group();
+        crate::core_props::doors::steel_door(&exit_door, crate::core_props::doors::SteelSide::Bottom);
         let exit_glow = mesh(plane_geo!(0.88, 0.035), basic_mat!({ color: 0xd9f0c8 }));
-        let exit_handle = mesh(box_geo!(0.12, 0.03, 0.05), &rail_mat);
         let floor = mesh(box_geo!(HALF * 2.0 + 0.4, 0.3, FL + R * 2.0 + 0.4), &slab_mat);
         bottom.add(&exit_door);
         bottom.add(&exit_glow);
-        bottom.add(&exit_handle);
         bottom.add(&floor);
         root.add(&bottom);
 
@@ -596,7 +603,6 @@ impl Stairwell {
             bottom,
             exit_door,
             exit_glow,
-            exit_handle,
             floor,
             leds,
             led_blink: vec![false; 4],
@@ -778,11 +784,11 @@ impl Stairwell {
         // the final landing and its door
         let last = landing_point(2 * (l - 1) + 1, 0.06);
         self.bottom.position().set(0, 0, 0);
-        self.exit_door.position().set(0, last.y + 1.02, last.z);
+        let door_z = landing_point(2 * (l - 1) + 1, DOOR_OFF).z;
+        self.exit_door.position().set(0, last.y, door_z);
         self.exit_door.rotation().y = if last.far { PI } else { 0.0 };
-        self.exit_glow.position().set(0, last.y + 0.02, if last.far { last.z - 0.05 } else { last.z + 0.05 });
+        self.exit_glow.position().set(0, last.y + 0.002, if last.far { door_z - 0.01 } else { door_z + 0.01 });
         self.exit_glow.rotation().x = -PI / 2.0;
-        self.exit_handle.position().set(0.32, last.y + 1.0, if last.far { last.z - 0.06 } else { last.z + 0.06 });
         self.floor.position().set(0, last.y - 0.4 - DROP * 0.3, FL / 2.0);
         // markers: LEDs every tenth landing, a puddle, a gouge, a hole with a light in it
         let mut led_landings = vec![];

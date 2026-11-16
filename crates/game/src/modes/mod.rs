@@ -274,6 +274,11 @@ impl Game {
             self.player.flashlight_on = true;
         } // (`toggle_flashlight` is a no-op mid-transition)
         let flights = stair_flights_for(self.level_num);
+        // its two steel doors, the top's and the bottom's, held to their rule
+        // (`assets/src/props/steel_door/`, "stairwell"; `place_by_layout`)
+        for _ in 0..2 {
+            let _ = self.place_by_layout("steel_door", "stairwell", self.player.pos.x, self.player.pos.z);
+        }
         if let Some(s) = self.stairwell.as_mut() {
             s.enter(flights);
             s.group.set_visible(true);
@@ -594,6 +599,44 @@ impl Game {
         }
         self.update_loop(0.0);
     }
+    /// (tools) In the Loop, `dist` m before a side door, looking at it: its
+    /// first room's EXIT door (`exit`) or the one you came in by
+    /// (`--screen loop-exit`, `loop-door`)
+    pub fn debug_loop_door(&mut self, exit: bool, dist: f64) {
+        self.enter_loop_now();
+        if let Some(lr) = self.loop_rooms.as_mut() {
+            lr.face_door(exit, dist);
+            self.player.yaw = lr.state().yaw;
+        }
+        self.player.pitch = (1.35 - EYE).datan2(dist);
+        self.update_loop(0.0);
+    }
+    /// (tools) In the Stairwell, `dist` m before its top door (behind you as
+    /// you come in) or its bottom one, looking at it (`--screen stair-top`,
+    /// `stair-bottom`)
+    pub fn debug_stair_door(&mut self, bottom: bool, dist: f64) {
+        self.enter_stairwell_now();
+        let mut yaw = 0.0;
+        if let Some(s) = self.stairwell.as_mut() {
+            let seg = if bottom { 2 * (s.flights() - 1) + 1 } else { 0 };
+            let (z, far) = if bottom {
+                let p = crate::modes::stairwell::landing_point(seg, dist);
+                (p.z, p.far)
+            } else {
+                (-STAIR::R + dist, false)
+            };
+            s.st.seg = seg;
+            s.st.x = 0.0;
+            s.st.z = z;
+            s.st.face = None;
+            s.st.encounter_at.clear();
+            // (facing the landing's wall: -z on the near side, +z on the far)
+            yaw = if far { PI } else { 0.0 };
+        }
+        self.player.yaw = yaw;
+        self.player.pitch = (1.2 - EYE).datan2(dist);
+        self.update_stairwell(0.0);
+    }
     /// In the Loop, `dist` m before its first pickup of `kind`, looking down at it
     pub fn debug_loop_pickup(&mut self, kind: PickupKind, dist: f64) {
         self.enter_loop_now();
@@ -626,6 +669,11 @@ impl Game {
         self.scene.add(&loop_rooms.group);
         self.loop_rooms = Some(loop_rooms);
         self.in_loop = true;
+        // its two side doors, the one you came in by and the first room's,
+        // held to their rule (`assets/src/props/exit_door/`, "loop")
+        for _ in 0..2 {
+            let _ = self.place_by_layout("exit_door", "loop", self.player.pos.x, self.player.pos.z);
+        }
         self.asides_leave_floor();
         self.world.set_visible(false);
         for e in &self.entities {

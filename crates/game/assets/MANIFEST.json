@@ -75,7 +75,7 @@
     "placement.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask asset write (TOML sources, every field written out)",
-      "fingerprint": "147ce0e7d2d3334d",
+      "fingerprint": "d1ce7795c5499a55",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",

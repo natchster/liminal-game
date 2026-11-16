@@ -3,7 +3,7 @@
 # down (`core_props::build_exit_door`), and the Loop where its rooms have
 # their side doors (`modes::loop_rooms`); each is held to a rule here.
 by = "layout"
-count = [1, 2]
+count = [1, 3]
 levels = [1, 999]
 
 [[rule]]

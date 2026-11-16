@@ -174,10 +174,12 @@ fn loop_build_matches_reference() {
         }
         // (the seated figure's body is E9's, `bodies.bin` "seated", not the
         // recording's: its geometry is held by `tests/anomaly_bodies.rs`)
-        if name != "loop:figure" && name != "loop:almond" && name != "loop:battery" {
+        // (the doors and the sign's face are the parts': the face's
+        // material is the recording's)
+        if !["loop:figure", "loop:almond", "loop:battery", "loop:doors", "loop:exitSign"].contains(&name) {
             assert_geo(&o.geo(), j.get("geo"), name);
             assert_mat(&o.mat(), j.get("mat"), name);
-        } else if name == "loop:figure" {
+        } else if name == "loop:figure" || name == "loop:exitSign" {
             assert_mat(&o.mat(), j.get("mat"), name);
         }
     }
@@ -185,7 +187,7 @@ fn loop_build_matches_reference() {
     let bare = LoopMode::new(LoopDeps::default());
     for (o, j) in bare.group.children().iter().filter(|o| !is_part(&o.name())).zip(fx.get("build_plain").arr()) {
         assert_eq!(o.name(), j.get("name").s());
-        if o.name() != "loop:almond" && o.name() != "loop:battery" {
+        if !["loop:almond", "loop:battery", "loop:doors"].contains(&o.name().as_str()) {
             assert_mat(&o.mat(), j.get("mat"), &format!("plain {}", o.name()));
         }
     }
@@ -196,7 +198,7 @@ fn loop_build_matches_reference() {
     });
     for (o, j) in half.group.children().iter().filter(|o| !is_part(&o.name())).zip(fx.get("build_half").arr()) {
         assert_eq!(o.name(), j.get("name").s());
-        if o.name() != "loop:almond" && o.name() != "loop:battery" {
+        if !["loop:almond", "loop:battery", "loop:doors"].contains(&o.name().as_str()) {
             assert_mat(&o.mat(), j.get("mat"), &format!("half {}", o.name()));
         }
     }
@@ -216,11 +218,23 @@ fn counts_json(c: &[(&'static str, usize)]) -> Vec<(String, i64)> {
 }
 
 /// The Loop's pickups are the builders' own parts now (`core_props::pickups`,
-/// one instanced mesh a material) where the recording has one mesh each:
+/// one instanced mesh a material) where the recording has one mesh each,
+/// and so are its doors and its sign's housing (`core_props::doors`,
+/// `docs/plan/DOORS.md` D2; the sign's lit face and its paint are the
+/// recording's):
 /// each part after the first is folded into its first (drawn as often,
 /// held here), and its geometry and material are the parts' (held by the
 /// asset lint and the parts table), not the recording's
-const PARTS: [(&str, &str); 3] = [("almondBottle", "almond"), ("almondCap", "almond"), ("batteryEnds", "battery")];
+const PARTS: [(&str, &str); 8] = [
+    ("almondBottle", "almond"),
+    ("almondCap", "almond"),
+    ("batteryEnds", "battery"),
+    ("doorFrame", "doors"),
+    ("doorLever", "doors"),
+    ("doorCloser", "doors"),
+    ("doorKick", "doors"),
+    ("exitSignBox", "exitSign"),
+];
 fn is_part(name: &str) -> bool {
     let name = name.strip_prefix("loop:").unwrap_or(name);
     PARTS.iter().any(|(p, _)| *p == name)
