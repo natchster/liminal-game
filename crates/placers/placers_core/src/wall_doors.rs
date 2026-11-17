@@ -22,7 +22,12 @@ pub(crate) fn place_wall_doors(g: &mut Game, _dist: &[i32]) {
     let c = choice(&candidates);
     let paint = choice(&[0usize, 1, 2, 3]);
     let (wall_x, wall_z) = wall_xz(g, c, 0.0);
-    if g.level_scp.is_some() || g.place_by_layout("interior_door", "wall", g.wx(c.x), g.wz(c.z)).is_none() {
+    // where the layout records it: half a metre in from its tile's edge
+    // toward its wall, in the open tile still (its purpose is the tile's) and
+    // within reach of the face it settles on (a protruding wall's too: what
+    // keeps a haunch and a caged lamp off it measures from here, review D)
+    let (at_x, at_z) = wall_xz(g, c, 0.5);
+    if g.level_scp.is_some() || g.place_by_layout("interior_door", "wall", at_x, at_z).is_none() {
         return;
     }
     let door = game::core_props::doors::interior_door_in_frame(paint);

@@ -369,7 +369,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry {
         id: 31,
         title: "Survey: The Habitable Zone",
-        body: "Concrete, seven metres up, lamps hanging on rods. Pillars in rows. Puddles with no source. When the lights go, walk — do not run — to the narrow halls. They rarely go in there.",
+        body: "Concrete, seven metres up, painted dark along the bottom. Pillars in rows, flaring at the top. Puddles with no source. When the lights go, walk — do not run — to the narrow halls. They rarely go in there.",
         scp: None,
     },
     LoreEntry {

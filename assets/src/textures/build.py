@@ -664,6 +664,50 @@ def shotcrete():
     return T.grade(T.to_srgb(lin), (127, 123, 114), sat=0.45, warm=0.6)
 
 
+def twotone():
+    """The Habitable Zone's walls and columns (docs/plan/FACILITY.md F6): poured
+    concrete painted two-tone as a plant's corridors and halls were (the
+    research: a Titan II corridor), a dark band 0.8 m high and pale above, so
+    her pencil's marks (0.9-1.1 m, `story::marks`) stay on the pale; the line
+    between them brushed by hand along a narrow darker stripe; scuffed at the
+    foot. The paint is a photograph (Poly
+    Haven painted_plaster_wall, CC0, 2 m), quilted into 4 m wide and 8 m tall
+    (no hall's wall is taller, so the band is once, at the floor: the image's
+    bottom row is the floor), its own mottling kept, graded twice."""
+    img = T.load(polyhaven("painted_plaster_wall", "diff"))
+    small = T.delight(T.resize(img, 512, 512), 60, 0.7)  # 2 m: 512 px
+    rng = np.random.default_rng(1958)
+    W, H, PX = 1024, 2048, 256.0  # 4 m x 8 m, px a metre
+    tex = T.quilt([small], H, W, 128, 32, rng, tries=200, tol=0.5)
+    lin = T.to_lin(tex)
+    L = T.lum(lin)
+    mottle = (L / L.mean())[..., None]
+    up = (H - 1 - np.mgrid[0:H, 0:W][0]) / PX  # metres up from the floor
+    # the line, wavering a millimetre or two as a brush does along it
+    wave = np.tile(T.smooth_noise(64, W, rng)[0], (H, 1)) * 0.003
+    edge = 0.80 + wave
+    # (a grey with a little warmth: under the rooms' warm light a cream
+    # read as yellow, its halls more colourful than their band)
+    pale = T.to_lin(np.array([166, 164, 157], np.float32) / 255.0)
+    dark = T.to_lin(np.array([76, 73, 66], np.float32) / 255.0)
+    stripe = T.to_lin(np.array([50, 48, 44], np.float32) / 255.0)
+    def soft(a, b):  # 0 below a, 1 above, over a pixel
+        return np.clip((up - a) * PX + 0.5, 0.0, 1.0)[..., None]
+    col = dark * (1 - soft(edge, 0)) + pale * soft(edge, 0)
+    s = soft(edge, 0) * (1 - soft(edge + 0.025, 0))
+    col = col * (1 - s) + stripe * s
+    col = col * (0.6 + 0.4 * mottle)
+    # the slow stains of years, over metres (tiled up the 8 m)
+    stains = np.tile(T.smooth_noise(24, W, rng), (2, 1))[..., None]
+    col = col * (1 + 0.06 * stains)
+    # scuffs and kicks at the foot (chips along the line read as a dashed
+    # line, at a dado's 4 mm: none)
+    n1 = np.tile(T.smooth_noise(96, W, rng), (2, 1))
+    foot = (up < 0.3) * np.clip((n1 - 0.6) * 3.0, 0, 1) * (1 - up / 0.3)
+    col = col * (1 - 0.25 * foot[..., None])
+    return T.to_srgb(col)
+
+
 def glass():
     """The dirt on the windows' glass (`Patch::Glass`): how much of it there
     is, grey (the game reads it as a share). A film of dust
@@ -685,7 +729,7 @@ def glass():
 
 TEXTURES = {"view": view, "glass": glass, "panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit,
             "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor,
-            "shotcrete": shotcrete, "shotcrete_grain": shotcrete_grain}
+            "shotcrete": shotcrete, "shotcrete_grain": shotcrete_grain, "twotone": twotone}
 
 
 def pictures():

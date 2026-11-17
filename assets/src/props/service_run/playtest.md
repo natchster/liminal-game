@@ -35,6 +35,6 @@ what it feeds".
 - None to its story: the rule stands.
 - The doubt was already the rule: a run ends before the mouth, its pipes
   turning up into the crown on their elbows and its cables with them
-  (`World::lay_runs`), and before anything standing in the corridor's
+  (`Game::lay_runs`), and before anything standing in the corridor's
   middle (a lintel, a barricade: the blind review saw pipes run into a
   barricade's boards, and a run now ends short of one).

@@ -103,6 +103,13 @@
     "about": "Poly Haven (https://polyhaven.com), textures all CC0 1.0 (https://polyhaven.com/license). Each map is fetched from https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/<asset>/<file> and checked by its SHA-1.",
     "licence": "CC0-1.0",
     "assets": {
+      "painted_plaster_wall": {
+        "what": "a painted plaster wall, its paint gone patchy, 2 m a repeat, for the Habitable Zone's two-tone paint",
+        "authors": "Amal Kumar",
+        "files": {
+          "painted_plaster_wall_diff_2k.jpg": "43086089986e492b7b0b2cf81b5f1e1f919c4e86"
+        }
+      },
       "plastered_wall_04": {
         "what": "a plastered interior wall, 3.2 m a repeat",
         "authors": "Rob Tuytel",

@@ -646,7 +646,7 @@ impl Game {
                     drawn = if rnd() < 0.45 { rand2(0.05, 0.3) } else { 1.0 };
                 } else if rnd() < dt * (0.012 + 0.20 * p.rot) {
                     p.flicker = rand2(0.25, 1.1);
-                    if p.kind == Lamp::HighBay && p.restrike <= 0.0 {
+                    if p.kind == Lamp::HighBay && p.restrike <= 0.0 && p.flicker > crate::world::lamps::RESTRIKE_DRAW {
                         p.restrike = crate::world::lamps::restrike_secs(p.seed);
                     }
                 }

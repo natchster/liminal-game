@@ -418,6 +418,7 @@ impl Game {
                     let face = match crate::world::lining::ceil_mat_of(zn) {
                         "slab" => "concrete",
                         "shotcrete" => "shotcrete",
+                        "formwork" => "formwork",
                         _ => "paint",
                     };
                     let key = format!("{face}:{g}");

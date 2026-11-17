@@ -511,6 +511,8 @@ impl Game {
         // the Utility Halls' lining and the runs on their crown (`world::lining`)
         self.lay_lining();
         self.lay_runs(&props);
+        // the Habitable Zone's capitals and standing water (`world::halls`)
+        self.lay_halls();
         drop(props);
         self.freeze_static();
         // repeated static parts become one instanced mesh per 10×10-tile chunk; #noinstance keeps them apart

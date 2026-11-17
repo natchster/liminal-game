@@ -1556,6 +1556,32 @@
     },
     {
       "checks": [
+        "shots:7_L6_storage_hall",
+        "shots:4242_L13_storage_hall",
+        "style:storage hall",
+        "test:game/world_build",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials",
+        "test:backrooms/reference_levels"
+      ],
+      "id": "facility/habitable_zone",
+      "kind": "system",
+      "last_checked": "2026-11-17",
+      "last_human_review": null,
+      "name": "the Habitable Zone as a column hall (docs/plan/FACILITY.md F6): walls and columns painted two-tone, a bare slab cast against steel forms, columns flared into drop panels, no windows",
+      "notes": "world::halls and world::lining::wall_mat_of / ceil_mat_of; the paint a CC0 photograph (Poly Haven painted_plaster_wall, assets/src/textures/build.py twotone), its band 0.8 m high so her pencil's marks stay on the pale; the slab the Works' formwork photograph. Judged blind twice against the bare formwork halls (tests/review/verdicts.jsonl: 7 of 7, then 6 of 7, the one a close view of a sheet of standing water, since dropped). The visual playtest docs/research/playtests/visual/2026-11-17-habitable-zone.md. No person has looked yet.",
+      "passes": {
+        "shots:7_L6_storage_hall": true,
+        "shots:4242_L13_storage_hall": true,
+        "style:storage hall": true,
+        "test:game/world_build": true,
+        "test:backrooms/level_sweep": true,
+        "test:backrooms/materials": true,
+        "test:backrooms/reference_levels": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/cutscenes",
         "test:game/player"
       ],

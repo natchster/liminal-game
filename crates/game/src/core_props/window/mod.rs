@@ -23,9 +23,14 @@ use crate::level::archgen::{DIRS, Solids, ray_axis};
 use crate::prelude::*;
 
 /// Where a real building would have windows: offices and office wings,
-/// halls, living quarters, parlours, party rooms; never a zone left bare
+/// living quarters, parlours, party rooms; never a zone left bare, and never
+/// the Habitable Zone's halls (`NO_WINDOWS`)
 pub const WINDOW_HOME: Home =
-    Home { arch: &["office", "hall"], themes: &["office", "domestic", "victorian", "party"], elsewhere: 0.0, skip_bare: true };
+    Home { arch: &["office"], themes: &["office", "domestic", "victorian", "party"], elsewhere: 0.0, skip_bare: true };
+
+/// The archetypes no window is cut in, whatever their purpose
+/// (`docs/plan/FACILITY.md` F6, the developer's answer)
+pub const NO_WINDOWS: &[&str] = &["hall"];
 
 /// The salts of a window's own streams: its row's plan, and its wear and blinds
 const PLAN_SALT: u64 = 0x57_1D_0E_9A_17;
@@ -192,7 +197,8 @@ pub fn place_windows(g: &mut Game, cx: &mut PropsCtx) {
     for _ in 0..3 {
         let Some(c) = super::seam::s_take(g, cx, true) else { break };
         let Some(spot) = super::seam::s_wall_adj_spot(g, c.x, c.z) else { continue };
-        let home = zones.as_ref().zip(g.layout.as_ref()).is_some_and(|(z, l)| z[l.zone_of[g.t_idx(c.x, c.z)] as usize]);
+        let home = zones.as_ref().zip(g.layout.as_ref()).is_some_and(|(z, l)| z[l.zone_of[g.t_idx(c.x, c.z)] as usize])
+            && g.zone_ref(c.x, c.z).is_some_and(|zn| !NO_WINDOWS.contains(&zn.arch));
         if !here || !home {
             continue;
         }

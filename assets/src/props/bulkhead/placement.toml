@@ -1,9 +1,9 @@
 # Where the jar lamp is, and why (docs/design/ASSETS.md, *Things the layout
 # makes*): the floor's layout puts one where a service tunnel has a lamp
-# (`World::lay_panels`, `world::lamps`); one no rule allows, or one within
+# (`Game::lay_panels`, `world::lamps`); one no rule allows, or one within
 # reach of a door, is a tube.
 by = "layout"
-count = [0, 80]
+count = [0, 300]
 levels = [6, 999]
 
 [[rule]]

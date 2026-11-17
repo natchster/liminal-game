@@ -180,8 +180,6 @@ F10, a code review.
 
 | # | Milestone |
 |---|---|
-| review D | Code review of F2–F5 |
-| F6 | The Habitable Zone as a column hall |
 | F7 | Height in the rooms: walls and ground in one floor, drops railed (a bottom seen, or dark: the developer's answer), catwalks over them |
 | F8 | The vault (a new archetype) |
 | F9 | The pit hall (a new archetype) |
@@ -249,4 +247,6 @@ F10, a code review.
 | F1 | `510096a` | The facility's research (`docs/research/facility.md`) and plan (`FACILITY.md`), read against the canon by a fresh `lore-keeper` and its nine rules adopted; Portal 2 recorded as a tone reference only |
 | F2 | `ed29ff8` | The gates see the deep floors: the range over levels 9 and 13 too (96 levels; its baseline accepted with the reason), the goldens every purpose of 7's level 6 and 4242's level 13 (`DEEP`, 15 views) |
 | F3 | `217e7e2` | The lamps of the era: a kind a panel (`world::lamps`), enclosed mercury high-bays in the tall bare halls, jar lamps on the tunnels' crown, their dossiers and parts; each fails its way on the tubes' draws; blind review, playtest question and visual playtest |
-| F5 | | The Utility Halls as a plant's service tunnels: sprayed concrete walls and crown (a CC0 photograph), haunches at a crease with a row of bolts, and runs on the straight corridors' crown (`service_run`: a tray of cables, a pair of pipes on hangers, or both, turning up into the crown at their ends); torn note 32 and the rows; blind 7 of 7 twice; the visual playtest's flicker, flat paint and coplanar faces fixed (`world::lining`) |
+| F5 | `a2d5e30` | The Utility Halls as a plant's service tunnels: sprayed concrete walls and crown (a CC0 photograph), haunches at a crease with a row of bolts, and runs on the straight corridors' crown (`service_run`: a tray of cables, a pair of pipes on hangers, or both, turning up into the crown at their ends); torn note 32 and the rows; blind 7 of 7 twice; the visual playtest's flicker, flat paint and coplanar faces fixed (`world::lining`) |
+| review D | | The code review of F2–F5 (`87ff1e1..a2d5e30`, a fresh reviewer with the project's brief, reading the commits). The draws held (`update_lights`'s per kind, the lining's none) and nothing is left over from the floor before. Found and fixed: a lit high-bay showed none of the stutters forced on it (the director's cue over the Watcher, the switch's warning, the way's answer), now it dips as a tube does; every stutter restruck a high-bay, out a third to most of the time on a rotted floor, now only the longest one in sixteen (`lamps::RESTRIKE_DRAW`); a deep floor's goldens listed once a zone, up to eight times in the set's median (`xtask/src/shots.rs`); the door to nowhere recorded at its tile's middle, so a haunch ran over it, now half a metre in from its wall; the high-bay's, the jar lamp's and the run's caps raised clear of any floor (a cap would turn a hall's far end to tubes); the bench recorded; the docs made true (`DEVELOPMENT.md`'s shots, `ARCHITECTURE.md`'s world, the methods named `Game::`, the bolts under low crowns). |
+| F6 | | The Habitable Zone as a column hall: walls and columns painted two-tone (a CC0 photograph), the slab bare, columns flared into drop panels, no windows; torn note 31 and the rows; standing water tried and not kept; blind 7 of 7, then 6 of 7 (`world::halls`) |

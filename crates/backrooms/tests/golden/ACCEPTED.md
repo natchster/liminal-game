@@ -221,3 +221,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-17, on top of bb08df3: frames: 24 shots. Reason: F5 (docs/plan/FACILITY.md): the Utility Halls remade, sprayed concrete with haunches and bolts, runs on the crown; seen in their own views, from other floors' openings, and in the glass showcase's tunnel room
 
 - 2026-11-17, on top of bb08df3: frames: 16 shots. Reason: F5: the haunch's photograph mapped round its arc (it was stretched by the normal's projection), its inside corners mitred
+
+- 2026-11-17, on top of a2d5e30: frames: 9 shots. Reason: F6 (docs/plan/FACILITY.md): the Habitable Zone as a column hall, its walls and columns painted two-tone, flared capitals and drop panels, a bare formwork slab; seen in its own views and from neighbouring floors
+
+- 2026-11-17, on top of a2d5e30: look anchors: 7_L5_overgrown_atrium, 7_L6_spawn, 7_L6_storage_hall. Reason: F6: the halls' walls painted (pale grey above a dark band) are lighter than the bare formwork they replace: luminance +0.02-0.03, shadow -0.07; within the STYLE bands (range --look)

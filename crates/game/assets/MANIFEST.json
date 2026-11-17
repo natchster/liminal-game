@@ -75,7 +75,7 @@
     "placement.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask asset write (TOML sources, every field written out)",
-      "fingerprint": "4c56015c8b84e50f",
+      "fingerprint": "7cb52b7b84d0776f",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",
@@ -492,6 +492,20 @@
       "authors": "Antares 610 (Wikimedia Commons, CC0); processed by coding agents under the developer's direction",
       "built_with": "the granite floor of Arsenalna station, Kyiv (1960): its grain unforeshortened and quilted, laid as 1 m x 0.5 m slabs",
       "fingerprint": "bb0129060da83e34",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/twotone.jpg": {
+      "authors": "Amal Kumar (Poly Haven, painted_plaster_wall, CC0); processed by coding agents under the developer's direction",
+      "built_with": "painted plaster's colour (a photograph) taken off its slow light, quilted (Efros-Freeman) into a sheet 4 m wide and 8 m tall, its own mottling kept and graded twice: a dark band 0.8 m high under a brushed stripe and a pale grey above, scuffed at the foot; the Habitable Zone's walls and columns",
+      "fingerprint": "09fd676c85c18358",
       "generative_model": null,
       "generator": "photographs, processed by scripts",
       "licence": "CC0-1.0",

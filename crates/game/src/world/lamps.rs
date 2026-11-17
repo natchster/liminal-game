@@ -69,6 +69,12 @@ pub const BULKHEAD_DROP: f64 = 0.15;
 /// cage over a door is a cell's (`LORE.md`, *The Building*)
 pub const CAGE_CLEAR_OF_DOORS: f64 = 1.6;
 
+/// Only a stutter drawn longer than this restrikes a high-bay (s): the
+/// longest of the tubes' draws (`rand2(0.25, 1.1)`), about one in sixteen.
+/// Every stutter restriking kept a hall's high-bays out a third to most of
+/// the time on a rotted floor (review D); the rest dip it as a tube's do
+pub const RESTRIKE_DRAW: f64 = 1.05;
+
 /// A high-bay's restrike, from its own seed (s): its arc out, then warming
 pub fn restrike_secs(seed: f64) -> f64 {
     RESTRIKE_WARM + 14.0 + seed % 18.0
@@ -90,7 +96,9 @@ pub fn brightness(kind: Lamp, flicker: bool, drawn: f64, restrike: f64, prev: f6
         }
         Lamp::HighBay => {
             if restrike <= 0.0 {
-                1.0
+                // lit, it dips on a stutter as a tube does: the director's
+                // and the switch's cues are stutters forced on it (review D)
+                if flicker { drawn } else { 1.0 }
             } else if restrike > RESTRIKE_WARM {
                 0.0
             } else {
@@ -120,6 +128,23 @@ mod tests {
         let warming = brightness(Lamp::HighBay, false, 1.0, RESTRIKE_WARM / 2.0, 0.0, 0.016);
         assert!(warming > 0.08 && warming < 1.0, "dim while it warms: {warming}");
         assert_eq!(brightness(Lamp::HighBay, false, 1.0, 0.0, 0.2, 0.016), 1.0);
+    }
+
+    #[test]
+    fn a_forced_flicker_dims_every_kind() {
+        // the cues forced on the lamps (`Panel::flicker`) must show under
+        // every kind, a high-bay lit included
+        for k in [Lamp::Tube, Lamp::HighBay, Lamp::Bulkhead] {
+            let b = brightness(k, true, 0.05, 0.0, 1.0, 0.016);
+            assert!(b < 0.95, "{k:?} {b}");
+        }
+    }
+
+    #[test]
+    fn a_restrike_is_a_rare_stutter() {
+        // of the tubes' draws (0.25..1.1 s), the longest one in sixteen or so
+        let share = (1.1 - RESTRIKE_DRAW) / (1.1 - 0.25);
+        assert!(share > 0.03 && share < 0.1, "{share}");
     }
 
     #[test]

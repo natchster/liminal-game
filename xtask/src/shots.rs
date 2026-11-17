@@ -399,7 +399,10 @@ fn render_all() -> Result<Vec<Shot>, String> {
             let name = format!("{seed}_L{level}_{}", label.replace(' ', "_"));
             let src = raw.join(format!("rs_{seed}_L{level}_z{z:02}.png"));
             let dst = out.join(format!("{name}.png"));
-            if std::fs::rename(&src, &dst).is_ok() {
+            // (a deep floor's zones of one purpose are one golden, the last
+            // one's frame: listed once, so the set's median and the
+            // failures count it once; review D)
+            if std::fs::rename(&src, &dst).is_ok() && !shots.iter().any(|s| s.name == name) {
                 shots.push(Shot { name, path: dst });
             }
         }

@@ -150,10 +150,10 @@
     "shadow": 0.0313
   },
   "7_L5_overgrown_atrium": {
-    "colourfulness": 8.54,
-    "contrast": 0.061,
-    "luminance": 0.0905,
-    "shadow": 0.8641
+    "colourfulness": 8.7,
+    "contrast": 0.0621,
+    "luminance": 0.0949,
+    "shadow": 0.7991
   },
   "7_L5_play_area": {
     "colourfulness": 17.04,
@@ -204,16 +204,16 @@
     "shadow": 0.0369
   },
   "7_L6_spawn": {
-    "colourfulness": 10.67,
-    "contrast": 0.0617,
-    "luminance": 0.2104,
-    "shadow": 0.0144
+    "colourfulness": 12.59,
+    "contrast": 0.0795,
+    "luminance": 0.2336,
+    "shadow": 0.0571
   },
   "7_L6_storage_hall": {
-    "colourfulness": 10.1,
-    "contrast": 0.0591,
-    "luminance": 0.2068,
-    "shadow": 0.0134
+    "colourfulness": 11.36,
+    "contrast": 0.0765,
+    "luminance": 0.2362,
+    "shadow": 0.0535
   },
   "corner_2m": {
     "colourfulness": 20.37,

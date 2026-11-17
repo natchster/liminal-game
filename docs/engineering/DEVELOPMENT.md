@@ -294,12 +294,12 @@ Levels must be a pure function of `(run_seed, level)`:
   same answer after relinking with LTO, and re-recording a fixture works
   under either.
 * `cargo test --workspace --profile fasttest` runs every test directly.
-* **Golden frames.** `cargo xtask shots` renders 56 fixed frames headless
+* **Golden frames.** `cargo xtask shots` renders 70 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
   anomalies' figures in their own places: the staff, the shadows, the
   seated man of the Loop; the cutscenes at a time of their clocks: the way
-  in, the shaft's black, a death's fall; the spawn view of eight levels and one view per zone purpose or place, which together
-  cover every purpose, weather and anomaly) and compares them with
+  in, the shaft's black, a death's fall; the spawn view of nine levels and one view per zone purpose or place, which together
+  cover every purpose, weather and anomaly, and every purpose of two deep floors, `DEEP`, seed 7's level 6 and 4242's 13) and compares them with
   `crates/backrooms/tests/golden/`. With `--fresh` a frame is the same bit
   for bit on the same machine, so identical pixels pass; otherwise ꟻLIP
   reports the mean, 99th percentile and worst 32×32 tile and writes an error

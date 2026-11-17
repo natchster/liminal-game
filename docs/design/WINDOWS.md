@@ -75,7 +75,7 @@ real size:
 | Kind | Where | What |
 |---|---|---|
 | **Office strip** | office archetype, office wings | Fixed lights 1.2 × 1.3 m between 50 mm aluminium mullions 114 mm deep, two or three in a row, the sill 0.85 m up on a steel convector cabinet with its grille; an insulating unit in each light (one now and then gone milky); clear or bronze anodised gone dull; a drywall return and a laminate stool; a mini blind in each light |
-| **Double-hung** | halls, living quarters, parlours, party rooms | A wood sash window 0.91 × 1.37 m, the sill 0.8 m up: two sashes, the upper outboard, a meeting rail with a crescent lock, one-over-one or two-over-two; painted (off-white, cream, a dark green or brown) in many coats, flaking at the sill and bottom rail; casing, stool and apron; a mini blind, or none |
+| **Double-hung** | living quarters, parlours, party rooms | A wood sash window 0.91 × 1.37 m, the sill 0.8 m up: two sashes, the upper outboard, a meeting rail with a crescent lock, one-over-one or two-over-two; painted (off-white, cream, a dark green or brown) in many coats, flaking at the sill and bottom rail; casing, stool and apron; a mini blind, or none |
 
 Each is worn from a stream of its own (salted by where it stands): smears
 and dust on every pane (ambientCG's photographed smears, CC0), now and then
@@ -122,9 +122,10 @@ wall and the wall is a wall.
 
 ### 3. Where windows are
 
-Where a real building would have them: offices and office wings, halls,
-living quarters, parlours and party rooms (a `Home`, as the vending
-machine's), on a straight wall (never one that leans), its face whole over
+Where a real building would have them: offices and office wings, living
+quarters, parlours and party rooms (a `Home`, as the vending machine's),
+never in the Habitable Zone's halls (`NO_WINDOWS`; `docs/plan/FACILITY.md`
+F6), on a straight wall (never one that leans), its face whole over
 the opening and half a metre past it either side (never a pillar's face,
 nor a block standing out of its wall), a clear floor before it, nothing
 already hung there; in rows of one to three lights or windows. The rows

@@ -33,7 +33,7 @@ only to give the dark a light (the game's reason)".
 
 - **Only under a tall bare slab.** Where moss has papered a hall with
   tiles and carpet, or its ceiling is too low to hang one from (5.2 m and
-  under), the hall keeps its tubes (`World::lay_panels`).
+  under), the hall keeps its tubes (`Game::lay_panels`).
 - **A hall seen from an office** keeps its high-bays: the hall is a hall,
   and the answer was "could be". The blind review preferred the tubes there
   twice (`docs/plan/FACILITY.md` F3); for a person.

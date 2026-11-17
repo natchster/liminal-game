@@ -9,7 +9,7 @@
 //! None where the moss has papered the place (the Lobby's look) and no
 //! runs where a place was left empty (`assets/src/props/service_run/`).
 //!
-//! Architecture, made once the floor has settled (`World::lay_lining`,
+//! Architecture, made once the floor has settled (`Game::lay_lining`,
 //! after the lamps): from the solids as they are, with no random draw (a
 //! run's kind and side come from its place, on a stream of its own). A
 //! haunch springs above any door's head (`HAUNCH_SPRING`), so a low
@@ -62,14 +62,25 @@ const SET_IN: f64 = 0.002;
 pub const LINED: &str = "tunnels";
 
 /// The surface a zone's walls are drawn in: sprayed concrete where it is
-/// lined, else its archetype's own
+/// lined, the Habitable Zone's halls painted two-tone (F6, `world::halls`),
+/// else its archetype's own
 pub fn wall_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
-    if zn.arch == LINED { "shotcrete" } else { zn.wall_mat }
+    match zn.arch {
+        LINED => "shotcrete",
+        crate::world::halls::HALL => "twotone",
+        _ => zn.wall_mat,
+    }
 }
 
-/// The surface a zone's ceiling is drawn in (see `wall_mat_of`)
+/// The surface a zone's ceiling is drawn in (see `wall_mat_of`): the
+/// Habitable Zone's flat slab bare, cast against steel forms (the blind
+/// review: its painted slab's blotches "read more like sky than slab")
 pub fn ceil_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
-    if zn.arch == LINED { "shotcrete" } else { zn.ceil_mat }
+    match zn.arch {
+        LINED => "shotcrete",
+        crate::world::halls::HALL => "formwork",
+        _ => zn.ceil_mat,
+    }
 }
 
 /// The radius of a haunch under a crown `ceil` high, or none
@@ -122,22 +133,33 @@ pub struct Haunch {
     pub meet_b: bool,
 }
 
-/// A mesh being laid: positions, normals, UVs, triangles
+/// A mesh being laid: positions, normals, UVs, triangles (the facility's
+/// curved and flared architecture, mapped by its own UVs: `Patch::ArchUV`
+/// maps only instanced faces, by their normal)
 #[derive(Default)]
-struct Face {
+pub(crate) struct Face {
     pos: Vec<f32>,
     nrm: Vec<f32>,
     uv: Vec<f32>,
-    idx: Vec<u32>,
+    pub(crate) idx: Vec<u32>,
 }
 
 impl Face {
-    fn vert(&mut self, p: Vec3, n: Vec3, uv: (f64, f64)) -> u32 {
+    pub(crate) fn vert(&mut self, p: Vec3, n: Vec3, uv: (f64, f64)) -> u32 {
         let i = (self.pos.len() / 3) as u32;
         self.pos.extend([p.x as f32, p.y as f32, p.z as f32]);
         self.nrm.extend([n.x as f32, n.y as f32, n.z as f32]);
         self.uv.extend([uv.0 as f32, uv.1 as f32]);
         i
+    }
+
+    /// The mesh of it in `mat`, bounded
+    pub(crate) fn mesh(self, mat: &Mat) -> Obj {
+        let geo = Geo::new();
+        geo.set_position(self.pos).set_normal(self.nrm).set_uv(self.uv).set_index(self.idx);
+        geo.compute_bounding_box();
+        geo.g().compute_bounding_sphere();
+        mesh(&geo, mat)
     }
 }
 
@@ -149,7 +171,7 @@ impl Face {
 /// the corner as it stands out from its own wall), an open one closed. Its
 /// photograph is mapped in metres (`scale`): along it as its wall's is, and
 /// up its wall and on round its arc.
-#[allow(
+#[expect(
     clippy::too_many_arguments,
     reason = "a haunch is its frame, extent, shape and mapping; a struct for one call would only rename them"
 )]
@@ -492,11 +514,7 @@ impl Game {
         }
         for (key, _, f) in faces {
             let mat = self.arch_mat(&key);
-            let geo = Geo::new();
-            geo.set_position(f.pos).set_normal(f.nrm).set_uv(f.uv).set_index(f.idx);
-            geo.compute_bounding_box();
-            geo.g().compute_bounding_sphere();
-            let m = mesh(&geo, &mat);
+            let m = f.mesh(&mat);
             m.user().arch = true;
             self.world.add(&m);
         }

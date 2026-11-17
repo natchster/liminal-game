@@ -27,7 +27,7 @@ macro_rules! texture {
 }
 
 /// The photographed surfaces: (kind, file, metres a repeat `[u, v]`).
-pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 9] = [
+pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 10] = [
     // the Well's facade: twelve panels a tile wide and a storey high, each with its window
     ("panel", texture!("panel.jpg"), [16.0, 9.0]),
     // the Stair Halls: rock-faced granite in courses of 0.75 m
@@ -46,6 +46,9 @@ pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 9] = [
     ("ribbed", texture!("ribbed.jpg"), [4.0, 1.6]),
     // the Utility Halls' lining: concrete sprayed on (`docs/plan/FACILITY.md` F5)
     ("shotcrete", texture!("shotcrete.jpg"), [2.0, 2.0]),
+    // the Habitable Zone's walls and columns: concrete painted two-tone, its
+    // band once at the floor (8 m: no hall is taller; F6)
+    ("twotone", texture!("twotone.jpg"), [4.0, 8.0]),
 ];
 
 /// The Well's lit windows: four photographed windows lit from inside, side by
@@ -115,6 +118,7 @@ pub fn detail_for(part: &str, kind: &str) -> Option<&'static str> {
         ("wall", "concrete") | ("ceil", "slab") => Some("concrete"),
         ("floor", "concrete") => Some("concrete_floor"),
         ("wall" | "ceil", "shotcrete") => Some("shotcrete_grain"),
+        ("wall", "twotone") => Some("plaster"),
         ("floor", "office") => Some("carpet"),
         _ => None,
     }

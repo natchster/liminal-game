@@ -18,7 +18,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one; and what looks back out of a broken lift's black, which never comes out of it (*A broken lift*). Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*). On about half the floors of the rooms a lift stands broken, its doors jammed apart on black; it can be looked into (*A broken lift*) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a party room or someone's rooms would have had them (none in the Habitable Zone's halls, the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*). On about half the floors of the rooms a lift stands broken, its doors jammed apart on black; it can be looked into (*A broken lift*) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -330,7 +330,8 @@ wall thickness, doorways, materials and props.
 - **Utility Halls** (Level 2). Shoulder-wide corridors (1.6–2.8 m) in
   sprayed concrete, with walls that bulge into the passage and a low
   ceiling (2.35–2.65 m), each corner where a wall meets it rounded into a
-  haunch set with a row of bolts (stopping short of a door or a window);
+  haunch, most set with a row of bolts (none under the lowest crowns),
+  each stopping short of a door or a window;
   along the crown of a straight corridor (three tiles or more) a run: a
   cable tray, a pair of pipes on hangers, or both, ending where the
   corridor turns or meets a hall, a door's head or a thing hung from the
@@ -344,9 +345,14 @@ wall thickness, doorways, materials and props.
   wrong thing: the runs are only what a tunnel carries.
 - **Electrical Station** (Level 3). The same bones in old brick, tighter and
   more tangled, with wiring behind every wall.
-- **Habitable Zone** (Level 1). Poured-concrete halls 5.4–7.6 m tall, columns
-  on a wide grid, high-bay lamps hanging on rods (enclosed mercury lamps, a
-  cool white disc under each bowl), puddles and a long reverb.
+- **Habitable Zone** (Level 1). Poured-concrete halls 5.4–7.6 m tall,
+  painted two-tone, a dark band 0.8 m high along the foot of every wall
+  and column (below her pencil's height) and pale above it; columns on a
+  wide grid, each flared at its head into a drop panel under the slab;
+  high-bay lamps hanging on rods (enclosed mercury lamps, a cool white disc
+  under each bowl); puddles with no source, its one wrong thing; and a
+  long reverb. No windows. Where the moss has papered a hall it keeps the
+  Lobby's look, with no capitals.
 - **The Poolrooms** (Level 37, rare and deep). White tile everywhere, too many
   pillars. Acoustics that cut off too early.
 - **Blackout zones** (any level). The lights are dead and there is no hum and
@@ -1065,8 +1071,9 @@ found on the floors.
 ## The windows
 
 The rooms have no outside. Their windows look out on one anyway. Below the
-first floor of the rooms (the Lobby has none), where an office, a hall, a
-party room or someone's rooms would have had windows, a few are cut into
+first floor of the rooms (the Lobby has none), where an office, a party
+room or someone's rooms would have had windows (never in the Habitable
+Zone's halls), a few are cut into
 the walls, one
 to three side by side: in the offices, strip windows of aluminium over the
 heaters under them; elsewhere, wood sash windows painted over many times.
