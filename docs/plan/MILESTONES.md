@@ -172,6 +172,30 @@ R1–R4 and at the end, a code review.
 | S3 | The tools from saves |
 | review C | Code review of R5–S3 |
 
+The facility (`FACILITY.md`), queued on 2026-11-17: the deeper floors of
+the rooms given the shape of mid-century underground plant, from real
+places (`../research/facility.md`), under the canon's nine rules (its
+*The plan*); the Lobby and the office floors as they are. After F5 and
+F10, a code review.
+
+| # | Milestone |
+|---|---|
+| F2 | The gates see the deep floors: the range over deep levels, a deep plain floor among the goldens, their baselines |
+| F3 | The lamps of the era: a fixture kind a panel, the pooled spots in its lamp's colour, each failing its own way; the light rule and the bands measured again |
+| F4 | The surfaces of the facility from free photographs: painted and rusted steel, floor plate and grating, shotcrete with bolts and mesh, liner plate; the two-tone wall; the decay |
+| F5 | The Utility Halls in their canon's shape, the facility's surfaces, lamps and runs |
+| review D | Code review of F2–F5 |
+| F6 | The Habitable Zone as a column hall |
+| F7 | Height in the rooms: walls and ground in one floor, drops with a bottom you see, railed catwalks over them |
+| F8 | The vault (a new archetype) |
+| F9 | The pit hall (a new archetype) |
+| F10 | The blast door (the asset pipeline) |
+| review E | Code review of F6–F10 |
+| F11 | The dressing: pipes in their colours and their own printing, trays, ducts, the decay |
+| F12 | The deep schedule and its names |
+| F13 | The sound of the facility |
+| F14 | The review: blind, the visual playtest on three seeds, people's playtest, the bench, the ledger |
+
 ## Done
 
 | # | Commit | Notes |

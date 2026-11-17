@@ -1384,3 +1384,8 @@ cold was settled when the floor was made.
   building's owner. We draw our own textures and use none of it.
 - **Kane Pixels'** *The Backrooms* series is copyrighted and was used only as a
   tone reference. Nothing is taken from it.
+- **Valve's** *Portal 2* (its old underground facility) is copyrighted and is a
+  tone reference only for the deep floors' plant (`docs/plan/FACILITY.md`):
+  nothing is taken from it, not its names, signs, places, layouts or
+  inventions; the deep floors are made from real places
+  (`docs/research/facility.md`).
