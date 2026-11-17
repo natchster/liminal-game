@@ -2,7 +2,7 @@
 //! Summerville): does the generator still make the spread of levels it made,
 //! neither drifting nor collapsing into sameness?
 //!
-//! Builds a fixed set of levels (`SEEDS` × levels 1–6, as runs build them)
+//! Builds a fixed set of levels (`SEEDS` × `LEVELS`, as runs build them)
 //! headless with `backrooms --metrics`, measures each on properties other
 //! than the generator's inputs (`game::debug::hooks::level_metrics`: loops,
 //! dead ends, depth, integration, rooms, sightlines, light, props, themes,
@@ -38,7 +38,10 @@ use std::path::PathBuf;
 use std::process::Command;
 
 const SEEDS: &[u32] = &[4242, 7, 1999, 77, 9001, 31337, 2024, 555, 123456, 8080, 271828, 314159];
-const LEVELS: &str = "1,2,3,4,5,6";
+/// The Building's three floors, the rooms' first three, and two deep ones
+/// (the facility's remake, `docs/plan/FACILITY.md` F2: 9, the deep rotation's
+/// first, and 13, the halls rotted the most)
+const LEVELS: &str = "1,2,3,4,5,6,9,13";
 /// The measures compared (in the report's order).
 const MEASURES: &[&str] = &[
     "loops",

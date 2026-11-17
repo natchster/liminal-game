@@ -13,6 +13,60 @@
         300
       ]
     },
+    "4242_L13_empty": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_living_quarters": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_maintenance": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_office_wing": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_play_area": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_service_tunnels": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_shrine": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L13_storage_hall": {
+      "size": [
+        480,
+        300
+      ]
+    },
     "4242_L1_spawn": {
       "size": [
         480,
@@ -121,7 +175,43 @@
         300
       ]
     },
+    "7_L6_empty": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L6_living_quarters": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L6_maintenance": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L6_office_wing": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L6_service_tunnels": {
+      "size": [
+        480,
+        300
+      ]
+    },
     "7_L6_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L6_storage_hall": {
       "size": [
         480,
         300

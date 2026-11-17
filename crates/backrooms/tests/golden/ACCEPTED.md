@@ -211,3 +211,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-17, on top of cb0d9c5: frames: shaft_eyes. Reason: Doors 6, the lift panels dark in diffuse (STYLE.md: metals are dark in diffuse and carry their colour in the highlight; a blind review found them 'very light ... a flat texture'), their stainless worn: the shaft's look between them is the same shot (the black, the wire, the eyeshine), its panels' edges darker, so its contrast lower (0.080 to 0.041); frame and error map read
 
 - 2026-11-17, on top of cb0d9c5: look anchors: shaft_eyes. Reason: Doors 6, the lift panels dark in diffuse (STYLE.md: metals are dark in diffuse and carry their colour in the highlight; a blind review found them 'very light ... a flat texture'), their stainless worn: the shaft's look between them is the same shot (the black, the wire, the eyeshine), its panels' edges darker, so its contrast lower (0.080 to 0.041); frame and error map read
+
+- 2026-11-17, on top of 510096a: frames: 45 shots. Reason: Facility 2: the deep floors' views kept as the remake's baselines (docs/plan/FACILITY.md F2): every purpose of 7's level 6 (the Utility Halls' floor) and of 4242's level 13 (a deep floor of the halls), the game as it stands; frames looked at
+
+- 2026-11-17, on top of 510096a: look anchors: 45 shots. Reason: Facility 2: the deep floors' views kept as the remake's baselines (docs/plan/FACILITY.md F2): every purpose of 7's level 6 (the Utility Halls' floor) and of 4242's level 13 (a deep floor of the halls), the game as it stands; frames looked at

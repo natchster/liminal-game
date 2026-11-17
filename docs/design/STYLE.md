@@ -139,6 +139,8 @@ They are measured, not guessed: `cargo xtask range --look` rendered 631 zone
 views (four runs, levels 1–6) and each band is the 2nd to 98th percentile of
 its purpose's views, widened by 2 (colourfulness) and 0.02 (luminance). A
 purpose with fewer than 12 views of its own takes the band of all views.
+The range measures two deep levels too (9 and 13), and every purpose kept
+its band over them (93-100% of its views inside; the showroom's 73%).
 `cargo xtask shots` holds the golden zone views to them, and
 `cargo xtask range --look` fails a purpose when fewer than 70% of its views
 lie inside. One thing the measurement showed: **how dark a view is depends on

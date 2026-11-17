@@ -11,6 +11,60 @@
     "luminance": 0.2584,
     "shadow": 0.0542
   },
+  "4242_L13_empty": {
+    "colourfulness": 5.39,
+    "contrast": 0.0452,
+    "luminance": 0.0699,
+    "shadow": 0.9631
+  },
+  "4242_L13_living_quarters": {
+    "colourfulness": 6.09,
+    "contrast": 0.0477,
+    "luminance": 0.0825,
+    "shadow": 0.9435
+  },
+  "4242_L13_maintenance": {
+    "colourfulness": 6.28,
+    "contrast": 0.0482,
+    "luminance": 0.0595,
+    "shadow": 0.9681
+  },
+  "4242_L13_office_wing": {
+    "colourfulness": 17.95,
+    "contrast": 0.0871,
+    "luminance": 0.2459,
+    "shadow": 0.0627
+  },
+  "4242_L13_play_area": {
+    "colourfulness": 9.57,
+    "contrast": 0.0531,
+    "luminance": 0.1032,
+    "shadow": 0.6584
+  },
+  "4242_L13_service_tunnels": {
+    "colourfulness": 4.37,
+    "contrast": 0.0473,
+    "luminance": 0.0857,
+    "shadow": 0.8668
+  },
+  "4242_L13_shrine": {
+    "colourfulness": 6.05,
+    "contrast": 0.0474,
+    "luminance": 0.0821,
+    "shadow": 0.9353
+  },
+  "4242_L13_spawn": {
+    "colourfulness": 19.73,
+    "contrast": 0.0788,
+    "luminance": 0.2539,
+    "shadow": 0.0603
+  },
+  "4242_L13_storage_hall": {
+    "colourfulness": 3.58,
+    "contrast": 0.0443,
+    "luminance": 0.0405,
+    "shadow": 0.9952
+  },
   "4242_L1_spawn": {
     "colourfulness": 7.31,
     "contrast": 0.0558,
@@ -119,11 +173,47 @@
     "luminance": 0.3915,
     "shadow": 0.0111
   },
+  "7_L6_empty": {
+    "colourfulness": 9.37,
+    "contrast": 0.0546,
+    "luminance": 0.2006,
+    "shadow": 0.038
+  },
+  "7_L6_living_quarters": {
+    "colourfulness": 17.15,
+    "contrast": 0.1013,
+    "luminance": 0.2377,
+    "shadow": 0.0864
+  },
+  "7_L6_maintenance": {
+    "colourfulness": 18.27,
+    "contrast": 0.0824,
+    "luminance": 0.2474,
+    "shadow": 0.0668
+  },
+  "7_L6_office_wing": {
+    "colourfulness": 17.86,
+    "contrast": 0.1409,
+    "luminance": 0.274,
+    "shadow": 0.0697
+  },
+  "7_L6_service_tunnels": {
+    "colourfulness": 9.5,
+    "contrast": 0.0572,
+    "luminance": 0.2003,
+    "shadow": 0.0369
+  },
   "7_L6_spawn": {
     "colourfulness": 10.67,
     "contrast": 0.0617,
     "luminance": 0.2104,
     "shadow": 0.0144
+  },
+  "7_L6_storage_hall": {
+    "colourfulness": 10.1,
+    "contrast": 0.0591,
+    "luminance": 0.2068,
+    "shadow": 0.0134
   },
   "corner_2m": {
     "colourfulness": 20.37,

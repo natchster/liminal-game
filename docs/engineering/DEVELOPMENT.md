@@ -315,8 +315,9 @@ Levels must be a pure function of `(run_seed, level)`:
   version in `shots.json`; elsewhere differences are advisory. (They are
   480×300 and live in the repository; an unchanged frame adds nothing to the
   history.)
-* **Expressive range.** `cargo xtask range` builds 72 levels (12 seeds ×
-  levels 1–6) with `backrooms --metrics` and measures each on properties
+* **Expressive range.** `cargo xtask range` builds 96 levels (12 seeds ×
+  levels 1–6, 9 and 13: the Building, the rooms' first floors and two deep
+  ones) with `backrooms --metrics` and measures each on properties
   other than the generator's inputs (`level_metrics`: loops, dead ends, depth
   from spawn, integration, room size, sightlines, light and prop density,
   themes per zone, dark share, grime). It compares the set with

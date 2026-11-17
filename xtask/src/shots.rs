@@ -45,8 +45,14 @@ pub const HEIGHT: u32 = 300;
 
 /// Level views: these levels, in this order; each adds the purposes not seen yet.
 /// (The Building's three floors first; then the rooms, from the Lobby on
-/// level 4; 4242's Showroom is on level 10, 7's Borrowed House on level 5.)
-const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 7), (7, 5), (4242, 4), (7, 6), (4242, 10)];
+/// level 4; 4242's Showroom is on level 10, 7's Borrowed House on level 5;
+/// 4242's level 13, a deep floor of the halls.)
+const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 7), (7, 5), (4242, 4), (7, 6), (4242, 10), (4242, 13)];
+/// The deep floors whose every purpose keeps its view, seen before or not:
+/// the facility's remake (`docs/plan/FACILITY.md` F2) is measured on them,
+/// the Utility Halls' floor (7's level 6) and a deep one of the halls
+/// (4242's level 13, rotted the most).
+const DEEP: &[(u32, i32)] = &[(7, 6), (4242, 13)];
 const CREATURES: &[&str] = &["smiler", "hound", "watcher", "corner", "reader"];
 /// The anomalies' figures (`docs/design/ENTITIES.md` E9), each in its own place:
 /// the Showroom's staff (4242's level 10; at 8 m a wall stands in the way),
@@ -386,7 +392,7 @@ fn render_all() -> Result<Vec<Shot>, String> {
         let dump = read_json(&base.with_extension("json"));
         for p in dump["purposes"].as_array().into_iter().flatten() {
             let label = p["label"].as_str().unwrap_or("?").to_string();
-            if !seen.insert(label.clone()) {
+            if !seen.insert(label.clone()) && !DEEP.contains(&(seed, level)) {
                 continue;
             }
             let z = p["zone"].as_u64().unwrap_or(0);
