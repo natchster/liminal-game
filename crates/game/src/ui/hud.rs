@@ -375,7 +375,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry {
         id: 32,
         title: "Survey: Utility Halls",
-        body: "Shoulder-wide corridors in raw concrete, the walls bulging in at you. Low ceiling. The hum is worse down here and the echo answers a beat late. Keep moving. Don't touch the pipes.",
+        body: "Shoulder-wide corridors in rough sprayed concrete, the walls bulging in at you, bolted where they curve into a low ceiling. The hum is worse down here and the echo answers a beat late. Keep moving. Don't touch the pipes.",
         scp: None,
     },
     LoreEntry {

@@ -505,10 +505,13 @@ impl Game {
         // the small things' contact shadows, from where they now lie (laid
         // after the instancing, which takes the repeated ones out)
         let contact = self.contact_blobs(&props);
-        drop(props);
         self.build_walls();
         self.build_ceilings();
         self.lay_panels();
+        // the Utility Halls' lining and the runs on their crown (`world::lining`)
+        self.lay_lining();
+        self.lay_runs(&props);
+        drop(props);
         self.freeze_static();
         // repeated static parts become one instanced mesh per 10×10-tile chunk; #noinstance keeps them apart
         if !self.has_flag("noinstance") {

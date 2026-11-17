@@ -65,7 +65,7 @@ fn wall_key(zn: &crate::level::archgen::Zone, info: &RegionInfo) -> String {
     if zn.wall_mat == "wallpaper" || info.flags & RF_MOSS != 0 {
         return format!("wp:{}", info.wall);
     }
-    format!("{}:{}", zn.wall_mat, grime_of(info))
+    format!("{}:{}", crate::world::lining::wall_mat_of(zn), grime_of(info))
 }
 
 /// One item of an `add_instanced` list: its instance matrix.
@@ -130,7 +130,11 @@ impl Game {
                 None => detail_of(plane_material(self.surfaces.floor(b, num(c))), "floor", b),
             }
         } else if a == "ceil" {
-            let m = detail_of(plane_material(self.surfaces.ceil(b, num(c))), "ceil", b);
+            let m = match crate::visuals::photo::photo_scale(b) {
+                // a photographed ceiling in world space, at its own scale
+                Some(s) => detail_of(world_uv_material(self.surfaces.ceil(b, num(c)), s, false), "ceil", b),
+                None => detail_of(plane_material(self.surfaces.ceil(b, num(c))), "ceil", b),
+            };
             m.m().side = DoubleSide;
             m
         } else {
@@ -184,7 +188,7 @@ impl Game {
     }
     /// The wall surface seen from open tile (x, z): its zone's material in
     /// its region's variant (None when the tile is not open floor)
-    fn wall_face_key(&self, x: i32, z: i32) -> Option<String> {
+    pub(crate) fn wall_face_key(&self, x: i32, z: i32) -> Option<String> {
         if !self.in_grid(x, z) || self.tiles[self.t_idx(x, z)] != 0 {
             return None;
         }
@@ -263,7 +267,7 @@ impl Game {
         if zn.ceil_mat == "tiles" || info.flags & RF_MOSS != 0 {
             return format!("tiles:{}", self.ceil_region[t]);
         }
-        format!("ceil:{}:{}", zn.ceil_mat, grime_of(info))
+        format!("ceil:{}:{}", crate::world::lining::ceil_mat_of(zn), grime_of(info))
     }
 
     /// One instanced mesh per 10×10-tile chunk (insertion order), flagged
@@ -411,7 +415,12 @@ impl Game {
                     let (low, high) = if ha < hb { (a, b) } else { (b, a) };
                     let zn = self.zone_of_tile(low);
                     let g = grime_of(&self.region_info[self.region_map[low] as usize]);
-                    let key = format!("{}:{}", if zn.ceil_mat == "slab" { "concrete" } else { "paint" }, g);
+                    let face = match crate::world::lining::ceil_mat_of(zn) {
+                        "slab" => "concrete",
+                        "shotcrete" => "shotcrete",
+                        _ => "paint",
+                    };
+                    let key = format!("{face}:{g}");
                     // normal points into the higher tile (the side it is seen from)
                     let sgn = if high == b { 1.0 } else { -1.0 };
                     let e = Bulk {

@@ -139,7 +139,9 @@ fn handled(lift: f64, height: f64, size: f64) -> (f64, f64) {
 
 /// Settle one material; returns false when it is left alone. What it does
 /// depends on the material alone (not on the prop: a material is shared).
-fn settle_material(m: &Mat) -> bool {
+/// The Utility Halls' runs and bolts take it too (`world::lining`): a pipe
+/// or a tray one flat paint for metres reads as plastic.
+pub(crate) fn settle_material(m: &Mat) -> bool {
     let mut mm = m.m();
     if mm.look_settled {
         return false;

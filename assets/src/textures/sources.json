@@ -88,6 +88,14 @@
         "files": {
           "SurfaceImperfections015_2K-JPG_Opacity.jpg": "d702bcb779c9e16912ccca4082eda9001eddb1ec"
         }
+      },
+      "Concrete037": {
+        "what": "rough concrete, its sand and fine aggregate standing out of the cement, about 1 m a repeat (photogrammetry), for the Utility Halls' sprayed lining",
+        "zip_sha1": "9fa01566645187a448767e4c7ba5c70a13a6e417",
+        "files": {
+          "Concrete037_2K-JPG_Color.jpg": "6aaf19c7c1250e39153b26ee480abd936b26304f",
+          "Concrete037_2K-JPG_Displacement.jpg": "df2768f23199e3263f55e1e2107e367596732953"
+        }
       }
     }
   },

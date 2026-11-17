@@ -23,6 +23,7 @@ pub mod far_figures;
 pub mod instancing;
 pub mod knock;
 pub mod lamps;
+pub mod lining;
 pub mod placement;
 pub mod placement_rules;
 pub mod purpose;

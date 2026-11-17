@@ -41,7 +41,10 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
   light (the relief keeps its own shading), each graded to the mean colour
   of the canvas surface it replaced, so a floor keeps its light. Their
   sources and how each was made: `assets/src/textures/`, `SOURCES.md`
-  section 10.
+  section 10. The facility's surfaces below the rooms' entrance are
+  photographs too (`docs/plan/FACILITY.md`), graded to the rooms' concrete
+  and laid with a photographed grain: the Utility Halls' sprayed concrete
+  (ambientCG Concrete037, CC0).
 - **Light** comes from places: panels, tubes, lamps. Never ambient tied to
   the camera, never a lamp cone that follows the player except the
   flashlight itself.
@@ -97,7 +100,7 @@ wide as CoreText draws it).
 | Pillar Field | lobby wallpaper | 3.2–3.7 m | a lattice of columns | none: monotony is the point |
 | Abandoned Office | drywall, carpet tiles | 2.5–2.75 m | small rooms, one door each, chest-high cubicles | debris, a toppled chair |
 | The Maze | 4 m walls | varies | braided corridors | collected things: toys, portraits, candles |
-| Utility Halls | poured concrete | 2.35–2.65 m, a jar lamp on the crown | shoulder-wide corridors, walls that bulge in | industrial debris |
+| Utility Halls | sprayed concrete, walls and crown; a haunch rounding each corner into the crown, a row of bolts along it | 2.35–2.65 m, a jar lamp on the crown | shoulder-wide corridors, walls that bulge in; along the crown a cable tray and a pair of pipes on trapeze hangers, turning up through it where a straight run ends | industrial debris; a corridor left empty keeps a bare crown |
 | Electrical Station | old brick | low | tight, tangled, wiring behind every wall | sparks, dead panels |
 | Habitable Zone | poured concrete, puddles | 5.4–7.6 m, high-bays on rods | wide column grid | long reverb, wet floors |
 | Poolrooms | white tile everywhere | varies | too many pillars | water that is too still |

@@ -559,7 +559,7 @@ impl Surfaces {
             "concrete" => Some(self.get("concrete", g, concrete)),
             "brick" => Some(self.get("brick", g, brick)),
             "tile" => Some(self.get("tile", g, |r, x| tile(r, x, false))),
-            "panel" | "ashlar" | "poured" | "formwork" => self.photo(kind, g),
+            "panel" | "ashlar" | "poured" | "formwork" | "shotcrete" => self.photo(kind, g),
             _ => None,
         }
     }
@@ -582,7 +582,7 @@ impl Surfaces {
         match kind {
             "slab" => Some(self.get("ceilSlab", g, ceil_slab)),
             "plaster" => Some(self.get("ceilPlaster", g, ceil_plaster)),
-            "ribbed" => self.photo(kind, g),
+            "ribbed" | "shotcrete" => self.photo(kind, g),
             _ => None,
         }
     }

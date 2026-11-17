@@ -27,7 +27,7 @@ macro_rules! texture {
 }
 
 /// The photographed surfaces: (kind, file, metres a repeat `[u, v]`).
-pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 8] = [
+pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 9] = [
     // the Well's facade: twelve panels a tile wide and a storey high, each with its window
     ("panel", texture!("panel.jpg"), [16.0, 9.0]),
     // the Stair Halls: rock-faced granite in courses of 0.75 m
@@ -44,6 +44,8 @@ pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 8] = [
     ("factory", texture!("factory.jpg"), [8.0, 8.0]),
     // the Works' ceiling: ribbed precast slabs
     ("ribbed", texture!("ribbed.jpg"), [4.0, 1.6]),
+    // the Utility Halls' lining: concrete sprayed on (`docs/plan/FACILITY.md` F5)
+    ("shotcrete", texture!("shotcrete.jpg"), [2.0, 2.0]),
 ];
 
 /// The Well's lit windows: four photographed windows lit from inside, side by
@@ -86,7 +88,7 @@ pub fn photo_scale(kind: &str) -> Option<[f64; 2]> {
 /// The details laid over the rooms' painted surfaces (rooms R5): grey height
 /// maps, mean ½, each a repeat of `metres` (`engine::ArchDetail`): (name,
 /// file, metres a repeat, how much it shades the colour, how much relief)
-static DETAILS: [(&str, &[u8], f64, f64, f64); 6] = [
+static DETAILS: [(&str, &[u8], f64, f64, f64); 7] = [
     // woodchip wallpaper: wood chips pressed into the paper (a coarse
     // paper: at a fine one's 3 mm the chips were lost past an arm's length)
     ("paper", texture!("paper.jpg"), 1.2, 0.3, 0.6),
@@ -100,6 +102,8 @@ static DETAILS: [(&str, &[u8], f64, f64, f64); 6] = [
     ("concrete", texture!("concrete.jpg"), 1.23, 0.28, 0.55),
     // a worn concrete floor's skin, pits and scuffs
     ("concrete_floor", texture!("concrete_floor.jpg"), 3.0, 0.28, 0.5),
+    // sprayed concrete's sand and aggregate standing out of the cement
+    ("shotcrete_grain", texture!("shotcrete_grain.jpg"), 1.0, 0.3, 0.6),
 ];
 
 /// The detail over a painted surface of the rooms, by its kind (`surfaces`):
@@ -110,6 +114,7 @@ pub fn detail_for(part: &str, kind: &str) -> Option<&'static str> {
         ("wall", "drywall" | "paint") | ("ceil", "plaster") => Some("plaster"),
         ("wall", "concrete") | ("ceil", "slab") => Some("concrete"),
         ("floor", "concrete") => Some("concrete_floor"),
+        ("wall" | "ceil", "shotcrete") => Some("shotcrete_grain"),
         ("floor", "office") => Some("carpet"),
         _ => None,
     }

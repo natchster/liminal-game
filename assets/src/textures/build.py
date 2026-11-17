@@ -208,6 +208,13 @@ def concrete():
     return detail("rough_concrete", relief=0.55, sigma=0.04, even=0.06, quilt=128, maps=(polyhaven("rough_concrete", "disp"), polyhaven("rough_concrete", "diff")))
 
 
+def shotcrete_grain():
+    """Sprayed concrete's grain: its sand and aggregate standing out of the
+    cement, and its pits (about 1 m a repeat, as photographed), the detail of
+    the Utility Halls' lining (ambientCG Concrete037)."""
+    return detail("Concrete037", relief=0.7, sigma=0.04, even=0.06, quilt=128)
+
+
 def concrete_floor():
     """A worn concrete floor: its trowelled skin, pits and scuffs (3 m a
     repeat), for the concrete floors."""
@@ -639,6 +646,24 @@ def view():
     return T.to_srgb(np.clip(lin, 0, 1))
 
 
+def shotcrete():
+    """The Utility Halls' lining (docs/plan/FACILITY.md F5): concrete sprayed
+    on, its sand and fine aggregate standing out of the cement (ambientCG
+    Concrete037, photogrammetry, about 1 m a repeat), quilted into 2 m x 2 m,
+    with the slow swell of a sprayed coat (lumps of a third of a metre) and
+    its damp over metres; the tone of the rooms' concrete at grime 1
+    (`surfaces::CONC`), so a photographed lining and a painted wall meet."""
+    img = T.load(ambientcg("Concrete037", "Color"))
+    small = T.delight(T.resize(img, 512, 512), 60, 0.7)  # 1 m: 512 px
+    rng = np.random.default_rng(1951)
+    S = 1024
+    tex = T.quilt([small], S, S, 128, 32, rng, tries=200, tol=0.5)
+    lin = T.to_lin(tex)
+    lin *= (1 + 0.06 * T.smooth_noise(32, S, rng))[..., None]
+    lin *= (1 + 0.05 * T.smooth_noise(16, S, rng))[..., None]
+    return T.grade(T.to_srgb(lin), (127, 123, 114), sat=0.45, warm=0.6)
+
+
 def glass():
     """The dirt on the windows' glass (`Patch::Glass`): how much of it there
     is, grey (the game reads it as a share). A film of dust
@@ -659,7 +684,8 @@ def glass():
 
 
 TEXTURES = {"view": view, "glass": glass, "panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit,
-            "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor}
+            "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor,
+            "shotcrete": shotcrete, "shotcrete_grain": shotcrete_grain}
 
 
 def pictures():

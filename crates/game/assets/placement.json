@@ -321,6 +321,32 @@
         }
       ]
     },
+    "service_run": {
+      "by": "layout",
+      "count": [
+        0,
+        60
+      ],
+      "levels": [
+        6,
+        999
+      ],
+      "never": {
+        "purposes": [
+          "empty"
+        ],
+        "why": "the emptiness is the content (PILLARS 1): a tunnel left empty keeps its bare crown"
+      },
+      "rule": [
+        {
+          "at": "run",
+          "purposes": [
+            "*"
+          ],
+          "why": "a plant's service tunnel carries its cables and pipes along its crown, as the cableways did"
+        }
+      ]
+    },
     "steel_door": {
       "by": "layout",
       "count": [

@@ -645,3 +645,24 @@ writing; section 4).
   slant, drift), not as an illegible scrawl; letters grow as it goes on.
 - Used for: the distressed hand (G2).
 
+
+## 22. The facility below the rooms' entrance
+
+Gathered on 2026-11-17 for the facility ([`../plan/FACILITY.md`](../plan/FACILITY.md));
+the note is kept whole in [`facility.md`](facility.md), every claim linked.
+
+**Real underground plant** (bunkers, missile complexes, powerhouses, mines
+and accelerator tunnels of the mid-century; the note's sections on scale,
+light and materials).
+- Says: shoulder-wide service corridors and cableways about 3 m across;
+  the era's lamps (halophosphate fluorescent, phosphor-coated mercury
+  high-bays, caged incandescent jars); poured concrete and shotcrete, rock
+  bolts in a pattern, corrugated liner plate; cable trays and pipes along
+  a tunnel's crown.
+- Used for: the lamps of the deep floors (F3) and the Utility Halls'
+  sprayed lining, its haunches and bolts, and the runs on its crown (F5).
+
+**Surfaces** (CC0 photographs, through `assets/src/textures/build.py`).
+- ambientCG [Concrete037](https://ambientcg.com/view?id=Concrete037) (CC0
+  1.0, photogrammetry of rough concrete): the Utility Halls' sprayed
+  concrete and its grain (`shotcrete`, `shotcrete_grain`; F5).

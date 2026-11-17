@@ -327,11 +327,21 @@ wall thickness, doorways, materials and props.
 - **The Maze** (deep rot). The old thick-walled maze: 4 m walls and braided
   corridors. This is where the Backrooms keeps what it has collected: toys,
   party leftovers, portraits, candles, things from people's lives.
-- **Utility Halls** (Level 2). Shoulder-wide corridors (1.6–2.8 m) in poured
-  concrete, with walls that bulge into the passage and a low ceiling
-  (2.35–2.65 m), a caged glass jar lamp on its crown here and there, its
-  light a filament's warm white (never over a door: a lamp in a cage over a
-  door is a cell's). Industrial debris. The echo answers a beat late.
+- **Utility Halls** (Level 2). Shoulder-wide corridors (1.6–2.8 m) in
+  sprayed concrete, with walls that bulge into the passage and a low
+  ceiling (2.35–2.65 m), each corner where a wall meets it rounded into a
+  haunch set with a row of bolts (stopping short of a door or a window);
+  along the crown of a straight corridor (three tiles or more) a run: a
+  cable tray, a pair of pipes on hangers, or both, ending where the
+  corridor turns or meets a hall, a door's head or a thing hung from the
+  crown, the pipes turning up into the crown on their elbows and the
+  cables with them; a caged glass jar lamp on its crown here and there,
+  its light a filament's warm white (never over a door: a lamp in a cage
+  over a door is a cell's). Where the moss has papered a corridor it keeps
+  the Lobby's look, with no lining and no run; a corridor left empty has
+  no run.
+  Industrial debris. The echo answers a beat late. The bulge stays its one
+  wrong thing: the runs are only what a tunnel carries.
 - **Electrical Station** (Level 3). The same bones in old brick, tighter and
   more tangled, with wiring behind every wall.
 - **Habitable Zone** (Level 1). Poured-concrete halls 5.4–7.6 m tall, columns

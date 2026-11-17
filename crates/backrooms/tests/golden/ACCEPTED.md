@@ -217,3 +217,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-17, on top of 510096a: look anchors: 45 shots. Reason: Facility 2: the deep floors' views kept as the remake's baselines (docs/plan/FACILITY.md F2): every purpose of 7's level 6 (the Utility Halls' floor) and of 4242's level 13 (a deep floor of the halls), the game as it stands; frames looked at
 
 - 2026-11-17, on top of ed29ff8: frames: 13 shots. Reason: Facility 3, the lamps of the era (docs/plan/FACILITY.md F3): the Habitable Zone's tall bare halls hang enclosed mercury high-bays (a cool white bowl under each reflector) where the tubes hung on rods, the Utility Halls' corridors a vapour-tight jar lamp on the crown (a filament's warm white) where a tube panel was; frames and error maps looked at (the figure behind the glass a little cooler in a high-bay's pool); two blind rounds, the new lamps preferred at 3 of 5 and 2 of 4 cameras, the old tubes where a hall is seen from an office
+
+- 2026-11-17, on top of bb08df3: frames: 24 shots. Reason: F5 (docs/plan/FACILITY.md): the Utility Halls remade, sprayed concrete with haunches and bolts, runs on the crown; seen in their own views, from other floors' openings, and in the glass showcase's tunnel room
+
+- 2026-11-17, on top of bb08df3: frames: 16 shots. Reason: F5: the haunch's photograph mapped round its arc (it was stretched by the normal's projection), its inside corners mitred

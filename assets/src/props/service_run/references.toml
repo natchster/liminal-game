@@ -1,0 +1,436 @@
+# The references of service_run (docs/design/ASSETS.md), gathered on
+# 2026-11-17 by a research agent. `class`: "free" (CC0, public domain, CC BY /
+# CC BY-SA with its attribution: may be sampled into a texture; given with the
+# SHA-1 of the file at its url) or "limited" (all rights reserved, fair use:
+# looked at and measured, never sampled, never committed; its sha1 is left
+# empty); a free one never sampled (a document, a page) says `sampled = false`
+# and needs no SHA-1. `cargo xtask asset refs service_run` fetches them into
+# target/asset-refs/service_run/. The palette is photo-sampled (mean of a patch
+# of the photo scaled to 960 px wide, unless a note says otherwise), each sample
+# in its own photo's light. The SHA-1s were checked by downloading each original
+# and running `shasum` (each also matches the sha1 Commons reports for it).
+# Inches are given as the documents give them, with millimetres (1 in = 25.4 mm).
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/1/13/Services_duct_%288663196366%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Services_duct_(8663196366).jpg"
+shows = "the thing in its place: a services duct (utility tunnel) in Milan, looking along it; a board-marked concrete slab ceiling with four or five lagged pipes along it, each hung on a trapeze of two threaded rods and a cast-iron pipe roll (double nuts under it), painted black and rusting; perforated galvanised cable trays in tiers on wall brackets down both walls, grey PVC cables in them; bulkhead lamps on the right wall under the trays; a green enclosure on the right (a busbar, by the file's Commons category)"
+class = "free"
+licence = "CC BY-SA 2.0, Marco d'Itri (Flickr 8663196366)"
+sha1 = "9a04185bb15846d24e1b507bd1f5b22e1d9aca49"
+notes = "The best photograph of the run as it is laid: pipes on the crown, cables on the walls, and no lamp on the crown at all (the lamps sit on the wall under the lowest tray, so the crown runs are lit from the side and below). The trapezes here are pipe rolls (a spool between the two rods on which the pipe can slide as it expands), one per pipe, the rods running up into the slab; rust shows red where the paint is worn on the rolls and at the rod ends. The pipes are lagged (insulation jackets, not bare steel), so their diameters are not the steel's. Hanger spacing not measurable (foreshortened). Phone photograph, 2013-03-28, warm lamp light from the right. Viewed at 960 px and in full (1944 x 2592). Palette source for the roll, the rust, the slab and the galvanised tray."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/1/1e/INTERIOR_OF_CABLE_TRAY_TUNNEL%2C_FROM_LANDLINE_INSTRUMENTATION_ROOM_%28106%29%2C_LSB_%28BLDG._770%29%2C_TOWARDS_CABLE_TRAY_SHED_-_Vandenberg_Air_Force_Base%2C_Space_Launch_Complex_3%2C_Launch_HAER_CAL%2C42-LOMP%2C1C-106.tif"
+page = "https://commons.wikimedia.org/wiki/File:INTERIOR_OF_CABLE_TRAY_TUNNEL,_FROM_LANDLINE_INSTRUMENTATION_ROOM_(106),_LSB_(BLDG._770),_TOWARDS_CABLE_TRAY_SHED_-_Vandenberg_Air_Force_Base,_Space_Launch_Complex_3,_Launch_HAER_CAL,42-LOMP,1C-106.tif"
+shows = "a place with it in, of the era: the cable tray tunnel of Space Launch Complex 3 West, Vandenberg Air Force Base (California), a corrugated steel arch tunnel; cable trays in four or five tiers along both walls, full of cables; a row of vapour-tight lamps on short stems down the middle of the crown; a timber plank walkway"
+class = "free"
+licence = "public domain (PD-USGov-NPS: Historic American Engineering Record, HAER CA-133-1-C-106, Library of Congress); photographer not stated"
+sha1 = "311f55ae8e3731e4b34f7926ec07a87a8359215c"
+notes = "How a Cold War cableway is laid: the trays on the walls, the lamps alone on the crown between them, one about every few metres (by eye; the vanishing row is 7 or more lamps). A large-format (4 x 5 in) black and white negative: luminance only. The date of the photograph is not on the file page (the HAER survey of SLC-3 is from 1993, unverified for this frame); the tunnel itself dates from the complex's building, c. 1960 (general knowledge, unverified). In full resolution the trays have perforated (diamond-pattern) sheet sides with a splice joint every few metres: ventilated trough trays rather than ladders, the same rails and cables in kind. Too dark (low key) for palette samples. Viewed at 960 px and in full (5000 x 4011, TIFF); trays cropped at 100-2400 x 200-2400."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/2/27/CABLE_RACK%2C_MEZZANINE_LEVEL%2C_INTERIOR_OF_TEST_STAND_1A._Looking_north_from_north_end_of_the_cable_tunnel_leading_toward_Control_Center._-_Edwards_Air_Force_Base%2C_Air_Force_HAER_CAL%2C15-BORON.V%2C4O-7.tif"
+page = "https://commons.wikimedia.org/wiki/File:CABLE_RACK,_MEZZANINE_LEVEL,_INTERIOR_OF_TEST_STAND_1A._Looking_north_from_north_end_of_the_cable_tunnel_leading_toward_Control_Center._-_Edwards_Air_Force_Base,_Air_Force_HAER_CAL,15-BORON.V,4O-7.tif"
+shows = "a place with it in, of the era: the board-formed concrete cable tunnel of Test Stand 1-A (Air Force Rocket Propulsion Laboratory, Edwards AFB, California) running toward the control center; a group of steel pipes clamped in the upper left corner where the ceiling meets the wall, a steel channel cable rack along the left wall, cables in an open floor tray, a single ceiling lamp in the middle of the soffit, conduit along the right wall"
+class = "free"
+licence = "public domain (PD-USGov-NPS: Historic American Engineering Record, HAER CA-236-O-7, Library of Congress), David G. DeVries, 1997"
+sha1 = "3cda1106cead768f4594fbba753997ccfe2ef81c"
+notes = "The pipe side of the layout: the pipes kept tight into one ceiling corner, the lamp on the centre line of the soffit clear of them, the cables low on the other side. Black and white (4 x 5 in negative): luminance only. In full resolution the group is four pipes (or conduits) clamped flat against the corner surface with strap clamps, one bracket line every metre or so (by eye), no rods: the close-fixed alternative to a trapeze. The test stand dates from the late 1950s (general knowledge, unverified); photographed in 1997. Viewed at 960 px and in full (5560 x 4470, TIFF), pipes cropped at 0-2400 x 0-1500. Palette source (luminance) for the board-formed concrete and a lit pipe."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/1/11/Inside_ARK_bunker_near_Konjic.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Inside_ARK_bunker_near_Konjic.jpg"
+shows = "a place with it in: a corridor of the ARK (Atomska ratna komanda) bunker near Konjic, Bosnia and Herzegovina, a narrow vaulted concrete passage; a rectangular sheet-steel air duct on yellow-painted angle brackets on the right of the crown, a white-painted wire cable ladder with cables on the right wall just under the springing, fluorescent battens hung on chains down the centre-left of the vault with their cables looped along the chains"
+class = "free"
+licence = "CC0, Boris Maric"
+sha1 = "a5838293ad09490fdc2f3e99306f39a935b324df"
+notes = "A narrow Cold War corridor and how its runs share the crown with the lamps: services to one side, lamps on the other, never one under the other. The paper posters on the left wall are a later art exhibition, not of the place. The bunker was built 1953-1979 (general knowledge, unverified). Photographed 2017-07-15 by phone, lit by its own fluorescents. Viewed at 960 px and in full (3024 x 4032)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/42/Schauspielhaus_Oper_K%C3%B6ln_Versorgungstunnel_2010_7124.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Schauspielhaus_Oper_K%C3%B6ln_Versorgungstunnel_2010_7124.jpg"
+shows = "a place with it in, decayed: the maintenance (supply) tunnel of the Cologne opera house and theatre (Buehnen Koeln); a bundle of lagged pipes filling the left side and the crown, grey-green painted flanged valves and fittings, small steel pipes on clips along the right wall, a bulkhead lamp on the right wall, a dusty earth floor"
+class = "free"
+licence = "CC BY-SA 3.0, Elke Wetzig (User:elya)"
+sha1 = "0f1a319a369a94f8dfbb8c7582d5a7ec40f7412f"
+notes = "Mood, dust and wear in a narrow mid-century service tunnel (the opera house is of 1957, general knowledge, unverified for the tunnel): pipes crowded to one side and overhead, the lamp low on the opposite wall, foil-clad lagging, paint and rust on the fittings. Strongly tone-mapped (HDR look), colours exaggerated: not used for the palette. Photographed 2010-04-11. Viewed at 960 px and in full (2000 x 1335)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/b/b5/Tray_dirt.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Tray_dirt.jpg"
+shows = "the thing, dusty: galvanised steel ladder cable trays in the cable spreading room of the fossil power station at Point Tupper, Nova Scotia (Nova Scotia Power), in tiers on a steel frame, with a horizontal 90-degree bend; cables in yellow corrugated conduit and bare black cables; dust and debris on the rungs and cables"
+class = "free"
+licence = "public domain (PD-self), Achim Hering"
+sha1 = "c0855f726c9e22c7e5fb03d7e049f9e52a8e9573"
+notes = "The tray as it ages: galvanised C-channel side rails, spangled and dulled, joined by bolted splice plates, channel rungs across; grey dust lying thick on the black cables of the bend and on the rungs. A colour slide of April 1987 (flash, a blue cast on the steel); the plant is of the late 1960s-1970s (general knowledge, unverified). The author has drawn yellow labels and arrows on it ('Cable trays', 'debris', 'Dust'): patches avoid them. Viewed at 960 px and in full (3297 x 2149). Palette source for the galvanised rail and the dust on the cables."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e5/Cable_ladder01.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Cable_ladder01.jpg"
+shows = "the thing: stacked ladder cable trays seen from below in an industrial building, carrying bundles of heavy black cables, on cantilever arms off a concrete-block wall; channel-section rungs; behind them a row of lagged pipes on strut brackets under the roof"
+class = "free"
+licence = "CC BY-SA 3.0, Leotard"
+sha1 = "1ffedfce2f18c5f15c5e09eb429da28fd4a4e6be"
+notes = "The ladder tray's look in use: two side rails with rungs across at a regular pitch (rungs look about one tray-width apart or less; not measured), heavy cables sagging between the rungs and drooping over the ends of the tiers. Rails and rungs are pale grey: galvanised or aluminium, unverified. The place is not stated. Photographed 2011-09-17, flash. Viewed at 960 px and in full (3888 x 2592). Palette source for the black cable sheath and the pale tray steel."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/41/Cable_Tray_Seismic_Bracing.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Cable_Tray_Seismic_Bracing.jpg"
+shows = "the hanger, from below: a cable tray trapeze seen looking up at the concrete soffit; a slotted 1-5/8 in strut channel across under an aluminium ladder tray, hung on a threaded rod at each end (the rod through the strut with a washer and nut), a diagonal strut brace up to the soffit; black cables lying on the rungs"
+class = "free"
+licence = "CC BY-SA 4.0, Wtshymanski"
+sha1 = "7f695f9b3a392b60b24ca439c21efb94efe23b89"
+notes = "How a trapeze takes a tray: the strut runs square across under both side rails and a little past them, the rods come down just outside the rails, the tray rests on the strut. The diagonal brace is a later seismic addition, not part of the mid-century hanger. The cables' print reads 6AWG 1000V and FT4 (Canadian tray cable). The rungs of this aluminium tray are closer together than a steel ladder's 9 or 12 in (judged against the 41 mm strut, not measured). Photographed 2015-03-16 with flash. Viewed at 960 px and in full (3424 x 2505). Palette source for the galvanised strut, the threaded rod and the cable sheath."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/f/f3/StrutHanger.JPG"
+page = "https://commons.wikimedia.org/wiki/File:StrutHanger.JPG"
+shows = "the hanger: a wire and conduit hanger under the timber roof of an office building, two lengths of slotted galvanised strut channel hung on threaded rod, carrying conduits and cables"
+class = "free"
+licence = "CC BY-SA 3.0 (also GFDL), Georgewilliamherbert"
+sha1 = "bf25754e47a05841a21c49394566a9c899b93835"
+notes = "The strut-and-rod hanger close up, seen from below in steep foreshortening: two short slotted channels, a threaded rod through the end of each with a nut and washer, bright conduits crossing them; the rounded in-turned lips of the channel and its row of slots are clear. Wikipedia's Strut channel article captions it as a hanger 'manufactured from two lengths of strut channel and two lengths of threaded rod'. Warm indoor light, colour cast not corrected (the zinc reads yellow). Photographed 2009-08-05. Viewed at 960 px and in full (1984 x 1488)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/9/91/Vic_couplings.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Vic_couplings.jpg"
+shows = "the coupling and the elbow: grooved (Victaulic) couplings on a sprinkler main under a concrete floor slab, two orange two-piece bolted housings joining a black steel pipe to an orange grooved elbow, beside a firestopped hole through the slab; a copper pipe and a sheet-metal duct below"
+class = "free"
+licence = "CC BY 3.0 (also GFDL), Achim Hering"
+sha1 = "9a78dd2d33522ee2ab4e6697e4679fb22c9ea4b4"
+notes = "The coupling and the elbow together: each coupling a two-piece housing (two curved halves) bolted at its pads by two bolts with nuts, wider than the pipe and narrow along it; the elbow's grooved end is visible. Couplings and elbow in the same orange enamel, the pipe black, the slab pale concrete. Pipe size not stated (the pencilled '16 in PIPE' on the slab is not this pipe, unverified). Photographed 1995-04-14 with flash; the author's coloured labels and arrows are drawn on it: patches avoid them. Viewed at 960 px and in full (4625 x 3157). Palette source for the orange enamel, the black pipe and the slab."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/b/b1/Fire_sprinkler_victaulic_couplings.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Fire_sprinkler_victaulic_couplings.jpg"
+shows = "the coupling in a run: black steel sprinkler pipe joined by orange grooved couplings and grooved tees, under a corrugated steel deck on red-primed steel joists"
+class = "free"
+licence = "CC BY 3.0, Achim Hering"
+sha1 = "2e89a034e30d64e47f202c39d7e68d3abec35036"
+notes = "How the couplings read along a run: a short orange band, wider than the pipe, at each joint, the bolt pads standing off to the sides. Not a tunnel (a building's roof space); kept for the coupling against black pipe and the primer red of the joists. Hazy, low-contrast compact-camera photograph, colours desaturated: its palette samples are dull. Photographed 2010-01-15. Viewed at 960 px and in full (2560 x 1920)."
+
+[[ref]]
+url = "https://galileo.phys.virginia.edu/research/groups/hep/aag/nova/cable_trays/cooper_bline_catalog.pdf"
+page = "https://galileo.phys.virginia.edu/research/groups/hep/aag/nova/cable_trays/cooper_bline_catalog.pdf"
+shows = "a maker's sheet: Cooper B-Line, Cable Tray Systems catalogue CT-10 (2010): the Series 1 steel ladder tray (side rail, loading depth, widths, rung spacing, lengths, finishes), the rung profiles and loads, the NEMA load classes, support span and splice rules (NEMA VE 1 / VE 2), and the trapeze support kits"
+class = "limited"
+licence = "Cooper B-Line, Inc., all rights reserved (copy hosted by the University of Virginia physics department)"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text and from rendered pages (printed pp. 27-29, 39-41, 204-205, 243 and 265; the PDF's page is the printed one plus 2). Series 1 steel ladder tray: 148 (3 in NEMA loading depth) side rail 3.625 in tall with a 0.875 in flange, 18 gauge, actual loading depth 3.077 in; 156 (4 in) rail 4.188 in, 16 gauge, loading depth 3.628 in. Widths 6, 9, 12, 18, 24, 30, 36 in (overall width = width + 1/8 in); rung spacing 6, 9 or 12 in; lengths 12 ft (primary) and 10 ft. Finishes: pre-galvanised (ASTM A653 G90) or hot-dip galvanised after fabrication (ASTM A123). 'Larger, less flexible cables are typically installed in ladder type cable trays having 9 or 12 in rung spacing'; NEMA load ratings are based on 12 in rungs. The side rail is a C-channel, its flanges turned in toward the tray (from the drawing on p. 204; the AP-5/AP-6 rail charts not read). The Series 1 steel rung (p. 29) is a channel 1.5 in across, 1 in across its top, 1/2 in deep (read from a small drawing; its exact shape unverified). Support span no longer than the straight section, so 'not more than one splice between supports' (NEMA VE 1 / VE 2, pp. 27-28 and 39). Trapeze support kit (p. 243 aluminium, p. 265 steel series): for a 12 in tray, one B22 strut (B-Line's 1-5/8 in, 12 gauge channel: general knowledge, unverified) cut to 22 in (559 mm), two hold-down guide clamps on the rails, 'designed for use with 1/2 in threaded rod' (3/8 in hardware optional), four nuts and square washers. The catalogue says B-Line Systems was formed in 1956; the tray itself is a current design, its 1950s-70s forebears similar in kind (unverified)."
+
+[[ref]]
+url = "https://hallaweb.jlab.org/tech/Detectors/public_html/manuals/data_sheets-manuals/U-V/unistrut/ELECBRC.pdf"
+page = "https://hallaweb.jlab.org/tech/Detectors/public_html/manuals/data_sheets-manuals/U-V/unistrut/ELECBRC.pdf"
+shows = "a maker's sheet: Unistrut Metal Framing, Electrical Construction Application, Installation, Specification Guide (Unistrut Corporation, 1997): the 1-5/8 in channel family with gauges and depths, trapeze hangers for conduit and cable tray, finishes and their standards"
+class = "limited"
+licence = "Unistrut Corporation, all rights reserved (copy hosted by Jefferson Lab Hall A)"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text and from a rendered image of p. 6 (channel selections). P1000: 12 gage (2.7 mm), 1-5/8 x 1-5/8 in (41.3 x 41.3 mm), a C with rounded in-turned lips; P1100: the same in 14 gage (1.9 mm); P5500 deep: 1-5/8 x 2-7/16 in (41.3 x 61.9 mm); P1001 back to back: 1-5/8 x 3-1/4 in. p. 3: 'Trapeze hangers made from Unistrut channel suspended from Unistrut beam clamps' (conduit); threaded rod drops for a ceiling grid. p. 7 and the specification: pregalvanised channel (zinc before roll forming, G90, ASTM A653), hot-dipped galvanised after forming (ASTM A123/A153), electro-galvanised nuts, bolts and pipe clamps; Perma-Green II paint is Federal Standard 595a colour 14109 (a dark green)."
+
+[[ref]]
+url = "https://en.wikipedia.org/wiki/Nominal_Pipe_Size"
+page = "https://en.wikipedia.org/wiki/Nominal_Pipe_Size"
+shows = "a measurement: the Nominal Pipe Size article, its table of outside diameters and schedule wall thicknesses for steel pipe (based on ASME B36.10M and B36.19M, as it says)"
+class = "free"
+licence = "CC BY-SA 4.0, Wikipedia contributors"
+sampled = false
+sha1 = ""
+notes = "A page, never sampled. Read as text. NPS 2: OD 2.375 in (60.33 mm), schedule 40 / STD wall 0.154 in (3.91 mm); NPS 4: OD 4.500 in (114.30 mm), schedule 40 / STD wall 0.237 in (6.02 mm). 'For a given NPS, the OD stays fixed and the wall thickness increases with schedule.' The article says nothing of the 20 ft random length; that figure is from the hanger tables (Victaulic 26.01 counts hangers per 20 ft length)."
+
+[[ref]]
+url = "https://assets.victaulic.com/assets/uploads/literature/06.04.pdf"
+page = "https://assets.victaulic.com/assets/uploads/literature/06.04.pdf"
+shows = "a maker's sheet: Victaulic Style 77 standard flexible coupling, submittal 06.04 (Rev Y, 09/2026): materials, coatings, and a dimension drawing and table (housing diameter X, width over the bolts Y, axial width Z, bolts, weight) for every size"
+class = "limited"
+licence = "Victaulic Company, all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text and from a rendered image of p. 3 (the drawing shows X as the housing's outside diameter, Y across the bolt pads, Z the housing's width along the pipe). 2 in (60.3 mm OD): X 3.63 in (92 mm), Y 5.88 in (150 mm), Z 1.88 in (48 mm), two 1/2 x 2-1/2 in bolts, 2.6 lb (1.2 kg). 4 in (114.3 mm OD): X 6.13 in (156 mm), Y 8.88 in (226 mm), Z 2.13 in (54 mm), two 5/8 x 3-1/4 in bolts, 6.7 lb (3.0 kg). Pipe end gap allowed 0-0.06 in (0-1.5 mm) at 2 in, 0-0.13 in (0-3.3 mm) at 4 in. Housing ductile iron (ASTM A536); standard coating orange enamel, hot-dip galvanised optional; oval-neck track bolts, zinc electroplated. A current sheet; the Style 77 itself is older (in use by the 1950s, general knowledge, unverified)."
+
+[[ref]]
+url = "https://assets.victaulic.com/assets/uploads/literature/26.01.pdf"
+page = "https://assets.victaulic.com/assets/uploads/literature/26.01.pdf"
+shows = "a measurement: Victaulic grooved piping system design data 26.01 (Rev D, 09/2024), p. 5 pipe support: the suggested maximum span between supports of standard weight steel pipe for rigid systems (after ASME B31.1, B31.9 and NFPA 13) and the hangers per pipe length for flexible (Style 77) systems"
+class = "limited"
+licence = "Victaulic Company, all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read from a rendered image of p. 5. Rigid systems, water service (B31.1 / B31.9 / NFPA 13): 2 in 10 / 13 / 15 ft (3.1 / 4.0 / 4.6 m); 4 in 14 / 17 / 15 ft (4.3 / 5.2 / 4.6 m); gas or air service: 2 in 13 / 15 / 15 ft, 4 in 17 / 21 / 15 ft. Flexible systems where full linear movement is required, average hangers per 20 ft (6.1 m) length, evenly spaced: 1-1/4 to 2 in, 3; 2-1/2 to 4 in, 2; 'No pipe length should be left unsupported between any two couplings.' Where full movement is not required: 1-1/4 to 2 in, 10 ft (3.0 m); 2-1/2 to 4 in, 12 ft (3.7 m). 'Do not attach supports directly to the couplings.'"
+
+[[ref]]
+url = "https://suppliers.usask.ca/documents/master-specifications/23-05-29-hangers-and-supports-for-hvac-piping-and-equipment.pdf"
+page = "https://suppliers.usask.ca/documents/master-specifications/23-05-29-hangers-and-supports-for-hvac-piping-and-equipment.pdf"
+shows = "a measurement: University of Saskatchewan master specification section 23 05 29, Hangers and Supports for HVAC Piping and Equipment (December 2024): hanger spacing for roll-grooved (flexible joint) steel pipe, hanger rods, and the rule at elbows"
+class = "limited"
+licence = "University of Saskatchewan, on the Canadian National Master Specification (its metadata: Copyright PWGSC 2017, all rights reserved)"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text (6 pages). 3.3: 'Flexible joint roll groove pipe: in accordance with table below for steel, but not less than one hanger at joints'; steel: NPS 2, 3.0 m; NPS 4, 3.7 m; and a hanger 'Within 300 mm of each elbow'. Hangers and rods to MSS SP58 / SP69; threaded rod hot-dip galvanised; rods vertical under operating conditions. A modern specification of the same practice; not an era document."
+
+[[ref]]
+url = "https://www.engineeringtoolbox.com/piping-support-d_362.html"
+page = "https://www.engineeringtoolbox.com/piping-support-d_362.html"
+shows = "a measurement: Engineering ToolBox, Horizontal Pipe Hanger Supports - Spacing and Rod Size: maximum hanger spacing for steel pipe (water and steam service) and copper tube, with recommended rod sizes, NPS 1/2 to 12"
+class = "limited"
+licence = "Engineering ToolBox (2003), all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read as page text, twice. Steel pipe: NPS 2, 10 ft (3.05 m) water, 13 ft (3.96 m) steam; NPS 4, 14 ft (4.27 m) water, 17 ft (5.18 m) steam (the same as the B31.1 column of ref 16). Rod sizes: NPS 2, 3/8 in (9.5 mm); NPS 4, 1/2 in in one rod column and 5/8 in (15.9 mm) in the other; the page text does not settle which column is steel pipe (5/8 in for 4 in steel matches MSS SP-69 by general knowledge, unverified). The page names no standard. Values not for concentrated loads (valves, flanges)."
+
+[[ref]]
+url = "https://en.wikipedia.org/wiki/Piping_and_plumbing_fitting"
+page = "https://en.wikipedia.org/wiki/Piping_and_plumbing_fitting"
+shows = "a measurement: the Piping and plumbing fitting article, on long-radius and short-radius elbows and on grooved (Victaulic, Grinnell) couplings"
+class = "free"
+licence = "CC BY-SA 4.0, Wikipedia contributors"
+sampled = false
+sha1 = ""
+notes = "A page, never sampled. Read as text. 'The radius of curvature of a long-radius (LR) elbow is 1.5 times the pipe diameter'; a short-radius elbow's equals the diameter. Grooved couplings: housings that engage grooves around the pipe ends; flexible couplings allow limited angular movement, rigid ones none. The 1.5 is of the nominal size (ref 20 gives the inches)."
+
+[[ref]]
+url = "https://texasflange.com/butt-weld-fittings/elbow-long-radius/"
+page = "https://texasflange.com/butt-weld-fittings/elbow-long-radius/"
+shows = "a measurement: Texas Flange, 90-degree long radius elbow dimensions (ASME B16.9): outside diameter and centre-to-end by nominal size and schedule"
+class = "limited"
+licence = "Texas Flange, all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read as page text. NPS 2: OD 2.38 in, 90-degree LR centre-to-end 3.00 in (76.2 mm); NPS 4: OD 4.50 in, centre-to-end 6.00 in (152.4 mm), the same in every schedule. A butt-weld elbow; a grooved-end elbow (ref 10) is a fitting with its own maker's dimensions (not read here)."
+
+[[measure]]
+what = "ladder tray side rail, 3 in NEMA loading depth steel (B-Line 148): height; flange; gauge; actual loading depth"
+value = "3.625 in (92.1 mm) tall; 0.875 in (22.2 mm) flange; 18 gauge (about 1.2-1.3 mm, by the standard sheet gauge: general knowledge); loading depth 3.077 in (78.2 mm)"
+ref = 12
+
+[[measure]]
+what = "ladder tray side rail, 4 in NEMA loading depth steel (B-Line 156): height; gauge; actual loading depth"
+value = "4.188 in (106.4 mm) tall; 16 gauge (about 1.5-1.6 mm, likewise); loading depth 3.628 in (92.2 mm)"
+ref = 12
+
+[[measure]]
+what = "ladder tray widths (inside the rails); overall width"
+value = "6, 9, 12, 18, 24, 30, 36 in; overall width = width + 1/8 in (as the drawing labels it), so a 12 in tray is 305 mm inside, about 308 mm overall (DERIVED)"
+ref = 12
+
+[[measure]]
+what = "ladder tray rung spacing (centres)"
+value = "6, 9 or 12 in (152, 229, 305 mm); 9 or 12 in for large, less flexible cables; NEMA load ratings are tested on 12 in"
+ref = 12
+
+[[measure]]
+what = "steel ladder rung section (B-Line Series 1, rung A)"
+value = "1.5 in (38.1 mm) across, 1 in (25.4 mm) across the top, 1/2 in (12.7 mm) deep (from a small drawing; shape unverified)"
+ref = 12
+
+[[measure]]
+what = "ladder tray straight section lengths; support span"
+value = "12 ft (3.66 m) primary, 10 ft (3.05 m) secondary (NEMA VE 1 lists 10, 12, 20 and 24 ft); support span no longer than the straight section, not more than one splice between supports"
+ref = 12
+
+[[measure]]
+what = "load class, 148 steel ladder tray"
+value = "51 lb/ft (76 kg/m) on a 12 ft (3.7 m) span (NEMA 12A)"
+ref = 12
+
+[[measure]]
+what = "tray trapeze for a 12 in tray: strut length; rod"
+value = "one 1-5/8 in strut 22 in (559 mm) long, 5 in (127 mm) past each side of the tray width (DERIVED); two 1/2 in (12.7 mm) threaded rods (3/8 in optional)"
+ref = 12
+
+[[measure]]
+what = "strut channel P1000: width x height; wall"
+value = "1-5/8 x 1-5/8 in (41.3 x 41.3 mm); 12 gage (2.7 mm); a C with rounded in-turned lips"
+ref = 13
+
+[[measure]]
+what = "strut channel, deep (P5500) and back to back (P1001)"
+value = "41.3 x 61.9 mm (1-5/8 x 2-7/16 in); 41.3 x 82.6 mm (1-5/8 x 3-1/4 in)"
+ref = 13
+
+[[measure]]
+what = "steel pipe NPS 2: outside diameter; schedule 40 wall"
+value = "2.375 in (60.33 mm); 0.154 in (3.91 mm)"
+ref = 14
+
+[[measure]]
+what = "steel pipe NPS 4: outside diameter; schedule 40 wall"
+value = "4.500 in (114.30 mm); 0.237 in (6.02 mm)"
+ref = 14
+
+[[measure]]
+what = "grooved coupling, 2 in (Victaulic Style 77): housing diameter X; width over the bolt pads Y; width along the pipe Z; bolts"
+value = "92 mm (3.63 in); 150 mm (5.88 in); 48 mm (1.88 in); two 1/2 x 2-1/2 in track bolts; 1.2 kg"
+ref = 15
+
+[[measure]]
+what = "grooved coupling, 4 in (Victaulic Style 77): housing diameter X; width over the bolt pads Y; width along the pipe Z; bolts"
+value = "156 mm (6.13 in); 226 mm (8.88 in); 54 mm (2.13 in); two 5/8 x 3-1/4 in track bolts; 3.0 kg"
+ref = 15
+
+[[measure]]
+what = "gap between the pipe ends inside a coupling (allowed)"
+value = "0-1.5 mm at 2 in; 0-3.3 mm at 4 in"
+ref = 15
+
+[[measure]]
+what = "maximum hanger spacing, steel pipe, rigid joints, water service (ASME B31.1 / B31.9 columns)"
+value = "2 in: 10 / 13 ft (3.1 / 4.0 m); 4 in: 14 / 17 ft (4.3 / 5.2 m)"
+ref = 16
+
+[[measure]]
+what = "hangers for grooved flexible-coupled pipe (full linear movement)"
+value = "per 20 ft (6.1 m) length, evenly spaced: 3 for 2 in, 2 for 4 in; no length unsupported between two couplings; no support on a coupling. Without full movement: 2 in 10 ft (3.0 m), 4 in 12 ft (3.7 m)"
+ref = 16
+
+[[measure]]
+what = "hangers near the fittings, roll-grooved steel pipe"
+value = "a hanger within 300 mm of each elbow; at least one hanger at joints; spans 3.0 m (2 in), 3.7 m (4 in)"
+ref = 17
+
+[[measure]]
+what = "hanger rod diameter for one steel pipe"
+value = "2 in pipe: 3/8 in (9.5 mm); 4 in pipe: 5/8 in (15.9 mm) (which of the page's two rod columns is steel is unverified; the other gives 1/2 in)"
+ref = 18
+
+[[measure]]
+what = "90-degree long-radius elbow, centre to end (1.5 x nominal size)"
+value = "2 in: 3.00 in (76.2 mm); 4 in: 6.00 in (152.4 mm)"
+ref = 20
+
+[[palette]]
+what = "cast-iron pipe roll of a trapeze, black paint worn, warm lamp light (estimated from photo: 100 x 25 px patch at 570,135)"
+srgb = [71, 64, 52]
+ref = 1
+
+[[palette]]
+what = "rust where the roll's paint is gone, in shade (estimated from photo: 18 x 12 px at 122,95)"
+srgb = [48, 20, 10]
+ref = 1
+
+[[palette]]
+what = "concrete slab ceiling, board-marked, between the pipes, shaded (estimated from photo: 45 x 80 px at 400,190)"
+srgb = [74, 70, 65]
+ref = 1
+
+[[palette]]
+what = "concrete slab ceiling nearer the camera, warmer light (estimated from photo: 40 x 60 px at 830,40)"
+srgb = [96, 89, 75]
+ref = 1
+
+[[palette]]
+what = "perforated galvanised cable tray, side lit (estimated from photo: 100 x 30 px at 790,425)"
+srgb = [116, 125, 133]
+ref = 1
+
+[[palette]]
+what = "pipe lagging jacket, grey, under the slab (estimated from photo: 50 x 100 px at 520,250)"
+srgb = [86, 86, 91]
+ref = 1
+
+[[palette]]
+what = "board-formed concrete wall, luminance only (black and white photo: 90 x 160 px at 780,380)"
+srgb = [88, 88, 88]
+ref = 3
+
+[[palette]]
+what = "steel pipe in the ceiling corner, lit top, luminance only (black and white photo: 40 x 10 px at 150,95; median 105)"
+srgb = [114, 114, 114]
+ref = 3
+
+[[palette]]
+what = "painted concrete corridor wall, fluorescent light (estimated from photo: 80 x 120 px at 820,330)"
+srgb = [117, 116, 116]
+ref = 4
+
+[[palette]]
+what = "yellow-painted angle bracket under the air duct, lit by the lamp beside it (estimated from photo: 60 x 8 px at 545,182)"
+srgb = [167, 113, 37]
+ref = 4
+
+[[palette]]
+what = "galvanised ladder tray side rail, spangled, dulled, flash, slide film with a blue cast (estimated from photo: 50 x 14 px at 560,300)"
+srgb = [173, 181, 191]
+ref = 6
+
+[[palette]]
+what = "galvanised bend rail (outer rail of the 90-degree bend), flash (estimated from photo: 30 x 80 px at 20,250)"
+srgb = [151, 155, 167]
+ref = 6
+
+[[palette]]
+what = "black cables under a thick coat of grey dust (estimated from photo: 80 x 40 px at 600,530, clear of the author's label)"
+srgb = [154, 150, 144]
+ref = 6
+
+[[palette]]
+what = "black cable sheath with a little dust, flash (estimated from photo: 18 x 60 px at 188,140)"
+srgb = [63, 61, 63]
+ref = 7
+
+[[palette]]
+what = "ladder tray side rail, pale grey, flash-lit (estimated from photo: 6 x 45 px at 318,262; median 205,202,195)"
+srgb = [183, 179, 173]
+ref = 7
+
+[[palette]]
+what = "ladder tray rung, underside, pale grey (estimated from photo: 60 x 8 px at 500,355)"
+srgb = [168, 173, 175]
+ref = 7
+
+[[palette]]
+what = "galvanised strut channel, dull, in the flash's falloff (estimated from photo: 18 x 80 px at 538,400)"
+srgb = [101, 108, 108]
+ref = 8
+
+[[palette]]
+what = "zinc-plated threaded rod, flash-lit (estimated from photo: 6 x 50 px at 547,75)"
+srgb = [175, 176, 182]
+ref = 8
+
+[[palette]]
+what = "black PVC cable sheath between the rungs (estimated from photo: 25 x 90 px at 140,380; median 25,25,25)"
+srgb = [36, 36, 33]
+ref = 8
+
+[[palette]]
+what = "concrete soffit, flash (estimated from photo: 200 x 130 px at 650,50)"
+srgb = [132, 132, 128]
+ref = 8
+
+[[palette]]
+what = "strut channel, inside the lips, under warm indoor light, cast not corrected (estimated from photo: 10 x 50 px at 474,400)"
+srgb = [126, 117, 63]
+ref = 9
+
+[[palette]]
+what = "orange enamel of the grooved elbow, flash (estimated from photo: 40 x 40 px at 640,300)"
+srgb = [111, 64, 37]
+ref = 10
+
+[[palette]]
+what = "orange enamel of a coupling housing, its shaded side (estimated from photo: 16 x 30 px at 846,285)"
+srgb = [82, 51, 34]
+ref = 10
+
+[[palette]]
+what = "black steel pipe, flash (estimated from photo: 35 x 22 px at 915,295)"
+srgb = [24, 24, 34]
+ref = 10
+
+[[palette]]
+what = "concrete slab underside, pale, flash (estimated from photo: 80 x 60 px at 150,150)"
+srgb = [202, 201, 206]
+ref = 10
+
+[[palette]]
+what = "black steel pipe, hazy room light (estimated from photo: 14 x 90 px at 538,520; median 58,59,60)"
+srgb = [67, 69, 69]
+ref = 11
+
+[[palette]]
+what = "orange enamel fitting on the horizontal main (a coupling seen obliquely or a hanger, unverified), hazy and desaturated (estimated from photo: 14 x 7 px at 394,334)"
+srgb = [104, 71, 61]
+ref = 11
