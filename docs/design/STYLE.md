@@ -45,6 +45,15 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
 - **Light** comes from places: panels, tubes, lamps. Never ambient tied to
   the camera, never a lamp cone that follows the player except the
   flashlight itself.
+- **Each lamp is its kind** (`world::lamps`; `docs/plan/FACILITY.md` F3):
+  fluorescent tubes are the rooms' light; the Habitable Zone's tall halls
+  hang enclosed mercury high-bays, phosphor-coated and so a cool white; the
+  Utility Halls have a vapour-tight jar on the crown, a filament's warm
+  white. Its colour is its lamp's (its pool and its glass) and dies with it;
+  no lamp takes the canon's colours (the door's and the Loop's green, the
+  window's orange, the broken lift's red). Each fails its way: a tube
+  stutters, a high-bay's arc drops out and restrikes, warming up from dim, a
+  filament dims and comes back, never blinking.
 - **Toward the floor** walls and the sides of things lose up to 45% of
   their indirect light, at their foot, gone by 0.45 m up: the floor under
   them, on whatever storey (the light map holds each place's floor: the
@@ -88,9 +97,9 @@ wide as CoreText draws it).
 | Pillar Field | lobby wallpaper | 3.2–3.7 m | a lattice of columns | none: monotony is the point |
 | Abandoned Office | drywall, carpet tiles | 2.5–2.75 m | small rooms, one door each, chest-high cubicles | debris, a toppled chair |
 | The Maze | 4 m walls | varies | braided corridors | collected things: toys, portraits, candles |
-| Utility Halls | poured concrete | 2.35–2.65 m | shoulder-wide corridors, walls that bulge in | industrial debris |
+| Utility Halls | poured concrete | 2.35–2.65 m, a jar lamp on the crown | shoulder-wide corridors, walls that bulge in | industrial debris |
 | Electrical Station | old brick | low | tight, tangled, wiring behind every wall | sparks, dead panels |
-| Habitable Zone | poured concrete, puddles | 5.4–7.6 m, fixtures on rods | wide column grid | long reverb, wet floors |
+| Habitable Zone | poured concrete, puddles | 5.4–7.6 m, high-bays on rods | wide column grid | long reverb, wet floors |
 | Poolrooms | white tile everywhere | varies | too many pillars | water that is too still |
 | Blackout | whatever was there | — | dead lights | only the flashlight |
 | The Well (the Building, level 1) | precast panels, a window in every panel, each its own (wood or PVC frames, net curtains, a grille); cracked, patched yard concrete; whitewashed parapets, the lime flaking | none: galleries over galleries, the void | walks round a well, sealed doors, a few lit windows | laundry across the void, a red-marked door |

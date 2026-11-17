@@ -446,6 +446,7 @@ impl Game {
                 lfo_freq,
                 lfo_phase,
                 h_boost: 1.0,
+                inst: i,
                 ..Default::default()
             });
         }
@@ -459,7 +460,7 @@ impl Game {
             self.add_instanced(&geo, &mat, &fixtures, &|m: &Mat4| *m);
         }
         self.world.add(&pm);
-        self.panel_mesh = Some(pm);
+        self.lamp_meshes = vec![pm];
         if !posts.is_empty() {
             let geo = self.unit_box_geo.clone();
             let mat = lambert!({ color: 0x3a3936 });

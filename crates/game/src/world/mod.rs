@@ -22,6 +22,7 @@ pub mod cell_knock;
 pub mod far_figures;
 pub mod instancing;
 pub mod knock;
+pub mod lamps;
 pub mod placement;
 pub mod placement_rules;
 pub mod purpose;

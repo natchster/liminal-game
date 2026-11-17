@@ -4,6 +4,19 @@
 use engine::prelude::*;
 use std::collections::HashMap;
 
+/// What a lamp is (`world::lamps`): its fitting, the colour of its light,
+/// how it fails
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum Lamp {
+    /// A fluorescent fitting: the rooms' light (and the Building's lamps)
+    #[default]
+    Tube,
+    /// A mercury high-bay hung in a tall hall
+    HighBay,
+    /// A vapour-tight jar fixture on a tunnel's crown
+    Bulkhead,
+}
+
 /// A ceiling light panel (laid by `lay_panels`, driven by `update_lights`)
 #[derive(Clone, Debug, Default)]
 pub struct Panel {
@@ -24,6 +37,13 @@ pub struct Panel {
     pub lfo_phase_offset: f64,
     /// Height boost of the panel's light (0 = unset → 1)
     pub h_boost: f64,
+    /// What kind of lamp it is, the glow mesh of its kind (`Game::lamp_meshes`)
+    /// and its instance there
+    pub kind: Lamp,
+    pub mesh: usize,
+    pub inst: usize,
+    /// A high-bay's restrike: the seconds until its arc is up again (0: lit)
+    pub restrike: f64,
     /// Any other per-panel numbers, by key
     pub f: HashMap<String, f64>,
 }

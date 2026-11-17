@@ -634,18 +634,29 @@ impl Game {
                     dirty = true;
                 }
                 self.panels[i].flicker = 0.0;
-            } else if self.panels[i].flicker > 0.0 {
-                self.panels[i].flicker -= dt;
-                self.panels[i].bright = if rnd() < 0.45 { rand2(0.05, 0.3) } else { 1.0 };
-                dirty = true;
             } else {
-                if self.panels[i].bright != 1.0 {
-                    self.panels[i].bright = 1.0;
-                    dirty = true;
+                // the tubes' draws, whatever the lamp (the frame stream moves
+                // the same on every floor); its kind says what they do to it
+                // (`world::lamps::brightness`)
+                let p = &mut self.panels[i];
+                let flicker = p.flicker > 0.0;
+                let mut drawn = 1.0;
+                if flicker {
+                    p.flicker -= dt;
+                    drawn = if rnd() < 0.45 { rand2(0.05, 0.3) } else { 1.0 };
+                } else if rnd() < dt * (0.012 + 0.20 * p.rot) {
+                    p.flicker = rand2(0.25, 1.1);
+                    if p.kind == Lamp::HighBay && p.restrike <= 0.0 {
+                        p.restrike = crate::world::lamps::restrike_secs(p.seed);
+                    }
                 }
-                let rot = self.panels[i].rot;
-                if rnd() < dt * (0.012 + 0.20 * rot) {
-                    self.panels[i].flicker = rand2(0.25, 1.1);
+                if p.restrike > 0.0 {
+                    p.restrike = (p.restrike - dt).max(0.0);
+                }
+                let b = crate::world::lamps::brightness(p.kind, flicker, drawn, p.restrike, p.bright, dt);
+                if flicker || b != p.bright {
+                    p.bright = b;
+                    dirty = true;
                 }
             }
             if dirty {
@@ -653,8 +664,8 @@ impl Game {
                 let v = if p.switched_off { PANEL_OFF_TONE * self.light_map_at(p.wx, p.wz) } else { p.bright };
                 let mut c = Color::default();
                 c.set_scalar(v);
-                if let Some(pm) = &self.panel_mesh {
-                    pm.set_color_at(i, &c);
+                if let Some(pm) = self.lamp_meshes.get(p.mesh) {
+                    pm.set_color_at(p.inst, &c);
                 }
             }
         }
@@ -773,6 +784,9 @@ impl Game {
             }
             let h_boost = if p.h_boost != 0.0 { p.h_boost } else { 1.0 };
             l.set_intensity(p.bright * PANEL_INTENSITY * dim_scale * mul * b_dim * depth * h_boost * self.pooled_w[li]);
+            // its lamp's own colour (`world::lamps`), which the knock's and
+            // the voice's tints lean from
+            let (br, bg, bb) = crate::world::lamps::light_rgb(p.kind);
             if self.knock_tint_t > 0.0 {
                 let env = self.knock_tint_t / 0.7;
                 let yaw = self.player.yaw;
@@ -782,13 +796,13 @@ impl Game {
                 let mtch = if side * self.knock_tint_pan > 0.0 { 1.0 } else { 0.0 };
                 let tint = env * mtch * 0.35;
                 let kt = knock_tint_by_weather(wk).or(knock_tint_by_weather("normal")).unwrap();
-                l.light().color.set_rgb(1.0 + (kt.r - 1.0) * tint, 0.933 + (kt.g - 0.933) * tint, 0.769 + (kt.b - 0.769) * tint);
+                l.light().color.set_rgb(br + (kt.r - br) * tint, bg + (kt.g - bg) * tint, bb + (kt.b - bb) * tint);
             } else if voice_env > 0.0 {
                 let vh = voice_hue_by_weather(wk).or(voice_hue_by_weather("normal")).unwrap();
                 let shift = voice_env * 0.25;
-                l.light().color.set_rgb(1.0 + (vh.r - 1.0) * shift, 0.933 + (vh.g - 0.933) * shift, 0.769 + (vh.b - 0.769) * shift);
+                l.light().color.set_rgb(br + (vh.r - br) * shift, bg + (vh.g - bg) * shift, bb + (vh.b - bb) * shift);
             } else {
-                l.light().color.set_rgb(1.0, 0.933, 0.769);
+                l.light().color.set_rgb(br, bg, bb);
             }
         }
         if self.voice_hue_shift_t > 0.0 {

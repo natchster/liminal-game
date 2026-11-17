@@ -1,0 +1,210 @@
+# The references of bulkhead (docs/design/ASSETS.md), gathered on 2026-11-17
+# by a research agent. `class`: "free" (CC0, public domain, CC BY / CC BY-SA
+# with its attribution: may be sampled into a texture; given with the SHA-1 of
+# the file at its url) or "limited" (all rights reserved, fair use: looked at
+# and measured, never sampled, never committed; its sha1 is left empty); a
+# free one never sampled (a document, a page) says `sampled = false` and needs
+# no SHA-1. `cargo xtask asset refs bulkhead` fetches them into
+# target/asset-refs/bulkhead/. The palette is photo-sampled (mean of a patch
+# of the photo scaled to 960 px wide, unless a note says otherwise), each
+# sample in its own photo's light. The SHA-1s were checked by downloading
+# each original and running `shasum`.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/f/f9/Kokerei_Hansa_%2849%29.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Kokerei_Hansa_(49).jpg"
+shows = "the thing, decayed in place: a vapour-tight fixture under a concrete ceiling of the disused Hansa coking plant (Dortmund), seen from below at an angle; weathered cast box with a conduit hub and a rusted conduit arm, a rust-scaled threaded guard ring with a bolt and lug, a ribbed glass jar (yellow-green, dusty) and a galvanised cast/wire guard of four hoops and vertical bars over it"
+class = "free"
+licence = "CC BY-SA 4.0, 1971markus (1971markus@wikipedia.de)"
+sha1 = "97d24a5767b4c97fed44ccbeee68b95cf7c12408"
+notes = "The best photograph of the thing as it is found: paint gone from the box (pale grey zinc/aluminium with white bloom), the guard ring rusted through its coating, cobweb and dust in the ribs of the jar, the guard still galvanised with rust only at the joints. The jar's yellow tint may be an amber globe or a yellow lamp seen through clear glass: unverified. The make is not stated. Photographed 2017-12-02. Viewed at 960 px and in full (3600 x 4240). Palette source for the cast box, the rusted ring, the guard and the jar."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/9/9a/Industrial_Decay_-_Cage_Light_with_Nest.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Industrial_Decay_-_Cage_Light_with_Nest.jpg"
+shows = "the thing, abandoned: a pendant jelly-jar on a conduit stem under the timber purlins and corrugated roof of an abandoned industrial building (USA; Will County, Illinois by its EXIF coordinates, unverified); a round cast canopy carrying a bird's nest, a cylindrical glass jar with a domed end and a bulb visible inside, a rusty wire guard of vertical bars and hoops"
+class = "free"
+licence = "CC BY-SA 3.0, bsmalley"
+sha1 = "8f2cef8a6eedcc5261bc667bec6ffd6af19cce3b"
+notes = "Black and white (desaturated) photograph, March 2015: its palette samples are luminance only. The American jelly-jar shape: the jar is roughly 1.5 times as long as it is wide (estimated from the photo, foreshortened), the guard follows it down to a small bottom ring. Viewed at 960 px and in full (2496 x 1872)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/4/44/Diefenbunker_Tunnel.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Diefenbunker_Tunnel.JPG"
+shows = "a place with it in: the corrugated-steel blast (entrance) tunnel of the Diefenbunker (CFS Carp, Ontario; a Cold War bunker, built 1959-61 by general knowledge, not stated on the file page), a row of lit vapour-tight fixtures hung from conduit along the crown of the arch; in full resolution each one is a cast box with conduit hubs, a threaded guard ring and a glass globe, with cobweb"
+class = "free"
+licence = "CC BY-SA 3.0, SamuelDuval"
+sha1 = "5ea6d2c80abbe4b8cc30ade651e625d72f22e3df"
+notes = "How they are spaced and hung in a tunnel: one on the crown about every few corrugation bays, on rigid conduit with the cable run beside it; pipes along the walls. The globes are lit and clip to white; the box reads warm from its own lamp. Photographed 2012-01-08 (the bunker as a museum). Viewed at 960 px and in full (5015 x 3343), lamp nearest the camera cropped at 2250-2750 x 250-850."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/e/e1/Blast_tunnel_entrance_at_CFS_Carp.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Blast_tunnel_entrance_at_CFS_Carp.jpg"
+shows = "a place with it in: the same Diefenbunker blast tunnel from the other end, the lit fixtures on the crown of the corrugated arch receding into haze, a pipe along the right wall"
+class = "free"
+licence = "CC BY-SA 3.0, Jonathon Simister"
+sha1 = "fa5a9c1250b58960f84c686a355637312dbe683d"
+notes = "Mood and light reference: each globe throws a bright pool on the corrugations around it and the tunnel goes dim between them. Over-exposed around the lamps; not used for palette. Photographed 2011-08-25. Viewed at 960 px and in full (4320 x 3240)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/6/64/Industrial_Holophane_pendant_light.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Industrial_Holophane_pendant_light.jpg"
+shows = "a related fixture: an industrial Holophane caged pendant, die-cast aluminium (hook, finned housing, threaded ring) with a cast rib guard (ribs meeting in a bottom boss) over a prismatic glass globe, lit"
+class = "free"
+licence = "CC BY 3.0, Marie-Lan Nguyen"
+sha1 = "8600659f413df278a9bf1fffb83b67c74fa93c32"
+notes = "Not the jelly-jar itself (a larger pendant with a prismatic globe), but the cast guard and the bare die-cast aluminium, worn to a dull patina with dark pitting, are the materials of the cast-guard variant. Hung against a plain wall (a salvaged lamp; date and place of the fixture not stated). Photographed 2014-12-06. Viewed at 960 px and in full (2671 x 4000)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/d/d9/%C5%81%C3%B3d%C5%BA_fotowarsztaty_D%C4%99tka_lampa_02.05.10_p.jpg"
+page = "https://commons.wikimedia.org/wiki/File:%C5%81%C3%B3d%C5%BA_fotowarsztaty_D%C4%99tka_lampa_02.05.10_p.jpg"
+shows = "a related fixture in a tunnel: an oval bulkhead lamp (cast body painted rust-brown, ribbed glass, bent wire guard) on the brick wall of the underground 'Detka' sewer canal museum in Lodz, Poland, lit"
+class = "free"
+licence = "CC BY-SA 3.0, Przykuta"
+sha1 = "d0238704089613b6ed89c90eada29aa3e2126106"
+notes = "Not the round jelly-jar (the European oval 'bulkhead' kind), kept for its place (a brick service tunnel), the white bloom on the painted cast body and the lit ribbed glass under a wire guard. Photographed 2010-05-02. Viewed at 960 px and in full (2828 x 2200)."
+
+[[ref]]
+url = "https://goagilix.com/wp-content/uploads/2024/08/Emerson-Appleton-catalog-v-51-incandescent-luminaires-appleton-en-us-7437050.pdf"
+page = "https://goagilix.com/wp-content/uploads/2024/08/Emerson-Appleton-catalog-v-51-incandescent-luminaires-appleton-en-us-7437050.pdf"
+shows = "a maker's sheet: Appleton (Emerson) V-51 incandescent luminaires catalogue, February 2024, pp. 296-304: enclosed and gasketed fixtures for tunnels, storage areas and chemical plants; materials, globes, guards and a dimension table (A, B, C, D) for the pendant, ceiling, wall and box-mounted types"
+class = "limited"
+licence = "Emerson Electric Co. (Appleton), all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text and from a rendered image of page 303 (the dimension drawings). Malleable iron mounting hood and globe adapter (zinc, chromate, epoxy powder coat), porcelain socket, glass globe (clear, amber, blue, green, opal, red; VGL-1 for 60-150 W, VGL-2 for 150-300 W), zinc-plated steel wire guard (VWG-1 for A21, VWG-2 for PS30) that snaps into two recesses of the adapter. A current catalogue, but the same V-51 series and catalogue numbers (VA1050, VC1050, VGA1050...) are listed in the 1970 Graybar catalogue (ref 8). A, B, C are read from the drawings: C the outside diameter of globe and guard, A from the top of the globe adapter to the bottom of the guard, B the guard below the adapter; that reading of A and B is mine (unverified)."
+
+[[ref]]
+url = "https://www.americanradiohistory.com/Archive-Catalogs/Graybar/Graybar-Condensed-Catalog-29-1970.pdf"
+page = "https://www.americanradiohistory.com/Archive-Catalogs/Graybar/Graybar-Condensed-Catalog-29-1970.pdf"
+shows = "a maker's sheet of the era: Graybar Electric Condensed Catalog No. 29 (1970), p. 30 Crouse-Hinds Vaporgard incandescent fixtures (VDA pendant, VDC through-feed, VXHF/VXH ceiling, VXHT/VXHBF wall), p. 31 Crouse-Hinds VMV mercury vaportight, p. 130 Appleton V-51 vaportight series, guards and reflectors"
+class = "limited"
+licence = "Graybar Electric Company, all rights reserved (1970 catalogue, scanned by americanradiohistory.com)"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text (OCR) and rendered pages (PDF pp. 42-43 and 146). The Crouse-Hinds Vaporgard globe and guard come off as one unit, take incandescent lamps A-21 to PS-25 (25-300 W) and fit 3-1/4 and 4 in outlet boxes; 'used in industrial locations ... walkways, bridges, tunnels ... cold storage facilities, garages and processing plants'. Appleton V-51 reflectors are 12, 14 and 16 in for 100, 150 and 200-300 W. No dimension drawings of the fixtures themselves."
+
+[[measure]]
+what = "globe and guard outside diameter (C), 60-150 W (A-21 lamp) size, Appleton V-51"
+value = "106.4 mm (4.19 in); the glass jar inside it is smaller, its own diameter not given"
+ref = 7
+
+[[measure]]
+what = "globe and guard outside diameter (C), 150-300 W (PS-25/PS-30 lamp) size, Appleton V-51"
+value = "144.5 mm (5.69 in)"
+ref = 7
+
+[[measure]]
+what = "top of the globe adapter to the bottom of the guard (A), 60-150 W / 150-300 W (reading of A from the drawing unverified)"
+value = "162.1 mm (6.38 in) / 241.3 mm (9.50 in)"
+ref = 7
+
+[[measure]]
+what = "guard below the adapter (B), 60-150 W / 150-300 W (reading of B from the drawing unverified)"
+value = "146.1 mm (5.75 in) / 219.2 mm (8.63 in)"
+ref = 7
+
+[[measure]]
+what = "pendant mounting hood height (D), Type VA, for 1/2-3/4 in / 1-1-1/4 in conduit hubs"
+value = "66.8 mm (2.63 in) / 73.4 mm (2.89 in)"
+ref = 7
+
+[[measure]]
+what = "ceiling box (canopy), Types V, VC, VT and VX: width x height; conduit hub centres"
+value = "131.8 x 55.6 mm (5.19 x 2.19 in); hubs 96.8 mm (3.81 in) apart"
+ref = 7
+
+[[measure]]
+what = "ceiling box, Type VXHA: width x height"
+value = "112.8 x 69.9 mm (4.44 x 2.75 in)"
+ref = 7
+
+[[measure]]
+what = "wall bracket box, Types JB and JBW: width x height"
+value = "101.6 x 101.6 mm (4.00 x 4.00 in)"
+ref = 7
+
+[[measure]]
+what = "pendant hood diameter, Type VA"
+value = "96.8 mm (3.81 in)"
+ref = 7
+
+[[measure]]
+what = "lamps taken, Crouse-Hinds Vaporgard (1970)"
+value = "incandescent A-21 to PS-25, 25-300 W; an A-21 bulb is 21/8 in = 2-5/8 in (67 mm) across (DERIVED from the bulb designation, maximum diameter in eighths of an inch)"
+ref = 8
+
+[[measure]]
+what = "reflector (optional) diameter for 100 / 150 / 200-300 W, Appleton V-51 (1970)"
+value = "12 / 14 / 16 in (305 / 356 / 406 mm)"
+ref = 8
+
+[[palette]]
+what = "cast box, paint gone, pale zinc/aluminium grey with white bloom, dim plant light, flash (estimated from photo: 60 x 50 px patch at 440,170)"
+srgb = [137, 139, 142]
+ref = 1
+
+[[palette]]
+what = "cast box, shaded side (estimated from photo: 60 x 50 px patch at 540,250)"
+srgb = [123, 122, 125]
+ref = 1
+
+[[palette]]
+what = "threaded guard ring, rusted through (estimated from photo: 70 x 40 px patch at 600,410; median 107,66,51)"
+srgb = [111, 72, 56]
+ref = 1
+
+[[palette]]
+what = "galvanised guard bar, dull (estimated from photo: 16 x 80 px on a vertical bar at 506,620)"
+srgb = [134, 133, 131]
+ref = 1
+
+[[palette]]
+what = "ribbed glass jar, upper part, unlit, dusty yellow-green (estimated from photo: 130 x 70 px patch at 360,500, between the guard bars)"
+srgb = [117, 112, 90]
+ref = 1
+
+[[palette]]
+what = "glass jar, domed lower end, unlit, deep yellow (estimated from photo: 150 x 80 px patch at 340,770; tint unverified, see the ref's notes)"
+srgb = [108, 96, 6]
+ref = 1
+
+[[palette]]
+what = "glass jar, unlit, luminance only (black and white photo: 36 x 45 px patch at 612,425)"
+srgb = [199, 199, 199]
+ref = 2
+
+[[palette]]
+what = "round cast canopy under the nest, dark, luminance only (black and white photo: 55 x 25 px patch at 585,325)"
+srgb = [108, 108, 108]
+ref = 2
+
+[[palette]]
+what = "cast box, grey paint, lit warm by its own lamp, flare-washed (estimated from photo: 23 x 40 px at full resolution, 2422,500)"
+srgb = [195, 176, 166]
+ref = 3
+
+[[palette]]
+what = "glass globe, lit (full resolution, 50 x 80 px at 2440,640: clips to white)"
+srgb = [255, 255, 255]
+ref = 3
+
+[[palette]]
+what = "die-cast aluminium, bare, dull patina, room light (estimated from photo: 80 x 60 px on the housing at 360,270)"
+srgb = [99, 92, 81]
+ref = 5
+
+[[palette]]
+what = "die-cast aluminium ring, lit from the lamp below (estimated from photo: 150 x 38 px at 250,752)"
+srgb = [110, 101, 91]
+ref = 5
+
+[[palette]]
+what = "cast body painted rust-brown, with white bloom nearby (estimated from photo: 50 x 80 px at 120,320)"
+srgb = [75, 29, 14]
+ref = 6
+
+[[palette]]
+what = "ribbed glass, lit from inside, off the hot spot (estimated from photo: 60 x 50 px at 440,330)"
+srgb = [180, 165, 152]
+ref = 6

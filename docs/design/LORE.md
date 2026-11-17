@@ -329,12 +329,14 @@ wall thickness, doorways, materials and props.
   party leftovers, portraits, candles, things from people's lives.
 - **Utility Halls** (Level 2). Shoulder-wide corridors (1.6–2.8 m) in poured
   concrete, with walls that bulge into the passage and a low ceiling
-  (2.35–2.65 m). Industrial debris. The echo answers a beat late.
+  (2.35–2.65 m), a caged glass jar lamp on its crown here and there, its
+  light a filament's warm white (never over a door: a lamp in a cage over a
+  door is a cell's). Industrial debris. The echo answers a beat late.
 - **Electrical Station** (Level 3). The same bones in old brick, tighter and
   more tangled, with wiring behind every wall.
 - **Habitable Zone** (Level 1). Poured-concrete halls 5.4–7.6 m tall, columns
-  on a wide grid, fluorescent fixtures hanging on rods, puddles and a long
-  reverb.
+  on a wide grid, high-bay lamps hanging on rods (enclosed mercury lamps, a
+  cool white disc under each bowl), puddles and a long reverb.
 - **The Poolrooms** (Level 37, rare and deep). White tile everywhere, too many
   pillars. Acoustics that cut off too early.
 - **Blackout zones** (any level). The lights are dead and there is no hum and

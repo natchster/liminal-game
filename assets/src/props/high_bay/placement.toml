@@ -1,0 +1,11 @@
+# Where the high-bay hangs, and why (docs/design/ASSETS.md, *Things the
+# layout makes*): the floor's layout hangs one where a tall hall has a lamp
+# (`World::lay_panels`, `world::lamps`); one no rule allows is a tube.
+by = "layout"
+count = [0, 140]
+levels = [5, 999]
+
+[[rule]]
+at = "lamp"
+purposes = ["*"]
+why = "a tall concrete hall was lit by high-bays hung from its slab, as a plant's hall was"

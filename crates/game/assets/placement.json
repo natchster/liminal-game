@@ -155,6 +155,26 @@
         }
       ]
     },
+    "bulkhead": {
+      "by": "layout",
+      "count": [
+        0,
+        80
+      ],
+      "levels": [
+        6,
+        999
+      ],
+      "rule": [
+        {
+          "at": "lamp",
+          "purposes": [
+            "*"
+          ],
+          "why": "a concrete service tunnel carries a vapour-tight lamp on its crown, as a plant's tunnels did"
+        }
+      ]
+    },
     "exit_door": {
       "by": "layout",
       "count": [
@@ -208,6 +228,26 @@
             "well"
           ],
           "why": "the block's flats open onto its galleries, every front door a shelter's, sealed from inside by whoever still lives there"
+        }
+      ]
+    },
+    "high_bay": {
+      "by": "layout",
+      "count": [
+        0,
+        140
+      ],
+      "levels": [
+        5,
+        999
+      ],
+      "rule": [
+        {
+          "at": "lamp",
+          "purposes": [
+            "*"
+          ],
+          "why": "a tall concrete hall was lit by high-bays hung from its slab, as a plant's hall was"
         }
       ]
     },

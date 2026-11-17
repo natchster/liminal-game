@@ -183,7 +183,8 @@ why = "an office floor's stair is at its far end, and its door is the last one o
 ```
 
 - **`at` is the place in the layout**: "way down", "loop", "stairwell",
-  "cell", "gallery", "lift", "broken lift", "wall", "barricade"; a rule
+  "cell", "gallery", "lift", "broken lift", "wall", "barricade", "lamp"
+  (a lamp a zone hangs: `high_bay`, `bulkhead`, `World::lay_panels`); a rule
   with `at` has no `on`, `of`, `near` or `dark` (`cargo xtask asset check`
   refuses them), and `levels` may start on the Building's floors (1).
 - **The layout asks before it makes one** (`Game::place_by_layout(asset,

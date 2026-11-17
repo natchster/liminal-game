@@ -218,7 +218,9 @@ pub struct Game {
     pub omen_timers: Vec<u64>,
     pub panels: Vec<Panel>,
     /// Instanced ceiling panels
-    pub panel_mesh: Option<Obj>,
+    /// The lamps' glowing glass, one instanced mesh a kind present (a
+    /// panel's `mesh` and `inst` say where it is)
+    pub lamp_meshes: Vec<Obj>,
     /// The pooled panel spot lights (`POOLED_LIGHTS` of them), reassigned to nearby panels
     pub pooled: Vec<Obj>,
     /// Panel each pooled light is assigned to (index into `panels`)
@@ -873,7 +875,7 @@ impl Game {
             level_scp: None,
             omen_timers: vec![],
             panels: vec![],
-            panel_mesh: None,
+            lamp_meshes: vec![],
             pooled: vec![],
             pooled_panel: vec![],
             pooled_w: vec![],

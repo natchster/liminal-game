@@ -975,6 +975,10 @@ prop	KnittingBaskets__rim	torus	480	480	-0.1161,-0.1161,-0.0065	0.1161,0.1161,0.
 prop	KnittingBaskets__strand	cyl	44	84	-0.0018,-0.0140,-0.0018	0.0018,0.0140,0.0018
 prop	KnittingBaskets__wind	torus	144	288	-0.0570,-0.0570,-0.0032	0.0570,0.0570,0.0032
 prop	KnittingBaskets__yarn	sphere	272	456	-0.0550,-0.0550,-0.0550	0.0550,0.0550,0.0550
+prop	Lamp__bulkhead	box	1538	1568	-0.0690,-0.2740,-0.0645	0.0690,0.0000,0.0645
+prop	Lamp__bulkheadGlobe	box	146	240	-0.0500,-0.2400,-0.0500	0.0500,-0.0800,0.0500
+prop	Lamp__highBay	box	1526	2224	-0.2860,-0.6620,-0.2860	0.2860,-0.0017,0.2860
+prop	Lamp__highBayBulb	box	644	1104	-0.2700,-0.8250,-0.2700	0.2700,-0.3040,0.2700
 prop	Lanyards__badge	box	176	176	-0.0300,-0.0004,-0.0450	0.0300,0.0006,0.0450
 prop	LaundryBaskets__body	cyl	1026	896	-0.1400,-0.0800,-0.1400	0.1400,0.0800,0.1400
 prop	LaundryBaskets__cloth	box	190	248	-0.0970,-0.0085,-0.0895	0.0970,0.0085,0.0895

@@ -1,0 +1,270 @@
+# The references of high_bay (docs/design/ASSETS.md), gathered on 2026-11-17
+# by a research agent. `class`: "free" (CC0, public domain, CC BY / CC BY-SA
+# with its attribution: may be sampled into a texture; given with the SHA-1 of
+# the file at its url) or "limited" (all rights reserved, fair use: looked at
+# and measured, never sampled, never committed; its sha1 is left empty); a
+# free one never sampled (a document, a page) says `sampled = false` and needs
+# no SHA-1. `cargo xtask asset refs high_bay` fetches them into
+# target/asset-refs/high_bay/. The palette is photo-sampled (mean of a patch
+# of the photo scaled to the width a note gives), each sample in its own
+# photo's light. No free photograph of an unlit prismatic refractor was found:
+# that sample is missing. The SHA-1s were checked by downloading each original
+# and running `shasum`, except where a note says otherwise.
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/2/2c/Industrial_ceiling_lamp_2.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Industrial_ceiling_lamp_2.jpg"
+shows = "the thing, in place: a ceiling-hung industrial mercury-vapour lamp in a disused mechanical workshop (Gaseberg, Lysekil, Sweden), lamp off: a deep spun-aluminium bowl reflector, dull and dusty outside with spinning marks, bright satin inside, a white (by its look phosphor-coated) bulb in its throat, under a long louvred steel ballast box bolted to the corrugated ceiling"
+class = "free"
+licence = "CC0 1.0, W.carter"
+sha1 = "80e4d559c32daa5eae00442c0fc327d3e2b6c22f"
+notes = "Best view of the reflector and the ballast box together, side-lit by daylight. Open bottom (no refractor). Size and wattage not stated: the reflector looks smaller than a 22 in high bay (unmeasured). The box: dark painted sides with louvres, a pale galvanised underside spotted with old screw holes. Photographed 2018-04-21. Viewed at 960 px and in full (4173 x 2348). Palette source for the reflector inside and out and the box."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/5/5b/Industrial_ceiling_lamp_1.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Industrial_ceiling_lamp_1.jpg"
+shows = "the thing, in place: the same kind of lamp in the same workshop from further below, the white phosphor-coated bulb seen inside the aluminium bowl, the ballast box with a soot stain on the ceiling above it"
+class = "free"
+licence = "CC0 1.0, W.carter"
+sha1 = "8884bee07486d41a3164ae978ad73276dc5aa134"
+notes = "The bulb's coated envelope and the bowl's inside from below; the soot (or dirt) shadow on the ceiling over the box is the wear of decades of a hot box. Photographed 2018-04-21. Viewed at 960 and 1920 px (full 4308 x 2423)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/8/8e/Ceiling_in_old_disused_mechanical_workshop.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Ceiling_in_old_disused_mechanical_workshop.jpg"
+shows = "a place with it in: the ceiling of the same old mechanical workshop, now storage, several of these lamps on their boxes among a spiral air duct, a ceiling fan and discoloured, sagging asbestos-cement ceiling boards"
+class = "free"
+licence = "CC BY-SA 4.0, W.carter"
+sha1 = "271045972610143c5af8a1420e56c79d774e5e8c"
+notes = "How they are spaced in a low hall: in rows a few metres apart, each box fixed straight to the ceiling, conduit between them. The description says the hall was used for cutting and welding. Photographed 2016-12-02 (tone-mapped HDR). Viewed at 960 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/6/64/Industrial_Holophane_pendant_light.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Industrial_Holophane_pendant_light.jpg"
+shows = "the refractor's glass: an industrial Holophane caged pendant, lit, its prismatic glass bowl (fine vertical prisms over the sides, horizontal rings toward the bottom) inside a cast guard, on a die-cast aluminium housing with cooling fins, a threaded ring and a hook"
+class = "free"
+licence = "CC BY 3.0, Marie-Lan Nguyen"
+sha1 = "8600659f413df278a9bf1fffb83b67c74fa93c32"
+notes = "Not a high bay (a smaller caged pendant), kept for the Holophane prismatic glass lit from inside and for bare die-cast aluminium worn to a dull patina with dark pits. Its glass only shows lit: no unlit sample. Date and place of the fixture not stated; photographed 2014-12-06. Viewed at 960 px and in full (2671 x 4000)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/8/81/Behrens-aeg-werkstattleuchte.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Behrens-aeg-werkstattleuchte.jpg"
+shows = "the enamel: an AEG workshop pendant (named on its file page a Behrens AEG 'Werkstattleuchte') with a wide shallow reflector, glossy dark brown outside, white enamel inside chipped dark at the rim, against a white wall"
+class = "free"
+licence = "CC BY-SA 3.0, Christos Vittoratos"
+sha1 = "f1c5e85d5530cc2c4471d46bdea973edac45bb84"
+notes = "For the porcelain-enamel reflector option only: an older incandescent workshop lamp (its date not stated; Behrens's AEG work is pre-1914 by general knowledge), not a mercury high bay. The outer finish's material is not stated (unverified). SHA-1 from the Commons file page (API); the original could not be re-downloaded (HTTP 429), so it is not re-checked here. Viewed at 960 px."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/3/37/Lampa_rt%C4%99ciowa_produkcji_POLAMP_-1.jpg"
+page = "https://commons.wikimedia.org/wiki/File:Lampa_rt%C4%99ciowa_produkcji_POLAMP_-1.jpg"
+shows = "the lamp, unlit: a 250 W phosphor-coated mercury lamp (POLAMP, Poland) on paper, ellipsoidal white-coated outer bulb, clear neck with the arc-tube mount and lettering, large brass screw base (E40 by its look)"
+class = "free"
+licence = "CC BY-SA 4.0, Koefbac"
+sha1 = "46d07315771a40521d9bee5b8e04f0e9eb92d31a"
+notes = "A 250 W, so smaller than the 400 W BT37 (ref 10, 11 for its size), but the same build: coating stops at the neck, which is clear. Under-exposed: the white paper beside it reads (155,159,164), so the coating reads a little warmer and darker than the paper. Photographed 2017-01-23. Viewed at 960 px and in full (2592 x 1944)."
+
+[[ref]]
+url = "https://upload.wikimedia.org/wikipedia/commons/7/7e/Mercury_fluorescent_lamp_%D0%94%D0%A0%D0%9B400.JPG"
+page = "https://commons.wikimedia.org/wiki/File:Mercury_fluorescent_lamp_%D0%94%D0%A0%D0%9B400.JPG"
+shows = "the lamp, lit: a 400 W phosphor-coated mercury lamp (Soviet DRL-400) standing base-down in a white socket on a carpet, wired to bare gear on the floor"
+class = "free"
+licence = "Public domain (PD-self), Andreyanov Denis (Андреянов Денис)"
+sha1 = "457a49d122522387be67a62e06ca316d16527ace"
+notes = "A lit coated envelope reads as a flat white ovoid with a soft glow around it; the whole bulb clips to white in this exposure, so it gives no colour beyond 'saturates'. The DRL-400 is the Soviet counterpart, not a BT37 (unverified as to its exact size). Small file (700 x 473), 2008. Viewed in full."
+
+[[ref]]
+url = "https://www.americanradiohistory.com/Archive-Catalogs/Graybar/Graybar-Condensed-Catalog-29-1970.pdf"
+page = "https://www.americanradiohistory.com/Archive-Catalogs/Graybar/Graybar-Condensed-Catalog-29-1970.pdf"
+shows = "a maker's sheet of the era: Graybar Electric Condensed Catalog No. 29 (1970), mercury luminaires: p. 120 Day-Brite Industra 400 W reflectors (Alzak aluminium and porcelain enamel), p. 121 Holophane Prismpack II and Hibay with dimensions"
+class = "limited"
+licence = "Graybar Electric Company, all rights reserved (1970 catalogue, scanned by americanradiohistory.com)"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text (OCR) and from rendered images of PDF pp. 132-133 (printed 120-121). Day-Brite Industra: extruded aluminium power pack (prewired ballast) over the reflector; 22-1/2 in Alzak (anodised aluminium) reflectors, plain or louvred, or 15 and 21 in porcelain enamel, louver rings and wire guards optional. Holophane Hibay: 'two-piece construction consisting of ventilated socket yoke and covered reflector assembly'. Prismpack II: integral ballast over a prismatic reflector. 'Depth' is the catalogue's column; whether it includes the ballast or yoke is not said (unverified)."
+
+[[ref]]
+url = "https://acomee.com.mx/catalogos/catalogosh/HOLOPHANE%20HID%20HIGH%20NAYS%20PRODUCT%20CATALOG.pdf"
+page = "https://acomee.com.mx/catalogos/catalogosh/HOLOPHANE%20HID%20HIGH%20NAYS%20PRODUCT%20CATALOG.pdf"
+shows = "a maker's sheet: Holophane HID High Bays product catalog (Acuity Brands; a recent catalogue, metal halide), Enduratron and Prismalume dimension drawings: prismatic borosilicate glass reflectors, open or enclosed by a glass lens, with or without a spun-on aluminium cover, under a cast aluminium ballast housing"
+class = "limited"
+licence = "Acuity Brands Lighting (Holophane), all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text and from rendered images of pp. 12 and 22. Modern, but the same Holophane construction the 1960s units used: glass reflector (Endural prismatic borosilicate, wall at least 3 mm), spun aluminium cover option, cast aluminium ballast housing, reflector held by three 5 mm steel rods and a ring of 6 mm rod (Prismalume). The 'enclosed optic' closes the bowl with glass; the lens's own size is not given."
+
+[[ref]]
+url = "https://www.lamptech.co.uk/Documents/Manuals/OsramSylvania%20-%20Engineering%20Bulletin%20-%20Mercury%20-%201996%20US.pdf"
+page = "https://www.lamptech.co.uk/Documents/Manuals/OsramSylvania%20-%20Engineering%20Bulletin%20-%20Mercury%20-%201996%20US.pdf"
+shows = "a measurement: Osram Sylvania Engineering Bulletin, High Intensity Discharge, Mercury Lamps (SFA-HID-MEREB-0696, 1996): construction, history, designations and performance tables with bulb shape and maximum overall length"
+class = "limited"
+licence = "Osram Sylvania, all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text. H33GL-400/DX: 400 W, BT-37 bulb, mogul base, MOL 11-1/2 in, LCL 7 in, 'Brite White Deluxe' coating. The outer bulb is borosilicate (hard) glass, its inner surface coated with a white phosphor; the brass base has a date-recording feature. 'The first high-pressure mercury lamp, similar to the ones used today, was introduced in 1934 in the 400-watt size.' Bulb designations give the maximum diameter in eighths of an inch."
+
+[[ref]]
+url = "https://media.distributordatasolutions.com/Sylvania/v1/files/File_Product_Information_Bulletin_-_Product_Information_Bulletin__Mercury_Lamps_Family_69445.pdf"
+page = "https://media.distributordatasolutions.com/Sylvania/v1/files/File_Product_Information_Bulletin_-_Product_Information_Bulletin__Mercury_Lamps_Family_69445.pdf"
+shows = "a measurement: Sylvania Product Information Bulletin, Mercury Lamps (family 69445): ordering table and a dimension table (MOL, LCL, bulb diameter) per bulb shape"
+class = "limited"
+licence = "Osram Sylvania (LEDVANCE), all rights reserved"
+sampled = false
+sha1 = ""
+notes = "Limited: looked at only, no SHA-1. Read in the PDF text. 69450 H33GL-400/DX, 400 W, ED37 (where the 1996 bulletin says BT-37: the same lamp and sizes; that ED37 renames the BT37 outline is unverified), mogul, 4000 K, coated. Dimensions for ED37: MOL 11.5 in, LCL 7.0 in, bulb diameter 4.63 in."
+
+[[ref]]
+url = "https://electriclamps.emilspec.com/A-A-2223/index.html"
+page = "https://electriclamps.emilspec.com/A-A-2223/index.html"
+shows = "a measurement: US federal Commercial Item Description A-A-2223, Lamp, Mercury Vapor (Trade No. H33GL-400/C), General Services Administration, 25 July 1984 (transcribed on a page)"
+class = "free"
+licence = "Public domain (US federal government work), General Services Administration"
+sampled = false
+sha1 = ""
+notes = "A document only read; the page is a third-party transcription. Bulb BT-37 or E37, 400 W, mogul screw base, brass; maximum overall length 11-5/16 in (287 mm), measured to ANSI C78.386. NSN 6240-00-617-1035. Slightly shorter than the 11-1/2 in the makers give (refs 10, 11): a maximum, not a nominal."
+
+[[measure]]
+what = "reflector diameter, Day-Brite Industra 400 W mercury, Alzak (anodised aluminium), 1970"
+value = "22-1/2 in (572 mm)"
+ref = 8
+
+[[measure]]
+what = "reflector diameter, Day-Brite Industra 400 W mercury, porcelain enamel, 1970"
+value = "15 in (381 mm) or 21 in (533 mm)"
+ref = 8
+
+[[measure]]
+what = "reflector diameter x depth, Holophane Hibay No. 640 (one 400 W mercury lamp, without ballast), 1970"
+value = "21-1/2 x 17-1/4 in (546 x 438 mm)"
+ref = 8
+
+[[measure]]
+what = "diameter x depth, Holophane Prismpack II with integral ballast, one 400 W mercury lamp: wide, broad and medium distributions / intensive and narrow, 1970"
+value = "15-1/2 x 22 in (394 x 559 mm) / 21-1/2 x 21-3/8 in (546 x 543 mm)"
+ref = 8
+
+[[measure]]
+what = "glass reflector mouth diameter / overall height / ballast housing height, Holophane Enduratron (modern), small and large optic"
+value = "480 mm (18.9 in) / 591 mm (23.25 in) / 269 mm (10.6 in); 590 mm (23.25 in) / 651 mm (25.62 in) / 269 mm"
+ref = 9
+
+[[measure]]
+what = "prismatic borosilicate glass reflector, minimum wall thickness (Holophane)"
+value = "3 mm (0.13 in)"
+ref = 9
+
+[[measure]]
+what = "reflector support (Holophane Prismalume, open optic): rods / bottom retaining ring"
+value = "three steel rods of at least 5 mm (0.19 in) / concentric rings of at least 6 mm (0.22 in) steel rod"
+ref = 9
+
+[[measure]]
+what = "400 W mercury lamp H33GL-400/DX, BT-37: maximum overall length (MOL) / light centre length (LCL)"
+value = "11-1/2 in (292 mm) / 7 in (178 mm)"
+ref = 10
+
+[[measure]]
+what = "BT-37 bulb, maximum diameter (37 eighths of an inch, by the designation)"
+value = "4-5/8 in (117 mm)"
+ref = 10
+
+[[measure]]
+what = "ED37 (BT37) 400 W mercury lamp: MOL / LCL / bulb diameter"
+value = "11.5 in (292 mm) / 7.0 in (178 mm) / 4.63 in (118 mm)"
+ref = 11
+
+[[measure]]
+what = "H33GL-400 lamp, maximum overall length (federal CID A-A-2223, 1984)"
+value = "11-5/16 in (287 mm)"
+ref = 12
+
+[[palette]]
+what = "spun aluminium reflector, inside, satin, lamp off, daylight (estimated from photo: 60 x 30 px patch at 560,380, 960 px wide)"
+srgb = [193, 185, 183]
+ref = 1
+
+[[palette]]
+what = "spun aluminium reflector, outside, dusty and oxidised, spinning marks, lit side (estimated from photo: 80 x 38 px at 560,262, 960 px)"
+srgb = [74, 61, 51]
+ref = 1
+
+[[palette]]
+what = "ballast box, dark painted side with louvres (estimated from photo: 55 x 50 px at 305,200, 960 px)"
+srgb = [45, 42, 38]
+ref = 1
+
+[[palette]]
+what = "ballast box, galvanised underside, lit (estimated from photo: 70 x 35 px at 330,285, 960 px)"
+srgb = [166, 156, 158]
+ref = 1
+
+[[palette]]
+what = "spun aluminium reflector, inside, seen from below in shade (estimated from photo: 80 x 50 px at 1280,640, 1920 px wide)"
+srgb = [157, 150, 150]
+ref = 2
+
+[[palette]]
+what = "spun aluminium reflector, outside in shadow (estimated from photo: 120 x 60 px at 1260,500, 1920 px)"
+srgb = [53, 41, 33]
+ref = 2
+
+[[palette]]
+what = "phosphor-coated bulb, unlit, inside the reflector, warm daylight (estimated from photo: 40 x 40 px at 1355,580, 1920 px)"
+srgb = [205, 178, 162]
+ref = 2
+
+[[palette]]
+what = "prismatic glass, lit from inside, side of the bowl off the hot spot (estimated from photo: 80 x 80 px at 320,960, 960 px)"
+srgb = [228, 218, 203]
+ref = 4
+
+[[palette]]
+what = "prismatic glass, lit, far side of the bowl (estimated from photo: 80 x 80 px at 610,920, 960 px)"
+srgb = [217, 205, 189]
+ref = 4
+
+[[palette]]
+what = "prismatic glass, lit, lower rings toward the bottom (estimated from photo: 55 x 45 px at 375,1170, 960 px)"
+srgb = [208, 199, 189]
+ref = 4
+
+[[palette]]
+what = "prismatic glass over the lamp (estimated from photo: 60 x 70 px at 440,1060, 960 px: clips to white)"
+srgb = [254, 253, 252]
+ref = 4
+
+[[palette]]
+what = "die-cast aluminium housing, bare, dull patina, room light (estimated from photo: 80 x 60 px at 360,270, 960 px)"
+srgb = [99, 92, 81]
+ref = 4
+
+[[palette]]
+what = "white porcelain enamel, reflector inside, lit (estimated from photo: 150 x 35 px at 330,755, 960 px; the white wall beside reads 219,219,217)"
+srgb = [216, 218, 203]
+ref = 5
+
+[[palette]]
+what = "white porcelain enamel, reflector inside, shaded side (estimated from photo: 140 x 25 px at 560,750, 960 px)"
+srgb = [187, 186, 171]
+ref = 5
+
+[[palette]]
+what = "reflector outside, glossy dark brown finish (estimated from photo: 130 x 60 px at 430,610, 960 px; material unverified)"
+srgb = [74, 58, 49]
+ref = 5
+
+[[palette]]
+what = "phosphor coating, unlit, lit side of the bulb (estimated from photo: 100 x 80 px at 560,240, 960 px; under-exposed, paper reads 155,159,164)"
+srgb = [135, 132, 130]
+ref = 6
+
+[[palette]]
+what = "phosphor coating, unlit, shaded underside (estimated from photo: 90 x 50 px at 470,430, 960 px)"
+srgb = [110, 109, 107]
+ref = 6
+
+[[palette]]
+what = "phosphor coating, lit (full size: the whole bulb clips, 30 x 50 px at 340,100)"
+srgb = [254, 254, 254]
+ref = 7

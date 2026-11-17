@@ -6,7 +6,7 @@
 //! ceilings are instanced quads at each tile's own height; a vertical
 //! "bulkhead" closes every step between two ceiling heights. Surfaces that
 //! are not tile-sized use world-space UVs (`Patch::ArchUV`).
-use crate::base::records::RegionInfo;
+use crate::base::records::{Lamp, RegionInfo};
 use crate::prelude::*;
 use crate::visuals::lighting::RF_MOSS;
 use std::collections::{HashMap, HashSet};
@@ -524,37 +524,135 @@ impl Game {
         }
     }
 
-    /// Ceiling fixtures follow the local ceiling;
-    /// under a tall slab the tubes hang on rods
+    /// Ceiling fixtures follow the local ceiling; under a tall slab the tubes
+    /// hang on rods, a high-bay on its stem (`world::lamps`). Each kind's
+    /// glass is one instanced mesh (`Game::lamp_meshes`), made here, once the
+    /// floor has settled: a bulkhead within reach of a door the layout made
+    /// is a tube instead (a caged lamp over a door is a cell's)
     pub fn lay_panels(&mut self) {
-        let Some(pm) = self.panel_mesh.clone() else { return };
-        let mut rods: Vec<(f64, f64, f64, f64)> = vec![];
+        use crate::world::lamps::{self, BULKHEAD_DROP, CAGE_CLEAR_OF_DOORS, HIGH_BAY_DROP};
+        if self.panels.is_empty() || !self.lamp_meshes.is_empty() {
+            return;
+        }
+        let doors: Vec<(f64, f64)> =
+            self.layout_things.iter().filter(|t| t.asset.ends_with("_door") || t.asset.ends_with("_doors")).map(|t| (t.x, t.z)).collect();
         for i in 0..self.panels.len() {
-            let (pwx, pwz) = (self.panels[i].wx, self.panels[i].wz);
-            let t = self.t_idx(self.tx(pwx), self.tz(pwz));
+            let (wx, wz, kind) = (self.panels[i].wx, self.panels[i].wz, self.panels[i].kind);
+            let t = self.t_idx(self.tx(wx), self.tz(wz));
             let ceil = self.tile_ceil[t] as f64;
-            let p = &mut self.panels[i];
-            p.f.insert("ceil".into(), ceil);
-            p.y = if ceil > FIXTURE_HANG + 0.3 { FIXTURE_HANG } else { ceil };
-            if p.y < ceil - 0.05 {
-                rods.push((p.wx, p.wz, p.y, ceil));
-            }
-            p.h_boost = (1f64.max(p.y / WALL_H)).dpowf(1.35);
-            let mut m = Mat4::IDENTITY;
-            m.make_translation(p.wx, p.y - 0.04, p.wz);
-            pm.set_matrix_at(i, &m);
-        }
-        // two hanger rods per hung fixture
-        let mut list: Vec<(f64, f64, f64, f64)> = vec![];
-        for &(x, z, y0, y1) in &rods {
-            for s in [-0.8, 0.8] {
-                list.push((x + s, z, y0, y1));
+            let papered = self.region_info[self.region_map[t] as usize].flags & RF_MOSS != 0;
+            let tube = match kind {
+                Lamp::Bulkhead => doors.iter().any(|&(x, z)| (wx - x).dhypot(wz - z) < CAGE_CLEAR_OF_DOORS),
+                // only under a tall bare slab: where moss has papered the
+                // hall with tiles and carpet, or its ceiling is too low to
+                // hang one, a high-bay has no person's reason (the playtest:
+                // "a warehouse lamp under a low tiled lobby ceiling")
+                Lamp::HighBay => papered || ceil <= FIXTURE_HANG + 0.9,
+                Lamp::Tube => false,
+            };
+            if tube {
+                self.panels[i].kind = Lamp::Tube;
             }
         }
+        // each held to its rules (`assets/src/props/high_bay/`, `bulkhead/`):
+        // one they refuse is a tube
+        for i in 0..self.panels.len() {
+            let asset = match self.panels[i].kind {
+                Lamp::HighBay => "high_bay",
+                Lamp::Bulkhead => "bulkhead",
+                Lamp::Tube => continue,
+            };
+            let (x, z) = (self.panels[i].wx, self.panels[i].wz);
+            if self.place_by_layout(asset, "lamp", x, z).is_none() {
+                self.panels[i].kind = Lamp::Tube;
+            }
+        }
+        // one glass mesh a kind present, in a fixed order
+        let kinds: Vec<Lamp> =
+            [Lamp::Tube, Lamp::HighBay, Lamp::Bulkhead].into_iter().filter(|k| self.panels.iter().any(|p| p.kind == *k)).collect();
+        let white = Color::white();
+        let mut rods: Vec<(f64, f64, f64, f64, f64)> = vec![];
+        let mut bodies: Vec<(Lamp, Mat4)> = vec![];
+        for (mi, &kind) in kinds.iter().enumerate() {
+            let ids: Vec<usize> = (0..self.panels.len()).filter(|&i| self.panels[i].kind == kind).collect();
+            let gm = match lamps::parts(kind) {
+                None => instanced_mesh(&self.panel_geo, basic_mat!({ map: &self.tex.light_tex }), ids.len()),
+                Some((_, glass)) => {
+                    let geo = crate::assets::props::prop_part_as_modelled(glass).unwrap_or_else(|| panic!("no prop part {glass}"));
+                    instanced_mesh(&geo, basic_mat!({ color: lamps::glass_hex(kind) }), ids.len())
+                }
+            };
+            for (inst, &i) in ids.iter().enumerate() {
+                let (pwx, pwz) = (self.panels[i].wx, self.panels[i].wz);
+                let t = self.t_idx(self.tx(pwx), self.tz(pwz));
+                let ceil = self.tile_ceil[t] as f64;
+                let p = &mut self.panels[i];
+                p.mesh = mi;
+                p.inst = inst;
+                p.f.insert("ceil".into(), ceil);
+                let m = match kind {
+                    Lamp::Tube => {
+                        p.y = if ceil > FIXTURE_HANG + 0.3 { FIXTURE_HANG } else { ceil };
+                        if p.y < ceil - 0.05 {
+                            for s in [-0.8, 0.8] {
+                                rods.push((p.wx + s, p.wz, p.y, ceil, 0.025));
+                            }
+                        }
+                        let mut m = Mat4::IDENTITY;
+                        m.make_translation(p.wx, p.y - 0.04, p.wz);
+                        m
+                    }
+                    Lamp::HighBay => {
+                        // its rim where a hung tube would be, its hook above
+                        // on a conduit stem to the slab
+                        let hook = if ceil > FIXTURE_HANG + 0.9 { FIXTURE_HANG + 0.66 } else { ceil };
+                        if hook < ceil - 0.05 {
+                            rods.push((p.wx, p.wz, hook, ceil, 0.021));
+                        }
+                        p.y = hook - HIGH_BAY_DROP;
+                        let mut m = Mat4::IDENTITY;
+                        m.make_translation(p.wx, hook, p.wz);
+                        m
+                    }
+                    Lamp::Bulkhead => {
+                        p.y = ceil - BULKHEAD_DROP;
+                        let mut m = Mat4::IDENTITY;
+                        m.make_translation(p.wx, ceil, p.wz);
+                        m
+                    }
+                };
+                p.h_boost = (1f64.max(p.y / WALL_H)).dpowf(1.35);
+                gm.set_matrix_at(inst, &m);
+                gm.set_color_at(inst, &white);
+                if kind != Lamp::Tube {
+                    bodies.push((kind, m));
+                }
+            }
+            self.world.add(&gm);
+            self.lamp_meshes.push(gm);
+        }
+        // the fittings: a high-bay's housing and reflector, a bulkhead's
+        // canopy and guard
+        for kind in [Lamp::HighBay, Lamp::Bulkhead] {
+            let list: Vec<Mat4> = bodies.iter().filter(|(k, _)| *k == kind).map(|(_, m)| *m).collect();
+            let Some((body, _)) = lamps::parts(kind) else { continue };
+            if list.is_empty() {
+                continue;
+            }
+            let geo = crate::assets::props::prop_part_as_modelled(body).unwrap_or_else(|| panic!("no prop part {body}"));
+            let mat = match kind {
+                // spun aluminium, dulled
+                Lamp::HighBay => phong!({ color: 0x8e8f8c, specular: 0x5a5a58, shininess: 30 }),
+                // cast aluminium painted grey, and its guard
+                _ => lambert!({ color: 0x55574f }),
+            };
+            self.add_instanced(&geo, &mat, &list, &|m: &Mat4| *m);
+        }
+        // the hanger rods and stems
         let geo = self.unit_box_geo.clone();
         let mat = self.mats.metal.clone();
-        self.add_instanced(&geo, &mat, &list, &|&(x, z, y0, y1): &(f64, f64, f64, f64)| {
-            Mat4::compose(&Vec3::new(x, (y0 + y1) / 2.0, z), &Quat::IDENTITY, &Vec3::new(0.025, y1 - y0, 0.025))
+        self.add_instanced(&geo, &mat, &rods, &|&(x, z, y0, y1, w): &(f64, f64, f64, f64, f64)| {
+            Mat4::compose(&Vec3::new(x, (y0 + y1) / 2.0, z), &Quat::IDENTITY, &Vec3::new(w, y1 - y0, w))
         });
     }
 

@@ -376,13 +376,11 @@ impl Game {
                 panel_spots.push((x, z));
             }
         }
-        let pm = instanced_mesh(&self.panel_geo, basic_mat!({ map: &self.tex.light_tex }), panel_spots.len());
-        let c_white = Color::white();
-        for (i, &(x, z)) in panel_spots.iter().enumerate() {
-            let mut m4 = Mat4::IDENTITY;
-            m4.make_translation(self.wx(x), self.tile_ceil[self.t_idx(x, z)] as f64 - 0.04, self.wz(z));
-            pm.set_matrix_at(i, &m4);
-            pm.set_color_at(i, &c_white);
+        // (their fittings, one mesh a kind, are made once the floor has
+        // settled: `lay_panels`; each lamp's kind is its zone's, `world::lamps`)
+        self.lamp_meshes.clear();
+        for &(x, z) in &panel_spots {
+            let kind = self.zone_ref(x, z).map_or(Lamp::Tube, |zn| crate::world::lamps::lamp_of(zn.arch));
             let lit = self.region_info[self.region_map[self.t_idx(x, z)] as usize].lit;
             let seed = rand1(100.0);
             let rot = 1.0 - lit.unwrap_or(0.5);
@@ -397,11 +395,10 @@ impl Game {
                 rot,
                 lfo_freq,
                 lfo_phase,
+                kind,
                 ..Default::default()
             });
         }
-        self.world.add(&pm);
-        self.panel_mesh = Some(pm);
         // 0-2 broken ceiling panels — a dead spotlight and a hanging tile piece
         let broken_count = if rnd() < 0.6 { if rnd() < 0.4 { 2 } else { 1 } } else { 0 };
         if broken_count > 0 && self.panels.len() > 3 {
