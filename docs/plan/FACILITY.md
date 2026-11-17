@@ -133,8 +133,11 @@ was built) made these the plan's rules:
    blackout's.
 4. **Drops follow the canon.** Every walkable edge over a drop is railed
    and stops a body; a step-off gap is only the floor hole (rare, one
-   level down, "You fell"); nothing kills by a fall. A drop has a bottom
-   you see (a floor, water), never the void or the black. No ladder or
+   level down, "You fell"); nothing kills by a fall. A drop may keep its
+   bottom out of sight (the developer's answer, below): a railed shaft or
+   pit goes dark at a room's scale, but it is never the void (no fog
+   rises from it, nothing stands across it) nor the broken lift's black
+   (nothing looks back out of it, nothing breathes there). No ladder or
    stair that looks usable and is not, and none that is a way nobody
    recorded.
 5. **One wrong thing a place**, never said: not real decay (stripped is
@@ -175,6 +178,25 @@ And the work:
   against what it replaced, the visual playtest of the levels it touched,
   the full check and the ledger; pushed, with the production build made.
 
+## The developer's answers (2026-11-17)
+
+Asked after F3, before going on:
+
+- **Drops may be dark.** Of the canon's three limits on the brief (no
+  coloured pools, a bottom you see, the rooms' scale), only the second is
+  lifted: a railed shaft or pit may keep its bottom out of sight (rule 4
+  as it stands now). Nothing falls into one; the colours and the scale
+  stay the canon's.
+- **The steel's wear is dressing.** F4's second attempt is not made as a
+  texture: the peeling and rust at a rail's and a pipe's scale come with
+  F11, laid where the forms are (joints, feet, tops) and seen from close
+  cameras on real pipes.
+- **A hall is lit as a hall.** A high-bay hangs in a tall hall whatever
+  it is seen from; the view from an office goes to a person (the
+  playtest).
+- **No windows in the column hall.** The Habitable Zone's halls lose
+  their window rows (F6); windows keep to offices and living quarters.
+
 ## Milestones
 
 | # | Commit | What |
@@ -182,14 +204,14 @@ And the work:
 | F1 | `510096a` | **The research and this plan.** The real places (`../research/facility.md`, a research agent's note, every fact with its source); the code read for what decides a deep floor; the plan read against the canon by a fresh `lore-keeper`, its nine rules adopted (a premise of origin, coloured lamps, bottomless drops, decay as the wrong thing, and the Works' and the Well's things all taken out of it); Portal 2 recorded as a tone reference only. |
 | F2 | `ed29ff8` | **The gates see the deep floors.** `cargo xtask range` measures levels 9 and 13 too (96 levels for 72; the shift is the deep rot the canon asks for, dark share 0.13 to 0.25 and grime 0.35 to 0.58, every purpose still inside its band); the goldens keep every purpose's view of two deep floors (`DEEP` in `xtask/src/shots.rs`): 7's level 6, the Utility Halls' floor, and 4242's level 13, a deep floor of the halls (15 views, frames looked at). Their baselines are the game as it stands, so each remake shows against them. |
 | F3 | `217e7e2` | **The lamps of the era.** A panel has a kind (`Lamp`; `world::lamps`): the rooms' fluorescent tubes; in the Habitable Zone's tall bare halls an enclosed 400 W mercury high-bay (a spun-aluminium reflector 560 mm across, its prismatic glass bowl lit, a cool white), on a conduit stem; on the Utility Halls' crown a vapour-tight jar lamp (a cast canopy, a 100 mm jar, its guard: a filament's warm white), never within 1.6 m of a door the layout made (a cell's lamp). Two dossiers (`assets/src/props/high_bay/`, `bulkhead/`; 20 references, 12 free; the Day-Brite reflector of 1970 572 mm, the jar fixture's guard 106 mm), their parts (`lamps.py`), each held to its rules where the layout hangs it ("lamp"). Every kind fails on the tubes' own draws, so no floor's frame stream moved: a tube stutters, a high-bay's arc drops out and restrikes, warming up from dim, a filament dims and comes back; each pooled spot lit its lamp's colour. The playtest's question: the jar lamp obvious in its corridors; the high-bay obvious in tall concrete halls and "a warehouse lamp under a low tiled lobby ceiling" where moss had papered a hall, so it hangs only under a tall bare slab. Blind (two rounds): the jar lamp and the close high-bay preferred every time, the tubes where a hall is seen from an office (twice). The visual playtest of a hall and a tunnel: the jar's guard fought its glass (fixed). `LORE.md` and `STYLE.md` (the lamps in their places' rows, *Each lamp is its kind*). The hum stays every lamp's ballast until F13. |
-| F4 | | **Painted and rusted steel**, from free photographs (also `MILESTONES.md` 16), worn at a rail's and a pipe's scale; each other surface comes with the milestone that first uses it (shotcrete, its bolts and mesh, and liner plate with F5; the two-tone wall with F6; floor plate and bar grating with F7; efflorescence and rust bloom with F11). Tried once (2026-11-17): a 1 m photographed coat (Poly Haven `green_metal_rust`) on the Works' metalwork changed its frames by 0.0-0.2%, near-identical, and was not kept (`MILESTONES.md` 16 says what it taught). |
+| F4 | | **Folded into F11** (the developer's answer): painted and rusted steel worn at a rail's and a pipe's scale (also `MILESTONES.md` 16). Each other surface comes with the milestone that first uses it (shotcrete, its bolts and mesh, and liner plate with F5; the two-tone wall with F6; floor plate and bar grating with F7; efflorescence and rust bloom with F11). Tried once as a texture (2026-11-17): a 1 m photographed coat (Poly Haven `green_metal_rust`) on the Works' metalwork changed its frames by 0.0-0.2%, near-identical, and was not kept (`MILESTONES.md` 16 says what it taught). |
 | F5 | | **The Utility Halls** in their canon's shape (shoulder-wide, bulging, low): shotcrete and liner plate, bulkheads, cable trays and pipe runs; torn note 32 and their rows. |
-| F6 | | **The Habitable Zone** as a column hall (its puddles still with no source): two-tone walls, white high-bays, standing water; torn note 31 and its rows; whether its windows stay (`WINDOWS.md`). |
-| F7 | | **Height in the rooms**: walls and ground in one floor (`build_solids_leaning`), drops with a floor or water you see, catwalks over them, railed to the code and stopping a body; the walkable and reachable gates over them (`level_sweep`). |
+| F6 | | **The Habitable Zone** as a column hall (its puddles still with no source): two-tone walls, white high-bays, standing water; torn note 31 and its rows; no window rows in its halls (the developer's answer; `WINDOWS.md`). |
+| F7 | | **Height in the rooms**: walls and ground in one floor (`build_solids_leaning`), drops with a floor or water below, or railed and dark (rule 4), catwalks over them, railed to the code and stopping a body; the walkable and reachable gates over them (`level_sweep`). |
 | F8 | | **The vault**, a new archetype: an arched gallery at a gallery's real size, its one wrong thing. |
 | F9 | | **The pit hall**, a new archetype: a hall of open tanks and sumps with water in them, crossed by railed catwalks, its one wrong thing. |
 | F10 | | **The blast door** (the asset pipeline): standing open between the facility's zones, or shut as a barricade; at a real door's size. |
-| F11 | | **The dressing**: pipes in their colours with their own printing, cable trays, ducts, the decay; the `empty` purpose kept sparse. |
+| F11 | | **The dressing**: pipes in their colours with their own printing, cable trays, ducts, the decay; the steel's wear at a rail's and a pipe's scale (F4, `MILESTONES.md` 16: peeling and rust blooms of 0.3-1 m at joints and feet, dust on tops; seen from close cameras); the `empty` purpose kept sparse. |
 | F12 | | **The deep schedule and its names**: the vault and the pit hall in the deep rotation, their names on arrival (the kind of place, never a name, a number or a rule), `LORE.md`'s table. |
 | F13 | | **The sound of the facility**: each lamp's hum from its fixture, room sounds for the new places (kept apart from the Building's), pumps and drips from fixed spots, footsteps on plate and grating. |
 | F14 | | **The review**: a blind review of each archetype against what it replaced, the visual playtest on three seeds of the deep floors, people's playtest, a fresh code review, the bench, the ledger. |

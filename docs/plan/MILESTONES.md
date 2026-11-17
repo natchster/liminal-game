@@ -92,7 +92,7 @@ touched (`visual-playtest`) and, for a change of look, a blind review.
 | # | Milestone |
 |---|---|
 | 15 | **F7, the lamp posts stop a body.** The Stair Halls' and the Works' posts (`building_lamps`, a 7 cm box under each lamp that hangs from no wall) stand 35 cm off the edge a body walks along, and a body walks through them (the record's camera `s4242 L2_1031_at`). A real post stops you: its box goes into the solids where the post is stood (`set_solids_now`), the lamp and its light where they are (no light map, golden or draw moves). Gates: the reference levels re-recorded for the solids alone, the level sweep, the pacing bot over the Building's floors, the tour again on levels 2 and 3 (the clips at the posts gone, the stands now stopped by them) |
-| 16 | **F4, the Building's metalwork a picture of its own.** The Works' rails, posts, pipes and flanges, the lamp posts and the cell door's hood and plaque are flat paint among photographed concrete and granite (the cell door's leaf, frame and wheel and the exit door are the asset pipeline's since `docs/plan/DOORS.md` D1 and D3, their enamel painted from their palettes). The props' settled look laid on them was not preferred (VP10: after 0, before 2, tie 5). A painted-steel picture from a CC0 photograph through `build.py` (worn at edges and foot), mapped as the Building's photographs are; kept only if a blind review prefers it (`visual-review`, the record's cameras). Tried again with the facility's F4 (2026-11-17, `FACILITY.md`): Poly Haven's `green_metal_rust` (CC0, 1 m a repeat), its green graded out to a light grey each paint tints (the tint raised by the map's linear mean, 0.571, so a paint keeps its albedo), its rust found by red over green and laid back as a dark brown, the coat's wear drawn out 2.2 times, world-mapped (`world_uv_material`) on the rails, posts, pipes, flanges and lamp posts: the tour's plain flags in the Works fell from 34 to 3, and the frames from the Works' tour cameras changed by 0.0-0.2% of their pixels (near-identical: a review could only tie), so not kept. What reads as plastic is the scale of the even forms (a perfect cylinder one colour for metres): it wants wear at a rail's and a pipe's scale (peeling patches and rust blooms of 0.3-1 m, at joints and feet, dust on tops), from a more worn photograph or laid by the forms themselves |
+| 16 | **F4, the Building's metalwork a picture of its own** (with the facility's F11 since the developer's answer, 2026-11-17). The Works' rails, posts, pipes and flanges, the lamp posts and the cell door's hood and plaque are flat paint among photographed concrete and granite (the cell door's leaf, frame and wheel and the exit door are the asset pipeline's since `docs/plan/DOORS.md` D1 and D3, their enamel painted from their palettes). The props' settled look laid on them was not preferred (VP10: after 0, before 2, tie 5). A painted-steel picture from a CC0 photograph through `build.py` (worn at edges and foot), mapped as the Building's photographs are; kept only if a blind review prefers it (`visual-review`, the record's cameras). Tried again with the facility's F4 (2026-11-17, `FACILITY.md`): Poly Haven's `green_metal_rust` (CC0, 1 m a repeat), its green graded out to a light grey each paint tints (the tint raised by the map's linear mean, 0.571, so a paint keeps its albedo), its rust found by red over green and laid back as a dark brown, the coat's wear drawn out 2.2 times, world-mapped (`world_uv_material`) on the rails, posts, pipes, flanges and lamp posts: the tour's plain flags in the Works fell from 34 to 3, and the frames from the Works' tour cameras changed by 0.0-0.2% of their pixels (near-identical: a review could only tie), so not kept. What reads as plastic is the scale of the even forms (a perfect cylinder one colour for metres): it wants wear at a rail's and a pipe's scale (peeling patches and rust blooms of 0.3-1 m, at joints and feet, dust on tops), from a more worn photograph or laid by the forms themselves |
 | 17 | **F5, the photographs at inside corners.** A facade photograph (one repeat in 16 m) seen from 35 cm beside a finer one is magnified to blotches, and its marks repeat corner after corner. The Building's kinds have no close-range detail (`photo::detail_for`); give them one, first trying the rooms' concrete detail mapped onto them, else a CC0 photograph through `build.py detail`; kept only if a blind review at reachable corners prefers it (the record's three corner cameras) |
 
 The repository's structure (GitHub issues
@@ -175,21 +175,20 @@ R1–R4 and at the end, a code review.
 The facility (`FACILITY.md`), queued on 2026-11-17: the deeper floors of
 the rooms given the shape of mid-century underground plant, from real
 places (`../research/facility.md`), under the canon's nine rules (its
-*The plan*); the Lobby and the office floors as they are. After F5 and
+*The plan*, rule 4 eased by the developer's answers); the Lobby and the office floors as they are. After F5 and
 F10, a code review.
 
 | # | Milestone |
 |---|---|
-| F4 | Painted and rusted steel worn at a rail's and a pipe's scale (`MILESTONES.md` 16, tried once on 2026-11-17: near-identical, not kept); the other surfaces come with the milestones that first use them |
 | F5 | The Utility Halls in their canon's shape, the facility's surfaces, lamps and runs |
 | review D | Code review of F2–F5 |
 | F6 | The Habitable Zone as a column hall |
-| F7 | Height in the rooms: walls and ground in one floor, drops with a bottom you see, railed catwalks over them |
+| F7 | Height in the rooms: walls and ground in one floor, drops railed (a bottom seen, or dark: the developer's answer), catwalks over them |
 | F8 | The vault (a new archetype) |
 | F9 | The pit hall (a new archetype) |
 | F10 | The blast door (the asset pipeline) |
 | review E | Code review of F6–F10 |
-| F11 | The dressing: pipes in their colours and their own printing, trays, ducts, the decay |
+| F11 | The dressing: pipes in their colours and their own printing, trays, ducts, the decay, and the steel's wear (F4 folded in, `MILESTONES.md` 16) |
 | F12 | The deep schedule and its names |
 | F13 | The sound of the facility |
 | F14 | The review: blind, the visual playtest on three seeds, people's playtest, the bench, the ledger |
