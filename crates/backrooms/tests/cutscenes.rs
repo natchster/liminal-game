@@ -923,7 +923,7 @@ fn a_death_draws_what_a_death_always_drew() {
 fn a_break_off_far_from_your_eyes_dips_through_black() {
     let c = game::cutscene::get("shaft").unwrap().clone();
     let mut g = common::new_game();
-    let s = g.cutscene_stage("broken_elevator:7:9:away").unwrap();
+    let s = g.cutscene_stage("broken_elevator:7:10:away").unwrap();
     let tr = g.run_cutscene(&c, &s, &RunOpts { danger_at: Some(2.5), ..Default::default() }, &mut |_, _| {});
     assert!(tr.log.iter().any(|l| l.starts_with("broken off") && l.ends_with("(dip)")), "{:?}", tr.log);
     let p = contract(&c, &tr);

@@ -17,7 +17,13 @@ fn level_with(powered: bool) -> (Game, usize) {
         g.run_seed = k.wrapping_mul(2654435761) ^ 0x7E2D;
         for level in [5, 6, 8] {
             g.init_level(level);
-            if let Some(i) = g.vending.iter().position(|m| m.powered == powered) {
+            // (one lit through the test's first seconds: in its dark beat a
+            // machine rightly shows nothing, rule 1)
+            let lit_beat = |m: &game::core_props::vending::Machine| {
+                let (on, off, phase) = m.state.rhythm;
+                !m.powered || on <= 0.0 || phase.rem_euclid(on + off) + 12.0 < on
+            };
+            if let Some(i) = g.vending.iter().position(|m| m.powered == powered && lit_beat(m)) {
                 g.state = "playing".into();
                 return (g, i);
             }

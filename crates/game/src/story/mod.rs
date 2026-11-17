@@ -278,7 +278,7 @@ impl Game {
             return None;
         }
         let mut r = SplitMix64::new(self.current_seed, STORY_SALT);
-        let walls_beside = |x: i32, z: i32| DIRS.iter().filter(|(dx, dz)| self.is_wall_tile(x + dx, z + dz)).count();
+        let walls_beside = |x: i32, z: i32| DIRS.iter().filter(|(dx, dz)| self.is_hang_wall(x + dx, z + dz)).count();
         // her camp: well away from both ends, off the straight way but not
         // far off it, against a wall (in a corner or a dead end if she could)
         // (on the Building's floors she camped in a cell: the shelter there)
@@ -287,7 +287,7 @@ impl Game {
             let mut c = vec![];
             for z in 0..self.h {
                 for x in 0..self.w {
-                    if self.building.is_some() && !cells.contains(&(x, z)) {
+                    if (self.building.is_some() && !cells.contains(&(x, z))) || self.is_drop_tile(x, z) {
                         continue;
                     }
                     let (a, b) = (ds[idx((x, z))], de[idx((x, z))]);
@@ -328,7 +328,7 @@ impl Game {
             }
         }
         if sides.is_empty() {
-            sides = DIRS.iter().copied().filter(|(dx, dz)| self.is_wall_tile(camp.0 + dx, camp.1 + dz)).collect();
+            sides = DIRS.iter().copied().filter(|(dx, dz)| self.is_hang_wall(camp.0 + dx, camp.1 + dz)).collect();
         }
         let wall = if sides.is_empty() { (0, -1) } else { sides[((r.next() * sides.len() as f64) as usize).min(sides.len() - 1)] };
 
@@ -401,7 +401,7 @@ impl Game {
         let mut out = vec![];
         let mut used: std::collections::HashSet<(i32, i32)> = walk.iter().copied().collect();
         let idx = |p: (i32, i32)| (p.1 * self.w + p.0) as usize;
-        let walls_beside = |x: i32, z: i32| DIRS.iter().filter(|(dx, dz)| self.is_wall_tile(x + dx, z + dz)).count();
+        let walls_beside = |x: i32, z: i32| DIRS.iter().filter(|(dx, dz)| self.is_hang_wall(x + dx, z + dz)).count();
         for _ in 0..self.false_trails_due() {
             let mut branches = vec![];
             for i in 4..walk.len().saturating_sub(6) {

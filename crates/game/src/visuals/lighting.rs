@@ -533,6 +533,11 @@ impl Game {
             let g = self.ground.get((v.floor() as i32 * self.w + u.floor() as i32) as usize)?;
             return g.walkable().then(|| self.floor_y_at(x, z));
         }
+        // a drop's floor, its water's or its dark's (`world::drops`), off
+        // its catwalk's walkway
+        if let Some(y) = self.drop_floor_at(x, z) {
+            return Some(y);
+        }
         match &self.pool_bounds {
             Some(p) if x > p.min_x && x < p.max_x && z > p.min_z && z < p.max_z => Some(crate::core_props::tail::POOL_FLOOR),
             _ => Some(0.0),

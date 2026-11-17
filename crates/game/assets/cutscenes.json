@@ -513,9 +513,9 @@
       ],
       "stages": [
         "broken_elevator:4242:4",
-        "broken_elevator:7:9",
+        "broken_elevator:7:10",
         "broken_elevator:9001:7",
-        "broken_elevator:7:9:away"
+        "broken_elevator:7:10:away"
       ],
       "then": "back",
       "world": "live"

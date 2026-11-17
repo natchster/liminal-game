@@ -246,6 +246,10 @@ pub struct Game {
     /// `world::placement_rules::Game::place_by_layout`), each with its rule
     pub layout_things: Vec<crate::world::placement_rules::LayoutThing>,
     pub pool_bounds: Option<PoolBounds>,
+    /// The floor's drops and what each of its tiles is of them
+    /// (`world::drops`: 0 none, a pit's, a catwalk's)
+    pub drops: Vec<crate::world::drops::Drop>,
+    pub drop_tiles: Vec<u8>,
     pub papers: Vec<PaperPile>,
     pub lore_notes: Vec<LoreNote>,
     pub safe_room: Option<SafeRoom>,
@@ -890,6 +894,8 @@ impl Game {
             barricades: vec![],
             layout_things: vec![],
             pool_bounds: None,
+            drops: vec![],
+            drop_tiles: vec![],
             papers: vec![],
             lore_notes: vec![],
             safe_room: None,
@@ -1320,6 +1326,11 @@ impl Game {
     #[inline]
     pub fn is_wall_tile(&self, x: impl Num, z: impl Num) -> bool {
         !self.in_grid(x, z) || self.tiles[self.t_idx(x, z)] == 1
+    }
+    /// A wall tile a thing can stand against or hang on: not a drop's pit,
+    /// which is a wall tile of the grid with no wall (`world::drops`)
+    pub fn is_hang_wall(&self, x: impl Num, z: impl Num) -> bool {
+        self.is_wall_tile(x, z) && !(self.in_grid(x, z) && self.drop_tiles.get(self.t_idx(x, z)).is_some_and(|&d| d != 0))
     }
     /// The height of the floor under world point (x, z): 0 on the rooms; on
     /// the Building's floors the tile's floor, or along a stair's run

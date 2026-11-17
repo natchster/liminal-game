@@ -211,6 +211,10 @@ impl Game {
     pub(crate) fn mark_at(&self, walk: &[(i32, i32)], step: usize, kind: MarkKind, r: &mut SplitMix64) -> Option<PlanMark> {
         let n = walk.len();
         let t = walk[step];
+        // (none on a drop's catwalk: nothing is put on one; before any draw)
+        if self.is_drop_tile(t.0, t.1) {
+            return None;
+        }
         let (cx, cz) = (self.wx(t.0), self.wz(t.1));
         let ahead = walk[(step + 2).min(n - 1)];
         let (ax, az) = (self.wx(ahead.0), self.wz(ahead.1));
@@ -218,7 +222,7 @@ impl Game {
         let on = if step + 1 < n { way(t, walk[step + 1]) } else { way(walk[step.saturating_sub(1)], t) };
         let came = if step > 0 { way(walk[step - 1], t) } else { on };
         let floor = |x: f64, z: f64, yaw: f64| PlanMark { step, kind, x, z, y: 0.0, yaw, normal: (0.0, 0.0) };
-        let walls_beside = [(0, -1), (1, 0), (0, 1), (-1, 0)].iter().filter(|(dx, dz)| self.is_wall_tile(t.0 + dx, t.1 + dz)).count();
+        let walls_beside = [(0, -1), (1, 0), (0, 1), (-1, 0)].iter().filter(|(dx, dz)| self.is_hang_wall(t.0 + dx, t.1 + dz)).count();
         match kind {
             MarkKind::Sheet => {
                 let (x, z) = (cx + r.range(-0.35, 0.35), cz + r.range(-0.35, 0.35));

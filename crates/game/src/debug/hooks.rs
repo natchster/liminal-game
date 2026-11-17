@@ -780,6 +780,12 @@ impl Game {
             "propStats": { "parts": crate::assets::props::prop_part_names().len() },
             "objects": self.prop_list(),
             "barricades": self.barricade_tiles,
+            // the drops cut into the floor (`world::drops`): tiles, bottom, catwalk
+            "drops": self.drops.iter().map(|d| json!({
+                "x0": d.x0, "z0": d.z0, "x1": d.x1, "z1": d.z1,
+                "bottom": format!("{:?}", d.bottom),
+                "catwalk": d.catwalk.map(|(along_x, k)| json!({ "alongX": along_x, "at": k })),
+            })).collect::<Vec<_>>(),
         })
     }
 

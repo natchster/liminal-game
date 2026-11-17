@@ -225,3 +225,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-17, on top of a2d5e30: frames: 9 shots. Reason: F6 (docs/plan/FACILITY.md): the Habitable Zone as a column hall, its walls and columns painted two-tone, flared capitals and drop panels, a bare formwork slab; seen in its own views and from neighbouring floors
 
 - 2026-11-17, on top of a2d5e30: look anchors: 7_L5_overgrown_atrium, 7_L6_spawn, 7_L6_storage_hall. Reason: F6: the halls' walls painted (pale grey above a dark band) are lighter than the bare formwork they replace: luminance +0.02-0.03, shadow -0.07; within the STYLE bands (range --look)
+
+- 2026-11-18, on top of e2949cc: frames: 15 shots. Reason: F7: both floors gained railed drops (7 L6 one of water, 4242 L13 one with a floor), whose tiles are walls of the grid: the core props draw anew round them, and the storage hall's view stands elsewhere (the longest open run is shorter); no wall off a drop changes (level_sweep a_drop_changes_no_wall_but_its_own). Looked at: frames and error maps, props moved, the halls' architecture the same

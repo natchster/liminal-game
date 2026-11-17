@@ -411,3 +411,156 @@ fn census() {
     }
     println!("{with_pockets} of {n} levels have unreachable open tiles ({tiles} tiles)");
 }
+
+/// The drops cut into a floor (`world::drops`), on 7's level 13, which has
+/// every kind (a floor, water and the dark below, catwalks over some): a body
+/// is stopped over each drop and keeps to each catwalk's walkway, the
+/// walkway is reached from her way in, and the floor keeps no pocket
+#[test]
+fn drops_stop_a_body_and_their_catwalks_are_walked() {
+    // walkable, no pocket the sweep does not know, repeatable
+    check_level(7, 13).unwrap();
+    let mut g = new_game();
+    build(&mut g, 7, 13);
+    assert!(g.drops.len() >= 3, "7's level 13 has its drops: {}", g.drops.len());
+    let r = sweep(&g);
+    let gw = g.w * FINE;
+    let cell = |x: f64, z: f64| -> usize {
+        let i = ((x - g.wx(0) + 2.0) / 0.25) as i32;
+        let j = ((z - g.wz(0) + 2.0) / 0.25) as i32;
+        (j * gw + i) as usize
+    };
+    let mut walked = 0;
+    for d in &g.drops {
+        // its corner tile is always the drop's (a catwalk runs down its middle)
+        let (px, pz) = (g.wx(d.x0), g.wz(d.z0));
+        assert!(g.circle_hits_wall(px, pz, PLAYER_R), "a body over the drop at ({px}, {pz})");
+        let (cx, cz) = ((g.wx(d.x0) + g.wx(d.x1)) / 2.0, (g.wz(d.z0) + g.wz(d.z1)) / 2.0);
+        if let Some((along_x, _)) = d.catwalk {
+            // its walkway clear from mouth to mouth (a catwalk is a wall tile
+            // of the grid: the sweep samples the floor round it), and the
+            // floor beyond each mouth reached
+            let (a, b) = if along_x { (g.wx(d.x0) - 2.0, g.wx(d.x1) + 2.0) } else { (g.wz(d.z0) - 2.0, g.wz(d.z1) + 2.0) };
+            let mut t = a;
+            while t <= b {
+                let (x, z) = if along_x { (t, cz) } else { (cx, t) };
+                assert!(!g.circle_hits_wall(x, z, PLAYER_R), "the catwalk's walkway is clear at ({x}, {z})");
+                t += 0.25;
+            }
+            for e in [a - 0.5, b + 0.5] {
+                let (x, z) = if along_x { (e, cz) } else { (cx, e) };
+                assert!(r.reached[cell(x, z)], "the floor at the catwalk's mouth ({x}, {z}) is reached");
+            }
+            // and its rails stop a body a step off the walkway
+            let (sx, sz) = match d.catwalk {
+                Some((true, _)) => (cx, cz + 1.2),
+                _ => (cx + 1.2, cz),
+            };
+            assert!(g.circle_hits_wall(sx, sz, PLAYER_R), "beside the walkway at ({sx}, {sz})");
+            walked += 1;
+        }
+    }
+    assert!(walked >= 1, "a catwalk walked");
+}
+
+/// Nothing is put on a drop or hung on its edge (`world::drops`): no
+/// placed thing meets its block (but a lamp hung high over it), no
+/// creature starts in it, no barricade closes its catwalk. Every deep
+/// floor of a few runs that has drops.
+#[test]
+fn nothing_is_put_on_a_drop_or_hung_on_its_edge() {
+    let mut levels = 0;
+    let mut problems = vec![];
+    for seed in [7u32, 77, 202, 4242, 11, 23, 31, 58, 99, 130] {
+        for level in [5, 6, 8, 9, 11, 13] {
+            let mut g = new_game();
+            build(&mut g, seed, level);
+            if g.drops.is_empty() {
+                continue;
+            }
+            levels += 1;
+            let d = g.level_dump();
+            let (w, h) = (g.w as f64, g.h as f64);
+            let rects: Vec<(f64, f64, f64, f64)> = g
+                .drops
+                .iter()
+                .map(|p| {
+                    (
+                        (p.x0 as f64 - w / 2.0) * 4.0,
+                        (p.z0 as f64 - h / 2.0) * 4.0,
+                        (p.x1 as f64 + 1.0 - w / 2.0) * 4.0,
+                        (p.z1 as f64 + 1.0 - h / 2.0) * 4.0,
+                    )
+                })
+                .collect();
+            let meets = |x0: f64, z0: f64, x1: f64, z1: f64| {
+                rects.iter().any(|r| x1 > r.0 - 0.1 && x0 < r.2 + 0.1 && z1 > r.1 - 0.1 && z0 < r.3 + 0.1)
+            };
+            for o in d["objects"].as_array().unwrap() {
+                let f = |k: &str, i: usize| o[k][i].as_f64().unwrap();
+                if f("min", 1) > 2.0 {
+                    continue;
+                }
+                if meets(f("min", 0), f("min", 2), f("max", 0), f("max", 2)) {
+                    problems.push(format!(
+                        "seed {seed} L{level}: {} by {} at ({:.1}, {:.1})",
+                        o["kind"],
+                        o["placer"],
+                        f("pos", 0),
+                        f("pos", 2)
+                    ));
+                }
+            }
+            for e in d["entities"].as_array().unwrap() {
+                let (x, z) = (e["x"].as_f64().unwrap(), e["z"].as_f64().unwrap());
+                if meets(x, z, x, z) {
+                    problems.push(format!("seed {seed} L{level}: a {} starts at a drop ({x:.1}, {z:.1})", e["type"]));
+                }
+            }
+            for &t in &g.barricade_tiles {
+                let (x, z) = ((t as i32) % g.w, (t as i32) / g.w);
+                if g.is_drop_tile(x, z) {
+                    problems.push(format!("seed {seed} L{level}: a barricade on a drop's tile ({x}, {z})"));
+                }
+            }
+        }
+    }
+    assert!(levels >= 8, "floors with drops: {levels}");
+    assert!(problems.is_empty(), "{} on or at a drop:\n{}", problems.len(), problems.join("\n"));
+}
+
+/// A drop changes no wall but its own: the solids of a floor with drops,
+/// but for the drops' own tiles, are the solids the same floor has with
+/// them filled in (a column on a drop's edge keeps its shape: the blind
+/// review saw one thinned to a post when the drop's tiles were walls).
+#[test]
+fn a_drop_changes_no_wall_but_its_own() {
+    for (seed, level) in [(7u32, 6), (7, 13), (77, 8)] {
+        let mut g = new_game();
+        build(&mut g, seed, level);
+        assert!(!g.drops.is_empty(), "seed {seed} L{level} has drops");
+        let owned = |s: &game::level::archgen::Solids, skip: &[u8]| {
+            let mut v: Vec<Vec<u32>> = (0..s.count)
+                .map(|b| s.box_at(b))
+                .filter(|bx| skip.get(bx[6] as usize).copied().unwrap_or(0) == 0)
+                .map(|bx| bx.iter().map(|f| f.to_bits()).collect())
+                .collect();
+            v.sort();
+            v
+        };
+        let skip = g.drop_tiles.clone();
+        let (with, _) = g.build_solids_leaning(None).unwrap();
+        let a = owned(&with, &skip);
+        for (t, &d) in skip.iter().enumerate() {
+            if d != 0 {
+                g.tiles[t] = 0;
+            }
+        }
+        g.drops.clear();
+        g.drop_tiles = vec![0; g.tiles.len()];
+        let (without, _) = g.build_solids_leaning(None).unwrap();
+        let b = owned(&without, &skip);
+        assert_eq!(a.len(), b.len(), "seed {seed} L{level}: boxes off the drops");
+        assert!(a == b, "seed {seed} L{level}: a wall off the drops changed");
+    }
+}

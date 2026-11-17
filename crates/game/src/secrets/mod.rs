@@ -301,7 +301,7 @@ impl Game {
     /// from the arrival, the door and her camp, and reached from the arrival.
     fn off_the_way(&self, ds: &[i32], way: &[bool], near_walk: &[bool], corner: Option<(i32, i32)>, x: i32, z: i32) -> bool {
         let i = self.t_idx(x, z);
-        if self.is_wall_tile(x, z) || ds[i] < 0 || way[i] || near_walk[i] {
+        if self.is_wall_tile(x, z) || self.is_drop_tile(x, z) || ds[i] < 0 || way[i] || near_walk[i] {
             return false;
         }
         let spawn = (self.tx(self.spawn_pos.x), self.tz(self.spawn_pos.z));

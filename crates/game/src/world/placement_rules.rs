@@ -422,7 +422,7 @@ impl Game {
         let dist = self.bfs_open(sx, sz);
         let reach_tile = |x: f64, z: f64| {
             let (tx, tz) = (self.tx(x), self.tz(z));
-            self.in_grid(tx, tz) && !self.is_wall_tile(tx, tz) && dist[self.t_idx(tx, tz)] >= 0
+            self.in_grid(tx, tz) && !self.is_wall_tile(tx, tz) && !self.is_drop_tile(tx, tz) && dist[self.t_idx(tx, tz)] >= 0
         };
         // a body can stand within reach of it
         let reachable = |x: f64, z: f64| {
@@ -487,11 +487,11 @@ impl Game {
                 On::Floor => {
                     for tz in 0..self.h {
                         for tx in 0..self.w {
-                            if self.is_wall_tile(tx, tz) || dist[self.t_idx(tx, tz)] < 0 {
+                            if self.is_wall_tile(tx, tz) || self.is_drop_tile(tx, tz) || dist[self.t_idx(tx, tz)] < 0 {
                                 continue;
                             }
                             let (cx, cz) = (self.wx(tx), self.wz(tz));
-                            let wall = |dx: i32, dz: i32| self.is_wall_tile(tx + dx, tz + dz);
+                            let wall = |dx: i32, dz: i32| self.is_hang_wall(tx + dx, tz + dz);
                             // (a wall, not a pillar: the wall tile runs on
                             // across the way; things by a lone pillar read as
                             // left in the open)

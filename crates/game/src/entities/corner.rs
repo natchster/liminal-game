@@ -343,7 +343,7 @@ fn chosen(g: &Game) -> Option<((i32, i32, i32, i32), crate::base::rng::SplitMix6
     for z in 1..g.h - 1 {
         for x in 1..g.w - 1 {
             let i = g.t_idx(x, z);
-            if g.is_wall_tile(x, z) || way[i] || from_start[i] < 8 || from_exit[i] < 5 || from_exit[i] < 0 {
+            if g.is_wall_tile(x, z) || g.is_drop_tile(x, z) || way[i] || from_start[i] < 8 || from_exit[i] < 5 || from_exit[i] < 0 {
                 continue;
             }
             if let Some(fc) = &from_camp
@@ -353,7 +353,7 @@ fn chosen(g: &Game) -> Option<((i32, i32, i32, i32), crate::base::rng::SplitMix6
                 continue;
             }
             for (cx, cz) in [(1, 1), (1, -1), (-1, 1), (-1, -1)] {
-                if !(g.is_wall_tile(x + cx, z) && g.is_wall_tile(x, z + cz) && g.is_wall_tile(x + cx, z + cz)) {
+                if !(g.is_hang_wall(x + cx, z) && g.is_hang_wall(x, z + cz) && g.is_hang_wall(x + cx, z + cz)) {
                     continue;
                 }
                 // quieter the further from the way (its open neighbours few)

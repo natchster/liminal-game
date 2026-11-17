@@ -69,7 +69,8 @@ impl Game {
                             return None;
                         }
                         let t = (nz * w + nx) as usize;
-                        if self.tiles[t] != 0 || !self.bare_hall(t) {
+                        // (a drop cut into the hall is its floor still)
+                        if (self.tiles[t] != 0 && self.drop_tiles.get(t).is_none_or(|&d| d == 0)) || !self.bare_hall(t) {
                             return None;
                         }
                         let c = self.tile_ceil[t] as f64;

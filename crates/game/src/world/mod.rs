@@ -13,7 +13,7 @@
 //! [`cell_knock`]: what knocks at your cell while the fog is up; [`lamps`]:
 //! the rooms' lamps by kind; [`lining`]: the Utility Halls' lining and runs,
 //! and the surface each zone is drawn in; [`halls`]: the Habitable Zone's
-//! capitals and puddles.
+//! capitals; [`drops`]: the railed drops cut into some halls' floors.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod angled;
 pub mod arch;
@@ -22,6 +22,7 @@ pub mod build;
 pub mod building;
 pub mod building_dress;
 pub mod cell_knock;
+pub mod drops;
 pub mod far_figures;
 pub mod halls;
 pub mod instancing;
@@ -413,6 +414,9 @@ impl Game {
         self.building = None;
         self.layout = Some(layout);
         self.has_layout = true;
+        // (the drops are this floor's own: planned in `build_world`)
+        self.drops.clear();
+        self.drop_tiles.clear();
         // provisional solids so anything placed during the prop pass collides
         // with the real partitions; rebuilt with anchors once props are down
         self.set_solids_now(None);
@@ -443,16 +447,27 @@ impl Game {
             };
             return Some((archgen::build_ground_solids_with(self.w, self.h, CELL, &self.ground, &extra), vec![]));
         }
+        // the walls as the floor was before its drops were cut (a column on a
+        // drop's edge keeps its shape: not a wall run with the drop's
+        // tiles), then the drops' voids (`world::drops`)
+        let uncut: Vec<u8>;
+        let tiles = if self.drops.is_empty() {
+            &self.tiles
+        } else {
+            uncut = self.tiles.iter().zip(&self.drop_tiles).map(|(&t, &d)| if d != 0 { 0 } else { t }).collect();
+            &uncut
+        };
         let view = archgen::LayoutView {
             w: self.w,
             h: self.h,
             cell: l.cell,
-            tiles: &self.tiles,
+            tiles,
             zone_of: &l.zone_of,
             tile_flags: Some(&l.tile_flags),
             zones: &l.zones,
         };
         let s = archgen::build_solids_view(&view, &archgen::SolidsOpts { anchors, ceil: Some(&self.tile_ceil), cell: CELL });
+        let s = self.drop_solids(s);
         Some(crate::world::angled::lean(&view, s, self.current_seed))
     }
 
@@ -970,7 +985,7 @@ impl Game {
     }
     /// (one `choice` draw) — position + outward normal against an adjacent wall
     pub fn wall_adj_spot(&self, x: i32, z: i32) -> Option<WallSpot> {
-        let dirs: Vec<(i32, i32)> = N4.iter().copied().filter(|&(dx, dz)| self.is_wall_tile(x + dx, z + dz)).collect();
+        let dirs: Vec<(i32, i32)> = N4.iter().copied().filter(|&(dx, dz)| self.is_hang_wall(x + dx, z + dz)).collect();
         if dirs.is_empty() {
             return None;
         }

@@ -336,7 +336,7 @@ impl Game {
         for z in 1..self.h - 1 {
             for x in 1..self.w - 1 {
                 let d = from.get(self.t_idx(x, z)).copied().unwrap_or(-1);
-                if self.is_wall_tile(x, z) || d < 0 || (d as f64) <= self.w as f64 * 0.25 {
+                if self.is_wall_tile(x, z) || self.is_drop_tile(x, z) || d < 0 || (d as f64) <= self.w as f64 * 0.25 {
                     continue;
                 }
                 if self.e_region_light_at(x, z) < DARK {
@@ -399,7 +399,9 @@ impl Game {
         if count == 0 {
             return;
         }
-        let far = |g: &Game, x: i32, z: i32| g.tiles[g.t_idx(x, z)] == 0 && dist_from_spawn[g.t_idx(x, z)] as f64 > g.w as f64 * 0.45;
+        let far = |g: &Game, x: i32, z: i32| {
+            g.tiles[g.t_idx(x, z)] == 0 && !g.is_drop_tile(x, z) && dist_from_spawn[g.t_idx(x, z)] as f64 > g.w as f64 * 0.45
+        };
         let mut taken: Vec<(i32, i32)> = vec![];
         for (i, kind) in self.ecology().into_iter().filter(|k| *k != "reader").enumerate() {
             let fits = |g: &Game, x: i32, z: i32| match kind {

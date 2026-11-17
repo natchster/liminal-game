@@ -116,11 +116,12 @@ impl Game {
     fn openings(&self) -> Vec<Opening> {
         let Some(s) = self.solids.as_ref() else { return vec![] };
         let spawn = (self.spawn_pos.x, self.spawn_pos.z);
+        // (a drop's catwalk is no opening: its sides are no walls)
         let open = |x: i32, z: i32| self.in_grid(x, z) && !self.is_wall_tile(x, z);
         let mut out = vec![];
         for z in 1..self.h - 1 {
             for x in 1..self.w - 1 {
-                if !open(x, z) {
+                if !open(x, z) || self.is_drop_tile(x, z) {
                     continue;
                 }
                 let along_x = open(x + 1, z) && open(x - 1, z) && !open(x, z + 1) && !open(x, z - 1);

@@ -622,7 +622,7 @@ pub fn place(g: &mut Game) -> Option<usize> {
             for dx in -6..=6 {
                 let (x, z) = (px + dx, pz + dz);
                 // (beside the paper, not standing on it)
-                if (dx == 0 && dz == 0) || !g.in_grid(x, z) || g.is_wall_tile(x, z) {
+                if (dx == 0 && dz == 0) || !g.in_grid(x, z) || g.is_wall_tile(x, z) || g.is_drop_tile(x, z) {
                     continue;
                 }
                 let i = g.t_idx(x, z);

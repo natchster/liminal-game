@@ -627,7 +627,39 @@ fn what_the_layout_places_keeps_its_rules() {
         }
         at
     });
-    let made: std::collections::BTreeSet<(String, String)> = floors.into_iter().flatten().collect();
+    let mut made: std::collections::BTreeSet<(String, String)> = floors.into_iter().flatten().collect();
+    // a rare one may miss these four runs (the door to nowhere: one floor in
+    // about twenty-five): look for it on more runs' floors before saying
+    // nothing makes it
+    let missing = |made: &std::collections::BTreeSet<(String, String)>| {
+        pr::all()
+            .iter()
+            .filter(|a| a.by == By::Layout)
+            .flat_map(|a| a.rules.iter().map(move |r| (a.name.clone(), r.at.clone())))
+            .filter(|k| !made.contains(k) && !NOT_YET.iter().any(|&(n, at)| n == k.0 && at == k.1))
+            .count()
+    };
+    for chunk in (0..48u32).map(|k| k.wrapping_mul(2654435761) ^ 0xD00F).collect::<Vec<_>>().chunks(8) {
+        if missing(&made) == 0 {
+            break;
+        }
+        let more: Vec<Vec<(String, String)>> = std::thread::scope(|sc| {
+            let hs: Vec<_> = chunk
+                .iter()
+                .flat_map(|&seed| (5..=12).map(move |l| (seed, l)))
+                .map(|(seed, l)| {
+                    std::thread::Builder::new()
+                        .stack_size(64 << 20)
+                        .spawn_scoped(sc, move || {
+                            floor(seed, l).layout_things.iter().map(|t| (t.asset.to_string(), t.at.to_string())).collect()
+                        })
+                        .unwrap()
+                })
+                .collect();
+            hs.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
+        });
+        made.extend(more.into_iter().flatten());
+    }
     for a in pr::all().iter().filter(|a| a.by == By::Layout) {
         for r in &a.rules {
             let key = (a.name.clone(), r.at.clone());

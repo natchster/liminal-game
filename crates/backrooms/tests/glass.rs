@@ -666,8 +666,15 @@ fn a_blind_rattles_and_what_hears_comes_to_look() {
     assert!(g.creature(hound).unwrap().brain.mem.heard.is_none());
     g.blind_use(b.win, h, true);
     let heard = g.creature(hound).unwrap().brain.mem.heard.expect("the Hound did not hear the blind");
+    // a rough guess (`open_point`): the open floor nearest the blind, a
+    // tile off at most (where the glass is cut into a wall a tile thick,
+    // the floor in front of it, 3.1 m on 2654414945's level 6)
     let (gx, gz) = (heard.0, heard.1);
-    assert!((gx - f.x).dhypot(gz - f.z) < 3.0, "it heard it somewhere else ({gx:.1}, {gz:.1})");
+    let want = g.open_point(f.x, f.z);
+    assert!(
+        (gx - want.0).abs() < 1e-9 && (gz - want.1).abs() < 1e-9 && (gx - f.x).dhypot(gz - f.z) < CELL,
+        "it heard it somewhere else ({gx:.1}, {gz:.1})"
+    );
 }
 
 #[test]

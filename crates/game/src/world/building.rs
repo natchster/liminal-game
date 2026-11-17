@@ -23,7 +23,7 @@ pub const CELL_LAMP_Y: f64 = 2.55;
 
 /// A box from `a` to `b` (its length along them, tilted with them),
 /// `lift` over their line, `h` high and `t` thick
-fn along(a: Vec3, b: Vec3, lift: f64, h: f64, t: f64) -> Mat4 {
+pub(crate) fn along(a: Vec3, b: Vec3, lift: f64, h: f64, t: f64) -> Mat4 {
     let (dx, dy, dz) = (b.x - a.x, b.y - a.y, b.z - a.z);
     let run = (dx * dx + dz * dz).sqrt().max(1e-9);
     let len = (run * run + dy * dy).sqrt();

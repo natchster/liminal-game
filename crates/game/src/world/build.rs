@@ -286,6 +286,12 @@ impl Game {
             }
         }
         self.build_lap("regions", bt0);
+        // the drops cut into some halls' floors (`world::drops`, its own
+        // stream): their tiles walls before anything is built on the floor
+        self.plan_drops();
+        if !self.drops.is_empty() {
+            self.set_solids_now(None);
+        }
         // a floor of the Building is built by its own passes (`world::building`)
         if self.building.is_some() {
             self.build_building(bt0);
@@ -335,11 +341,16 @@ impl Game {
 
         // ---- floor: under open tiles and under the walkable part of wall tiles ----
         self.build_floors(&pool_reserved);
-        // outer skirt so the edge doesn't reveal void
-        let skirt = mesh(plane_geo!(self.w as f64 * CELL * 2.0, self.h as f64 * CELL * 2.0), lambert!({ color: 0x1a140a }));
-        skirt.rotation().x = -PI / 2.0;
-        skirt.position().y = -0.02;
-        self.world.add(&skirt);
+        // outer skirt so the edge doesn't reveal void (open over the drops)
+        if self.drops.is_empty() {
+            let skirt = mesh(plane_geo!(self.w as f64 * CELL * 2.0, self.h as f64 * CELL * 2.0), lambert!({ color: 0x1a140a }));
+            skirt.rotation().x = -PI / 2.0;
+            skirt.position().y = -0.02;
+            self.world.add(&skirt);
+        } else {
+            let skirt = self.skirt_round_drops(lambert!({ color: 0x1a140a }));
+            self.world.add(&skirt);
+        }
         // walls and ceilings are built after the props (see `settle_props`)
 
         let dist = self.bfs(1, 1);
@@ -461,6 +472,8 @@ impl Game {
         self.build_lap("themed_props", bt0);
         // reconcile the props with the real walls, then build the walls themselves
         self.settle_props(prop_start);
+        // nothing left hung over a drop or stood against its rail (`world::drops`)
+        self.clear_drops_of_props(prop_start);
         self.build_lap("settle", bt0);
         // the barricades, in the real openings of the final walls, on a
         // stream of their own (`core_props::barricade`): before her trail,
@@ -513,6 +526,8 @@ impl Game {
         self.lay_runs(&props);
         // the Habitable Zone's capitals and standing water (`world::halls`)
         self.lay_halls();
+        // the drops cut into the floor: their sides, bottoms, rails, catwalks
+        self.lay_drops();
         drop(props);
         self.freeze_static();
         // repeated static parts become one instanced mesh per 10×10-tile chunk; #noinstance keeps them apart

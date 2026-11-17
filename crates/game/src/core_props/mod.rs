@@ -103,7 +103,7 @@ impl PropsCtx {
     }
 }
 pub fn has_wall_n(g: &Game, c: &Cand) -> bool {
-    [(1, 0), (-1, 0), (0, 1), (0, -1)].iter().any(|&(dx, dz)| g.is_wall_tile(c.x + dx, c.z + dz))
+    [(1, 0), (-1, 0), (0, 1), (0, -1)].iter().any(|&(dx, dz)| g.is_hang_wall(c.x + dx, c.z + dz))
 }
 
 /// A builder: `(g, cx) -> Built`; builders take no other arguments.
@@ -422,7 +422,7 @@ impl Game {
         for z in 1..g.h - 1 {
             for x in 1..g.w - 1 {
                 let d = dist[g.t_idx(x, z)];
-                if g.tiles[g.t_idx(x, z)] == 0 && d > 8 {
+                if g.tiles[g.t_idx(x, z)] == 0 && d > 8 && !g.is_drop_tile(x, z) {
                     cx.cands.push(Cand { x, z, d });
                 }
             }

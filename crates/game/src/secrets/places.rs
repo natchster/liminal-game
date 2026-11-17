@@ -17,7 +17,7 @@ const TILE_CELL: (f64, f64) = (-4.0 / 3.0, -1.0);
 
 impl Game {
     fn walls_beside(&self, t: (i32, i32)) -> usize {
-        SIDES.iter().filter(|(dx, dz)| self.is_wall_tile(t.0 + dx, t.1 + dz)).count()
+        SIDES.iter().filter(|(dx, dz)| self.is_hang_wall(t.0 + dx, t.1 + dz)).count()
     }
 
     /// The zone's archetype and purpose at a tile ("office", "office wing")
@@ -138,7 +138,7 @@ impl Game {
                     return None;
                 }
                 // the corner between two walls of it (or the middle of a corridor)
-                let w: Vec<(i32, i32)> = SIDES.iter().copied().filter(|(dx, dz)| self.is_wall_tile(t.0 + dx, t.1 + dz)).collect();
+                let w: Vec<(i32, i32)> = SIDES.iter().copied().filter(|(dx, dz)| self.is_hang_wall(t.0 + dx, t.1 + dz)).collect();
                 let corner = w.iter().flat_map(|a| w.iter().map(move |b| (*a, *b))).find(|(a, b)| a.0 * b.0 + a.1 * b.1 == 0);
                 let (x, z) = match (thing, corner) {
                     (Thing::Envelope, _) | (_, None) => (cx + r.range(-0.5, 0.5), cz + r.range(-0.5, 0.5)),

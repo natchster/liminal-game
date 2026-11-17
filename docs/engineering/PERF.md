@@ -178,6 +178,23 @@ from before `03e4b80` benches out loud.
   the bottles in view) and -7k on 4242 L4, far within the budget. Against
   A6, A7 the same or lower on 11 of the 12 GPU p99s (one shared water
   copy, no render order). Kept; record a run on a quiet machine.
+- **The facility's F5** (`a2d5e30+` in the history, flagged by F7's full
+  check, the third run after it): peak triangles on level 6, the Utility
+  Halls, 202k → 437k (7 L6) and 243k → 499k (4242 L6). The tunnels' lining
+  is meshes now (the haunches at their crease, each a merged mesh with its
+  own UVs and its row of bolts) and the runs on the straight corridors'
+  crown (pipes on hangers, couplings, cable trays and their risers). Draw
+  calls +50 on those floors, the GPU p50 as it was (1.07 → 1.12 ms, 1.04 →
+  1.16); far within the 2.5M triangle budget. Kept.
+- **F7, the drops** (not recorded: on 2026-11-18 the machine ran another
+  session's Blender at eight cores and a virtual machine, load 38; record
+  a run on a quiet one). Against `e2949cc`, the counts, which no load moves:
+  every floor of the bench the same but 7 L6, the one with a drop (of
+  water). There, draw calls 566 → 864 and triangles 437k → 401k: the drop's
+  own are a handful (its sides, bottom, water and two instanced railings),
+  the rest the floor's placement drawn anew round the drop's tiles (meshes
+  1733 → 1817), seen differently by the bench's cameras; 864 is 7 L4-L5's
+  876-913, within the 2000 budget.
 
 ## What the work found
 

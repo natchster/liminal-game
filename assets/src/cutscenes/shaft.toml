@@ -19,7 +19,9 @@ blend_in = 0.4
 # (back to your eyes as your body faces: 180 deg when the look began behind
 # you, so slowly)
 blend_out = 2.1
-stages = ["broken_elevator:4242:4", "broken_elevator:7:9", "broken_elevator:9001:7", "broken_elevator:7:9:away"]
+# (7's level 10: its level 9 lost its broken lift when a drop was cut into
+# its hall, FACILITY F7, and its placement drew anew)
+stages = ["broken_elevator:4242:4", "broken_elevator:7:10", "broken_elevator:9001:7", "broken_elevator:7:10:away"]
 finally = ["shaft_after"]
 
 [bars]

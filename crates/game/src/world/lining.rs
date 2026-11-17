@@ -141,6 +141,8 @@ pub(crate) struct Face {
     pos: Vec<f32>,
     nrm: Vec<f32>,
     uv: Vec<f32>,
+    /// a colour a vertex, when it has them (a dark drop's sides going black)
+    col: Vec<f32>,
     pub(crate) idx: Vec<u32>,
 }
 
@@ -153,9 +155,35 @@ impl Face {
         i
     }
 
+    /// A vertex with its colour (every vertex of a face has one or none)
+    pub(crate) fn vert_c(&mut self, p: Vec3, n: Vec3, uv: (f64, f64), c: f64) -> u32 {
+        self.col.extend([c as f32, c as f32, c as f32]);
+        self.vert(p, n, uv)
+    }
+
+    /// A quad by its corners, turned to face along `n`
+    pub(crate) fn quad(&mut self, q: [Vec3; 4], n: Vec3, uv: impl Fn(&Vec3) -> (f64, f64), c: Option<[f64; 4]>) {
+        let (a, b, cc) = (q[0], q[1], q[2]);
+        let e1 = Vec3::new(b.x - a.x, b.y - a.y, b.z - a.z);
+        let e2 = Vec3::new(cc.x - a.x, cc.y - a.y, cc.z - a.z);
+        let x = e1.crossed(e2);
+        let order = if x.x * n.x + x.y * n.y + x.z * n.z >= 0.0 { [0, 1, 2, 3] } else { [0, 3, 2, 1] };
+        let base = (self.pos.len() / 3) as u32;
+        for k in order {
+            match c {
+                Some(cs) => self.vert_c(q[k], n, uv(&q[k]), cs[k]),
+                None => self.vert(q[k], n, uv(&q[k])),
+            };
+        }
+        self.idx.extend([base, base + 1, base + 2, base, base + 2, base + 3]);
+    }
+
     /// The mesh of it in `mat`, bounded
     pub(crate) fn mesh(self, mat: &Mat) -> Obj {
         let geo = Geo::new();
+        if !self.col.is_empty() {
+            geo.set_color(self.col, 3);
+        }
         geo.set_position(self.pos).set_normal(self.nrm).set_uv(self.uv).set_index(self.idx);
         geo.compute_bounding_box();
         geo.g().compute_bounding_sphere();

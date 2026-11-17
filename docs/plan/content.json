@@ -1582,6 +1582,30 @@
     },
     {
       "checks": [
+        "shots:7_L6_storage_hall",
+        "shots:4242_L13_spawn",
+        "test:backrooms/level_sweep",
+        "test:game/world_build",
+        "test:backrooms/reference_levels",
+        "test:backrooms/materials"
+      ],
+      "id": "facility/drops",
+      "kind": "system",
+      "last_checked": "2026-11-18",
+      "last_human_review": null,
+      "name": "railed drops cut into the Habitable Zone's halls (docs/plan/FACILITY.md F7): pits of a floor, standing water or the dark, the Works' railing round them, catwalks of bar grating over the lit ones",
+      "notes": "world::drops; a pit's tiles are walls of the grid whose solid is a void (it stops a body), a catwalk's are floor (creatures cross it too); the walls built as before the cut; nothing put on a drop or hung at its edge (Game::is_hang_wall, Game::is_drop_tile). level_sweep holds it: drops_stop_a_body_and_their_catwalks_are_walked, nothing_is_put_on_a_drop_or_hung_on_its_edge, a_drop_changes_no_wall_but_its_own. Judged blind twice against the halls before (tests/review/verdicts.jsonl: 3 to 2 with a tie, the columns at a drop's edge broken; then 6 of 6 with them kept). The lore-keeper read the canon twice. The visual playtest docs/research/playtests/visual/2026-11-18-drops.md. No person has looked yet.",
+      "passes": {
+        "shots:7_L6_storage_hall": true,
+        "shots:4242_L13_spawn": true,
+        "test:backrooms/level_sweep": true,
+        "test:game/world_build": true,
+        "test:backrooms/reference_levels": true,
+        "test:backrooms/materials": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/cutscenes",
         "test:game/player"
       ],

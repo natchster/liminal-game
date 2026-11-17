@@ -186,7 +186,9 @@ under "Level *n*" on the level card: `docs/design/UI.md`.)
 
 Every level ends at an exit door, unless it is one of the run's *anomaly*
 levels (see *Anomalies*). There, the door leads somewhere else, or the whole
-level is something else.
+level is something else. On about a third of the rooms' floors a hole
+opens in the floor, unrailed: step onto it and you fall one level ("You
+fell"), the one opening of the rooms you fall through.
 
 **Nothing points the way.** There is no compass and no map. The door is the
 furthest place from where you arrive, and it is found the way a real door is:
@@ -351,8 +353,19 @@ wall thickness, doorways, materials and props.
   wide grid, each flared at its head into a drop panel under the slab;
   high-bay lamps hanging on rods (enclosed mercury lamps, a cool white disc
   under each bowl); puddles with no source, its one wrong thing; and a
-  long reverb. No windows. Where the moss has papered a hall it keeps the
-  Lobby's look, with no capitals.
+  long reverb. In some halls, from level 5 down, a block of the floor is
+  cut away, two or three tiles across: its sides bare concrete, three
+  metres down to a floor or to standing water (no source for the puddles:
+  it lies below them), or down until its bottom is out of sight, a room's
+  depth and no more. Railed all round in the Works' railing, lent (a yellow
+  top rail at the waist, a steel mid rail and posts, a yellow toe board);
+  across some whose bottom is seen, a catwalk of bar grating, railed both
+  sides, that whatever walks crosses as you do. Nobody falls in: its edge
+  stops a body: the one opening you fall through is the floor's hole (*The
+  descent*). Out of a dark one
+  nothing looks back, nothing breathes, no fog rises, and nothing stands
+  across it. No windows. Where the moss has papered a hall it keeps the
+  Lobby's look, with no capitals and no pit.
 - **The Poolrooms** (Level 37, rare and deep). White tile everywhere, too many
   pillars. Acoustics that cut off too early.
 - **Blackout zones** (any level). The lights are dead and there is no hum and

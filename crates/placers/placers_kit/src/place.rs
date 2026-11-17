@@ -23,7 +23,8 @@ pub fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
     let mut v = vec![];
     for z in 1..g.h - 1 {
         for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
+            // (a drop's catwalk is floor nothing is put on: `world::drops`)
+            if g.tiles[g.t_idx(x, z)] == 0 && !g.is_drop_tile(x, z) {
                 v.push((x, z));
             }
         }

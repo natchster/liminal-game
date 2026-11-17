@@ -165,7 +165,9 @@ impl Game {
         let b = &s.boxes;
         for k in s.start[t]..s.start[t + 1] {
             let o = s.items[k as usize] as usize * 8;
-            if (b[o + 4] as f64) <= 0.0
+            // (a drop's void hides no ceiling: `world::drops`)
+            if b[o + 7] as i32 != crate::level::archgen::BOX_VOID
+                && (b[o + 4] as f64) <= 0.0
                 && (b[o] as f64) <= x + 1e-4
                 && (b[o + 1] as f64) <= z + 1e-4
                 && (b[o + 2] as f64) >= x + 1.0 - 1e-4
@@ -204,7 +206,8 @@ impl Game {
     pub fn wall_box_parts(&self, s: &crate::level::archgen::Solids, b: usize) -> Vec<(String, [f64; 6])> {
         let o = b * 8;
         let f = |k: usize| s.boxes[o + k] as f64;
-        if f(7) as i32 == crate::level::archgen::BOX_ANGLED {
+        // (a drop's void is drawn as the drop, `world::drops`)
+        if matches!(f(7) as i32, crate::level::archgen::BOX_ANGLED | crate::level::archgen::BOX_VOID | crate::level::archgen::BOX_FLOOR) {
             return vec![];
         }
         self.box_parts([f(0), f(1), f(2), f(3), f(4), f(5)], f(6) as usize, f(7) as i32)
@@ -311,7 +314,7 @@ impl Game {
         for z in 0..self.h {
             for x in 0..self.w {
                 let t = self.t_idx(x, z);
-                if pool_reserved.contains(&t) {
+                if pool_reserved.contains(&t) || self.drop_tiles.get(t).copied().unwrap_or(0) != 0 {
                     continue;
                 }
                 if self.tiles[t] == 1
