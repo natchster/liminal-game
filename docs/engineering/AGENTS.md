@@ -27,10 +27,28 @@ when it is current, so an edit never waits on cargo's build lock).
 
 | Event | What it does |
 |---|---|
-| before an edit | refuses an edit outside this repository (`CLAUDE.md`, invariant 4) and a hand edit of recorded reference data (fixtures, reference levels, goldens): those change only through REGEN, rerecord or `--accept`; and, while the session works from GitHub words that are not all maintainers' (the trust tool's task marker), an edit of the protected paths ([`TRUST.md`](TRUST.md)) |
-| after an edit | rustfmt on the edited `.rs` file; a file it cannot parse is reported back |
-| on stop | `cargo xtask check --fast` when the code changed since the last passing check; a failure sends the agent back with its `ERROR` lines (at most three times in a row) |
+| before an edit | refuses an edit outside this repository (`CLAUDE.md`, invariant 4) and a hand edit of recorded reference data (fixtures, reference levels, goldens; in a worktree inside the checkout, measured from that worktree): those change only through REGEN, rerecord or `--accept`; and, while the session works from GitHub words that are not all maintainers' (the trust tool's task marker), an edit of the protected paths ([`TRUST.md`](TRUST.md)) |
+| after an edit | notes an edited code file in the session's ledger, in the checkout holding it; rustfmt on the edited `.rs` file; a file it cannot parse is reported back |
+| on stop | `cargo xtask check --fast` in each checkout (the main one or a worktree) where this session's own edits are uncommitted and the code has not passed as it stands; a failure sends the agent back with its `ERROR` lines, its own files apart from others' (at most three times in a row) |
 | after compaction | recent commits, uncommitted files and the roadmap's progress re-injected |
+
+Several sessions work at once, in one checkout or in worktrees of their
+own, and each answers only for what it wrote. The ledger
+(`target/xtask/hook/sessions/<session>.edited`) holds the code files a
+session edited with the edit tools and has not yet seen pass; a session
+whose ledger names no uncommitted code stops without a check, whatever
+another session leaves half done beside it. A session that has edits of
+its own is checked with everything beside them: a failure lists its own
+files apart from the rest, which it does not change to make the check pass
+(it says so instead). A file changed only through the shell (a `sed -i`, a
+re-record) is in no ledger: run the check yourself. One check runs at a time
+in a checkout (`check` holds `target/xtask/check/lock`), and any check of
+the same code is taken, a failure as much as a pass
+(`target/xtask/hook/last-check.json`), so a stop blocked by others' work
+does not wait for the check again. A stop waits and checks for at most
+14 minutes, under the hook's 15; what it could not finish it says, and the
+ledger is kept. When the wrapper cannot rebuild xtask (its sources half
+edited), the binary already built answers, so edits are still noted.
 
 The same file allows `git add`, `git commit` (also in the project
 identity's form, `CLAUDE.md`, *Commits*) and `git push` without a prompt,

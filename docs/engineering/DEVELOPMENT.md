@@ -87,10 +87,15 @@
     only through REGEN / rerecord / accept — and so are the protected paths
     while the session works from others' words (`target/trust/task.json`,
     `docs/engineering/TRUST.md`);
-  * after an edit: rustfmt on the edited `.rs` file;
-  * on stop: `cargo xtask check --fast` when code differs from the last
-    passing check; a failure blocks the stop with its `ERROR` lines, at most
-    three times in a row;
+  * after an edit: the file noted in the session's ledger (when it is code),
+    and rustfmt on the edited `.rs` file;
+  * on stop: `cargo xtask check --fast` in each checkout or worktree where
+    this session's own edits are uncommitted and the code has not passed as
+    it stands; a failure blocks the stop with its `ERROR` lines, at most
+    three times in a row. A session with no uncommitted edits of its own is
+    never stopped by others' work; one that has some is checked with all
+    that lies beside them, and told which files are not its own. One check
+    runs at a time in a checkout (`docs/engineering/AGENTS.md`, *Hooks*);
   * after compaction: recent commits, uncommitted files and the roadmap's
     progress table are re-injected (`CLAUDE.md` itself is re-read anyway).
 * **Layering.** `engine` never depends on `game`; `game` never touches the

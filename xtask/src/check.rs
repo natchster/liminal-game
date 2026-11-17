@@ -14,7 +14,8 @@
 //! `--fast` leaves out the slow suites that play whole levels in real time
 //! (`FAST_SKIP`); they are filtered by name, so the report counts them as
 //! skipped rather than passed. The tests run each in a process of its own on
-//! a pool as wide as the machine (`testpool`).
+//! a pool as wide as the machine (`testpool`). One check runs at a time in a
+//! checkout (`target/xtask/check/lock`); another waits for it.
 use crate::{cargo, flag, opt, root};
 use std::path::Path;
 use std::process::Command;
@@ -64,6 +65,18 @@ pub fn check(args: &[String]) -> Result<(), String> {
     let skip: Vec<&str> = opt(args, "--skip").map_or_default(|s| s.split(',').collect());
     let logs = root().join("target/xtask/check");
     std::fs::create_dir_all(&logs).map_err(|e| format!("{}: {e}", logs.display()))?;
+    // one check at a time in a checkout: two would write the same logs (the
+    // stop hooks of several sessions, or a check run by hand meanwhile)
+    let lock = std::fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(logs.join("lock"))
+        .map_err(|e| format!("{}: {e}", logs.display()))?;
+    if lock.try_lock().is_err() {
+        println!("wait  another check of this checkout is running");
+        lock.lock().map_err(|e| format!("{}: {e}", logs.display()))?;
+    }
 
     let mut steps = vec![];
     let mut fmt = cargo();

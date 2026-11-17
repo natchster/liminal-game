@@ -178,8 +178,10 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
 
 `.claude/settings.json` runs `cargo xtask hook …`: edits outside this
 repository and to recorded fixtures are refused, edited `.rs` files are formatted, and a
-stop runs `cargo xtask check --fast` when code changed (a failure sends you
-back with its `ERROR` lines). See `docs/engineering/DEVELOPMENT.md`.
+stop runs `cargo xtask check --fast` when code *you* edited is uncommitted, in
+whichever worktree you edited it (a failure sends you back with its `ERROR`
+lines, yours apart from other sessions'; with no edits of your own, their work
+never stops you; a change you made only through the shell is yours to check). See `docs/engineering/DEVELOPMENT.md`.
 
 ## Definition of done
 
