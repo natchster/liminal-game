@@ -19,8 +19,8 @@ and the tests' running time checked.
 | W2 | The canon: the way in (`LORE.md`), her research and the door, your voice on the way in as a channel of its own, E.'s *Day 1* and her first page told again, her note by the door; reviewed by `lore-keeper` | done |
 | W3 | The tunnel as the run's start: the mode (`modes/tunnel.rs`), the ring of modules with no end, the door that changes, her note, the door into level 1; New descent from the title; its tests | done |
 | W4 | The look you take: `tunnel_in`, from the street above into the walkway, its contract | done |
-| W5 | Your voice: the persona `you_tunnel`, its lines made and judged, played in order and at what you pass | |
-| W6 | The place's sound: the bars' hum, the road behind the glass going quiet, steps in its reverb, the wind behind the door | |
+| W5 | Your voice: the persona `you_tunnel`, its lines made and judged, played in order and at what you pass | done |
+| W6 | The place's sound: the bars' hum, the road behind the glass going quiet, steps in its reverb, the wind behind the door | done |
 | W7 | Performance (`--bench` of the way in, the game's bench) and the tests' running time, before and after | |
 
 ## Progress
@@ -88,3 +88,31 @@ Stages `tunnel:4242`, `tunnel:7`; its contract in `tests/cutscenes.rs`
 (played, skipped at 20% and 60%, repeated, still, paused, at 30, 60 and
 120 frames a second); goldens `tunnel_in_mid` (on the stairs) and
 `tunnel_open` (the changed door, her note).
+
+**W5** (2026-11-19). Your voice on the way in: the persona `you_tunnel`
+(his voice, `same_as = "you"`, the asides' calm emotions, -19 LUFS) and
+its 26 lines, `use = "way_in"`, which the voice tool and the game now
+know. Made on Chatterbox (104 takes, 7.6 min), judged (5.3 min); two
+lines had no take that passed and were said again (`VOICES.md`, *Your
+voice on the way in*), then all 26 passed (112 takes). The chosen takes
+are 8.1 MB of WAVs. `modes::tunnel_voice` says them: the look's four on
+its clock (let go if a skip passes their time), the walk's thirteen in
+order once your hands are back, each after the last and 2.4 s, and the
+nine reactions once each when their moment comes and nothing else is
+said; it ends at the door. Tests: its order, a skip, a reaction waiting
+its turn (game unit tests); the whole way in said in order, nothing
+twice, her note's word last (`tests/tunnel.rs`); its canon
+(`no_line_on_the_way_in_names_what_the_canon_keeps_unsaid`); heard over
+the tunnel (`listen`: 34 dB over the tunnel's 300-3000 Hz band, peak
+-3.9 dBFS; `target/listen/way_in_voice_4242.wav` for a person's ears).
+
+**W6** (2026-11-19). The place's sound, every sound from where it is
+(`modes::tunnel_sound`): the bars' hum from the nearest bar and your steps
+on the paint in a long hard reverb (the zone `tunnel`, 2.8 s); the cars on
+the road behind the glass, a burst a car, low-passed by the glass, about
+every five seconds at first and every fourteen as the road empties, none
+after 95 s (the voice says it once they have stopped); and once the door
+has changed, cold air breathing out of it every seven seconds, heard
+within 60 m, before it is seen. No draws: when a car comes is a function
+of its count. The bed measured before the first car: -36 dBFS (a floor of
+the rooms' -32).

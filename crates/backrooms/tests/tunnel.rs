@@ -204,3 +204,66 @@ fn a_new_floor_leaves_the_tunnel_cleanly() {
     assert!(!g.in_tunnel && g.tunnel.is_none() && g.world.visible());
     assert!(g.scene.children().iter().all(|o| o.name() != "jahamun"));
 }
+
+#[test]
+fn your_voice_tells_it_in_order_says_nothing_twice_and_ends_at_the_door() {
+    let mut g = through_the_tunnel(4242);
+    // the look's four, on its clock (watched to its end)
+    assert_eq!(&tunnel(&g).voice.said[..], ["look_1", "look_2", "look_3", "look_4"]);
+    // walk on until the door has changed, then on to it and her note
+    g.key_down("KeyA", false);
+    for _ in 0..20 {
+        step(&mut g);
+    }
+    g.key_up("KeyA");
+    g.key_down("KeyW", false);
+    let mut frames = 0;
+    while !tunnel(&g).set.door_changed() {
+        step(&mut g);
+        frames += 1;
+        assert!(frames < 30 * 200);
+    }
+    let z = tunnel(&g).feet[2];
+    let door = tunnel(&g).set.doors().filter(|d| *d < z - 1.0).fold(f64::MIN, f64::max);
+    while tunnel(&g).feet[2] > door + jahamun::NOTE_FROM_DOOR {
+        step(&mut g);
+    }
+    g.key_up("KeyW");
+    for _ in 0..30 * 6 {
+        step(&mut g);
+    }
+    g.key_down("KeyE", false);
+    step(&mut g);
+    g.key_up("KeyE");
+    for _ in 0..30 * 4 {
+        step(&mut g);
+    }
+    let said = tunnel(&g).voice.said.clone();
+    // never twice; the walk's in order; the door seen and her note, then the last word
+    for (i, id) in said.iter().enumerate() {
+        assert!(!said[..i].contains(id), "{id} said twice: {said:?}");
+    }
+    let walk: Vec<&&str> = said.iter().filter(|i| i.starts_with("walk")).collect();
+    let mut sorted = walk.clone();
+    sorted.sort();
+    assert_eq!(walk, sorted, "the walk's lines in order: {said:?}");
+    assert!(walk.len() >= 10, "most of it told on the way: {said:?}");
+    let at = |id: &str| said.iter().position(|i| *i == id);
+    assert!(at("door").is_some() && at("taken").is_some(), "{said:?}");
+    assert!(at("door") < at("taken"), "{said:?}");
+    assert_eq!(said.last(), Some(&"taken"), "after her note, nothing more: {said:?}");
+    // through the door: the voice is the tunnel's, and gone with it
+    g.key_down("KeyW", false);
+    while tunnel(&g).feet[2] > door + 0.3 {
+        step(&mut g);
+    }
+    g.key_up("KeyW");
+    step(&mut g);
+    g.key_down("KeyE", false);
+    step(&mut g);
+    g.key_up("KeyE");
+    for _ in 0..90 {
+        step(&mut g);
+    }
+    assert!(!g.in_tunnel && g.level_num == 1);
+}

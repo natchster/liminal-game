@@ -113,7 +113,7 @@ what they react to happens and nothing else is being said.
 | on the stairs | She said the city goes quiet here. Just the fans, and the cars. |
 | at the arch, under the name | Four hundred and eighty-five meters. It says so on the wall. |
 | walking, in order | She walked it end to end, every night, and wrote down the number. |
-| | Four eighty-five. Four eighty-five. Four eighty-six, the night the wheel slipped. |
+| | Four hundred and eighty-five, every night. Once, four hundred and eighty-six. |
 | | On the twelfth night, she wrote six hundred and eleven. |
 | | She walked it again, the same night. Five hundred and ninety. |
 | | She thought the wheel was broken. She bought another one. |
@@ -132,7 +132,7 @@ what they react to happens and nothing else is being said.
 | the locked door, tried | No. It's locked. |
 | all told, and no door yet | She kept walking. Every night. |
 | the open door, seen | That's it. That's the door from the picture. |
-| her note, near | That's her writing. |
+| her note, near | That's her writing. I'd know it anywhere. |
 | her note, taken | Too late for that. |
 
 ## Her note
@@ -155,8 +155,9 @@ its lines is the thread.
   the ring, the doors, the walk; the engine only).
 - **The glue:** `crates/game/src/modes/tunnel.rs`, a sub-mode of play like
   the Stairwell and the Loop: the level world hidden, the place's own
-  movement, its camera, fog and sound mapped onto the game's, the voice
-  and the door.
+  movement, its camera, fog and sound mapped onto the game's, the door;
+  your voice's order and its reactions (`modes/tunnel_voice.rs`), the
+  cars and the open door's air (`modes/tunnel_sound.rs`).
 - **The look you take:** the cutscene `tunnel_in`
   (`assets/src/cutscenes/tunnel_in.toml`).
 - **The voice:** `assets/src/voice/lines/you_tunnel.toml`, made and judged

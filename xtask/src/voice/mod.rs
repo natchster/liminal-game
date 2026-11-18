@@ -401,8 +401,9 @@ fn voice_problems(voice: Option<&toml::Table>, what: &str, designs: &dyn Fn(&str
 }
 
 /// Where the game plays a voice line (`use`)
-/// (`cry`: `audio::voice::choose_cry`; the rest are your asides',
-/// `audio::asides::Use`, each added as the game comes to play it)
+/// (`cry`: `audio::voice::choose_cry`; `way_in`: your voice on the way in,
+/// `modes::tunnel_voice`; the rest are your asides', `audio::asides::Use`,
+/// each added as the game comes to play it)
 pub const USES: &[&str] = &[
     "cry",
     "arrive",
@@ -421,6 +422,8 @@ pub const USES: &[&str] = &[
     "used",
     "nerve",
     "dark",
+    // the way in's voice (`modes::tunnel_voice`: persona you_tunnel)
+    "way_in",
 ];
 
 /// The synthesis models that say a line (`synth.py`'s); s3tokenizer is a

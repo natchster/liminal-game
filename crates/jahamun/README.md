@@ -198,16 +198,17 @@ game's. What moving in takes:
    the run begins in (`docs/design/WAY_IN.md`, `LORE.md` *The way in*,
    checked by `lore-keeper`; its plan `docs/plan/WAY_IN.md`); a
    `content.json` entry (`story/way_in`); its tests
-   (`crates/backrooms/tests/tunnel.rs`). Still to come there: the look into
-   it, your voice in it, its sound.
+   (`crates/backrooms/tests/tunnel.rs`); the look into it (`tunnel_in`),
+   your voice in it (`you_tunnel`, `modes::tunnel_voice`), its sound (the
+   hum, the cars going quiet, the open door's air: `modes::tunnel_sound`).
 
 ## What is not here yet
 
-Sound (the rules are the game's: every sound from a place, the bars' hum
-beside a bar, the fans, the road behind the glass, steps in a long reverb);
-anything that happens (the set is a place, not a level); the road's
-traffic; trees and the hill's green; the far portal seen from outside (the
+In this binary, sound (the game's way in has its own: the bars' hum, the
+cars behind the glass, steps, the open door's air); the jet fans' roar;
+the road's traffic seen (it is only heard, in the game); trees and the
+hill's green; the far portal seen from outside (the
 gate is shut); the tiles' pillowed glaze catching a highlight each (no
 normals on baked surfaces); the bake's light at its finest only near the
 walkway (8-10 cm; the vault's is 22 cm). The set file and its textures are
-14 MB, embedded in the binary.
+15 MB, embedded in the binary.

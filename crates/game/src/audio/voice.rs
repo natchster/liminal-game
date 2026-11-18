@@ -139,6 +139,33 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "used_phone_wrong_number"),
     wav!("you_aside", "used_vending_stuck"),
     wav!("you_aside", "used_vending_unbelievable"),
+    // your voice on the way in (`modes::tunnel_voice`)
+    wav!("you_tunnel", "look_1"),
+    wav!("you_tunnel", "look_2"),
+    wav!("you_tunnel", "look_3"),
+    wav!("you_tunnel", "look_4"),
+    wav!("you_tunnel", "walk_01"),
+    wav!("you_tunnel", "walk_02"),
+    wav!("you_tunnel", "walk_03"),
+    wav!("you_tunnel", "walk_04"),
+    wav!("you_tunnel", "walk_05"),
+    wav!("you_tunnel", "walk_06"),
+    wav!("you_tunnel", "walk_07"),
+    wav!("you_tunnel", "walk_08"),
+    wav!("you_tunnel", "walk_09"),
+    wav!("you_tunnel", "walk_10"),
+    wav!("you_tunnel", "walk_11"),
+    wav!("you_tunnel", "walk_12"),
+    wav!("you_tunnel", "walk_13"),
+    wav!("you_tunnel", "long"),
+    wav!("you_tunnel", "light"),
+    wav!("you_tunnel", "back"),
+    wav!("you_tunnel", "quiet"),
+    wav!("you_tunnel", "locked"),
+    wav!("you_tunnel", "keep"),
+    wav!("you_tunnel", "door"),
+    wav!("you_tunnel", "note"),
+    wav!("you_tunnel", "taken"),
 ];
 
 /// The lines of the index, in its order
@@ -276,6 +303,10 @@ mod tests {
             let ok = match l.persona.as_str() {
                 CRY_PERSONA => l.use_ == "cry",
                 PERSONA => Use::from_name(&l.use_).is_some(),
+                // your voice on the way in (`modes::tunnel_voice`)
+                crate::modes::tunnel_voice::PERSONA => {
+                    l.use_ == crate::modes::tunnel_voice::USE && crate::modes::tunnel_voice::SUBJECTS.contains(&l.subject.as_str())
+                }
                 _ => false,
             };
             assert!(ok, "{}/{}: use {} is not one the game plays for {}", l.persona, l.id, l.use_, l.persona);
@@ -333,6 +364,49 @@ mod tests {
             }
             assert!(!t.chars().any(|c| c.is_ascii_digit()), "{}: \"{}\" says a number", l.id, l.text);
             assert!(t.split_whitespace().count() <= 8, "{}: \"{}\" is a speech, not an aside", l.id, l.text);
+        }
+    }
+
+    /// Your voice on the way in (`docs/design/LORE.md`, "Your own voice, on
+    /// the way in"): only what you know before the door. No line names her,
+    /// you or the man before her, nor anything of what lies through the
+    /// door (the places, what lives there, the anomalies); numbers are said
+    /// as words (the WAV says what the text says)
+    #[test]
+    fn no_line_on_the_way_in_names_what_the_canon_keeps_unsaid() {
+        const UNSAID: [&str; 22] = [
+            "smiler",
+            "hound",
+            "watcher",
+            "reader",
+            "the face",
+            "level",
+            "exit",
+            "lobby",
+            "the well",
+            "the works",
+            "stair hall",
+            "poolroom",
+            "showroom",
+            "borrowed",
+            "the loop",
+            "stairwell",
+            "elias",
+            "m.",
+            "self-assembly",
+            "scp",
+            "backrooms",
+            "building",
+        ];
+        let says = |t: &str, w: &str| t.match_indices(w).any(|(i, _)| !t[..i].chars().next_back().is_some_and(|c| c.is_alphabetic()));
+        let ours: Vec<Line> = lines().into_iter().filter(|l| l.persona == crate::modes::tunnel_voice::PERSONA).collect();
+        assert!(ours.len() >= 20, "the way in's voice has its lines: {}", ours.len());
+        for l in ours {
+            let t = l.text.to_lowercase();
+            for w in UNSAID {
+                assert!(!says(&t, w), "{}: \"{}\" says {w:?}", l.id, l.text);
+            }
+            assert!(!t.chars().any(|c| c.is_ascii_digit()), "{}: \"{}\" says a number as digits", l.id, l.text);
         }
     }
 

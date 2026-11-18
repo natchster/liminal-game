@@ -18,6 +18,8 @@
 pub mod loop_rooms;
 pub mod stairwell;
 pub mod tunnel;
+pub mod tunnel_sound;
+pub mod tunnel_voice;
 
 use crate::assets::creatures::{creature_geometry, with_cavity_shade};
 use crate::audio::soundscape::{ChildVoice, ReverbPreset, Soundscape, VoiceSlot};

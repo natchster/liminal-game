@@ -1486,3 +1486,30 @@ fn the_vending_machine_is_heard() {
     assert!(peak / bed >= 3.0, "the bang stands out: {:+.1} dB", db(peak / bed));
     save(&format!("vending_{seed}_L{level}"), &r.pcm, &[]);
 }
+
+/// Your voice on the way in (`modes::tunnel_voice`, `docs/design/WAY_IN.md`):
+/// in the tunnel, a few seconds after your hands are yours, the first line
+/// of what you know of her, standing over the place (the bars' hum, a car
+/// behind the glass, your steps) and never clipping.
+/// `target/listen/way_in_voice_4242.wav` is for a person's ears.
+#[test]
+fn the_way_in_is_your_voice_over_the_hum_and_the_cars() {
+    let mut r = start(4242, 1);
+    r.g.debug_tunnel(game::modes::tunnel::START, 0.0, false);
+    // the place before you speak (the first line comes 1.6 s after your hands)
+    play(&mut r, 1.4, |_| {});
+    let at = r.pcm.len() / 2;
+    play(&mut r, 9.0, |g| {
+        g.keys.insert("KeyW".into());
+    });
+    let said = r.g.tunnel.as_ref().expect("in the tunnel").voice.said.clone();
+    assert_eq!(said.first(), Some(&"walk_01"), "{said:?}");
+    let w = windows_band(&r.pcm, 300.0, 3000.0);
+    let bed = median(&w[4..at / WIN]);
+    let voice = w[at / WIN..].iter().copied().fold(0.0, f64::max);
+    let top = r.pcm.iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
+    save("way_in_voice_4242", &r.pcm, &[at as f64 / SR]);
+    println!("{said:?}: {:.1} dB over the tunnel, peak {:.1} dBFS", db(voice / bed), db(top));
+    assert!(voice > bed * 4.0, "your voice should stand 12 dB over the tunnel ({:.1} dB)", db(voice / bed));
+    assert!(top < 0.95, "no clipping ({:.1} dBFS)", db(top));
+}

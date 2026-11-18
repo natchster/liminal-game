@@ -99,3 +99,29 @@ you_aside	used_phone_ring	used	phone	4	99	0.45	dread	Why would it ring for me?
 you_aside	used_phone_wrong_number	used	phone	4	99	0.35	resolve	Wrong number. Has to be.
 you_aside	used_vending_stuck	used	vending	5	99	0.35	resolve	Of course it's stuck.
 you_aside	used_vending_unbelievable	used	vending	5	99	0.35	resolve	Unbelievable.
+you_tunnel	back	way_in	back	1	1	0.6	dread	Where's the way out? It was right there.
+you_tunnel	door	way_in	door	1	1	0.55	dread	That's it. That's the door from the picture.
+you_tunnel	keep	way_in	keep	1	1	0.35	resolve	She kept walking. Every night.
+you_tunnel	light	way_in	light	1	1	0.5	dread	That light was out before.
+you_tunnel	locked	way_in	locked	1	1	0.3	resolve	No. It's locked.
+you_tunnel	long	way_in	long	1	1	0.5	wary	That's four eighty-five. It should be ending by now.
+you_tunnel	look_1	way_in	look	1	1	0.3	resolve	This is where she came. Every night, for nineteen nights.
+you_tunnel	look_2	way_in	look	1	1	0.3	resolve	Eleven o'clock, down these stairs, with a measuring wheel and a notebook.
+you_tunnel	look_3	way_in	look	1	1	0.3	wary	She said the city goes quiet here. Just the fans, and the cars.
+you_tunnel	look_4	way_in	look	1	1	0.35	wary	Four hundred and eighty-five meters. It says so on the wall.
+you_tunnel	note	way_in	note	1	1	0.45	dread	That's her writing. I'd know it anywhere.
+you_tunnel	quiet	way_in	quiet	1	1	0.45	dread	The cars stopped. I didn't hear them stop.
+you_tunnel	taken	way_in	taken	1	1	0.5	resolve	Too late for that.
+you_tunnel	walk_01	way_in	walk	1	1	0.3	resolve	She walked it end to end, every night, and wrote down the number.
+you_tunnel	walk_02	way_in	walk	1	1	0.3	resolve	Four hundred and eighty-five, every night. Once, four hundred and eighty-six.
+you_tunnel	walk_03	way_in	walk	1	1	0.4	wary	On the twelfth night, she wrote six hundred and eleven.
+you_tunnel	walk_04	way_in	walk	1	1	0.4	wary	She walked it again, the same night. Five hundred and ninety.
+you_tunnel	walk_05	way_in	walk	1	1	0.3	resolve	She thought the wheel was broken. She bought another one.
+you_tunnel	walk_06	way_in	walk	1	1	0.35	resolve	She called me that week. First time in a long time.
+you_tunnel	walk_07	way_in	walk	1	1	0.35	wary	She said, it's longer at night. And then she laughed.
+you_tunnel	walk_08	way_in	walk	1	1	0.4	dread	I didn't laugh. I didn't say anything at all.
+you_tunnel	walk_09	way_in	walk	1	1	0.4	wary	Her last message was a picture. A door, in a white tiled wall.
+you_tunnel	walk_10	way_in	walk	1	1	0.45	dread	Four forty in the morning. No words. Just the door.
+you_tunnel	walk_11	way_in	walk	1	1	0.35	resolve	The police walked it in daylight. Four hundred and eighty-five meters. No door like that.
+you_tunnel	walk_12	way_in	walk	1	1	0.4	wary	There was somebody before her. She never told me who.
+you_tunnel	walk_13	way_in	walk	1	1	0.4	dread	Just that he walked it too, at night.

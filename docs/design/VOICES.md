@@ -334,7 +334,18 @@ knows.
 3. **It ends at the door.** Through it the asides' director takes over,
    with the first floor's arrival as ever.
 
-The lines are in `WAY_IN.md` (*Your voice*).
+The lines are in `WAY_IN.md` (*Your voice*): 26 (four in the look, thirteen
+as you walk, nine reactions), `lines/you_tunnel.toml`, `use = "way_in"`,
+played by `modes::tunnel_voice` at `GAIN` 0.8. Made on Chatterbox from his
+reference, four takes a line (eight for two that first had none): every
+line has a take that passes (W5, 2026-11-19: the chosen takes' words at
+most 12% wrong, his voice 0.62-0.86 against the reference, the tone
+nearer his mutter than any *never*). Two lines were said again: "four
+eighty-five", which speech recognition writes as digits and the
+normaliser cannot match, is said in full; "That's her writing." was heard
+nearer a radio announcer than a man muttering on every take, as clips
+that short often are, and was given more to say. Whether it sounds like a
+man remembering or like a narrator reading is for an ear.
 
 ## What only people can tell
 

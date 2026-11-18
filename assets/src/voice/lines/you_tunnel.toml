@@ -1,0 +1,275 @@
+# What you tell yourself on the way in (personas/you_tunnel.toml;
+# docs/design/WAY_IN.md, Your voice; docs/design/VOICES.md, Your voice on
+# the way in).
+#
+# `use` is the way in's (`modes::tunnel_voice`); `subject` when it is said:
+# `look`, in the look into the tunnel, on its clock, in order; `walk`, as
+# you walk, in order, each after the last and a pause; the rest once each,
+# at what you pass or do (`long` 485 m walked; `light` the dead bar a third
+# time; `back` walking back once the arch has gone; `quiet` the cars
+# stopped; `locked` the shut door tried; `keep` all told and no door yet;
+# `door` the open door seen; `note` near her note; `taken` her note taken).
+# Only what he knows: never her name, his, or the man's before her; never
+# what the tunnel or the door is (docs/design/LORE.md, "Your own voice, on
+# the way in"). Numbers are said as words.
+persona = "you_tunnel"
+
+[[line]]
+id = "look_1"
+text = "This is where she came. Every night, for nineteen nights."
+emotion = "resolve"
+intensity = 0.3
+use = "way_in"
+subject = "look"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "look_2"
+text = "Eleven o'clock, down these stairs, with a measuring wheel and a notebook."
+emotion = "resolve"
+intensity = 0.3
+use = "way_in"
+subject = "look"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "look_3"
+text = "She said the city goes quiet here. Just the fans, and the cars."
+emotion = "wary"
+intensity = 0.3
+use = "way_in"
+subject = "look"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "look_4"
+text = "Four hundred and eighty-five meters. It says so on the wall."
+emotion = "wary"
+intensity = 0.35
+use = "way_in"
+subject = "look"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_01"
+text = "She walked it end to end, every night, and wrote down the number."
+emotion = "resolve"
+intensity = 0.3
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_02"
+text = "Four hundred and eighty-five, every night. Once, four hundred and eighty-six."
+emotion = "resolve"
+intensity = 0.3
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 8
+
+[[line]]
+id = "walk_03"
+text = "On the twelfth night, she wrote six hundred and eleven."
+emotion = "wary"
+intensity = 0.4
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_04"
+text = "She walked it again, the same night. Five hundred and ninety."
+emotion = "wary"
+intensity = 0.4
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_05"
+text = "She thought the wheel was broken. She bought another one."
+emotion = "resolve"
+intensity = 0.3
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_06"
+text = "She called me that week. First time in a long time."
+emotion = "resolve"
+intensity = 0.35
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_07"
+text = "She said, it's longer at night. And then she laughed."
+emotion = "wary"
+intensity = 0.35
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_08"
+text = "I didn't laugh. I didn't say anything at all."
+emotion = "dread"
+intensity = 0.4
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_09"
+text = "Her last message was a picture. A door, in a white tiled wall."
+emotion = "wary"
+intensity = 0.4
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_10"
+text = "Four forty in the morning. No words. Just the door."
+emotion = "dread"
+intensity = 0.45
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_11"
+text = "The police walked it in daylight. Four hundred and eighty-five meters. No door like that."
+emotion = "resolve"
+intensity = 0.35
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_12"
+text = "There was somebody before her. She never told me who."
+emotion = "wary"
+intensity = 0.4
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "walk_13"
+text = "Just that he walked it too, at night."
+emotion = "dread"
+intensity = 0.4
+use = "way_in"
+subject = "walk"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "long"
+text = "That's four eighty-five. It should be ending by now."
+emotion = "wary"
+intensity = 0.5
+use = "way_in"
+subject = "long"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "light"
+text = "That light was out before."
+emotion = "dread"
+intensity = 0.5
+use = "way_in"
+subject = "light"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "back"
+text = "Where's the way out? It was right there."
+emotion = "dread"
+intensity = 0.6
+use = "way_in"
+subject = "back"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "quiet"
+text = "The cars stopped. I didn't hear them stop."
+emotion = "dread"
+intensity = 0.45
+use = "way_in"
+subject = "quiet"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "locked"
+text = "No. It's locked."
+emotion = "resolve"
+intensity = 0.3
+use = "way_in"
+subject = "locked"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "keep"
+text = "She kept walking. Every night."
+emotion = "resolve"
+intensity = 0.35
+use = "way_in"
+subject = "keep"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "door"
+text = "That's it. That's the door from the picture."
+emotion = "dread"
+intensity = 0.55
+use = "way_in"
+subject = "door"
+levels = [1, 1]
+takes = 4
+
+[[line]]
+id = "note"
+text = "That's her writing. I'd know it anywhere."
+emotion = "dread"
+intensity = 0.45
+use = "way_in"
+subject = "note"
+levels = [1, 1]
+takes = 8
+
+[[line]]
+id = "taken"
+text = "Too late for that."
+emotion = "resolve"
+intensity = 0.5
+use = "way_in"
+subject = "taken"
+levels = [1, 1]
+takes = 4

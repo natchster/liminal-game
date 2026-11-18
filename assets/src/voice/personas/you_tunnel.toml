@@ -1,0 +1,71 @@
+# What you tell yourself on the way in: you, walking the tunnel
+# (docs/design/VOICES.md, Your voice on the way in; docs/design/WAY_IN.md).
+#
+# The same man who cries for help and talks under his breath
+# (personas/you.toml, you_aside.toml), before any of it: in the Jahamun
+# Tunnel at night, after her, going over what he knows of her as he walks.
+# His voice, never one of its own (voice.same_as: every line cloned from
+# personas/you.wav). The one place the canon lets him tell anything
+# (docs/design/LORE.md, "Your own voice, on the way in"); never a
+# narrator's read, never to anyone.
+id = "you_tunnel"
+name = "You, on the way in"
+used_for = "your voice on the way in: what you know of her, told to yourself as you walk the tunnel, and a few words at what you pass (modes::tunnel_voice)"
+
+[person]
+summary = """
+The man who cries for help, before the Building: in Seoul, walking the
+walkway of the tunnel she walked every night, going over what he knows
+of her the way people go over a thing that will not let them alone. Not
+a talker: this is the one time he talks to himself at length. He tells
+no one; he is not explaining, he is remembering, and now and then what
+he sees stops him."""
+age = 36
+sex = "male"
+from = "somewhere in the American Midwest: plain speech, no strong accent"
+here = "in a road tunnel in Seoul at night, alone on its walkway behind the glass, after her"
+never_said = "her name, his, the man's before her; what she is to him; what the tunnel or the door is"
+
+[voice]
+# his voice: every line is cloned from personas/you.wav (designed from
+# you.toml's description), never a voice of its own
+same_as = "you"
+# his calm lines were Chatterbox's best in the bake-off (V5); these are
+# calm, low and longer than an aside
+line_model = "chatterbox"
+
+[tone]
+direction = [
+    "a tired man talking to himself as he walks, low and close to the microphone",
+    "going over it again in his head, half aloud, unhurried; small pauses between thoughts",
+    "never performed and never told to anyone: he is remembering, not narrating",
+]
+like = [
+    "a man muttering to himself",
+    "a tired man talking quietly to himself",
+    "a man mumbling nervously",
+]
+never = [
+    "a narrator reading a story aloud",
+    "a radio announcer",
+    "a stage actor declaiming",
+    "a man shouting",
+    "a man screaming",
+]
+
+[emotions]
+wary = "quiet and uneasy, talking to himself, unsure of what he is looking at"
+dread = "hushed, low, the words slowing as something in it frightens him"
+resolve = "tired and steady, going over it again, talking himself on"
+
+[targets]
+# a man's voice, low and calm
+f0_median_hz = [80.0, 300.0]
+# a little above the asides' -20 (it is listened to, not overheard), under
+# the cry's -16
+loudness_lufs = -19.0
+peak_dbtp = -1.0
+wer_max = 0.15
+# calm takes of his voice read 0.54-0.75 against the reference (you.toml)
+similarity_min = 0.45
+similarity_min_loud = 0.25

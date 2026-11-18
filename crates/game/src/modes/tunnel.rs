@@ -14,6 +14,8 @@
 //! Nothing here draws from the level's stream or the per-frame one: the
 //! door's time is the run seed's own (`SplitMix64`), the place has no
 //! randomness, and the voice (`modes::tunnel_voice`) keeps its own order.
+use super::tunnel_sound::TunnelSound;
+use super::tunnel_voice::{Seen, TunnelVoice};
 use crate::base::rng::SplitMix64;
 use crate::cutscene::play::{Anchors, Frame, Pose};
 use crate::prelude::*;
@@ -76,6 +78,9 @@ pub struct Tunnel {
     /// seconds until the look into the tunnel begins (the camera held on
     /// the street above till then), if it is to come
     pub look_in: Option<f64>,
+    /// your voice on the way in (`tunnel_voice`), and the place's sounds' clocks
+    pub voice: TunnelVoice,
+    pub sound: TunnelSound,
     step_acc: f64,
 }
 
@@ -98,6 +103,8 @@ impl Tunnel {
             note_taken: false,
             tried: false,
             look_in: None,
+            voice: TunnelVoice::default(),
+            sound: TunnelSound::default(),
             step_acc: 0.0,
         }
     }
@@ -257,6 +264,8 @@ impl Game {
             return;
         }
         self.state = "transition".into();
+        // your voice ends at the door
+        self.cut_voice_line();
         self.sfx_door();
         self.ui.fade.set_style("background", "#000");
         self.ui.fade.set_opacity(1.0);
@@ -435,7 +444,41 @@ impl Game {
                 }
             }
         }
+        // what your voice answers to (`tunnel_voice`)
+        let module = (-t.feet[2] / jahamun::ring::MOD).floor() as i64;
+        let door = t.nearest_door();
+        let (fx, fz) = (-self.player.yaw.dsin(), -self.player.yaw.dcos());
+        let changed = t.set.door_changed();
+        let seen = Seen {
+            look: self.cut.as_ref().filter(|p| p.c.id == "tunnel_in").map(|p| p.t),
+            hands,
+            along: t.along,
+            back: t.back,
+            closed: t.set.ring.closed,
+            module,
+            dead_bar: module >= jahamun::ring::FIRST as i64 && jahamun::ring::variant(module as usize) == "D",
+            tried: t.tried,
+            changed,
+            door_seen: changed
+                && door.is_some_and(|z| {
+                    let (vx, vz) = (DOOR_X - t.feet[0], z - t.feet[2]);
+                    let d = (vx * vx + vz * vz).sqrt().max(1e-6);
+                    d < 25.0 && (vx * fx + vz * fz) / d > 0.5
+                }),
+            near_note: changed && door.is_some_and(|z| (z + NOTE_FROM_DOOR - t.feet[2]).abs() < 2.5 && t.feet[0] < -0.4),
+            note_taken: t.note_taken,
+        };
+        let say = t.voice.next(dt, &seen);
+        let (clock, feet) = (t.voice.clock, t.feet);
+        let open_door = door.filter(|_| changed);
         self.tunnel = Some(t);
+        if let Some(id) = say {
+            let len = self.tunnel_say(id);
+            if let Some(t) = self.tunnel.as_mut() {
+                t.voice.said(id, len);
+            }
+        }
+        self.tunnel_sound(clock, feet, open_door);
         if start_look {
             self.start_tunnel_look();
         }

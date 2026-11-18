@@ -3236,6 +3236,708 @@
         "tools/voice/synth.py",
         "tools/voice/evaluate.py"
       ]
+    },
+    "voice/you_tunnel/back.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "d750a852bde482d6",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "back",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "Where's the way out? It was right there."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only back; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/door.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "95f05b946b9bc7f7",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "door",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "That's it. That's the door from the picture."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only door; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/keep.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "dc40ef9fbbbbe314",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "keep",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "She kept walking. Every night."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only keep; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/light.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "89b47d09fb972de7",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "light",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "That light was out before."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only light; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/locked.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "32cae3089eae152b",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "locked",
+        "persona": "you_tunnel",
+        "seed": 4,
+        "text": "No. It's locked."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only locked; voice eval; voice write (take 4, seed 4)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/long.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "e0d74c8cebd498ee",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "long",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "That's four eighty-five. It should be ending by now."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only long; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/look_1.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "c546657b0a251907",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "look_1",
+        "persona": "you_tunnel",
+        "seed": 3,
+        "text": "This is where she came. Every night, for nineteen nights."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only look_1; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/look_2.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "7f003bc7ef916dcc",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "look_2",
+        "persona": "you_tunnel",
+        "seed": 4,
+        "text": "Eleven o'clock, down these stairs, with a measuring wheel and a notebook."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only look_2; voice eval; voice write (take 4, seed 4)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/look_3.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "8f17cfb0ef06b2dc",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "look_3",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "She said the city goes quiet here. Just the fans, and the cars."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only look_3; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/look_4.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "f4e11af766bf6d30",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "look_4",
+        "persona": "you_tunnel",
+        "seed": 3,
+        "text": "Four hundred and eighty-five meters. It says so on the wall."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only look_4; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/note.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "34e70dacacce9790",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "note",
+        "persona": "you_tunnel",
+        "seed": 7,
+        "text": "That's her writing. I'd know it anywhere."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only note; voice eval; voice write (take 7, seed 7)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/quiet.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "5e55c194b962525f",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "quiet",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "The cars stopped. I didn't hear them stop."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only quiet; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/taken.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "b0819be74f2a1232",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "taken",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "Too late for that."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only taken; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_01.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "5d7b18878ace6dc4",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "walk_01",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "She walked it end to end, every night, and wrote down the number."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_01; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_02.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "021e93e20513ba94",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "walk_02",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "Four hundred and eighty-five, every night. Once, four hundred and eighty-six."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_02; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_03.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "4d2506a8bbde366f",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "walk_03",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "On the twelfth night, she wrote six hundred and eleven."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_03; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_04.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "a57e7ccd6ebce0f5",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "walk_04",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "She walked it again, the same night. Five hundred and ninety."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_04; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_05.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "8cbec22bbab7cf30",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "walk_05",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "She thought the wheel was broken. She bought another one."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_05; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_06.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "ccdb8c40b8366292",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "walk_06",
+        "persona": "you_tunnel",
+        "seed": 3,
+        "text": "She called me that week. First time in a long time."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_06; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_07.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "8c9eb1f596219814",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "walk_07",
+        "persona": "you_tunnel",
+        "seed": 3,
+        "text": "She said, it's longer at night. And then she laughed."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_07; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_08.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "bfc79a6cbd4ba6ed",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "walk_08",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "I didn't laugh. I didn't say anything at all."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_08; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_09.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "69ed078a16b797b7",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "walk_09",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "Her last message was a picture. A door, in a white tiled wall."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_09; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_10.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "30fe61b03f0bde21",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "walk_10",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "Four forty in the morning. No words. Just the door."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_10; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_11.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "83c04e357d0383eb",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "walk_11",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "The police walked it in daylight. Four hundred and eighty-five meters. No door like that."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_11; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_12.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "6a25bc1f6aa6b9a7",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "walk_12",
+        "persona": "you_tunnel",
+        "seed": 2,
+        "text": "There was somebody before her. She never told me who."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_12; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_tunnel/walk_13.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -19 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "3477ea4d3310d0ac",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "walk_13",
+        "persona": "you_tunnel",
+        "seed": 1,
+        "text": "Just that he walked it too, at night."
+      },
+      "rebuild": "cargo xtask voice build --persona you_tunnel --model chatterbox --only walk_13; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_tunnel.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_tunnel.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
     }
   }
 }

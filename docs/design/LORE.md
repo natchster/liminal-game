@@ -1364,6 +1364,11 @@ cold was settled when the floor was made.
   soon.
 - Footsteps follow the floor: squelching wet carpet, dull carpet tiles, gritty
   concrete, hard tile, hollow stair treads.
+- The way in has the real tunnel's sound: the bars' hum from the nearest
+  bar, your steps on the painted walkway in a long hard reverb, the cars on
+  the road behind the glass, one every few seconds, then fewer, then none
+  (nobody hears them stop), and, once the door is open, cold air breathing
+  out of it, heard before it is seen.
 - The Building sounds as big as it is: a long, sparse tail over the void in
   each of its places, the hum of the lamps over the cells, and the siren
   from its loudspeakers when it comes.
