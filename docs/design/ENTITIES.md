@@ -103,7 +103,8 @@ noise provoke it).*
 - **What it is.** Someone very tall, starved down to tendon, gone black all
   over as if tarred. It is called the Smiler for its mouth: the lips have
   dried back off the teeth, top and bottom, so it seems to grin round to its
-  cheeks (a rictus, not a smile). It stoops under the ceilings; its hands
+  cheeks (a rictus, not a smile). It stands tall, only a little stooped under
+  the ceilings, and moves heavily; its hands
   hang past its knees.
 - **How it is seen.** In the dark, nothing, until your lamp finds it: two
   gold points of eyeshine at 1.9 m, set close, and under them the pale arc
@@ -496,12 +497,39 @@ rooms like any.
   made wrong by one specific error each, and given their surface (ribs,
   tendons, the skin's wear) as displacement and vertex colour. Budgets: 18k
   triangles a body, 25k a creature.
-- **Motion**: procedural, on the rig (`entities::body`: a bone aimed in the
-  body's frame; two-bone limbs). Two vocabularies only (the research):
-  **stillness** (the Watcher; the one in the corner; the Smiler waiting) and
-  **wrong mechanics** (stepped, held frames and snaps; the head first and
-  the body after; the Hound's drag). Upper faces do not move: they do not
-  flinch when you cry out.
+- **Motion**: a real body's weight under each creature's wrongness. Its
+  clips are a person's motion, made from plain briefs by an open motion
+  model in the lab (NVIDIA Kimodo, `lab/motion/briefs/<kind>.toml`,
+  `docs/research/character-motion.md`): a person walking reading a page,
+  stooping for a sheet, crawling on all fours, sprinting. They are laid on
+  the creature's own body as its turn away from a stance it is bound in, so
+  the Smiler keeps its stoop, the Reader its page before its face and the
+  Hound its hands and feet on the floor, and every foot (the Hound's hands
+  too) is planted in the world while it bears weight and stepped, never
+  slid. The clip follows the creature (its brain moves it): played to the
+  speed it goes, its strides lengthening more than its steps quicken
+  (`entities::motion`). They are **heavy and upright** (the developer's
+  direction, 2026-11-19): the briefs ask for a heavy person, upright,
+  placing each foot down heavily; each footfall sinks the pelvis on its
+  legs, sprung back up (`Anim::mass`); each body stands part of the way out
+  of the stoop it is bound in (`Retarget::upright`: the Smiler tall and a
+  little stooped, the Reader holding its page up to its face, the Hound's
+  chest and head carried higher, never reared). Uncanny, never a cartoon:
+  nothing is played much past twice its pace, a held frame's lurch makes
+  up what it missed in a fifth of a second (not a film skipping), a head
+  goes to what it watches quickly but never in a jump.
+  What makes it the creature's is laid on top by rule, in the design's two
+  vocabularies only (the research): **stillness** (the Watcher; the one in
+  the corner, which takes none of a person's sway; the Smiler waiting) and
+  **wrong mechanics** (held frames and snaps: the Smiler stops dead
+  searching and lurches on to where it would have been; the head first and
+  the body after; the one in the corner's head turning further than a neck
+  goes; dead arms while it runs; the Hound's drag; the one behind the
+  glass's walk too even, no rise and fall in it). A body bound in a long
+  garment (the nightshirt, the raincoat) stands with straight legs: a knee
+  bent for nothing creases the cloth. The Watcher is never seen to move,
+  so it has no clips: its poses are its sheet's. Upper faces do not move:
+  they do not flinch when you cry out.
 - **Eyes**: eyeshine is your lamp reflected, not a glow: its brightness is
   how much of your beam falls on the eye and how squarely it faces you; only
   the Smiler has it (gold). The Hound's eyes are shut; the Watcher's are

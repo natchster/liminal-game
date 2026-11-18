@@ -94,9 +94,21 @@ paths:
   `RunMemory` is saved with it.
 - **Bodies** are built by `cargo xtask assets creatures` (Blender headless,
   `assets/src/creatures/`) into `bodies.bin`, posed so the pose is the rest
-  pose; animate by aiming bones in the body's frame (`BodyRig::aim`,
-  `two_bone`). Never hold two borrows of one node in one expression
-  (`root.rotation().y.sin()` and `.cos()` together panics): read it once.
+  pose. **Motion** is clips (`entities::motion`, design §6): a kind's
+  library is made in the lab from its briefs (`lab/motion/briefs/<kind>.toml`,
+  `motion.py gen`, `bake`, `install` → `crates/game/assets/motion/`), its
+  neutral brief standing as the body is bound (a stoop, a page before the
+  face, all fours), and played by `motion::anim::Anim` from the kind's
+  `pose(a, rig, drive, mind, …)` (a `Pick` a mode, the wrongness laid on
+  after: `BodyRig::aim`, `two_bone`, `retarget::turn_global`). `pose` takes
+  no `Game` (`animate` reads it and calls `motion::with_anim`), so the lab
+  shows the game's own motion: add the kind to `lab/viewer/src/creatures.rs`
+  (its scene) and look there. What its rule reads of its body (a head's
+  turn) stays computed in the game, never in `pose`. A body bound in a long
+  garment stands with straight legs (`legs` gain 0 at rest). Every mode
+  must find its clip (`tests/motion.rs`). Never hold two borrows of one
+  node in one expression (`root.rotation().y.sin()` and `.cos()` together
+  panics): read it once.
 - **Tests**: a kind's rules in `tests/creatures_rules.rs` (one test a line of
   its design, read back from its brain's log); its counter in
   `tests/creatures_arenas.rs` (with it at least 95% untouched and 90% round,

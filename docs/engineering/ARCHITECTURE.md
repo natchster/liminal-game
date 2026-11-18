@@ -227,6 +227,34 @@ near it, in a mode of its own, `Read`). What a placed creature does far
 from you draws nothing from the per-frame stream (its making on a seeded
 stream of its own, its choices on its own `SplitMix64`).
 
+A kind's body moves by **clips** (`entities::motion`): its library
+(`assets/motion/<kind>.motion`, embedded; made in the lab by
+`lab/motion/motion.py bake` and copied in by `install`) holds a person's
+motion as NVIDIA's 30 SOMA joints in the creature's frame, the root's path
+and six contacts (each foot's heel and toe, each hand; on all fours the
+knee stands for its foot). `motion::retarget` lays a frame on a body as each
+segment's turn away from the library's neutral stance (the stance the body
+is bound in), then solves the legs (and on all fours the arms) onto where
+their ends stand. `motion::anim::Anim`, kept in the creature, plays what
+its kind's `pose` picks (`Pick`: a clip, how much of each part takes the
+mocap, whether it travels, holds, is scrubbed by a rule's clock): blended
+from the last, played to the speed it is measured moving at (a pace and a
+stride shared by `cadence`), held and snapped (the body lags its root while
+held, nothing of it reaches the world), each foot locked to the floor while
+the clip says it bears weight and stepped when it lets go or is stretched. A kind sets its posture (`Retarget::upright`: each
+bone of its trunk turned part of the way from its bound stoop to the
+vertical) and its weight (`Anim::mass`: each footfall sinks the pelvis,
+critically damped).
+`<kind>::animate` reads the game (`motion::with_anim`: the mode, your eye,
+over your body or not, and anything of its own, its page, its window) and
+calls `<kind>::pose`, which the lab (`lab/viewer`) calls too: the lab shows
+exactly what the game does. A pose is a function of that and the
+creature's own seed (from where it first stood): no game stream, no clock.
+What its rule reads of its body stays in the game (the one in the corner's
+head turn, `corner::head_turn`; the Hound's footfalls, from its locks, each
+burst's noise from a point of its own, `Soundscape::burst_from`, so how
+many fall draws nothing from the per-frame stream).
+
 Who lives on a level is its **ecology** (`Game::ecology`, by its places,
 no draws): one on the Lobby, two at depth 2, three deeper; the Smiler
 where it is dark, the Watcher among furnished rooms, the Reader beside

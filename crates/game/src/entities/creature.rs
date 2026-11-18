@@ -135,18 +135,6 @@ pub const SPENT: f64 = 25.0;
 pub const BURST_CAP: f64 = 7.0;
 pub const BURST_LEN: f64 = 4.0;
 
-/// Per-limb animation state (feet and hands planted in the world).
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Limb {
-    /// Where it is planted (world x, y, z), and where it swings to
-    pub at: [f64; 3],
-    pub from: [f64; 3],
-    pub to: [f64; 3],
-    /// 0 in stance, 0..1 through a swing
-    pub swing: f64,
-    pub planted: bool,
-}
-
 /// A creature of the redesign (in `EntExt::creature`).
 #[derive(Clone, Debug)]
 pub struct Creature {
@@ -160,16 +148,15 @@ pub struct Creature {
     pub noticed_at: Option<f64>,
     /// Seconds a still player has been within smelling distance
     pub smell_t: f64,
-    /// The gait: its phase, and each limb
-    pub phase: f64,
-    pub limbs: Vec<Limb>,
-    /// Smoothed values the animation eases between (by name)
+    /// Smoothed values its rule and its body ease between (by name)
     pub ease: std::collections::BTreeMap<&'static str, f64>,
     /// Seconds to its next sound
     pub voice_t: f64,
     /// The chase so far: how long, and how far in a burst
     pub chase_t: f64,
     pub burst_m: f64,
+    /// Its motion (`entities::motion`): the clips its kind plays on its body
+    pub anim: Option<Box<crate::entities::motion::anim::Anim>>,
 }
 
 impl Creature {
@@ -277,12 +264,11 @@ impl Game {
             tells: vec![],
             noticed_at: None,
             smell_t: 0.0,
-            phase: 0.0,
-            limbs: vec![],
             ease: Default::default(),
             voice_t: 1.0,
             chase_t: 0.0,
             burst_m: 0.0,
+            anim: None,
         };
         (EntityBuild { g, face: None, face_y: head_y, parts }, c)
     }

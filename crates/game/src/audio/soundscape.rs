@@ -252,6 +252,7 @@ fn burst_impl(
     gain: f64,
     f1: Option<f64>,
     attack: f64,
+    start: Option<f64>,
 ) {
     let s = noise_src(ac, noise, false);
     let f = ac.create_biquad_filter();
@@ -270,7 +271,7 @@ fn burst_impl(
     s.connect(&f);
     f.connect(&g);
     g.connect(dest);
-    s.start_at(t0, rng() * 1.5, None);
+    s.start_at(t0, start.unwrap_or_else(|| rng() * 1.5), None);
     s.stop(t0 + dur + 0.05);
 }
 /// `tone(dest, t0, dur, freq, gain, type, f1, attack)` — an enveloped
@@ -1174,7 +1175,27 @@ impl Soundscape {
     // ------------------------------------------------------------ one-shots ---
     /// enveloped noise through a filter into a destination
     pub fn burst(&self, dest: &AudioNode, t0: f64, dur: f64, ty: &str, f0: f64, q: f64, gain: f64, f1: Option<f64>, attack: f64) {
-        burst_impl(&self.ac, &self.rng, &self.noise, dest, t0, dur, ty, f0, q, gain, f1, attack);
+        burst_impl(&self.ac, &self.rng, &self.noise, dest, t0, dur, ty, f0, q, gain, f1, attack, None);
+    }
+    /// The same, its noise from `start` (0..1.5 s into the loop) instead of
+    /// a point drawn from the native stream: for a sound whose count or
+    /// timing is decided by something of its own (a creature's footfalls,
+    /// from its clips), so playing it draws nothing (invariant 1)
+    #[allow(clippy::too_many_arguments, reason = "a burst is all of these")]
+    pub fn burst_from(
+        &self,
+        dest: &AudioNode,
+        t0: f64,
+        dur: f64,
+        ty: &str,
+        f0: f64,
+        q: f64,
+        gain: f64,
+        f1: Option<f64>,
+        attack: f64,
+        start: f64,
+    ) {
+        burst_impl(&self.ac, &self.rng, &self.noise, dest, t0, dur, ty, f0, q, gain, f1, attack, Some(start.rem_euclid(1.5)));
     }
     pub fn tone(&self, dest: &AudioNode, t0: f64, dur: f64, freq: f64, gain: f64, ty: &str, f1: Option<f64>, attack: f64) {
         tone_impl(&self.ac, dest, t0, dur, freq, gain, ty, f1, attack);

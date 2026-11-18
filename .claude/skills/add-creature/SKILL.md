@@ -24,7 +24,8 @@ The plan and the rules every creature keeps are in `docs/design/ENTITIES.md`
    eyeshine, they do not glow (`docs/design/STYLE.md`).
 3. **Brain.** `crates/game/src/entities/<kind>.rs`: its `DATA`
    (`KindData`), `think` (one `Mode` at a time, each change logged with its
-   reason), `animate`, `voice`, `call`; register it in
+   reason), `animate` (reads the game, calls `motion::with_anim` and its
+   own `pose`: see **Motion** below), `voice`, `call`; register it in
    `creature::on_new_brain` and the dispatch beside it; in `ROAMING_KINDS`
    if it roams (the bench's pack); among the director's candidates in
    `enter_build` if it is sent; in the ecology (`Game::ecology`: the places
@@ -38,6 +39,16 @@ The plan and the rules every creature keeps are in `docs/design/ENTITIES.md`
    touch through `creature_contact`, chase through `creature_go` and burst
    through `creature_burst` (capped). Obey the director: sent away, it
    withdraws as soon as it no longer has you.
+   **Motion** (`entities::motion`, design §6): briefs in
+   `lab/motion/briefs/<kind>.toml`, each a person's motion in plain words
+   ("A person ..."; Kimodo knows people, not the wrong), one `neutral`
+   standing as the body is bound, `fours = true` for a body on all fours;
+   `cd lab/motion && .venv/bin/python motion.py gen --creature <kind>`,
+   `bake`, read `clips/<kind>.md`, `install`; add it to
+   `motion::KINDS` and `bytes`. Its `pose` picks a clip a mode and lays the
+   wrongness on top; add it to the lab (`lab/viewer/src/creatures.rs`: its
+   scene through its modes) and look at it there (`cargo run --release`,
+   its number key; `--scene DIR --creature <kind>`; `--metrics`).
 5. **What it learns** (design 4): an entry in `creature::LEARNS`, a
    `creature_habit` call where its habit happens, its one new behaviour
    behind `creature_may_show` (the first time, where you can see it).

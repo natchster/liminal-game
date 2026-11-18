@@ -21,12 +21,17 @@
 //! - **Placed** (`place`) on levels with paper lying about, from depth 2,
 //!   near the paper (in an office wing when there is one); it roams there.
 //! - **Body**: `bodies.bin`'s `reader` (`assets/src/creatures/body_reader.py`):
-//!   its stoop over the sheet is the rest pose; its eyes are on bones of
-//!   their own and read the page, line by line.
+//!   its stoop over the sheet is the rest pose; it moves by Kimodo's clips
+//!   of a person reading as they walk (`assets/motion/reader.motion`,
+//!   `entities::motion`); its eyes are on bones of their own and read the
+//!   page, line by line ([`pose`]).
 use crate::base::numeric::hypot2;
-use crate::entities::body::{BodyRig, two_bone};
+use crate::entities::body::{BodyRig, qrot};
 use crate::entities::brain::*;
 use crate::entities::creature::*;
+use crate::entities::motion::anim::{Anim, Drive, Pick};
+use crate::entities::motion::retarget::{Gains, turn_global};
+use crate::entities::motion::{Mind, mix};
 use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
 use crate::prelude::*;
 
@@ -671,164 +676,141 @@ pub fn settle_in(g: &mut Game, ei: usize, x: i32, z: i32) {
 
 // ------------------------------------------------------------ the body
 
-fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
+/// Where it is with a sheet it must read (`read`): its stage (0 going to
+/// it, 1 stooping for it, 2 reading or tearing it), the time in that
+/// stage, and whether it tears it unread.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Page {
+    pub stage: f64,
+    pub t: f64,
+    pub tears: bool,
 }
 
-fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
-}
-
-fn rest_head(rig: &BodyRig, i: usize) -> Vec3 {
-    let h = rig.def.bones[i].head;
-    v3(h[0], h[1], h[2])
-}
-
-/// One frame of its body: bent over its page, its eyes going along the
-/// lines; looking up over the page at you; stooping for a sheet; the sheet
-/// lowered before it touches you; shuffling on planted feet.
+/// One frame of its body: Kimodo's clips of a person reading as they walk,
+/// stooping for a sheet and hurrying, on its own body; its page work on top ([`pose`]).
 pub fn animate(g: &mut Game, ei: usize, dt: f64) {
-    let (vx, vz) = (g.entities[ei].vx, g.entities[ei].vz);
-    let speed = hypot2(vx, vz);
-    let t = g.perf_t;
     let pp = g.player.pos;
     let killer = g.director.killer == Some(ei) && g.state != "playing";
-    let Some(c) = g.creature_mut(ei) else { return };
-    let rig = c.body.clone();
-    let (mode, mode_t) = (c.brain.mode, c.brain.mode_t);
-    let stage = c.get("read_stage");
-    let bt = c.brain.t;
-    let root = rig.root.clone();
-    rig.rest();
+    let Some(c) = g.creature(ei) else { return };
+    let page = if c.brain.mode == Mode::Read {
+        Page { stage: c.get("read_stage"), t: c.brain.t, tears: c.get("tears") > 0.0 }
+    } else {
+        Page::default()
+    };
     if killer {
+        let root = c.body.root.clone();
         let p = root.pos();
         root.rotation().y = (pp.x - p.x).datan2(pp.z - p.z);
     }
-    let yaw = root.rotation().y;
-    let pos = root.pos();
-    let want = wrap_pi((pp.x - pos.x).datan2(pp.z - pos.z) - yaw).clamp(-1.2, 1.2);
-    let at_you = matches!(mode, Mode::Alert | Mode::Hunt | Mode::Strike) || killer;
-    // ---- how it holds itself
-    let up = c.eased("up", if at_you { 1.0 } else { 0.0 }, 7.0, dt);
-    let lowered = c.eased("lowered", if killer || (mode == Mode::Strike) { 1.0 } else { 0.0 }, 1.0 / WINDUP * 2.2, dt);
-    let stoop_w = if mode == Mode::Read && stage == 1.0 { (bt / STOOP * PI).dsin().max(0.0) } else { 0.0 };
-    let stoop = c.eased("stoop", stoop_w, 12.0, dt);
-    let hunt = c.eased("hunt", if mode == Mode::Hunt { 1.0 } else { 0.0 }, 4.0, dt);
-    let hips = rig.ix("hips").unwrap();
-    let h0 = rest_head(&rig, hips);
-    rig.bones[hips].set_pos(h0.x, h0.y - 0.16 * stoop - 0.02 * hunt, h0.z);
-    if let Some(sp) = rig.ix("spine") {
-        rig.turn(sp, &Quat::from_euler(&Euler::new(0.45 * stoop + 0.1 * hunt, 0.0, 0.0)));
-    }
-    if let Some(ch) = rig.ix("chest") {
-        rig.turn(ch, &Quat::from_euler(&Euler::new(0.35 * stoop + (t * 1.2).dsin() * 0.012, 0.0, 0.0)));
-    }
+    crate::entities::motion::with_anim(g, ei, false, "read_walk", dt, |a, rig, d, m| pose(a, rig, d, m, &page));
+}
+
+/// Its posture and weight: half out of its stoop over the page (the page
+/// held up to its face rather than its face bent to the page).
+const UPRIGHT: f64 = 0.4;
+const MASS: f64 = 0.45;
+
+/// Its motion: bent over its page as it walks (the page before its face is
+/// its rest pose: the clips move it only as a reader's hands do), its eyes
+/// going along the lines and its lips moving; it looks up over the page at
+/// you, eyes first; it stoops for a sheet as if it could not help it (the
+/// stoop played in the time its rule gives it); it hurries, the sheet held
+/// flat; the sheet lowered before it touches you, its mouth open on the word.
+pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind, page: &Page) {
+    a.rt.upright = UPRIGHT;
+    // (its head still bowed to the page: lifted with the rest, its face rose
+    // over the sheet and gave away its look up)
+    a.rt.upright_head = 0.0;
+    a.mass = MASS;
+    let w = a.wrong;
+    let dt = d.dt;
+    let speed = d.speed();
+    let moving = a.eased("moving", if speed > 0.25 { 1.0 } else { 0.0 }, 8.0, dt) > 0.5;
+    let at_you = matches!(m.mode, Mode::Alert | Mode::Hunt | Mode::Strike) || m.killer;
+    // the page held before its face as it is bound, its head down on it
+    // (little of the mocap's hands and head: a head that rose over the page
+    // gave away its tell, the look up)
+    // (and half the mocap's lean: its neutral is hunched over the page, so
+    // a person walking upright leans back from it, and on top of its posture
+    // that threw its torso back)
+    let reading = Gains { arms: 1.0 - 0.75 * w, head: 1.0 - 0.75 * w, trunk: 1.0 - 0.5 * w, ..Gains::default() };
+    let flat = Gains { arms: 1.0 - 0.85 * w, head: 1.0 - 0.7 * w, trunk: 1.0 - 0.5 * w, ..Gains::default() };
+    let walk = || if speed > 1.6 { Pick::new("hurry").gains(flat).travel() } else { Pick::new("read_walk").gains(reading).travel() };
+    let pick = match m.mode {
+        _ if m.killer => Pick::new("read_still").gains(reading).fade(0.6),
+        Mode::Read if page.stage >= 2.0 && page.tears => scrub(a, "tear", page.t / TEAR_TIME, 0.15),
+        Mode::Read if page.stage >= 2.0 => Pick::new("read_still").gains(reading),
+        // down for the sheet as a person stoops; coming up, the page goes back
+        // before its face as it is bound (the clip's end held it up high: a
+        // blind review preferred the old animation for it)
+        Mode::Read if page.stage >= 1.0 && page.t / STOOP < 0.6 => scrub(a, "pick_up", page.t / STOOP, 0.1),
+        Mode::Read if page.stage >= 1.0 => scrub(a, "pick_up", page.t / STOOP, 0.1).gains(Gains {
+            trunk: 1.0 - 0.5 * w,
+            head: 1.0 - 0.75 * w,
+            arms: 1.0 - 0.85 * w,
+            ..Gains::default()
+        }),
+        Mode::Hunt | Mode::Strike if moving => Pick::new("hurry").gains(flat).travel(),
+        _ if moving => walk(),
+        _ => Pick::new("read_still").gains(reading),
+    };
+    a.play(rig, &pick, d);
+    a.breathe(rig, 0.012, 1.2);
+    let up = a.eased("up", if at_you { 1.0 } else { 0.0 }, 7.0, dt);
+    let lowered = a.eased("lowered", if m.killer || m.mode == Mode::Strike { 1.0 } else { 0.0 }, 1.0 / WINDUP * 2.2, dt);
     // ---- the head: down on the page; up over it at you, eyes first
-    let held = c.eased("head_yaw", if at_you { want } else { 0.0 }, 5.0, dt);
-    if let Some(nk) = rig.ix("neck") {
-        rig.turn(nk, &Quat::from_euler(&Euler::new(-0.45 * up + 0.2 * stoop, held * 0.45, 0.0)));
-    }
-    if let Some(hd) = rig.ix("head") {
-        let nod = if at_you { 0.0 } else { (t * 0.9).dsin() * 0.03 };
-        rig.turn(hd, &Quat::from_euler(&Euler::new(-0.35 * up + nod, held * 0.5, 0.0)));
-    }
+    let want = wrap_pi((m.eye.x - d.pos.x).datan2(m.eye.z - d.pos.z) - d.yaw).clamp(-1.2, 1.2);
+    let held = a.eased("head_yaw", if at_you { want } else { 0.0 }, 5.0, dt);
+    let t = a.time;
+    let map = &a.rt.map;
+    turn_global(rig, map.neck, &Quat::from_euler(&Euler::new(-0.45 * up * w, held * 0.45, 0.0)));
+    let nod = if at_you { 0.0 } else { (t * 0.9).dsin() * 0.03 * w };
+    turn_global(rig, map.head, &Quat::from_euler(&Euler::new(-0.35 * up * w + nod, held * 0.5, 0.0)));
     // the whisper moves its jaw a little, fast; still when it looks at you
-    let whisper = if matches!(mode, Mode::Roam | Mode::Idle | Mode::Stalk | Mode::Read | Mode::Search) { 1.0 } else { 0.0 };
-    if let Some(jw) = rig.ix("jaw") {
-        let k = ((t * 23.0).dsin() * 0.5 + 0.5) * ((t * 7.3).dsin() * 0.5 + 0.5);
-        // (the sheet down, its mouth hangs open on the word it was reading)
-        rig.turn(jw, &Quat::from_euler(&Euler::new(0.05 * k * whisper + 0.26 * lowered, 0.0, 0.0)));
-    }
+    // (the sheet down, its mouth hangs open on the word it was reading)
+    let whisper = if at_you { 0.0 } else { 1.0 };
+    let k = ((t * 23.0).dsin() * 0.5 + 0.5) * ((t * 7.3).dsin() * 0.5 + 0.5);
+    a.jaw(rig, (0.05 * k * whisper + 0.26 * lowered) * w);
     // ---- the eyes: along the lines of the page, left to right and back;
     // on you when it looks up
     let line = (t * 1.9).fract();
+    let row = 0.06 * ((t * 1.9).floor() % 6.0) / 6.0;
     let (ey, ex) = if at_you {
         (held * 0.4, -0.25)
     } else if line < 0.8 {
-        (-0.32 + 0.64 * (line / 0.8), 0.06 * ((t * 1.9).floor() % 6.0) / 6.0)
+        (-0.32 + 0.64 * (line / 0.8), row)
     } else {
-        (0.32 - 0.64 * ((line - 0.8) / 0.2), 0.06 * ((t * 1.9).floor() % 6.0) / 6.0)
+        (0.32 - 0.64 * ((line - 0.8) / 0.2), row)
     };
     for side in ["eye.L", "eye.R"] {
         if let Some(i) = rig.ix(side) {
-            rig.turn(i, &Quat::from_euler(&Euler::new(ex, ey, 0.0)));
+            rig.turn(i, &Quat::from_euler(&Euler::new(ex * w, ey * w, 0.0)));
         }
     }
-    // ---- the arms: the page before its face; lowered before it touches
-    // you; one hand to the floor when it stoops
-    for side in [".L", ".R"] {
-        let sx = if side == ".L" { 1.0 } else { -1.0 };
-        let (Some(ua), Some(fa)) = (rig.ix(&format!("upperarm{side}")), rig.ix(&format!("forearm{side}"))) else { continue };
-        let ru = rig.rest_dir[ua];
-        let rf = rig.rest_dir[fa];
-        let down_u = v3(sx * 0.12, -1.0, 0.12);
-        let down_f = v3(sx * 0.02, -1.0, 0.35);
-        let reach = if side == ".R" { stoop } else { 0.0 };
-        let floor_u = v3(-0.1, -0.7, 0.7);
-        let floor_f = v3(-0.05, -0.9, 0.4);
-        let k = lowered.max(reach);
-        let (tu, tf) = if reach > lowered { (floor_u, floor_f) } else { (down_u, down_f) };
-        let mix = |a: Vec3, b: Vec3, k: f64| v3(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k, a.z + (b.z - a.z) * k);
-        rig.aim(ua, mix(ru, tu, k), 0.0);
-        rig.aim(fa, mix(rf, tf, k), 0.0);
-    }
-    // ---- the legs: planted; a shuffle reading, long quick steps coming
-    if c.limbs.len() != 2 {
-        c.limbs = vec![Limb::default(); 2];
-    }
-    let stride = if speed > 2.5 { 1.4 } else { 0.7 };
-    c.phase = (c.phase + speed * dt / stride).fract();
-    let phase = c.phase;
-    for (k, side) in [".L", ".R"].iter().enumerate() {
-        let (Some(it), Some(is), Some(ifo)) =
-            (rig.ix(&format!("thigh{side}")), rig.ix(&format!("shin{side}")), rig.ix(&format!("foot{side}")))
-        else {
-            continue;
-        };
-        let rest_end = rest_head(&rig, ifo);
-        let home_w = body_to_world(&root, v3(rest_end.x, 0.0, rest_end.z));
-        let lp = (phase + k as f64 * 0.5).fract();
-        let limb = &mut c.limbs[k];
-        if !limb.planted || hypot2(limb.at[0] - home_w.x, limb.at[2] - home_w.z) > 1.6 {
-            limb.at = [home_w.x, rest_end.y, home_w.z];
-            limb.planted = true;
+    // ---- the sheet lowered before it touches you: the arms down at its sides
+    for (s, sx) in [(0usize, 1.0), (1, -1.0)] {
+        if lowered < 0.01 {
+            break;
         }
-        if speed > 0.15 && lp > 0.5 {
-            let s = (lp - 0.5) / 0.5;
-            if limb.swing == 0.0 {
-                limb.from = limb.at;
-                let l = speed.max(1e-6);
-                limb.to = [home_w.x + vx / l * stride * 0.5, rest_end.y, home_w.z + vz / l * stride * 0.5];
-            }
-            limb.swing = s.max(1e-3);
-            for a in 0..3 {
-                limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * s;
-            }
-            // a shuffle barely lifts the foot
-            limb.at[1] = rest_end.y + (s * PI).dsin() * if speed > 2.5 { 0.14 } else { 0.035 };
-        } else {
-            if limb.swing > 0.0 {
-                limb.at = limb.to;
-            }
-            limb.swing = 0.0;
-            limb.at[1] = rest_end.y;
-        }
-        let target = world_to_body(&root, v3(limb.at[0], limb.at[1], limb.at[2]));
-        let base = rig.head(it);
-        let pole = v3(base.x, base.y, base.z + 1.0);
-        let (du, dl) = two_bone(base, target, pole, rig.rest_len[it], rig.rest_len[is]);
-        rig.aim(it, du, 0.0);
-        rig.aim(is, dl, 0.0);
-        rig.aim(ifo, rig.rest_dir[ifo], 0.0);
+        let arm = map.arm[s];
+        let now_u = qrot(&rig.body_rot(arm[1]), &rig.rest_dir[arm[1]]);
+        let now_f = qrot(&rig.body_rot(arm[2]), &rig.rest_dir[arm[2]]);
+        rig.aim(arm[1], mix(now_u, v3(sx * 0.12, -1.0, 0.12), lowered), 0.0);
+        rig.aim(arm[2], mix(now_f, v3(sx * 0.02, -1.0, 0.35), lowered), 0.0);
     }
-    let _ = mode_t;
+}
+
+/// Clip `name` played through to `k` (0..1) of its stoop's or tear's time:
+/// its lowest moment (the hips' lowest: the hand at the floor, the sheet
+/// torn) at `at` of the way, so the body is down when its rule takes the
+/// sheet.
+fn scrub(a: &Anim, name: &'static str, k: f64, fade: f64) -> Pick {
+    let lib = a.lib;
+    let (dur, low) = lib.clip(name).map_or((1.0, 0.5), |i| (lib.clips[i].duration(lib.fps), lib.clips[i].lowest(lib.fps)));
+    let low = low.clamp(0.2 * dur, 0.8 * dur);
+    let k = k.clamp(0.0, 1.0);
+    let t = if k < 0.6 { low * k / 0.6 } else { low + (dur - low) * (k - 0.6) / 0.4 };
+    Pick::new(name).fade(fade).at(t)
 }
 
 // ------------------------------------------------------------ the voice

@@ -222,14 +222,15 @@
         "test:game/creatures_arenas",
         "test:backrooms/beatable",
         "test:game/bodies",
-        "test:backrooms/listen"
+        "test:backrooms/listen",
+        "test:game/motion"
       ],
       "id": "creature/hound",
       "kind": "creature",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-19",
       "last_human_review": null,
       "name": "Hound",
-      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Judged blind against the old Hound (E10): preferred at 2 and 4 m and at its death, not at 8 m (pale against the wall).",
+      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Judged blind against the old Hound (E10): preferred at 2 and 4 m and at its death, not at 8 m (pale against the wall). Its motion is Kimodo's clips (E11): a person crawling on hands and knees, the knees standing for its feet, hands and feet planted, quickened into its lope and its scrabbling charge, the left hind dragging; judged blind against its procedural animation, preferred on its lope and its charge, ties on its search and spring. Heavy and upright since E12 (standing part of the way out of its stoop, its weight sinking onto each footfall, uncanny and never a cartoon), judged blind against E11's motion.",
       "passes": {
         "shots:hound_2m": true,
         "shots:hound_4m": true,
@@ -256,14 +257,15 @@
         "test:game/creatures_arenas",
         "test:backrooms/beatable",
         "test:game/bodies",
-        "test:backrooms/listen"
+        "test:backrooms/listen",
+        "test:game/motion"
       ],
       "id": "creature/smiler",
       "kind": "creature",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-19",
       "last_human_review": null,
       "name": "Smiler",
-      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a black body suit (E10: deeper ribs, dust dried on the bones, a wider, paler grin; its skin left dull, since wet read as latex): preferred to its first body at 2 m by two reviewers, ties elsewhere, and to the old Smiler at 2, 4 and 8 m and at its death.",
+      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a black body suit (E10: deeper ribs, dust dried on the bones, a wider, paler grin; its skin left dull, since wet read as latex): preferred to its first body at 2 m by two reviewers, ties elsewhere, and to the old Smiler at 2, 4 and 8 m and at its death. Its motion is Kimodo's clips (E11): a person creeping, stalking, sprinting and lunging, laid on its stoop, with its wrongness on top (held frames and snaps searching, the head first, dead arms); judged blind against its procedural animation, preferred on its search, stalk, run, lunge and withdrawal. Heavy and upright since E12 (standing part of the way out of its stoop, its weight sinking onto each footfall, uncanny and never a cartoon), judged blind against E11's motion.",
       "passes": {
         "shots:smiler_2m": true,
         "shots:smiler_4m": true,
@@ -290,14 +292,15 @@
         "test:game/bodies",
         "test:backrooms/ecology",
         "test:backrooms/listen",
-        "test:backrooms/pacing"
+        "test:backrooms/pacing",
+        "test:game/motion"
       ],
       "id": "creature/corner",
       "kind": "creature",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-19",
       "last_human_review": null,
       "name": "the one in the corner",
-      "notes": "New in the redesign (docs/design/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures).",
+      "notes": "New in the redesign (docs/design/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its motion is Kimodo's clips (E11): it holds with none of a person's sway, runs a sprinter's run with dead arms, walks back stiffly; judged blind, preferred on its run; the old animation preferred on the walk back to its corner (small stiff steps under the nightshirt read as standing still). Heavy and upright since E12 (standing part of the way out of its stoop, its weight sinking onto each footfall, uncanny and never a cartoon), judged blind against E11's motion.",
       "passes": {
         "shots:corner_2m": true,
         "shots:corner_4m": true,
@@ -324,14 +327,15 @@
         "test:game/bodies",
         "test:backrooms/listen",
         "test:backrooms/pacing",
-        "test:game/entities_smoke"
+        "test:game/entities_smoke",
+        "test:game/motion"
       ],
       "id": "creature/glass",
       "kind": "creature",
-      "last_checked": "2026-10-30",
+      "last_checked": "2026-11-19",
       "last_human_review": null,
       "name": "the one behind the glass",
-      "notes": "New with the windows (docs/design/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor; a blind let down (or paper over the glass) keeps it out and puts its light out; got away from twice, its lamp hangs lower. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures).",
+      "notes": "New with the windows (docs/design/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor; a blind let down (or paper over the glass) keeps it out and puts its light out; got away from twice, its lamp hangs lower. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its motion is Kimodo's clips (E11): a walk too even (no rise and fall, arms still), a crouch through the window, a walk with its arms out inside, backing out facing you; judged blind, preferred on its walk, its reach and its backing out, a tie through the window. Heavy and upright since E12 (standing part of the way out of its stoop, its weight sinking onto each footfall, uncanny and never a cartoon), judged blind against E11's motion.",
       "passes": {
         "shots:glass_32m": true,
         "shots:glass_8m": true,
@@ -359,14 +363,15 @@
         "test:backrooms/ecology",
         "test:backrooms/story",
         "test:backrooms/listen",
-        "test:backrooms/pacing"
+        "test:backrooms/pacing",
+        "test:game/motion"
       ],
       "id": "creature/reader",
       "kind": "creature",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-19",
       "last_human_review": null,
       "name": "the Reader",
-      "notes": "New in the redesign (docs/design/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures).",
+      "notes": "New in the redesign (docs/design/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its motion is Kimodo's clips (E11): a person walking reading a page, stooping for a sheet, hurrying, tearing it; its page work on top (the eyes along the lines, the look up); judged blind, preferred on its reading walk, its hurry, its stoop (second round, after the page was brought back to its face) and its walking away. Heavy and upright since E12 (standing part of the way out of its stoop, its weight sinking onto each footfall, uncanny and never a cartoon), judged blind against E11's motion.",
       "passes": {
         "shots:reader_2m": true,
         "shots:reader_4m": true,

@@ -20,16 +20,21 @@
 //!   only while it sees you; out of its sight 6 s, it goes back to its corner.
 //! - **Its sound**: it hums, low and tuneless, a room away; the hum stops
 //!   when it is about to turn; the scream.
-//! - **Body**: `bodies.bin`'s `corner` (`assets/src/creatures/body_corner.py`).
+//! - **Body**: `bodies.bin`'s `corner` (`assets/src/creatures/body_corner.py`),
+//!   moving by Kimodo's clips of a person (`assets/motion/corner.motion`,
+//!   `entities::motion`) under its own stillness and its head ([`pose`]).
 //!
 //! Its rule (seeing its face is what wakes it) is after SCP-096 "The Shy
 //! Guy" by Dr Dan, CC BY-SA 3.0: this file is CC BY-SA 3.0 and keeps this
 //! attribution (`docs/design/LORE.md`, Attribution). The turned back is a motif of
 //! the Rake; its face is the Thatcher illusion (Peter Thompson, 1980).
 use crate::base::numeric::hypot2;
-use crate::entities::body::{BodyRig, two_bone};
+use crate::entities::body::BodyRig;
 use crate::entities::brain::*;
 use crate::entities::creature::*;
+use crate::entities::motion::Mind;
+use crate::entities::motion::anim::{Anim, Drive, Pick};
+use crate::entities::motion::retarget::{Gains, turn_global};
 use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
 use crate::prelude::*;
 
@@ -391,40 +396,15 @@ pub fn stand_in(g: &mut Game, ei: usize, x: i32, z: i32, cx: i32, cz: i32) {
 
 // ------------------------------------------------------------ the body
 
-fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
-}
-
-fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
-}
-
-fn rest_head(rig: &BodyRig, i: usize) -> Vec3 {
-    let h = rig.def.bones[i].head;
-    v3(h[0], h[1], h[2])
-}
-
-/// One frame of its body: utterly still in its corner (a breath); its head
-/// coming round to you, alone, while it turns; then all of it, running at
-/// you with its arms dead at its sides, its jaw open.
+/// One frame of its body. Its head's turn is part of its rule (what it sees
+/// of you, `sees_its_face`), so it is kept here as it always was; the body
+/// under it moves by Kimodo's clips ([`pose`]).
 pub fn animate(g: &mut Game, ei: usize, dt: f64) {
-    let (vx, vz) = (g.entities[ei].vx, g.entities[ei].vz);
-    let speed = hypot2(vx, vz);
-    let t = g.perf_t;
     let pp = g.player.pos;
     let killer = g.director.killer == Some(ei) && g.state != "playing";
     let Some(c) = g.creature_mut(ei) else { return };
-    let rig = c.body.clone();
     let (mode, mode_t) = (c.brain.mode, c.brain.mode_t);
-    let root = rig.root.clone();
-    rig.rest();
+    let root = c.body.root.clone();
     if killer {
         // it has you: all of it turned to you
         let p = root.pos();
@@ -434,81 +414,62 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     let yaw = root.rotation().y;
     let pos = root.pos();
     let want = wrap_pi((pp.x - pos.x).datan2(pp.z - pos.z) - yaw);
-    // the head: round to you over `TURN` (as far as a neck goes, and further)
-    let turning = matches!(mode, Mode::Alert);
-    let head_yaw = if turning {
+    let head_yaw = head_turn(mode, mode_t, killer, want, c.get("head_yaw"), dt);
+    c.ease.insert("head_yaw", head_yaw);
+    crate::entities::motion::with_anim(g, ei, false, "hold", dt, |a, rig, d, m| pose(a, rig, d, m, head_yaw));
+}
+
+/// Its head's turn from its body (radians): round to you over `TURN` when
+/// alerted (`want`, where you are from its heading; as far as a neck goes,
+/// and further), on you while it comes, and back to its corner slowly from
+/// `held` (last frame's) otherwise. Its rule reads it (`sees_its_face`).
+pub fn head_turn(mode: Mode, mode_t: f64, killer: bool, want: f64, held: f64, dt: f64) -> f64 {
+    if matches!(mode, Mode::Alert) {
         want.clamp(-2.6, 2.6) * (mode_t / TURN).clamp(0.0, 1.0)
     } else if matches!(mode, Mode::Hunt | Mode::Strike) || killer {
         want.clamp(-1.0, 1.0)
     } else {
-        // back to its corner, slowly
-        let h = c.get("head_yaw");
-        h - h.signum() * (dt * 1.2).min(h.abs())
+        held - held.signum() * (dt * 1.2).min(held.abs())
+    }
+}
+
+/// Its posture and weight: standing straight as it was told to, its head
+/// bowed less; heavy when it runs.
+const UPRIGHT: f64 = 0.35;
+const MASS: f64 = 0.9;
+
+/// Its motion: in its corner as still as a person can stand, only a breath
+/// (a part of the mocap's sway, no more); its head coming round to you
+/// alone, further than a neck goes (`head_yaw`, its rule's); then all of
+/// it, running at you, the legs a sprinter's and the arms dead at its sides,
+/// its jaw open on its scream; back to its corner at a stiff walk.
+pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind, head_yaw: f64) {
+    a.rt.upright = UPRIGHT;
+    a.mass = MASS;
+    let w = a.wrong;
+    let moving = a.eased("moving", if d.speed() > 0.3 { 1.0 } else { 0.0 }, 8.0, d.dt) > 0.5;
+    // (as still as a person can stand: little of even the mocap's stillness,
+    // and none of its legs: the long nightshirt is skinned to them, and a
+    // knee bent at all creased it at the knees and lifted its hem)
+    let still = Gains { trunk: 1.0 - 0.85 * w, head: 1.0 - 0.9 * w, arms: 1.0 - 0.85 * w, legs: 1.0 - w, bob: 1.0 };
+    let dead = Gains { trunk: 1.0, head: 1.0 - 0.7 * w, arms: 1.0 - 0.85 * w, legs: 1.0, bob: 1.0 };
+    let pick = match m.mode {
+        _ if m.killer => Pick::new("hold").gains(still).fade(0.6),
+        Mode::Strike if moving => Pick::new("grab").from(0.5).travel(),
+        Mode::Hunt | Mode::Strike if moving => Pick::new("run").gains(dead).travel(),
+        Mode::Withdraw | Mode::Roam if moving => Pick::new("walk_back").gains(Gains { arms: 1.0 - 0.7 * w, ..Gains::default() }).travel(),
+        _ => Pick::new("hold").gains(still),
     };
-    c.ease.insert("head_yaw", head_yaw);
-    let scream = c.eased("scream", if matches!(mode, Mode::Hunt | Mode::Strike) || killer { 1.0 } else { 0.0 }, 6.0, dt);
-    if let Some(nk) = rig.ix("neck") {
-        rig.turn(nk, &Quat::from_euler(&Euler::new(-0.15 * scream, head_yaw * 0.45, 0.0)));
-    }
-    if let Some(hd) = rig.ix("head") {
-        // at rest its forehead to the corner; turning, its face comes round
-        rig.turn(hd, &Quat::from_euler(&Euler::new(0.12 * (1.0 - scream) - 0.1 * scream, head_yaw * 0.55, 0.0)));
-    }
-    if let Some(jw) = rig.ix("jaw") {
-        rig.turn(jw, &Quat::from_euler(&Euler::new(0.55 * scream, 0.0, 0.0)));
-    }
-    if let Some(ch) = rig.ix("chest") {
-        // a slow breath, nothing else
-        rig.turn(ch, &Quat::from_euler(&Euler::new((t * 0.9).dsin() * 0.012, 0.0, 0.0)));
-    }
-    // ---- the legs: planted; it runs in long strides, its arms do not move
-    if c.limbs.len() != 2 {
-        c.limbs = vec![Limb::default(); 2];
-    }
-    let stride = 1.6;
-    c.phase = (c.phase + speed * dt / stride).fract();
-    let phase = c.phase;
-    for (k, side) in [".L", ".R"].iter().enumerate() {
-        let (Some(it), Some(is), Some(ifo)) =
-            (rig.ix(&format!("thigh{side}")), rig.ix(&format!("shin{side}")), rig.ix(&format!("foot{side}")))
-        else {
-            continue;
-        };
-        let rest_end = rest_head(&rig, ifo);
-        let home_w = body_to_world(&root, v3(rest_end.x, 0.0, rest_end.z));
-        let lp = (phase + k as f64 * 0.5).fract();
-        let limb = &mut c.limbs[k];
-        if !limb.planted || hypot2(limb.at[0] - home_w.x, limb.at[2] - home_w.z) > 1.8 {
-            limb.at = [home_w.x, rest_end.y, home_w.z];
-            limb.planted = true;
-        }
-        if speed > 0.2 && lp > 0.5 {
-            let s = (lp - 0.5) / 0.5;
-            if limb.swing == 0.0 {
-                limb.from = limb.at;
-                let l = speed.max(1e-6);
-                limb.to = [home_w.x + vx / l * stride * 0.5, rest_end.y, home_w.z + vz / l * stride * 0.5];
-            }
-            limb.swing = s.max(1e-3);
-            for a in 0..3 {
-                limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * s;
-            }
-            limb.at[1] = rest_end.y + (s * PI).dsin() * 0.18;
-        } else {
-            if limb.swing > 0.0 {
-                limb.at = limb.to;
-            }
-            limb.swing = 0.0;
-            limb.at[1] = rest_end.y;
-        }
-        let target = world_to_body(&root, v3(limb.at[0], limb.at[1], limb.at[2]));
-        let base = rig.head(it);
-        let pole = v3(base.x, base.y, base.z + 1.0);
-        let (du, dl) = two_bone(base, target, pole, rig.rest_len[it], rig.rest_len[is]);
-        rig.aim(it, du, 0.0);
-        rig.aim(is, dl, 0.0);
-        rig.aim(ifo, rig.rest_dir[ifo], 0.0);
-    }
+    a.play(rig, &pick, d);
+    a.breathe(rig, 0.012, 0.9);
+    let scream = a.eased("scream", if matches!(m.mode, Mode::Hunt | Mode::Strike) || m.killer { 1.0 } else { 0.0 }, 6.0, d.dt);
+    let map = &a.rt.map;
+    // the neck takes part of the turn, the head the rest: at rest its
+    // forehead to the corner; turning, its face comes round
+    turn_global(rig, map.neck, &Quat::from_euler(&Euler::new(-0.15 * scream, head_yaw * 0.45, 0.0)));
+    turn_global(rig, map.head, &Quat::from_euler(&Euler::new(0.12 * (1.0 - scream) - 0.1 * scream, head_yaw * 0.55, 0.0)));
+    a.jaw(rig, 0.55 * scream);
+    // (its fingers straight, as it was told to stand: their rest)
 }
 
 // ------------------------------------------------------------ the voice

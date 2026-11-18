@@ -126,17 +126,28 @@ weight and contact (what procedural animation cannot fake: the shift onto a
 foot, the hips' drop at each step, the arms' lag), and the wrongness is laid
 on top by rule: the head first and the body after, held frames and snaps,
 the stoop kept, dead arms. How, and what the numbers show against the game's
-animation, is in [`../../lab/README.md`](../../lab/README.md).
+animation (for all five creatures that move, since 2026-11-19 in the game:
+`entities::motion`), is in [`../../lab/README.md`](../../lab/README.md).
 
 ## Risks and what is open
 
 - **Licences.** The SEED checkpoint's card allows commercial use; the
   BONES-SEED data licence was not readable here; the encoder is Llama 3's
   (an attribution line if it were ever distributed; it is not: only motion
-  leaves the pipeline). Read both before anything ships.
+  leaves the pipeline). **The clips are in the game now** (2026-11-19,
+  `crates/game/assets/motion/`, `docs/plan/ENTITIES.md` E11): both licences
+  must be read whole before a release ships with them.
 - **Reproducibility.** Sampling on the GPU is seeded but not promised
   bit-identical across machines; the baked clips are committed
-  (`lab/motion/clips/`), so nothing downstream depends on sampling again.
+  (`lab/motion/clips/`, and the game's copies), so nothing downstream
+  depends on sampling again.
 - **Skating and prompts.** Feet are planted by their contacts in the bake and
-  locked in the world by the viewer; prompts that ask for odd motion get a
-  person's nearest motion, so a brief asks for what a person does.
+  locked in the world as the game plays them; prompts that ask for odd
+  motion get a person's nearest motion, so a brief asks for what a person
+  does.
+- **What BONES-SEED knows of all fours** (the Hound, 2026-11-19): a crawl on
+  hands and knees (hips 0.48 m), at 0.25-0.6 m/s whatever is asked ("as
+  fast as they can", "a fast bear crawl" came out slower than a plain
+  crawl; "like a dog" fastest). Its knees, not its ankles, meet the floor
+  in step, so they stand for the Hound's feet; its 3-6 m/s are a scrabble
+  played quicker and longer-strided, still short of the ground at the top.

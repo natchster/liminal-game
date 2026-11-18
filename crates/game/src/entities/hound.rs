@@ -16,12 +16,17 @@
 //!   level, listening as it goes.
 //! - **Body.** `bodies.bin`'s `hound` (MakeHuman's old, thin man posed on
 //!   all fours; `assets/src/creatures/body_hound.py`), its rest pose the
-//!   pose it stands in. Hands and feet are planted in the world and the
-//!   limbs solved onto them (`body::two_bone`); the left hind drags.
+//!   pose it stands in. It moves by Kimodo's clips of a person on hands and
+//!   feet (`assets/motion/hound.motion`, `entities::motion`): hands and feet
+//!   planted in the world and the limbs solved onto them; the left hind
+//!   drags ([`pose`]).
 use crate::base::numeric::hypot2;
 use crate::entities::body::{BodyRig, two_bone};
 use crate::entities::brain::*;
 use crate::entities::creature::*;
+use crate::entities::motion::Mind;
+use crate::entities::motion::anim::{Anim, Drive, Pick};
+use crate::entities::motion::retarget::{Gains, set_global, turn_global};
 use crate::entities::{EntVoice, with_skin_detail};
 use crate::prelude::*;
 
@@ -440,147 +445,84 @@ fn notice(g: &mut Game, ei: usize) {
 
 // ------------------------------------------------------------ the body
 
-/// Its four limbs: (upper, lower, end bone, the end's joint, side).
-const LIMBS: [(&str, &str, &str, f64, f64); 4] = [
-    // name stems, phase offset in the cycle, side
-    ("thigh.L", "shin.L", "foot.L", 0.0, 1.0),
-    ("upperarm.L", "forearm.L", "hand.L", 0.25, 1.0),
-    ("thigh.R", "shin.R", "foot.R", 0.5, -1.0),
-    ("upperarm.R", "forearm.R", "hand.R", 0.75, -1.0),
-];
+/// The clip it charges in: the fastest a body on all fours was found to go
+/// (`lab/motion/briefs/hound.toml`), played faster and longer-strided.
+const FAST: &str = "gallop";
 
-fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
-}
-
-fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
-}
-
-fn rest_head(rig: &BodyRig, i: usize) -> Vec3 {
-    let h = rig.def.bones[i].head;
-    v3(h[0], h[1], h[2])
-}
-
-/// One frame of the hound's body: the trunk and head by mode, the limbs
-/// onto their plants.
+/// One frame of its body: Kimodo's clips of a person on hands and feet, its
+/// hands planted as its feet are, and what makes it the Hound on top ([`pose`]).
 pub fn animate(g: &mut Game, ei: usize, dt: f64) {
-    let pos = g.entities[ei].pos();
-    let (vx, vz) = (g.entities[ei].vx, g.entities[ei].vz);
-    let speed = hypot2(vx, vz);
-    let t = g.perf_t;
-    let killer = g.director.killer == Some(ei) && g.state != "playing";
-    let Some(c) = g.creature_mut(ei) else { return };
-    let rig = c.body.clone();
-    let mode = c.brain.mode;
-    let mode_t = c.brain.mode_t;
-    let run = c.eased("run", ((speed - 2.0) / 3.5).clamp(0.0, 1.0), 4.0, dt);
-    let crouch = c.eased(
-        "crouch",
-        if mode == Mode::Alert || (mode == Mode::Strike && mode_t < WINDUP) || mode == Mode::Idle { 1.0 } else { 0.0 },
-        6.0,
-        dt,
-    );
-    // it bays when it is sure; and it lifts its face to you over your body
-    let bay = c.eased("bay", if (mode == Mode::Hunt && c.chase_t < 0.9) || killer { 1.0 } else { 0.0 }, 8.0, dt);
-    // the gait's phase advances with the distance walked
-    let stride = 0.9 + 0.7 * run;
-    c.phase = (c.phase + speed * dt / stride).fract();
-    let phase = c.phase;
-    let duty = 0.72 - 0.25 * run;
-    if c.limbs.len() != 4 {
-        c.limbs = vec![Limb::default(); 4];
+    crate::entities::motion::with_anim(g, ei, true, "crawl", dt, pose);
+}
+
+/// Its posture and weight: on all fours, its chest and head carried a
+/// little higher than as bound (never reared), heavy on its hands and feet.
+const UPRIGHT: f64 = 0.08;
+const MASS: f64 = 1.0;
+
+/// Its motion: a crawl on hands and feet (both planted in the world while
+/// they bear weight), lengthened and quickened into its lope and its charge;
+/// the left hind dragging, its foot never lifted clear; the listening
+/// crouch, its head cocked in snaps from side to side; sniffing about the
+/// spot; its face lifted to bay; the thin hair hanging to the floor
+/// whatever the head does.
+pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind) {
+    a.rt.upright = UPRIGHT;
+    a.mass = MASS;
+    let w = a.wrong;
+    let dt = d.dt;
+    let speed = d.speed();
+    let moving = a.eased("moving", if speed > 0.25 { 1.0 } else { 0.0 }, 8.0, dt) > 0.5;
+    let still = Gains { trunk: 1.0 - 0.5 * w, head: 1.0 - 0.6 * w, arms: 1.0, legs: 1.0, bob: 1.0 };
+    let pick = match m.mode {
+        _ if m.killer => Pick::new("fours").fade(0.6),
+        Mode::Strike => Pick::new("spring").travel(),
+        // (a scrabble: the clips are slow, and its steps quicken more than they lengthen)
+        Mode::Hunt | Mode::Search if moving && speed > 2.6 => Pick::new(FAST).travel().cadence(0.72).max_pace(3.3),
+        Mode::Search if !moving => Pick::new("sniff"),
+        // (a person's crawl is slow: played no faster, its strides stretched
+        // until it sprawled flat between arches, and read as bouncing)
+        _ if moving => Pick::new("crawl").travel().cadence(0.68).max_pace(3.3),
+        Mode::Alert | Mode::Idle | Mode::Hunt => Pick::new("listen").gains(still),
+        _ => Pick::new("fours").gains(still),
+    };
+    a.play(rig, &pick, d);
+    a.breathe(rig, 0.015, if moving { 4.0 } else { 1.6 });
+    let map = a.rt.map.clone();
+    // ---- the drag: the left hind's foot never lifts clear of the floor
+    let l = map.leg[0];
+    let ankle = rig.head(l[2]);
+    let floor = a.rt.rest_ankle(0).y;
+    if ankle.y > floor + 1e-3 && w > 0.0 {
+        let target = v3(ankle.x, floor + (ankle.y - floor) * (1.0 - 0.8 * w), ankle.z - 0.05 * w);
+        let foot = rig.body_rot(l[2]);
+        let base = rig.head(l[0]);
+        let knee = rig.tail(l[0]);
+        let (du, dl) = two_bone(base, target, v3(knee.x, knee.y + 0.2, knee.z + 0.5), rig.rest_len[l[0]], rig.rest_len[l[1]]);
+        rig.aim(l[0], du, 0.0);
+        rig.aim(l[1], dl, 0.0);
+        set_global(rig, l[2], &foot);
     }
-    let root = rig.root.clone();
-    rig.rest();
-    // ---- trunk: a bob with the gait, lower in the crouch, a lurch when it runs
-    let hips = rig.ix("hips").unwrap();
-    let h0 = rest_head(&rig, hips);
-    let bob = (phase * PI * 4.0).dsin() * (0.012 + 0.03 * run);
-    rig.bones[hips].set_pos(h0.x, h0.y + bob - 0.11 * crouch, h0.z - 0.05 * crouch);
-    let pitch = -0.06 * run + 0.18 * crouch;
-    rig.turn(hips, &Quat::from_euler(&Euler::new(pitch, 0.0, (phase * PI * 2.0).dsin() * 0.05)));
-    if let Some(sp) = rig.ix("spine") {
-        rig.turn(sp, &Quat::from_euler(&Euler::new(-0.5 * pitch, 0.0, -(phase * PI * 2.0).dsin() * 0.04)));
-    }
-    // ---- head: hanging and swaying; raised and cocked when it listens; up when it bays
-    let cock = if crouch > 0.5 { ((t * 1.3).floor() * 1.7).dsin() * 0.35 } else { 0.0 }; // it snaps between cocks
-    if let Some(nk) = rig.ix("neck") {
-        rig.turn(nk, &Quat::from_euler(&Euler::new(-0.5 * crouch - 0.9 * bay + (phase * PI * 4.0).dsin() * 0.05, 0.0, 0.0)));
-    }
-    if let Some(hd) = rig.ix("head") {
-        rig.turn(hd, &Quat::from_euler(&Euler::new(-0.3 * bay, 0.0, cock * crouch)));
-    }
-    if let Some(jw) = rig.ix("jaw") {
-        rig.turn(jw, &Quat::from_euler(&Euler::new(0.45 * bay, 0.0, 0.0)));
-    }
-    // ---- hair: it hangs to the floor whatever the head does, trailing a little as it moves
-    let yaw = root.rotation().y;
-    let (sy, cy) = (yaw.dsin(), yaw.dcos());
-    let (bvx, bvz) = (vx * cy - vz * sy, vx * sy + vz * cy);
+    // ---- the head: hanging; cocked in snaps as it listens; up to bay
+    let bay = a.eased("bay", if (m.mode == Mode::Hunt && m.chase_t < 0.9) || m.killer { 1.0 } else { 0.0 }, 8.0, dt);
+    let listening = matches!(m.mode, Mode::Alert) || (m.mode == Mode::Hunt && !moving);
+    let cock = a.eased("cock", if listening { 1.0 } else { 0.0 }, 6.0, dt);
+    let t = a.time;
+    // (from one cock of the head to the next quickly, never in a jump: a jump
+    // read as a cartoon's)
+    let snap = a.eased("cock_at", ((t * 1.3).floor() * 1.7).dsin() * 0.35, 14.0, d.dt);
+    turn_global(rig, map.neck, &Quat::from_euler(&Euler::new(-0.9 * bay * w - 0.3 * cock * w, 0.0, 0.0)));
+    turn_global(rig, map.head, &Quat::from_euler(&Euler::new(-0.3 * bay * w, 0.0, snap * cock * w)));
+    a.jaw(rig, 0.45 * bay * w);
+    // ---- its hair hangs to the floor, trailing a little as it moves
+    let (ahead, side) = d.ahead();
     for k in 0..3 {
         if let Some(hb) = rig.ix(["hair.0", "hair.1", "hair.2"][k]) {
-            let sway = (t * 2.3 + k as f64).dsin() * 0.04 * (1.0 + run);
-            rig.aim(hb, v3(-bvx * 0.05 + sway, -1.0, -bvz * 0.05), 0.0);
+            let sway = (t * 2.3 + k as f64).dsin() * 0.04 * (1.0 + (speed / 3.0).min(1.0));
+            rig.aim(hb, v3(-side * 0.05 + sway, -1.0, -ahead * 0.05), 0.0);
         }
     }
-    // ---- limbs: plant, swing, solve
-    let fwd_w = v3(vx, 0.0, vz);
-    for (k, (up, lo, end, off, side)) in LIMBS.iter().enumerate() {
-        let (iu, il, ie) = (rig.ix(up).unwrap(), rig.ix(lo).unwrap(), rig.ix(end).unwrap());
-        let rest_end = rest_head(&rig, ie);
-        let home_w = body_to_world(&root, v3(rest_end.x, 0.0, rest_end.z));
-        let lame = k == 0; // the left hind drags
-        let lp = (phase + off).fract();
-        let limb = &mut c.limbs[k];
-        if !limb.planted || hypot2(limb.at[0] - home_w.x, limb.at[2] - home_w.z) > 1.2 {
-            limb.at = [home_w.x, rest_end.y, home_w.z];
-            limb.planted = true;
-        }
-        let swinging = speed > 0.15 && lp > duty;
-        if swinging {
-            let s = (lp - duty) / (1.0 - duty);
-            if limb.swing == 0.0 {
-                limb.from = limb.at;
-                let ahead = stride * 0.5 * if lame { 0.7 } else { 1.0 };
-                let mut d = fwd_w;
-                let l = d.length().max(1e-6);
-                d.multiply_scalar(ahead / l);
-                limb.to = [home_w.x + d.x, rest_end.y, home_w.z + d.z];
-            }
-            limb.swing = s.max(1e-3);
-            let lift = if lame { 0.0 } else { (s * PI).dsin() * (0.07 + 0.05 * run) };
-            for a in 0..3 {
-                limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * s;
-            }
-            limb.at[1] = rest_end.y + lift;
-        } else {
-            if limb.swing > 0.0 {
-                limb.at = limb.to;
-            }
-            limb.swing = 0.0;
-            limb.at[1] = rest_end.y;
-        }
-        let target = world_to_body(&root, v3(limb.at[0], limb.at[1], limb.at[2]));
-        let a = rig.rest_len[iu];
-        let b = rig.rest_len[il];
-        let base = rig.head(iu);
-        let front = up.starts_with("upperarm");
-        let pole = if front { v3(base.x + side * 0.4, base.y, base.z - 0.6) } else { v3(base.x, base.y + 0.2, base.z + 1.0) };
-        let (du, dl) = two_bone(base, target, pole, a, b);
-        rig.aim(iu, du, 0.0);
-        rig.aim(il, dl, 0.0);
-        // the hand flat, the foot as it stood (the dragging one on its toes)
-        rig.aim(ie, rig.rest_dir[ie], 0.0);
-    }
-    let _ = pos;
+    a.curl(rig, 0.1, &|_| 0.0);
 }
 
 // ------------------------------------------------------------ the voice
@@ -665,13 +607,14 @@ pub fn voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
     let t = g.ac_time();
     let Some(c) = g.creature_mut(ei) else { return };
     let mode = c.brain.mode;
-    // a click as each limb comes down, the scrape of the dragging one
+    // a click as each limb comes down, the scrape of the dragging one (the
+    // left hind): each foot and hand is in the air while its lock is let go
+    let lifted = c.anim.as_ref().map_or([false; 4], |a| a.locks().map(|(locked, _)| !locked));
     let mut plants = 0;
     let mut drag = false;
-    for k in 0..c.limbs.len() {
+    for (k, &now) in lifted.iter().enumerate() {
         let key: &'static str = ["sw0", "sw1", "sw2", "sw3"][k];
         let was = c.ease.get(key).copied().unwrap_or(0.0) > 0.0;
-        let now = c.limbs[k].swing > 0.0;
         if was && !now {
             plants += 1;
         }
@@ -689,14 +632,23 @@ pub fn voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
             _ => with_native(|| rand2(3.0, 5.0)),
         };
     }
+    // (how many fall comes from its clips: each takes its noise from a point
+    // of its own, the golden ratio over its footfalls, never a draw from the
+    // per-frame stream, which a clip re-baked would otherwise shift)
+    let mut fall = c.get("footfalls");
+    let mut next = || {
+        fall += 1.0;
+        (fall * 0.618_033_988_75).fract() * 1.5
+    };
     for k in 0..plants {
         let tk = t + k as f64 * 0.02;
-        s.burst(&v, tk, 0.016, "highpass", 3200.0, 1.0, 0.05, None, 0.001);
-        s.burst(&v, tk, 0.05, "lowpass", 320.0, 0.9, 0.035, None, 0.003);
+        s.burst_from(&v, tk, 0.016, "highpass", 3200.0, 1.0, 0.05, None, 0.001, next());
+        s.burst_from(&v, tk, 0.05, "lowpass", 320.0, 0.9, 0.035, None, 0.003, next());
     }
     if drag {
-        s.burst(&v, t, 0.38, "bandpass", 1250.0, 0.8, 0.045, Some(850.0), 0.04);
+        s.burst_from(&v, t, 0.38, "bandpass", 1250.0, 0.8, 0.045, Some(850.0), 0.04, next());
     }
+    c.ease.insert("footfalls", fall);
     if due {
         match mode {
             Mode::Hunt | Mode::Strike => s.burst(&v, t, 0.18, "bandpass", 1300.0, 1.4, 0.07, Some(800.0), 0.02),

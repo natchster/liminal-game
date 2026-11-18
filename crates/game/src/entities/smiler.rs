@@ -21,12 +21,17 @@
 //!   is how much of your beam falls on them and how squarely they face you
 //!   (`eyeshine`); it never glows on its own.
 //! - **Body.** `bodies.bin`'s `smiler` (`assets/src/creatures/body_smiler.py`),
-//!   its stoop the rest pose; the legs solved onto planted feet, the arms
-//!   hanging dead, the head turning first and the body after.
+//!   its stoop the rest pose; it moves by Kimodo's clips of a person
+//!   (`assets/motion/smiler.motion`, `entities::motion`) with its wrongness
+//!   laid on by rule ([`pose`]): the head first and the body after, held
+//!   frames and snaps, the arms hanging dead.
 use crate::base::numeric::hypot2;
-use crate::entities::body::{BodyRig, two_bone};
+use crate::entities::body::BodyRig;
 use crate::entities::brain::*;
 use crate::entities::creature::*;
+use crate::entities::motion::Mind;
+use crate::entities::motion::anim::{Anim, Drive, Pick};
+use crate::entities::motion::retarget::Gains;
 use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
 use crate::prelude::*;
 
@@ -458,144 +463,90 @@ fn notice(g: &mut Game, ei: usize) {
 
 // ------------------------------------------------------------ the body
 
-fn world_to_body(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (dx, dz) = (p.x - o.x, p.z - o.z);
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
-}
-
-fn body_to_world(root: &Obj, p: Vec3) -> Vec3 {
-    let o = root.pos();
-    let yaw = root.rotation().y;
-    let (s, c) = (yaw.dsin(), yaw.dcos());
-    v3(o.x + p.x * c + p.z * s, o.y + p.y, o.z - p.x * s + p.z * c)
-}
-
-fn rest_head(rig: &BodyRig, i: usize) -> Vec3 {
-    let h = rig.def.bones[i].head;
-    v3(h[0], h[1], h[2])
-}
-
-/// One frame of its body: the stoop and its sway, the head on what it
-/// wants before the body is, the legs on planted feet stepping in snaps,
-/// the arms hanging dead (forward in a lunge).
+/// One frame of its body: Kimodo's clips on its own body (`entities::motion`)
+/// and what makes the motion its own laid on top ([`pose`]).
 pub fn animate(g: &mut Game, ei: usize, dt: f64) {
-    let (vx, vz) = (g.entities[ei].vx, g.entities[ei].vz);
-    let speed = hypot2(vx, vz);
-    let t = g.perf_t;
-    let pp = g.player.pos;
-    let killer = g.director.killer == Some(ei) && g.state != "playing";
     eyeshine(g, ei);
-    let Some(c) = g.creature_mut(ei) else { return };
-    let rig = c.body.clone();
-    let mode = c.brain.mode;
-    let mode_t = c.brain.mode_t;
-    let root = rig.root.clone();
-    rig.rest();
-    let lunge = c.eased("lunge", if mode == Mode::Strike && mode_t >= WINDUP && !killer { 1.0 } else { 0.0 }, 9.0, dt);
-    // over your body it stands over you and looks down at you, head tilted
-    let stare = c.eased("stare", if killer { 1.0 } else { 0.0 }, 6.0, dt);
-    let coil = c.eased("coil", if mode == Mode::Strike && mode_t < WINDUP { 1.0 } else { 0.0 }, 10.0, dt);
-    let hunt = c.eased("hunt", if mode == Mode::Hunt { 1.0 } else { 0.0 }, 3.0, dt);
-    // ---- the trunk: a slow sway at rest, lower and forward when it comes
-    let hips = rig.ix("hips").unwrap();
-    let h0 = rest_head(&rig, hips);
-    let sway = (t * 1.3).dsin() * 0.01 * (1.0 - hunt);
-    rig.bones[hips].set_pos(h0.x + sway, h0.y - 0.08 * coil - 0.03 * hunt, h0.z);
-    if let Some(sp) = rig.ix("spine") {
-        rig.turn(sp, &Quat::from_euler(&Euler::new(0.15 * hunt + 0.5 * lunge - 0.2 * coil, 0.0, (t * 0.7).dsin() * 0.03)));
-    }
-    if let Some(ch) = rig.ix("chest") {
-        // a slow breath
-        rig.turn(ch, &Quat::from_euler(&Euler::new((t * 1.1).dsin() * 0.02 + 0.2 * lunge, 0.0, 0.0)));
-    }
-    // ---- the head: on you (or your light) first; it turns in snaps
-    let yaw = root.rotation().y;
-    let pos = root.pos();
-    let want = wrap_pi((pp.x - pos.x).datan2(pp.z - pos.z) - yaw).clamp(-1.4, 1.4);
-    let look = if matches!(mode, Mode::Alert | Mode::Hunt | Mode::Strike) || killer { want } else { (t * 0.23).dsin() * 0.3 };
-    let held = c.get("head_yaw");
-    let snapped = if (look - held).abs() > 0.25 { look } else { held };
-    c.ease.insert("head_yaw", snapped);
-    if let Some(nk) = rig.ix("neck") {
-        rig.turn(nk, &Quat::from_euler(&Euler::new(-0.3 * lunge + 0.35 * stare, snapped * 0.5, 0.0)));
-    }
-    if let Some(hd) = rig.ix("head") {
-        rig.turn(hd, &Quat::from_euler(&Euler::new(-0.2 * lunge + 0.15 * stare, snapped * 0.5, (t * 0.4).dsin() * 0.06 + 0.3 * stare)));
-    }
-    if let Some(jw) = rig.ix("jaw") {
-        rig.turn(jw, &Quat::from_euler(&Euler::new(0.12 * coil + 0.3 * lunge + 0.3 * stare, 0.0, 0.0)));
-    }
-    // ---- the arms: hanging dead; forward, reaching, in a lunge
-    for side in [".L", ".R"] {
-        let sx = if side == ".L" { 1.0 } else { -1.0 };
-        if let (Some(ua), Some(fa)) = (rig.ix(&format!("upperarm{side}")), rig.ix(&format!("forearm{side}"))) {
-            let swing = (speed * 0.08).min(0.2) * (t * 3.0 + sx).dsin();
-            let r = rig.rest_dir[ua];
-            let reach = v3(sx * 0.15, -0.1, 1.0);
-            let hang = v3(r.x, r.y, r.z + swing);
-            rig.aim(
-                ua,
-                v3(hang.x + (reach.x - hang.x) * lunge, hang.y + (reach.y - hang.y) * lunge, hang.z + (reach.z - hang.z) * lunge),
-                0.0,
-            );
-            let rf = rig.rest_dir[fa];
-            rig.aim(fa, v3(rf.x + (reach.x - rf.x) * lunge, rf.y + (reach.y - rf.y) * lunge, rf.z + (reach.z - rf.z) * lunge), 0.0);
+    crate::entities::motion::with_anim(g, ei, false, "idle", dt, pose);
+}
+
+/// How much of its bound stoop it stands out of, and how heavy it moves
+/// (`motion::retarget::Retarget::upright`, `motion::anim::Anim::mass`):
+/// tall, a little stooped under the ceilings, heavy on its feet.
+const UPRIGHT: f64 = 0.55;
+const MASS: f64 = 1.0;
+
+/// The Smiler's motion, the mocap's weight under it and its wrongness on
+/// top (design §6: two vocabularies only, stillness and wrong mechanics):
+///
+/// - **Stillness.** Waiting it keeps a part of the mocap's sway; it
+///   breathes slowly; nothing else.
+/// - **Its stoop stays.** The clips are laid on its rest pose, the stoop.
+/// - **The head first, the body after.** Its head goes to what it watches
+///   in a snap and holds there; the body comes round later.
+/// - **Held frames and snaps.** Searching (and now and then waiting) it
+///   stops dead mid-step, holds, and lurches on to where it would have been.
+/// - **Arms that hang dead.** Hunting, the legs run and the arms swing as
+///   dead weight, until the lunge reaches.
+/// - Its jaw opens as it comes; its fingers clench as it coils, splay as it
+///   reaches, and twitch one by one while it stands over you.
+pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind) {
+    a.rt.upright = UPRIGHT;
+    a.mass = MASS;
+    let w = a.wrong;
+    let moving = a.eased("moving", if d.speed() > 0.25 { 1.0 } else { 0.0 }, 8.0, d.dt) > 0.5;
+    let still = Gains { trunk: 1.0 - 0.6 * w, head: 1.0 - 0.5 * w, arms: 1.0 - 0.7 * w, legs: 1.0, bob: 1.0 };
+    let dead_arms = Gains { trunk: 1.0, head: 1.0 - 0.6 * w, arms: 1.0 - 0.65 * w, legs: 1.0, bob: 1.0 };
+    let listening = m.mode == Mode::Search && !moving;
+    let pick = if m.killer {
+        // out of a strike into stillness slowly: no pop
+        Pick::new("stand_over").fade(0.7)
+    } else {
+        match m.mode {
+            Mode::Strike if m.mode_t < WINDUP => Pick::new("lunge").from(0.3).gains(dead_arms).travel(),
+            Mode::Strike => Pick::new("lunge").from(0.8).travel(),
+            Mode::Hunt if moving && d.speed() > STALK + 0.3 => Pick::new("run").gains(dead_arms).travel(),
+            Mode::Hunt | Mode::Stalk if moving => Pick::new("stalk").gains(dead_arms).travel(),
+            Mode::Search if moving => Pick::new("creep").travel().holds(1.2, 2.4),
+            Mode::Search => Pick::new("listen").gains(still),
+            Mode::Roam | Mode::Withdraw if moving => Pick::new("creep").travel(),
+            Mode::Alert => Pick::new("look").gains(still),
+            _ => Pick::new("idle").gains(still).holds(3.0, 5.0),
         }
-    }
-    // ---- the legs: feet planted; each step taken in three snaps
-    if c.limbs.len() != 2 {
-        c.limbs = vec![Limb::default(); 2];
-    }
-    let stride = 1.1;
-    c.phase = (c.phase + speed * dt / stride).fract();
-    let phase = c.phase;
-    for (k, side) in [".L", ".R"].iter().enumerate() {
-        let (Some(it), Some(is), Some(ifo)) =
-            (rig.ix(&format!("thigh{side}")), rig.ix(&format!("shin{side}")), rig.ix(&format!("foot{side}")))
-        else {
-            continue;
-        };
-        let rest_end = rest_head(&rig, ifo);
-        let home_w = body_to_world(&root, v3(rest_end.x, 0.0, rest_end.z));
-        let lp = (phase + k as f64 * 0.5).fract();
-        let limb = &mut c.limbs[k];
-        if !limb.planted || hypot2(limb.at[0] - home_w.x, limb.at[2] - home_w.z) > 1.4 {
-            limb.at = [home_w.x, rest_end.y, home_w.z];
-            limb.planted = true;
-        }
-        let swinging = speed > 0.15 && lp > 0.6;
-        if swinging {
-            let s = (lp - 0.6) / 0.4;
-            if limb.swing == 0.0 {
-                limb.from = limb.at;
-                let l = speed.max(1e-6);
-                limb.to = [home_w.x + vx / l * stride * 0.5, rest_end.y, home_w.z + vz / l * stride * 0.5];
-            }
-            limb.swing = s.max(1e-3);
-            // wrong mechanics: the foot moves in three held snaps
-            let st = ((s * 3.0).floor() / 3.0 + 0.15 * (s * 3.0).fract()).min(1.0);
-            for a in 0..3 {
-                limb.at[a] = limb.from[a] + (limb.to[a] - limb.from[a]) * st;
-            }
-            limb.at[1] = rest_end.y + (s * PI).dsin() * 0.1;
-        } else {
-            if limb.swing > 0.0 {
-                limb.at = limb.to;
-            }
-            limb.swing = 0.0;
-            limb.at[1] = rest_end.y;
-        }
-        let target = world_to_body(&root, v3(limb.at[0], limb.at[1], limb.at[2]));
-        let base = rig.head(it);
-        let pole = v3(base.x, base.y, base.z + 1.0);
-        let (du, dl) = two_bone(base, target, pole, rig.rest_len[it], rig.rest_len[is]);
-        rig.aim(it, du, 0.0);
-        rig.aim(is, dl, 0.0);
-        rig.aim(ifo, rig.rest_dir[ifo], 0.0);
-    }
+    };
+    a.play(rig, &pick, d);
+    // ---- the head on what it watches, in snaps; tilted as it listens
+    let watching = matches!(m.mode, Mode::Alert | Mode::Hunt | Mode::Strike) || m.killer || (listening && m.mode_t > 1.6);
+    let tilt = if m.killer {
+        0.3 * w
+    } else if listening {
+        0.38 * w * (m.mode_t / 0.6).min(1.0)
+    } else {
+        0.0
+    };
+    a.breathe(rig, 0.02, 1.4);
+    a.look(rig, watching.then_some(m.eye), d, 0.25, (1.5, 0.7), 0.4, tilt);
+    // ---- the fingers: loose; clenching as it coils, splayed past straight
+    // as it reaches, twitching one by one while it stands over you
+    let curl = match m.mode {
+        _ if m.killer => 0.35,
+        Mode::Strike if m.mode_t < WINDUP => 0.25 + 0.5 * (m.mode_t / WINDUP),
+        Mode::Strike => -0.18,
+        Mode::Hunt => 0.12,
+        _ => 0.28,
+    };
+    let t = a.time;
+    let killer = m.killer;
+    a.curl(rig, curl, &|f| if killer { 0.35 * (t * 2.3 + f as f64 * 1.7).dsin().max(0.0).dpowi(3) * w } else { 0.0 });
+    // ---- the jaw a little open as it comes, wide in the lunge
+    let open = match m.mode {
+        _ if m.killer => 0.25,
+        Mode::Hunt => 0.12,
+        Mode::Strike => 0.32,
+        _ => 0.0,
+    } * w;
+    let open = a.eased("jaw", open, 8.0, d.dt);
+    a.jaw(rig, open);
 }
 
 /// Its eyes give back your lamp: how far inside your beam they are, how

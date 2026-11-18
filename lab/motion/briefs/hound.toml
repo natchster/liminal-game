@@ -1,0 +1,82 @@
+# The Hound's moves, one brief each (docs/design/ENTITIES.md, the Hound:
+# Roam → Alert → Search → Hunt → Strike). An old person on all fours, on
+# hands and feet, rump high, the head hanging (its body is bound so:
+# assets/src/creatures/body_hound.py). Kimodo is asked for a person on
+# hands and feet; what makes it the Hound's (the drag, the listening crouch
+# held in snaps, the hair hanging, the bay) is laid on in
+# `entities::hound::pose`.
+#
+# BONES-SEED knows a crawl on hands and knees (its hips at 0.48 m), and no
+# fast one: asked for "as fast as they can" (8 seeds, 0.24-0.37 m/s) or "a
+# fast bear crawl" (6 seeds, 0.27 m/s) it crawled slower than the plain
+# crawl; "like a dog" (`gallop`, 0.59 m/s) is the fastest found. The game
+# plays it quicker and longer-strided to the Hound's 3-6 m/s
+# (`motion::anim`, the pace), its hands and feet still planted.
+#
+# `fours`: the hands are feet too (their contacts are found in the bake,
+# planted, and the game locks them to the floor as it does the feet);
+# `max_head`: a crawl that stood up is no use to it.
+
+[defaults]
+title = "The Hound"
+steps = 100
+cfg = 2.0
+candidates = 4
+seed = 2000
+fours = true
+max_head = 1.0
+
+# Every clip is laid on the body as its turn away from this stance: a
+# person on hands and feet, still (as the Hound is bound).
+[[clip]]
+name = "fours"
+for = "the stance every clip is measured from (the body's rest pose: on hands and feet)"
+prompt = "A person is down on their hands and feet on the floor with their hips raised, holding completely still."
+seconds = 3.0
+speed = [0.0, 0.05]
+neutral = true
+
+[[clip]]
+name = "crawl"
+for = "Roam: its lope along the halls, stopping to listen every 4-8 s"
+# (asked for a heavy crawl with its head held up, its knees no longer met
+# the floor in step and the Hound's feet slid 0.2 m/s: its weight comes
+# from the game, `hound::MASS`, on this crawl)
+prompt = "A person crawls forward steadily on their hands and feet."
+seconds = 6.0
+loop = true
+candidates = 6
+speed = [0.4, 1.4]
+
+[[clip]]
+name = "listen"
+for = "Alert: the listening crouch, head cocked, 1.5 s (the tell)"
+prompt = "A person on their hands and knees stops crawling, raises their head and stays completely still, listening."
+seconds = 4.0
+speed = [0.0, 0.3]
+
+[[clip]]
+name = "sniff"
+for = "Search, arriving: it sniffs about the spot"
+prompt = "A person on their hands and knees moves slowly forward, sniffing along the floor."
+seconds = 5.0
+loop = true
+speed = [0.1, 0.6]
+
+[[clip]]
+name = "spring"
+for = "Strike: a crouch, 0.5 s, then it springs"
+# (asked to lunge "heavily" from its knees, every seed stood up out of the
+# crawl: the plain brief is kept)
+prompt = "A person on their hands and feet crouches down and then lunges forward."
+seconds = 3.0
+speed = [0.3, 2.5]
+
+[[clip]]
+name = "gallop"
+for = "Hunt: the charge at 6 m/s, below your sprint, for at most 6 s (the fastest a body on all fours was found to go)"
+prompt = "A person runs forward fast on all fours like a dog, using their hands and feet."
+seconds = 5.0
+loop = true
+candidates = 8
+speed = [1.0, 4.0]

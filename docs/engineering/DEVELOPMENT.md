@@ -109,7 +109,9 @@
   `entities/corner.rs`, `entities/reader.rs`, `entities/glass.rs`) is free functions
   (`think`, `animate`, `voice`, `call`, `place`) taking `&mut Game`,
   dispatched by kind from `entities/creature.rs` (`.claude/rules/entities.md`):
-  a kind is its data and its own rules, not more methods on `Game`.
+  a kind is its data and its own rules, not more methods on `Game`. Its
+  `pose` takes no `Game` at all (its motion, what drives it, its mind:
+  `entities::motion`), so the lab (`lab/viewer`) can call the same function.
 * **Formatting and lints.** `cargo fmt` (settings in `rustfmt.toml`) and
   `cargo clippy --workspace --all-targets`; both should be clean before a
   change goes in.

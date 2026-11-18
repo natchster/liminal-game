@@ -1,0 +1,60 @@
+# The one in the corner (docs/design/ENTITIES.md: Hold → Alert → Hunt →
+# Strike → Withdraw → Hold). Someone tall in a long nightshirt, barefoot,
+# standing as a child is made to, its arms straight at its sides. Kimodo
+# gives the body its weight (the run's drive, the walk back); what makes it
+# this one (a stillness that does not sway, the head coming round further
+# than a neck goes, the arms dead while it runs, the jaw open on its
+# scream) is laid on in `entities::corner::pose`.
+
+[defaults]
+title = "The one in the corner"
+steps = 100
+cfg = 2.0
+candidates = 4
+seed = 3000
+
+# (the same brief as the Smiler's: one sample serves both)
+[[clip]]
+name = "stand"
+for = "the stance every clip is measured from (its rest pose: upright, arms at its sides)"
+prompt = "A person stands upright and completely still, with arms relaxed at their sides, looking straight ahead."
+seconds = 3.0
+speed = [0.0, 0.05]
+neutral = true
+seed = 1000
+
+[[clip]]
+name = "hold"
+for = "Hold: in its corner, as still as a person can stand; only its breath"
+prompt = "A person stands upright and completely still facing a wall, head slightly bowed, arms straight down at their sides."
+seconds = 8.0
+loop = true
+speed = [0.0, 0.06]
+
+[[clip]]
+name = "run"
+for = "Hunt: it comes at you at 5.6 m/s, screaming, its arms dead at its sides"
+prompt = "A heavy person runs forward with heavy, pounding strides and an upright posture, arms hanging straight down at their sides."
+seconds = 5.0
+loop = true
+candidates = 8
+speed = [2.6, 5.0]
+
+[[clip]]
+name = "grab"
+for = "Strike: it reaches you"
+prompt = "A heavy person runs forward, stops heavily, and grabs at something in front of them with both hands."
+seconds = 3.0
+speed = [0.5, 3.0]
+min_hips = 0.6
+
+[[clip]]
+name = "walk_back"
+for = "Withdraw: back to its corner, stiffly"
+# (asked for long, heavy steps, its legs flung out from under the nightshirt: a blind review preferred these, its feet under its hem)
+prompt = "A person walks forward slowly and stiffly with arms straight down at their sides."
+seconds = 6.0
+loop = true
+speed = [0.5, 1.2]
+candidates = 4
+

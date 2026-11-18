@@ -1,0 +1,67 @@
+# The Reader (docs/design/ENTITIES.md: Roam → Alert → Hunt → Read → Strike
+# → Withdraw). A thin man in a cardigan, walking bent over a sheet held
+# close to its face (its body is bound so, the sheets rigid in its hands:
+# assets/src/creatures/body_reader.py). Kimodo gives the reading walk, the
+# stoop for a sheet, the hurry; what makes it the Reader's (the eyes along
+# the lines, the look up over the page, the whisper, the sheet lowered) is
+# laid on in `entities::reader::pose`.
+
+[defaults]
+title = "The Reader"
+steps = 100
+cfg = 2.0
+candidates = 4
+seed = 4000
+
+# Every clip is laid on the body as its turn away from this stance: a
+# person standing still, bent over a page held before the face (as the
+# Reader is bound), so a reading clip moves the page only as a reader does.
+[[clip]]
+name = "reading"
+for = "the stance every clip is measured from (its rest pose: stooped over a sheet before its face)"
+prompt = "A person stands still, slightly hunched, holding a sheet of paper with both hands in front of their face and reading it."
+seconds = 4.0
+speed = [0.0, 0.05]
+neutral = true
+
+[[clip]]
+name = "read_walk"
+for = "Roam: it walks reading, a shuffle, the page before its face"
+# (asked for a heavy walk, it took wide strides into a lunge: a blind review preferred
+# this one, its steps short under it; its weight comes from the game)
+prompt = "A person walks slowly forward while reading a sheet of paper held with both hands in front of their face."
+seconds = 6.0
+loop = true
+candidates = 6
+speed = [0.3, 1.0]
+
+[[clip]]
+name = "read_still"
+for = "Read: it stands and reads the sheet to the end (3 s)"
+prompt = "A person stands still reading a sheet of paper held with both hands close to their face, moving their head slightly as they read."
+seconds = 5.0
+loop = true
+speed = [0.0, 0.08]
+
+[[clip]]
+name = "pick_up"
+for = "Read, its first moment: it stoops for the sheet"
+prompt = "A heavy person slowly bends down, picks up a sheet of paper from the floor with their right hand, and stands back up."
+seconds = 3.0
+speed = [0.0, 0.4]
+
+[[clip]]
+name = "hurry"
+for = "Hunt: it comes at 4.8 m/s, quick soft steps, the sheet snapped flat before it"
+prompt = "A heavy person hurries forward with quick, heavy steps, holding a sheet of paper flat in front of them with both hands."
+seconds = 5.0
+loop = true
+candidates = 6
+speed = [1.6, 4.0]
+
+[[clip]]
+name = "tear"
+for = "What it learns: it tears the sheet in half unread (1 s)"
+prompt = "A person holds a sheet of paper in front of them with both hands and tears it in half."
+seconds = 3.0
+speed = [0.0, 0.2]

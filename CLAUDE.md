@@ -96,6 +96,8 @@ cargo xtask voice eval --persona P [--model M]   # words, emotion, tone of voice
 cargo xtask voice write --persona P              # the chosen takes into crates/game/assets/voice/ and MANIFEST.json
 cargo xtask voice selftest                       # the evaluation against known answers
 cargo xtask asset new|check|refs|write|rules|sheet NAME   # an asset's dossier (docs/design/ASSETS.md): brief, references, placement rules, playtest frames
+(cd lab && cargo run --release [-- --scene DIR|--metrics|--clips DIR])   # the creature lab: every creature moving by the game's own code (1–6, Tab); lab/README.md
+(cd lab/motion && .venv/bin/python motion.py gen|bake|install --creature K)   # its clips: briefs → Kimodo on MLX → crates/game/assets/motion/
 cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
 cargo xtask cutscene preview ID [--stage S]     # the sources as they stand, played on each stage: frames, a contact sheet, timeline, contract (target/xtask/cutscene/ID/)
 cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--area x0,z0,x1,z1] [--from-save FILE]   # by hand, never in check: the edges toured, gaps, flicker, clip, plain, coplanar; report.md, sheets (target/xtask/playtest/visual/)

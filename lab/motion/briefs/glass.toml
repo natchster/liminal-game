@@ -1,0 +1,55 @@
+# The one behind the glass (docs/design/ENTITIES.md: Hold → Alert → Stalk
+# → Hunt → Strike → Withdraw). A figure in a pale belted raincoat, the hood
+# up, always facing you. Kimodo gives the walk its weight; what makes it
+# this one (a walk too even, with no bob and the arms still; the hands flat
+# on the glass; bent low through the window; inside, its arms out toward
+# you) is laid on in `entities::glass::pose`.
+
+[defaults]
+title = "The one behind the glass"
+steps = 100
+cfg = 2.0
+candidates = 4
+seed = 5000
+
+# (the same brief as the Smiler's: one sample serves both)
+[[clip]]
+name = "stand"
+for = "the stance every clip is measured from (its rest pose: upright, arms at its sides)"
+prompt = "A person stands upright and completely still, with arms relaxed at their sides, looking straight ahead."
+seconds = 3.0
+speed = [0.0, 0.05]
+neutral = true
+seed = 1000
+
+[[clip]]
+name = "still"
+for = "Hold and Alert: far out on the track, facing you; it does not move"
+prompt = "A person stands upright and completely still facing forward, arms at their sides, staring straight ahead."
+seconds = 8.0
+loop = true
+speed = [0.0, 0.06]
+
+[[clip]]
+name = "walk"
+for = "Stalk: it comes up the track at 2.6 m/s while your eyes are on its glass"
+prompt = "A heavy person walks forward at a steady, even pace with an upright posture and arms held still at their sides, placing each foot down heavily."
+seconds = 6.0
+loop = true
+candidates = 6
+speed = [1.0, 2.0]
+
+[[clip]]
+name = "reach_walk"
+for = "Hunt, inside: to the edge of its light nearest you, at 1.8 m/s, its arms out toward you"
+prompt = "A heavy person walks slowly forward with an upright posture and both arms reaching out in front of them."
+seconds = 6.0
+loop = true
+speed = [0.4, 1.2]
+
+[[clip]]
+name = "climb"
+for = "Hunt: through the window, bent low over the sill (2.4 s)"
+prompt = "A heavy person crouches down low, steps forward through a low opening, and slowly stands back up."
+seconds = 3.0
+speed = [0.1, 1.2]

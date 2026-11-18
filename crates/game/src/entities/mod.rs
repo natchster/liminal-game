@@ -29,6 +29,7 @@ pub mod creature;
 pub mod director;
 pub mod glass;
 pub mod hound;
+pub mod motion;
 pub mod reader;
 pub mod smiler;
 pub mod watcher;

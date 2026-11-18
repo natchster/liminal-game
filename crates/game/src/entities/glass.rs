@@ -31,7 +31,9 @@
 //! - **Its sound** is glass, and its coat: the tick (a knock and the pane's
 //!   ring), the creak, wet skin squeaking on the pane, the long groan of
 //!   the glass bowing; inside, its wet raincoat rustling (`call`).
-//! - **Body**: `bodies.bin`'s `glass` (`assets/src/creatures/body_glass.py`).
+//! - **Body**: `bodies.bin`'s `glass` (`assets/src/creatures/body_glass.py`),
+//!   moving by Kimodo's clips of a person (`assets/motion/glass.motion`,
+//!   `entities::motion`) under its own evenness ([`pose`]).
 //!
 //! After SCP-2885 "Window to Another You" (Pythy, rewritten by Zyn),
 //! SCP-3052 (Witryso), SCP-L682 (CRAt26) and the Backrooms wiki's Entity 2
@@ -41,9 +43,12 @@
 //! *Viy* and Brontë's *Wuthering Heights* (public domain).
 use crate::base::numeric::hypot2;
 use crate::core_props::window::view::GROUND;
-use crate::entities::body::two_bone;
+use crate::entities::body::BodyRig;
 use crate::entities::brain::*;
 use crate::entities::creature::*;
+use crate::entities::motion::Mind;
+use crate::entities::motion::anim::{Anim, Drive, Pick};
+use crate::entities::motion::retarget::{Gains, turn_global};
 use crate::entities::{EntVoice, with_skin_detail};
 use crate::prelude::*;
 
@@ -871,10 +876,20 @@ fn world_to_body(g: &Game, ei: usize, p: Vec3) -> Vec3 {
     v3(dx * c - dz * s, p.y - o.y, dx * s + dz * c)
 }
 
-/// One frame of its body: standing still, its arms at its sides, facing
-/// you; walking evenly, too smoothly, its arms still; at the glass its face
-/// to the pane and its hands either side of it; through the window bent low
-/// over the sill; inside, its arms out toward you.
+/// Where it is with its window, as its body shows it: its hands' places on
+/// the glass (the body's frame) when it is at it, pressed to it, partway
+/// through it (0..1), inside, walking.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AtGlass {
+    pub hands: Option<[Vec3; 2]>,
+    pub pressing: bool,
+    pub pass: f64,
+    pub inside: bool,
+    pub moving: bool,
+}
+
+/// One frame of its body: what its window says of it, then Kimodo's clips
+/// on its body with its own wrongness on top ([`pose`]).
 pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     let b = bound(g, ei);
     // its hands on the glass, if it is at it (world, then the body's frame)
@@ -890,94 +905,84 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         [w.world(l.x + 0.22, y, gz), w.world(l.x - 0.22, y, gz)]
     });
     let hands = hands.map(|h| [world_to_body(g, ei, h[0]), world_to_body(g, ei, h[1])]);
-    let t = g.perf_t;
-    let Some(c) = g.creature_mut(ei) else { return };
-    let rig = c.body.clone();
-    let moving = c.get("moving") > 0.0;
+    let Some(c) = g.creature(ei) else { return };
     let pass = c.get("pass");
     let inside = c.get("inside") > 0.0;
-    let pressing = b.is_some() && !inside && pass <= 0.0 && c.get("out") <= AT_GLASS + 1e-3;
-    rig.rest();
+    let at = AtGlass {
+        hands,
+        pressing: b.is_some() && !inside && pass <= 0.0 && c.get("out") <= AT_GLASS + 1e-3,
+        pass,
+        inside,
+        moving: c.get("moving") > 0.0,
+    };
+    crate::entities::motion::with_anim(g, ei, false, "still", dt, |a, rig, d, m| pose(a, rig, d, m, &at));
+}
+
+/// Its posture and weight: upright, its head a little less bowed under its
+/// hood; light on its feet (its walk is too even: no weight comes down in it).
+const UPRIGHT: f64 = 0.3;
+const MASS: f64 = 0.25;
+
+/// Its motion: standing still, facing you, as still as a held breath; coming
+/// up the track at a walk too even (the mocap's steps with no rise and fall
+/// in them, its arms still at its sides); at the glass its face to the pane
+/// (the morph) and its hands flat either side of it; through the window bent
+/// low (a person's crouch through a low opening, played as its rule passes
+/// it through); inside, walking with its arms out toward you.
+pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind, at: &AtGlass) {
+    a.rt.upright = UPRIGHT;
+    a.mass = MASS;
+    let w = a.wrong;
+    let dt = d.dt;
+    let walking = a.eased("walking", if at.moving || d.speed() > 0.3 { 1.0 } else { 0.0 }, 8.0, dt) > 0.5;
+    // (its long coat is skinned to its legs: standing, none of the mocap's
+    // knees, or the coat creases at them)
+    let still = Gains { trunk: 1.0 - 0.75 * w, head: 1.0 - 0.9 * w, arms: 1.0 - 0.9 * w, legs: 1.0 - w, bob: 1.0 };
+    let even = Gains { trunk: 1.0 - 0.5 * w, head: 1.0 - 0.8 * w, arms: 1.0 - 0.95 * w, legs: 1.0, bob: 1.0 - 0.85 * w };
+    let passing = at.pass > 0.0 && at.pass < 1.0;
+    let pick = if passing {
+        let lib = a.lib;
+        let dur = lib.clip("climb").map_or(1.0, |i| lib.clips[i].duration(lib.fps));
+        Pick::new("climb").fade(0.2).at(at.pass * dur)
+    } else if walking && at.inside {
+        Pick::new("reach_walk").gains(Gains { bob: 1.0 - 0.6 * w, ..Gains::default() }).travel().backs()
+    } else if walking {
+        Pick::new("walk").gains(even).travel().backs().cadence(0.75)
+    } else {
+        Pick::new("still").gains(still)
+    };
+    a.play(rig, &pick, d);
+    a.breathe(rig, 0.008, 0.8);
     // its face to the glass: the morph, its body leaning to it
-    let press = c.eased("press", if pressing { 1.0 } else { 0.0 }, 3.0, dt);
-    if let Some(m) = rig.meshes.get("skin") {
-        let mut inf = m.morph_influences();
+    let press = a.eased("press", if at.pressing { 1.0 } else { 0.0 }, 3.0, dt);
+    if let Some(mesh) = rig.meshes.get("skin") {
+        let mut inf = mesh.morph_influences();
         if !inf.is_empty() && (inf[0] - press).abs() > 1e-4 {
             inf[0] = press;
         }
     }
-    let crouch = c.eased("crouch", if pass > 0.0 && pass < 1.0 { 1.0 } else { 0.0 }, 5.0, dt);
-    let reach = c.eased("reach", if inside { 1.0 } else { 0.0 }, 3.0, dt);
-    let breath = (t * 0.8).dsin() * 0.008;
-    if let Some(ch) = rig.ix("chest") {
-        rig.turn(ch, &Quat::from_euler(&Euler::new(0.35 * crouch + 0.12 * press + breath, 0.0, 0.0)));
+    let map = a.rt.map.clone();
+    if let Some(sp) = map.spine {
+        turn_global(rig, sp, &Quat::from_euler(&Euler::new(0.08 * press, 0.0, 0.0)));
     }
-    if let Some(sp) = rig.ix("spine") {
-        rig.turn(sp, &Quat::from_euler(&Euler::new(0.45 * crouch + 0.08 * press, 0.0, 0.0)));
+    if let Some(ch) = map.chest {
+        turn_global(rig, ch, &Quat::from_euler(&Euler::new(0.12 * press, 0.0, 0.0)));
     }
-    if let Some(hd) = rig.ix("head") {
-        rig.turn(hd, &Quat::from_euler(&Euler::new(-0.25 * crouch - 0.12 * press, 0.0, 0.0)));
+    turn_global(rig, map.head, &Quat::from_euler(&Euler::new(-0.12 * press, 0.0, 0.0)));
+    // its eyes on you always: the head follows smoothly (its body already
+    // faces you), never a snap
+    if !at.pressing {
+        a.look(rig, Some(m.eye), d, 0.0, (0.6, 0.4), 0.4, 0.0);
     }
-    // ---- the arms: still at its sides; up to the glass; out toward you
-    for (k, (side, sx)) in [(".L", 1.0), (".R", -1.0)].into_iter().enumerate() {
-        let (Some(iu), Some(il), Some(ih)) =
-            (rig.ix(&format!("upperarm{side}")), rig.ix(&format!("forearm{side}")), rig.ix(&format!("hand{side}")))
-        else {
-            continue;
-        };
-        let up = press.max(reach * 0.9).max(crouch * 0.7);
-        if up < 0.01 {
-            continue;
-        }
-        let base = rig.head(iu);
-        let rest = v(rig.def.bones[ih].head);
-        // on the glass either side of its face; out toward you; on the sill
-        let glass = hands.map_or(v3(sx * 0.19, 1.45, 0.4), |h| h[k]);
-        let toward = v3(sx * 0.16, 1.25, 0.62);
-        let sill = v3(sx * 0.24, base.y - 0.25, 0.45);
-        let mix = |a: Vec3, b: Vec3, k: f64| v3(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k, a.z + (b.z - a.z) * k);
-        let want = if crouch > 0.5 {
-            sill
-        } else if reach > press {
-            toward
-        } else {
-            glass
-        };
-        let target = mix(rest, want, up);
-        // the elbows down and a little out and back (palms flat on the glass,
-        // nothing of it through the pane)
+    // ---- the arms: up to the glass, flat either side of its face
+    for (k, sx) in [(0usize, 1.0), (1, -1.0)] {
+        let base = rig.head(map.arm[k][1]);
+        let target = at.hands.map_or(v3(sx * 0.19, 1.45, 0.4), |h| h[k]);
+        // the elbows down and a little out and back (palms flat on the
+        // glass, nothing of it through the pane)
         let pole = v3(base.x + sx * 0.15, base.y - 0.6, base.z - 0.25);
-        let (du, dl) = two_bone(base, target, pole, rig.rest_len[iu], rig.rest_len[il]);
-        rig.aim(iu, du, 0.0);
-        rig.aim(il, dl, 0.0);
+        a.reach(rig, k, target, pole, press);
     }
-    // ---- the legs: an even, stiff walk; drawn up over the sill
-    if moving {
-        c.phase = (c.phase + WALK * dt / 1.1 / 2.0).fract();
-    }
-    let phase = c.phase;
-    for (k, side) in [".L", ".R"].iter().enumerate() {
-        let (Some(it), Some(is), Some(ifo)) =
-            (rig.ix(&format!("thigh{side}")), rig.ix(&format!("shin{side}")), rig.ix(&format!("foot{side}")))
-        else {
-            continue;
-        };
-        let rest_end = v(rig.def.bones[ifo].head);
-        let lp = (phase + k as f64 * 0.5).fract() * std::f64::consts::TAU;
-        // a step's swing and lift, toward you (it faces you)
-        let (fwd, lift) = if moving { (lp.dsin() * 0.26, lp.dcos().max(0.0) * 0.08) } else { (0.0, 0.0) };
-        let target = v3(rest_end.x, rest_end.y + lift + crouch * 0.42, rest_end.z + fwd + crouch * 0.25);
-        let base = rig.head(it);
-        let pole = v3(base.x, base.y, base.z + 1.0);
-        let (du, dl) = two_bone(base, target, pole, rig.rest_len[it], rig.rest_len[is]);
-        rig.aim(it, du, 0.0);
-        rig.aim(is, dl, 0.0);
-        rig.aim(ifo, rig.rest_dir[ifo], 0.0);
-    }
-}
-
-fn v(a: [f64; 3]) -> Vec3 {
-    v3(a[0], a[1], a[2])
 }
 
 // ------------------------------------------------------------ the voice
