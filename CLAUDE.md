@@ -39,6 +39,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/design/WINDOWS.md`](docs/design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass |
 | [`docs/design/VOICES.md`](docs/design/VOICES.md) | the voices: who speaks (personas), what is said and when (your asides and the director that chooses them), and how the pipeline's models are chosen: licensed for sale, run here |
 | [`docs/design/CUTSCENES.md`](docs/design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline |
+| [`docs/design/WAY_IN.md`](docs/design/WAY_IN.md) | the way in: the run's first minutes, the Jahamun Tunnel in Seoul at night (`crates/jahamun`), the walkway that does not end, the door that changes, your own voice telling what you know of her |
 
 **Engineering**
 

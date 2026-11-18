@@ -10,7 +10,9 @@ research every creature, place and sound rests on).
 
 ## The game
 
-You noclipped out of reality, through the wall at the back of a storage room.
+You came after her: to the walkway of a tunnel in Seoul that she measured
+every night until she did not come back, and that did not end for you
+either, until a door was in its wall.
 First comes the Building: vast concrete floors at many heights over a void
 with no top and no bottom, where nothing walks, a siren sounds far off, and a
 fog comes up out of the dark. Inside its walls are the Backrooms: damp,

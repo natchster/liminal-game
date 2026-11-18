@@ -23,7 +23,7 @@ use crate::level::scp::{SCP_HORIZON, scp_for_level};
 /// One page of her notebook.
 #[derive(Clone, Copy, Debug)]
 pub struct Page {
-    /// Stable id (saved): `f1`…`f8`, `stairwell`, `store`, `house`, `loop`, `last`
+    /// Stable id (saved): `f1`…`f8`, `stairwell`, `store`, `house`, `loop`, `last`; `door` (her note by the door)
     pub id: &'static str,
     pub body: &'static str,
     /// The line that stays on screen once it is read (the thread)
@@ -35,7 +35,7 @@ pub static FLOOR_PAGES: [Page; 8] = [
     // the Building's three floors and the Lobby: always levels 1-4
     Page {
         id: "f1",
-        body: "E. told me about the wall at the back of the storage room, the one that gives when you lean on it. I laughed at him. Then he stopped answering, and I went and leaned on it.\n\nGalleries round a hole with no bottom, and windows, hundreds of them, and nobody at any of them. A siren went somewhere far off. I got into one of the little rooms with a wheel on its door, turned it until it stopped, and waited a long time. I'm leaving paper as I go, folded twice, an arrow on each, so I can find my way back. Folded twice, so I know it's mine.",
+        body: "E. used to walk the tunnel at night and come home with numbers that didn't add up. I laughed at him. Then he stopped answering, and I walked it until they didn't add up for me either.\n\nGalleries round a hole with no bottom, and windows, hundreds of them, and nobody at any of them. A siren went somewhere far off. I got into one of the little rooms with a wheel on its door, turned it until it stopped, and waited a long time. I'm leaving paper as I go, folded twice, an arrow on each, so I can find my way back. Folded twice, so I know it's mine.",
         thread: "Folded twice, so I know it's mine.",
     },
     Page {
@@ -100,6 +100,16 @@ pub static ANOMALY_PAGES: [Page; 4] = [
     },
 ];
 
+/// Her note by the door in the tunnel (`docs/design/WAY_IN.md`): not a
+/// page of the notebook, the first of her paper, taped to the tiles beside
+/// the door into the Building. Taken on the way in (`modes::tunnel`), it
+/// stands before her pages in the notebook (`ui::hud`, as level 0).
+pub static DOOR_NOTE: Page = Page {
+    id: "door",
+    body: "Six hundred and eleven. Then five hundred and ninety. Tonight I stopped counting.\n\nI stopped waiting for the end. Then it was there.\n\nHe went through here. I'm going after him. Don't come after me.",
+    thread: "I'm going after him.",
+};
+
 /// The last page, at the last camp.
 pub static LAST_PAGE: Page = Page {
     id: "last",
@@ -138,7 +148,11 @@ pub fn notebook(run_seed: u32) -> Vec<(i32, &'static Page)> {
     (1..=LAST_LEVEL).filter_map(|n| page_for_level(run_seed, n).map(|p| (n, p))).collect()
 }
 
-/// A page by its id.
+/// A page by its id (her note by the door among them).
 pub fn page(id: &str) -> Option<&'static Page> {
-    FLOOR_PAGES.iter().chain(ANOMALY_PAGES.iter()).chain(std::iter::once(&LAST_PAGE)).find(|p| p.id == id)
+    FLOOR_PAGES
+        .iter()
+        .chain(ANOMALY_PAGES.iter())
+        .chain([&LAST_PAGE, &DOOR_NOTE])
+        .find(|p| p.id == id)
 }

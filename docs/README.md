@@ -35,6 +35,7 @@ a study's, never a design's (`tests/structure.rs` fails on one).
 | [`design/VOICES.md`](design/VOICES.md) | the voices: who speaks (personas), what is said and when (your asides and the director that chooses them), and how the pipeline's models are chosen: licensed for sale, run here |
 | [`design/ASSETS.md`](design/ASSETS.md) | what earns a prop its place, and the pipeline that makes one: brief, references, model and surfaces, placement rules the game reads, the playtest's "why could this be here?" |
 | [`design/CUTSCENES.md`](design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline |
+| [`design/WAY_IN.md`](design/WAY_IN.md) | the way in: the Jahamun Tunnel in Seoul at night, before the Building; the walkway that does not end, the door that changes, your own voice telling what you know of her |
 
 **Engineering**
 

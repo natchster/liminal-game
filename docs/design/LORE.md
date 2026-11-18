@@ -9,6 +9,7 @@ living bible: change it when the game's truth changes, in the same commit.
 
 | Kind | Canon |
 |---|---|
+| The way in | The Jahamun Tunnel, Seoul, at night: the walkway behind the glass where she walked every night with a measuring wheel, which does not end; a door in its tiled wall where no door is, her note beside it, and through it the Building (*The way in*) |
 | Place | The Building: an endless megastructure of concrete with no outside, and inside its walls the Backrooms, damp, fluorescent, empty rooms; every exit leads down |
 | Pillars | Emptiness, monotony, familiar but wrong, the sound that never stops ([`PILLARS.md`](PILLARS.md)) |
 | Levels | 1–3 the Building's floors (the Well, the Stair Halls, the Works); from 4, game level *n* ≈ Backrooms Level *n* − 4, one dominant zone naming it |
@@ -19,7 +20,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
 | Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a party room or someone's rooms would have had them (none in the Habitable Zone's halls, the Vaults, the Pit Halls, the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*). On about half the floors of the rooms a lift stands broken, its doors jammed apart on black; it can be looked into (*A broken lift*) |
-| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
+| People | You, who came to the tunnel after her and know only what she left (your own voice, on the way in); Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
 
@@ -41,8 +42,18 @@ these channels, and the `lore-keeper` reviewer checks it:
   borrowed for a moment, from your eyes, to show the place and what
   answers there (what looks back out of a lift's black belongs to that
   look alone); it adds no caption, no text and no narrator (an aside of
-  yours may follow, by the asides' own rules), and nothing it shows is
-  explained.
+  yours may follow, by the asides' own rules; on the way in your own
+  voice goes on through it), and nothing it shows is explained.
+- **Your own voice, on the way in** (`docs/design/WAY_IN.md`): in the
+  tunnel, before the door, you are still in the world and still know why
+  you came, and you tell yourself as you walk: what she measured, what she
+  said on the phone, her last message, the man before her. In your voice,
+  low, at a walk; once each, in order, and a few words at what you pass
+  (a light out again, long after you could have seen it; the way back
+  gone). Never her name, yours or
+  his; never what the tunnel or the door is; nothing on the screen, and
+  nothing hears it. It ends at the door: through it you know nothing, and
+  the rest of this list holds.
 - **Torn notes**: survivors' fragments (`ui/lore.rs`; their texts are
   `LORE_ENTRIES` in `ui/hud.rs`), which hint and never
   explain; an anomaly's notes lie only on its level, and the Building's (its
@@ -55,7 +66,9 @@ these channels, and the `lore-keeper` reviewer checks it:
   storey there, and at most what it is by, the cell's lit lamp or the door's
   lit tower), and at most a line of what to do; never why, never a map.
 - **Her notebook**: one page at M.'s camp on each floor down to level 13
-  (`story/notebook.rs`), which hints as a survivor would and never explains.
+  (`story/notebook.rs`), which hints as a survivor would and never explains;
+  and before them her note by the door in the tunnel, the first of her
+  paper, taken (E) into the notebook as her pages are.
   The last line of the last page you took stays at the top of the screen
   (the *thread*): a line she wrote, never an instruction.
 - **Your own page**: the notebook's page after the torn notes, of what you
@@ -125,16 +138,19 @@ these channels, and the `lore-keeper` reviewer checks it:
   after you, and while it hushes (but the siren and a knock at your
   cell, which the hush is about, have their word through it); in the
   Stairwell while the Face is out.
-  Nothing on the screen, and nothing hears them. Not a narrator: you know
-  nothing, and you tell no one.
+  Nothing on the screen, and nothing hears them. Not a narrator: past the
+  door you know nothing, and you tell no one.
 
 Not allowed: tutorials about creatures, maps that explain the place, named
-SCP numbers in the game, any narrator.
+SCP numbers in the game, any narrator (your own voice on the way in is not
+one: it tells only what you knew before the door, and stops there).
 
 ## Premise
 
-You noclipped out of reality, through the wall at the back of a storage room,
-and came out in **the Building**: concrete without end, galleries round a
+You came after her. She walked the walkway of the Jahamun Tunnel in Seoul
+every night with a measuring wheel, until the night she did not come back
+(*The way in*). You walked it too, and it did not end, and there was a door
+in its tiled wall where no door is. Through it is **the Building**: concrete without end, galleries round a
 void with no top and no bottom, flights of stairs a hundred metres long,
 windows in their thousands and a door behind every one shut from inside.
 People lived here once, and a few still do, behind doors they never open. Far off, now and then, a siren,
@@ -153,13 +169,52 @@ The pillars of the place, in order of importance:
    (Level 0) is rooms and nothing else. Clutter belongs deeper,
    where the place has started collecting things.
 2. **Monotony.** The same yellow, the same hum, the same carpet. Variety is
-   earned by descending. (The Building above is the one exception: the run
+   earned by descending. (The Building above is the one exception: the descent
    begins in its three places, each unlike the others, and comes down into
    the sameness of the rooms.)
 3. **Familiar but wrong.** Office architecture with no office in it: doorways
    to nowhere, a ceiling that steps down for no reason, a pillar in the middle
    of a room.
 4. **The sound never stops**, except where it does, and that is worse.
+
+## The way in
+
+Before the Building there is one real place, and it is the only one you
+know (`docs/design/WAY_IN.md`; the place itself, `crates/jahamun`).
+
+- **The Jahamun Tunnel** (자하문터널), Jongno-gu, Seoul: twin bores of
+  about 485 m under the ridge, opened in 1986, and in the one toward
+  Buam-dong a walkway behind a glass noise barrier: red anti-slip paint
+  worn to the concrete, white tiles, a bar of light every two metres, the
+  road beyond the glass. At night, nobody on it.
+- **Her research.** After he stopped answering she walked the walkway
+  every night for nineteen nights, from eleven o'clock, end to end, with a
+  measuring wheel and a notebook, and wrote down the number: 485, or a
+  metre off it, every night, until the twelfth, when it was 611; walked
+  again the same night, 590. She bought a second wheel. She said the city
+  goes quiet there. She called you that week, the first time in a long
+  time, and said it was longer at night, and laughed, and you said
+  nothing. Her last message was a photograph of a door in a white tiled
+  wall, at twenty to five in the morning, with no words. The police walked
+  it by day: 485 m, and no such door. You know this much, and no more, and
+  you say it to yourself as you walk (*Your own voice, on the way in*).
+  What you are to her is never said.
+- **It does not end.** The walkway goes on: the same plate with the same
+  number, the same dead bar, the same fans over the road, again and again;
+  once the arch is lost in the haze behind you, it does not come back.
+  Nothing here can hurt you. Nothing here explains itself.
+- **The door.** Under the escape plate a steel door in the tiled wall,
+  locked, every time it comes round. After a while (a minute or two of
+  walking) it is another door, older, open a hand's width on a cold grey
+  light, and her note is taped to the tiles beside it, in pencil, folded
+  twice: the first of her paper (`story/notebook.rs`), which goes into her
+  notebook before her pages and is not counted among them; you may go
+  through without it. Through the door is
+  the Building, the first of its floors, and the way back is gone. Whether
+  the tunnel was ever longer than 485 m, or only for her, and for you, is
+  never said.
+- The way in is not a level: no number, no card, no creature, no danger.
+  It comes once a run, from the title.
 
 ## The descent
 
@@ -501,9 +556,11 @@ Someone came this way before you, and you can follow her down.
   how many of her pages you carry, and you take what is left of her paper
   (twelve sheets). The descent goes on, without her: below the last camp
   there are no camps and no trails but the ones you drop.
-- What the pages let you work out, and never say: E. went in through the
-  wall at the back of a storage room (the loose note *Day 1* is his), into
-  the Building, and stayed a long time on its third floor (her page there
+- What the pages let you work out, and never say: E. walked the Jahamun
+  Tunnel at night too, and went in through its door (the loose note *Day 1*
+  is his; her first page says he came home with numbers that did not add
+  up), into the Building; she measured it after him and went in the same
+  way (her note by the door), and stayed a long time on its third floor (her page there
   finds where; his own notes say "level three"); she
   counts sleeps and calls them days (the tallies at her camps); the
   kitchen in the Borrowed House was theirs; he went into the Loop and she
@@ -914,7 +971,9 @@ plaque that says STAIRS. Behind it:
 - **Crying** out loud is desperate. Something answers. The voice is your
   own: a man's, plain and tired, never brave (`docs/design/VOICES.md`, *You*);
   besides it, only what you say to yourself under your breath (*How canon
-  reaches the player*, your asides), which nothing hears. On the Building's floors you call out to
+  reaches the player*, your asides), which nothing hears, and on the way in
+  what you tell yourself as you walk the tunnel (*Your own voice, on the way
+  in*). On the Building's floors you call out to
   anyone; in the rooms you shout for help; deep down you are worn out; and
   a cry soon after the last is a scream. Who you are is never said.
 - **Cells**, on the Building's floors: shut yourself in when the siren goes,
@@ -1411,6 +1470,17 @@ cold was settled when the floor was made.
   under it are this game's own. `crates/game/src/entities/watcher.rs`,
   `assets/src/creatures/body_watcher.py`, `sheeted.py` and
   `body_seated.py` keep this attribution.
+- **The Jahamun Tunnel** (*The way in*) is a real place in Seoul (자하문터널,
+  opened 1986), made from its own numbers (Korean Wikipedia, Namu Wiki) and
+  from CC0 photographs (Poly Haven), with references only looked at, never
+  put in (a Wikimedia Commons photograph under CC BY-SA 4.0, the Seoul
+  Media Hub's photographs, the developer's own video):
+  `assets/src/jahamun/sources.json`, `crates/jahamun/README.md`. Its signs
+  and plates are drawn by the game; nothing written on the real ones is
+  copied. A passage longer inside than it can be is an old motif (a house
+  bigger inside than out: Mark Z. Danielewski's *House of Leaves*, 2000,
+  the motif only, nothing taken). Its story (her wheel, her numbers, the
+  door) is this game's own.
 - **The Loop** is inspired by **SCP-970** "The Recursive Room" by **Freudian**
   (<https://scp-wiki.wikidot.com/scp-970>), **CC BY-SA 3.0**. We use our own
   names and text. `crates/game/src/modes/loop_rooms.rs`, its notes

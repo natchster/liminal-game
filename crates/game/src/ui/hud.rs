@@ -157,7 +157,7 @@ pub static TEXT_POOLS: [(&str, &[&str]); 11] = [
     (
         "overlaySubs",
         &[
-            "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.",
+            "You came through a door that was not there. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.",
             "You do not remember opening the door. You do not remember it being here yesterday. The wallpaper has always been this color.",
             "The lights hum in a language you almost recognize. Somewhere in these rooms, there is a way down. Somewhere in these rooms, something is walking.",
         ],
@@ -183,7 +183,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry {
         id: 0,
         title: "Day 1",
-        body: "I noclipped through the wall of the storage room. Concrete, and a drop, and no sky. My phone shows the wrong date. Every door I knock on stays shut.",
+        body: "There was a door in the tunnel wall, where there isn't one. I went through, and it wasn't behind me any more. Concrete, and a drop, and no sky. My phone shows the wrong date. Every door I knock on stays shut.",
         scp: None,
     },
     LoreEntry {

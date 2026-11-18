@@ -8,9 +8,9 @@ used_for = "the cry for help (the H key): in place of the formant cry, sfx_cry"
 
 [person]
 summary = """
-An ordinary man who went through the wall at the back of a storage room at
-the end of a night shift and came out in the Building. He is not brave and
-not a talker; he has never shouted for help in his life before tonight.
+An ordinary man who came to Seoul after her when her messages stopped,
+walked the Jahamun Tunnel at night as she had, and came through a door in
+its wall into the Building. He is not brave and not a talker; he has never shouted for help in his life before tonight.
 The further down he goes, the less he expects anyone to answer, and the
 more he cries out anyway."""
 age = 36
@@ -26,6 +26,9 @@ A man in his mid-thirties with an ordinary, untrained baritone voice and a
 plain General American accent. Slightly rough and tired, not deep or
 polished: the voice of a stockroom worker, not an announcer or an actor.
 Recorded close, dry, with no reverb."""
+# (the words the reference clip was designed speaking, kept as made: they
+# are its source, not the canon, which since the way in has him come
+# through a door in the tunnel, docs/design/WAY_IN.md)
 reference_text = "I came in through the back of the storage room, and then the wall just wasn't there. I've been walking for hours. The lights hum the whole time, and nobody answers."
 design_model = "qwen3-tts-voicedesign"
 # of six candidates (seeds 1-6), seed 4: words right, AudioSet's "speech

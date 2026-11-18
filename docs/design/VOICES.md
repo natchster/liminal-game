@@ -116,12 +116,14 @@ does not play, all fail it.
 ### You: the one who cries for help
 
 *The player's own voice when you cry out (`H`); besides it only his
-asides, the same man under his breath (`you_aside`, *Your asides*). Never
-a narrator.*
+asides, the same man under his breath (`you_aside`, *Your asides*), and on
+the way in, before the Building, the same man telling himself what he
+knows as he walks (`you_tunnel`, *Your voice on the way in*). Never a
+narrator.*
 
 | | |
 |---|---|
-| Who | An ordinary man of about thirty-six who went through the wall at the back of a storage room at the end of a night shift and came out in the Building. Not brave, not a talker; he has never shouted for help in his life before. The further down he goes, the less he expects an answer, and the more he cries out anyway. |
+| Who | An ordinary man of about thirty-six who came to Seoul after her when her messages stopped, walked the Jahamun Tunnel at night as she had, and came through a door in its wall into the Building. Not brave, not a talker (the tunnel is the one time he talks to himself at length); he has never shouted for help in his life before. The further down he goes, the less he expects an answer, and the more he cries out anyway. |
 | From | Somewhere in the American Midwest: plain speech, no strong accent. |
 | Never said | His name, his work, his face, how long he has been here. The game never says who you are; this profile is for casting the voice, not for the player. |
 | Voice | An untrained baritone, slightly rough and tired, General American; recorded close and dry. A stockroom worker's voice, not an announcer's or an actor's. Designed from that description (Qwen3-TTS VoiceDesign), never cloned from a person; his lines said by Chatterbox cloning it, his terror cloned from a terrified clip of the same voice (VoxCPM2). |
@@ -298,6 +300,41 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 ### The work
 
 How your asides were planned and done (milestones, progress): [`../plan/VOICES.md`](../plan/VOICES.md#your-asides-the-voice-director).
+
+## Your voice on the way in
+
+*What you tell yourself in the tunnel* (`docs/design/WAY_IN.md`). The
+same man, before the Building: walking the walkway of the Jahamun Tunnel
+at night after her, telling himself what he knows of her, and reacting,
+once each, to what he passes. The one stretch of the game where he knows
+why he is here; it ends at the door, and after it the asides' rules hold.
+
+### The persona
+
+`you_tunnel` (`personas/you_tunnel.toml`): **his voice** (`voice.same_as =
+"you"`), in a third register: low and steady, close, a man talking to
+himself at a walk, remembering; longer than an aside (a sentence or two,
+under 8 s a line), and numbers said as words. Its tone is a man going
+over it again in his head, half aloud (never a narrator reading, an
+announcer, an actor, a man shouting); its emotions are the asides' own
+calm ones (*wary*, *dread*, *resolve*), which the evaluation already
+knows.
+
+### The rules
+
+1. **Only what he knows.** What she did, said and sent; what he sees.
+   Never her name, his, or the man's before her; never what the tunnel
+   or the door is, or what lies through it. *Test:* `lore-keeper` on every
+   line; `no_line_on_the_way_in_names_what_the_canon_keeps_unsaid`.
+2. **In order, one at a time, with room.** The look's lines on its clock;
+   then the walk's, each after the last has finished and a pause; a
+   reaction is said once, when its event happens and nothing is being
+   said, and waits its turn otherwise. Nothing on the screen; nothing
+   hears it. *Test:* the tunnel's tests (`tests/tunnel.rs`).
+3. **It ends at the door.** Through it the asides' director takes over,
+   with the first floor's arrival as ever.
+
+The lines are in `WAY_IN.md` (*Your voice*).
 
 ## What only people can tell
 

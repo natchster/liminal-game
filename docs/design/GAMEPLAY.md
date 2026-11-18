@@ -23,6 +23,13 @@ siren within seconds (`world::knock`; pillar 5: the player chooses when
 the dread starts); sealed in a cell, what knocks at it can be answered,
 and then the wheel must be held (`world::cell_knock`).)
 
+(Since the way in, a run begun from the title does not start in the
+Building: it starts on the walkway of the Jahamun Tunnel in Seoul, where
+she walked every night until she did not come back, and you walk it after
+her until it gives you a door, her note beside it: the first of her paper,
+and the first line of her trail ([`WAY_IN.md`](WAY_IN.md)). The Building's
+first floor is through that door.)
+
 ## The work
 
 How this was planned and done (the analysis, milestones, progress): [`../plan/GAMEPLAY.md`](../plan/GAMEPLAY.md).
