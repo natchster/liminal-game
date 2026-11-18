@@ -240,6 +240,43 @@ and the file a minute. It is held to the `replays` budgets below and to
 7 s), the log 0.1 µs a frame, 253 KB a minute in memory, 16 KB a minute
 in the file.
 
+## The way in
+
+And **the way in** (`backrooms --bench-tunnel`, `docs/design/WAY_IN.md`):
+the Jahamun Tunnel entered as New descent enters it (the place built and
+shown, its first floor already built behind it), its first frame, and 240
+frames over seven views, each turned a little a frame (the street above,
+the plaza, the stairs' head, a few bays in, deep in looking on and looking
+back, the open door), held to the `tunnel` budgets and to
+`perf/tunnel.csv`. The place is far heavier than a floor of the Building:
+its surfaces are baked meshes fine enough to hold their light (8-25 cm),
+106 modules of them built for the ring, a highlight pass over the wet
+paint and the glaze, and its own lights.
+
+What the first measures found (W7, 2026-11-19, 1280×800, on a machine
+other sessions kept at a load of 40-100, so the absolute times move with
+it and the ratios are the measure): 1.40 M triangles and 1,608 draw calls
+at most, GPU 5.0 / 9.7 ms (p50 / p99); the plaza's view the worst (p99
+11.9 ms). Two things were let go:
+
+- a module's highlights past 60 m (`HIGHLIGHT_REACH`): there a glint is a
+  pixel or two, and its pass draws the densest meshes again: 1.40 M → 1.15
+  M triangles, 1,608 → 1,470 calls;
+- the point lights of the LED strip under the balustrade's rail (54 of
+  them, its glow kept): every pixel of the plaza's highlight looped over
+  all of them; the plaza's view went from the dearest to below the
+  walkway's.
+
+After them, measured in five pairs with the Well (4242 L1) run in turn, so
+each pair shares the load: the way in's GPU 4.8 / 9.0 ms (p50 / p99)
+where the Well's is 2.8 / 5.3, about 1.7 times a floor of the Building,
+inside a 60 fps frame at the worst; its update 0.03-0.13 ms at p50 (the
+ring, the voice and the set's look for the eye); entering it 0.2 s with
+the machine lighter, up to 1.8 s with it loaded (the set file inflated,
+its meshes and photographs made: under the black of New descent). Its
+history's first row waits for a run of `cargo xtask bench` on a quiet
+machine.
+
 ## Budgets
 
 About twice the worst level today, and the GPU well inside a 60 fps frame
@@ -248,7 +285,9 @@ budget; a maze level that grows toward it shows first as a step in the
 history. A replayed frame within 0.5 ms keeps a seek over ten minutes of
 play under 20 s; the log within 0.5 MB a minute keeps a long floor's in
 tens of megabytes; the file within 25 KB a minute is the format's own
-target (`docs/engineering/REPLAYS.md`). Raise a budget only with a reason in the commit.
+target (`docs/engineering/REPLAYS.md`). The way in's are the same kind
+of margin over what it measured with the machine loaded (its entry is
+under the black of New descent). Raise a budget only with a reason in the commit.
 
 <!-- perf-budgets:begin -->
 ```json
@@ -273,6 +312,15 @@ target (`docs/engineering/REPLAYS.md`). Raise a budget only with a reason in the
     "record_frame_us": 20,
     "log_kb_min": 512,
     "file_kb_min": 25
+  },
+  "tunnel": {
+    "enter_ms": 2000,
+    "first_frame_ms": 600,
+    "update_p99_ms": 4,
+    "gpu_p50_ms": 8,
+    "gpu_p99_ms": 14,
+    "calls_max": 2500,
+    "tris_max": 2500000
   }
 }
 ```

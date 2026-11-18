@@ -243,3 +243,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-19, on top of 366763c: frames: tunnel_in_mid, tunnel_open. Reason: The way in (W4): the look into the tunnel on its stairs, and the walkway at the changed door with her note; new frames
 
 - 2026-11-19, on top of 366763c: look anchors: tunnel_in_mid, tunnel_open. Reason: The way in (W4): new frames, their first look anchors
+
+- 2026-11-19, on top of 55ac6d8: frames: tunnel_in_mid. Reason: The way in (W7): the balustrade strip's 54 point lights no longer light the plaza's wet-paint highlights (its glow stays): a few glints by the balustrade gone, the plaza's frame half its cost

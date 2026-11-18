@@ -21,7 +21,7 @@ and the tests' running time checked.
 | W4 | The look you take: `tunnel_in`, from the street above into the walkway, its contract | done |
 | W5 | Your voice: the persona `you_tunnel`, its lines made and judged, played in order and at what you pass | done |
 | W6 | The place's sound: the bars' hum, the road behind the glass going quiet, steps in its reverb, the wind behind the door | done |
-| W7 | Performance (`--bench` of the way in, the game's bench) and the tests' running time, before and after | |
+| W7 | Performance (`--bench` of the way in, the game's bench) and the tests' running time, before and after | done |
 
 ## Progress
 
@@ -116,3 +116,30 @@ has changed, cold air breathing out of it every seven seconds, heard
 within 60 m, before it is seen. No draws: when a car comes is a function
 of its count. The bed measured before the first car: -36 dBFS (a floor of
 the rooms' -32).
+
+**W7** (2026-11-19). Performance (`docs/engineering/PERF.md`, *The way
+in*): a bench of its own (`backrooms --bench-tunnel`, in `cargo xtask
+bench` with `tunnel` budgets and `perf/tunnel.csv`). It found the place
+1.40 M triangles and 1,608 calls at most, the plaza's view the dearest;
+two things were let go (highlights past 60 m; the balustrade strip's 54
+point lights, its glow kept): 1.15 M triangles, 1,470 calls, the plaza's
+view below the walkway's. Measured in turn with the Well, with other
+sessions keeping the machine at a load of 40-100: the way in's GPU 4.8 /
+9.0 ms (p50 / p99), the Well's 2.8 / 5.3, about 1.7 times; its update
+0.03-0.13 ms. No history row was recorded under that load.
+
+The tests' running time (`cargo xtask check --fast`, the fast check):
+
+| | tests | test step | test work (the sum of every test's own time) |
+|---|---|---|---|
+| before the way in (W1, the shared checkout) | 598 | 230.7 s | |
+| after W4 (the look; the worktree) | 606 | 180.2 s | 1,457 s |
+| after W5-W6 (the voice, the sound) | 613 | 402.8 s (159 s of it the rebuild: the game crate, with its new WAVs, relinked every test binary) | 2,502 s |
+
+The times between runs move with the machine's load (the same tests ran
+1.7 times slower in the last run than in W4's), so the way in's cost is
+read from its own tests' work: 34 s of the last run's 2,502 s (1.4%):
+the look's contract on its two stages 17.2 s, the listen test 9.2 s, the
+six tunnel tests 7.8 s, the voice's and the ring's unit tests under 0.3 s
+together; in W4's lighter run its tests then were 13.4 s of 1,457 s
+(0.9%). The goldens gained two frames (`tunnel_in_mid`, `tunnel_open`).

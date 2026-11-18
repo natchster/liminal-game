@@ -113,6 +113,7 @@ Rendered offscreen, never from the screen.
 |---|---|
 | `--bench FILE --seed S --levels 1,2,3 [--bench-frames N]` | Time each level's build, its first frame, and the CPU update and GPU time a frame along a fixed path (used by `cargo xtask bench`) |
 | `--bench-creatures FILE --seed S` | Time the creature pack (every kind that roams the rooms, two of each, all hunting you) on level 4 |
+| `--bench-tunnel FILE --seed S [--bench-frames N]` | Time the way in (the Jahamun Tunnel): entering it, its first frame, and the CPU update and GPU time a frame over its views outside and in (`docs/engineering/PERF.md`, *The way in*) |
 
 ### Cutscenes
 

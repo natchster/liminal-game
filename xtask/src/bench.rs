@@ -29,7 +29,9 @@
 //! `perf/creatures.csv` (one row a run), and **recording and replaying**
 //! (`backrooms --bench-replay`: a minute of the restless bot from the title,
 //! recorded and replayed headless) to the `replays` budgets and
-//! `perf/replays.csv`.
+//! `perf/replays.csv`, and **the way in** (`backrooms --bench-tunnel`: the
+//! Jahamun Tunnel's views outside and in) to the `tunnel` budgets and
+//! `perf/tunnel.csv`.
 use crate::shots::{machine, read_json};
 use crate::{cargo, flag, root, run};
 use serde_json::Value;
@@ -189,6 +191,7 @@ pub fn bench(args: &[String]) -> Result<(), String> {
     }
     bench_pack(args, &bin, &tmp, &budgets, &here, &commit, &mut failures)?;
     bench_replays(args, &bin, &tmp, &budgets, &here, &commit, &mut failures)?;
+    bench_tunnel(args, &bin, &tmp, &budgets, &here, &commit, &mut failures)?;
     if failures.is_empty() {
         println!("within budget, no slowdown in the history");
         Ok(())
@@ -237,6 +240,44 @@ fn bench_pack(
     let series =
         Series { name: "creature pack", budgets: "creatures", csv: "perf/creatures.csv", key: ("creatures", creatures.to_string()) };
     series.hold(args, PACK_MEASURES, &medians_of(&samples), budgets, here, commit, failures)
+}
+
+/// Measures of the way in (higher is worse): entering it, its first frame,
+/// and its frames over its views.
+const TUNNEL_MEASURES: &[&str] =
+    &["enter_ms", "first_frame_ms", "update_p50_ms", "update_p99_ms", "gpu_p50_ms", "gpu_p99_ms", "calls_max", "tris_max"];
+
+/// The way in (`backrooms --bench-tunnel`): `REPEATS` runs, medians, the
+/// `tunnel` budgets, and a change point in `perf/tunnel.csv`.
+fn bench_tunnel(
+    args: &[String],
+    bin: &std::path::Path,
+    tmp: &std::path::Path,
+    budgets: &Value,
+    here: &str,
+    commit: &str,
+    failures: &mut Vec<String>,
+) -> Result<(), String> {
+    let mut samples: Vec<Vec<f64>> = vec![vec![]; TUNNEL_MEASURES.len()];
+    for rep in 0..REPEATS {
+        let f = tmp.join(format!("tunnel_{rep}.json"));
+        let st = Command::new(bin)
+            .args(["--fresh", "--width", "1280", "--height", "800", "--scale", "1", "--bench-tunnel"])
+            .arg(&f)
+            .args(["--seed", "4242", "--bench-frames", FRAMES])
+            .stdout(std::process::Stdio::null())
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !st.success() {
+            return Err("the way in's bench failed".into());
+        }
+        let r = read_json(&f);
+        for (i, m) in TUNNEL_MEASURES.iter().enumerate() {
+            samples[i].push(r[*m].as_f64().unwrap_or(0.0));
+        }
+    }
+    let series = Series { name: "the way in", budgets: "tunnel", csv: "perf/tunnel.csv", key: ("seed", "4242".to_string()) };
+    series.hold(args, TUNNEL_MEASURES, &medians_of(&samples), budgets, here, commit, failures)
 }
 
 /// Measures of recording and replaying (higher is worse): a replayed

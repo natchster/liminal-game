@@ -115,6 +115,10 @@ struct Options {
     /// `--bench-creatures FILE`: with `--seed`, time the creature pack (every
     /// kind that roams the rooms, two of each, all hunting you) on level 4
     bench_creatures: Option<String>,
+    /// `--bench-tunnel FILE`: with `--seed`, time the way in (the Jahamun
+    /// Tunnel, `game::modes::tunnel`): entering it, its first frame, and
+    /// `bench_frames` frames over its views, outside and in
+    bench_tunnel: Option<String>,
     /// `--metrics FILE`: with `--seed` and `--levels`, build the levels as a
     /// run would and write their expressive-range measures (no rendering)
     metrics: Option<String>,
@@ -193,6 +197,7 @@ fn parse_args() -> Options {
         metrics: None,
         bench: None,
         bench_creatures: None,
+        bench_tunnel: None,
         bench_frames: 240,
         record: None,
         replay: None,
@@ -309,6 +314,7 @@ fn parse_args() -> Options {
             "--metrics" => o.metrics = Some(next(&mut i)),
             "--bench" => o.bench = Some(next(&mut i)),
             "--bench-creatures" => o.bench_creatures = Some(next(&mut i)),
+            "--bench-tunnel" => o.bench_tunnel = Some(next(&mut i)),
             "--record" => o.record = Some(next(&mut i)),
             "--replay" => o.replay = Some(next(&mut i)),
             "--replay-verify" => o.replay_verify = Some(next(&mut i)),
@@ -397,6 +403,7 @@ fn make_game(o: &Options) -> Game {
         || o.metrics.is_some()
         || o.bench.is_some()
         || o.bench_creatures.is_some()
+        || o.bench_tunnel.is_some()
         || o.cutscene.is_some()
         || o.tour.is_some();
     // a `--record` session starts like a fresh install (a playtest's: no
@@ -1797,6 +1804,91 @@ fn bench(o: &Options, path: &str) {
     std::fs::write(path, serde_json::Value::Array(out).to_string()).expect("write bench");
 }
 
+/// `--bench-tunnel FILE`: the way in's cost (`game::modes::tunnel`). Its
+/// entry (the place built and shown, the first floor already built behind
+/// it, as New descent does), its first frame, and `bench_frames` frames
+/// over its views: the street above, the plaza, the stairs' head, a few
+/// bays in, deep in looking on and back, the open door; each view turned a
+/// little each frame, as the level bench's are.
+fn bench_tunnel(o: &Options, path: &str) {
+    let seed = o.seed.unwrap_or(4242);
+    let mut g = make_game(o);
+    g.launch_flags = format!("seed={seed}&nosound");
+    let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
+    g.view_width = o.width;
+    g.view_height = o.height;
+    g.scale_factor = o.scale;
+    g.quality.max_pr = o.scale.min(2.0);
+    g.quality.pr = g.quality.max_pr;
+    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
+    let mut r = Renderer::new(device);
+    let target = r.offscreen_target(w, h);
+    g.boot();
+    g.start_new_game();
+    g.state = "playing".into();
+    g.hide_overlay();
+    let t0 = Instant::now();
+    g.debug_tunnel(game::modes::tunnel::START, 0.0, false);
+    let enter_ms = t0.elapsed().as_secs_f64() * 1000.0;
+    let t1 = Instant::now();
+    g.fixed_step_dt = 1.0 / 60.0;
+    g.frame(1.0 / 60.0);
+    let cb = draw(&mut g, &mut r, &target, w, h);
+    cb.commit();
+    cb.waitUntilCompleted();
+    let first_ms = t1.elapsed().as_secs_f64() * 1000.0;
+    // (feet, heading, the door changed)
+    let pi = std::f64::consts::PI;
+    let views: [(&str, [f64; 3], f64, bool); 7] = [
+        ("street", [-7.0, 7.2, 27.0], 0.0, false),
+        ("plaza", [-2.6, 0.2, 14.0], 0.35, false),
+        ("stairs", [-4.75, 7.2, 20.2], 0.0, false),
+        ("inside", game::modes::tunnel::START, 0.0, false),
+        ("deep", [-0.85, 0.2, -200.0], 0.0, false),
+        ("back", [-0.85, 0.2, -200.0], pi, false),
+        ("door", [-0.45, 0.2, -108.6], 0.48, true),
+    ];
+    let per_view = (o.bench_frames / views.len()).max(1);
+    let mut rows = vec![];
+    let (mut upd_all, mut gpu_all, mut calls_all, mut tris_all) = (vec![], vec![], vec![], vec![]);
+    let r3 = |x: f64| (x * 1000.0).round() / 1000.0;
+    for (name, feet, yaw, changed) in views {
+        g.debug_tunnel(feet, yaw, changed);
+        let (mut upd, mut gpu, mut calls, mut tris) = (vec![], vec![], vec![], vec![]);
+        for k in 0..per_view {
+            g.player.yaw = yaw + k as f64 * 0.01;
+            g.now_ms += 1000.0 / 60.0;
+            let tu = Instant::now();
+            g.frame(1.0 / 60.0);
+            upd.push(tu.elapsed().as_secs_f64() * 1000.0);
+            let cb = draw(&mut g, &mut r, &target, w, h);
+            cb.commit();
+            cb.waitUntilCompleted();
+            gpu.push((cb.GPUEndTime() - cb.GPUStartTime()) * 1000.0);
+            calls.push(r.info.calls as f64);
+            tris.push(r.info.triangles as f64);
+        }
+        upd_all.extend(upd.iter().copied());
+        gpu_all.extend(gpu.iter().copied());
+        calls_all.extend(calls.iter().copied());
+        tris_all.extend(tris.iter().copied());
+        rows.push(serde_json::json!({
+            "view": name, "frames": per_view,
+            "update_p50_ms": r3(quantile(&mut upd, 0.5)), "gpu_p50_ms": r3(quantile(&mut gpu, 0.5)), "gpu_p99_ms": r3(quantile(&mut gpu, 0.99)),
+            "calls_max": quantile(&mut calls, 1.0), "tris_max": quantile(&mut tris, 1.0),
+        }));
+    }
+    g.fixed_step_dt = 0.0;
+    let out = serde_json::json!({
+        "seed": seed, "size": [w, h], "enter_ms": r3(enter_ms), "first_frame_ms": r3(first_ms),
+        "update_p50_ms": r3(quantile(&mut upd_all, 0.5)), "update_p99_ms": r3(quantile(&mut upd_all, 0.99)),
+        "gpu_p50_ms": r3(quantile(&mut gpu_all, 0.5)), "gpu_p99_ms": r3(quantile(&mut gpu_all, 0.99)),
+        "calls_max": quantile(&mut calls_all, 1.0), "tris_max": quantile(&mut tris_all, 1.0),
+        "views": rows,
+    });
+    std::fs::write(path, serde_json::to_string_pretty(&out).unwrap_or_default()).expect("write bench");
+}
+
 /// `--bench-creatures FILE`: the creatures' cost. On level 4 of the run, a
 /// pack of every kind that roams the rooms (two of each) is placed round you
 /// and set hunting you (god mode); then, over `bench_frames` frames while
@@ -1882,6 +1974,10 @@ fn main() {
     }
     if let Some(p) = o.bench_creatures.clone() {
         bench_creatures(&o, &p);
+        return;
+    }
+    if let Some(p) = o.bench_tunnel.clone() {
+        bench_tunnel(&o, &p);
         return;
     }
     if let Some(p) = o.metrics.clone() {

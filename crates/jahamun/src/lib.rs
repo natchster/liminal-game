@@ -39,6 +39,9 @@ const GLASS_X: f64 = 0.10;
 const REFLECTED: &[&str] = &["led"];
 const REFLECT_TOP: f32 = 3.15;
 
+/// How far from the eye a module's highlights are drawn (m).
+const HIGHLIGHT_REACH: f64 = 60.0;
+
 /// The night outside (as displayed, sRGB) and the haze in the bores.
 const NIGHT_FOG: [f64; 3] = [0.075, 0.066, 0.064];
 const NIGHT_DENSITY: f64 = 0.010;
@@ -57,7 +60,7 @@ const SKY_LOW: [f64; 3] = [0.070, 0.048, 0.033];
 /// walkway's bore (its highlights, its glass, its reflection).
 struct Live {
     centre: Vec3,
-    highlights: Vec<(Mat, f64)>,
+    highlights: Vec<(Obj, Mat, f64)>,
     glass: Option<Mat>,
     reflection: Option<(Obj, Mat)>,
 }
@@ -352,8 +355,9 @@ impl Set {
                     if let Some((g, s, n, o)) = hl {
                         let hm = look::highlight(g, s, n);
                         hm.m().opacity = o;
-                        node.add(&mesh(geo.clone(), hm.clone()));
-                        inst.highlights.push((hm, o));
+                        let ho = mesh(geo.clone(), hm.clone());
+                        node.add(&ho);
+                        inst.highlights.push((ho, hm, o));
                     }
                 }
             }
@@ -377,7 +381,9 @@ impl Set {
                     "led" => (4.0, 6.0, Some(&glow_mat), 0.17),
                     "lamp" => (0.0, 0.0, Some(&glow_mat), 0.9),
                     "street" => (30.0, 110.0, Some(&glow_warm), 2.4),
-                    "rail" => (3.5, 1.2, Some(&glow_mat), 0.12),
+                    // (the strip under the balustrade's rail: its glow only; its 54 points
+                    // looped over at every pixel of the plaza cost more than its glints)
+                    "rail" => (0.0, 0.0, Some(&glow_mat), 0.12),
                     "red" => (3.0, 1.5, Some(&glow_red), 0.35),
                     "signal" => (0.0, 0.0, Some(&glow_green), 0.9),
                     _ => (0.0, 0.0, None, 0.0),
@@ -543,7 +549,11 @@ impl Set {
         for l in &mut self.live {
             let d = l.centre.distance_to(&eye);
             let haze = (-(density * d).dpowi(2)).dexp();
-            for (m, base) in &l.highlights {
+            // (past `HIGHLIGHT_REACH` a glint off the paint or the glaze is a
+            // pixel or two: its pass, the densest meshes drawn again, is let go)
+            let near = d < HIGHLIGHT_REACH;
+            for (o, m, base) in &l.highlights {
+                o.set_visible(near);
                 m.m().opacity = base * haze;
             }
             // Fresnel on the glass: square on 4% a face, all of it at a graze
