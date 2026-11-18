@@ -1,0 +1,41 @@
+# The sets: places built apart from the game, each runnable on its own and
+# made to join the game later as a location (`sets/README.md`). A workspace
+# of its own, like `lab/`: the game's build, its check, its fixtures and its
+# `target/` never see it. Its crates read the game's engine and change
+# nothing in it.
+[workspace]
+resolver = "3"
+members = ["jahamun"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "warn"
+
+[workspace.lints.clippy]
+# the game's own (Cargo.toml at the root): kept here so a set's code passes
+# the game's lints the day it moves in
+approx_constant = "allow"
+excessive_precision = "allow"
+needless_range_loop = "allow"
+too_many_arguments = "allow"
+type_complexity = "allow"
+allow_attributes_without_reason = "warn"
+manual_let_else = "warn"
+uninlined_format_args = "warn"
+cloned_instead_of_copied = "warn"
+iter_over_hash_type = "warn"
+
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 16
+debug = false

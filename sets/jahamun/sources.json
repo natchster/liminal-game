@@ -1,0 +1,75 @@
+{
+  "about": "What the Jahamun set is made from. The textures are CC0 photographs (Poly Haven), checked by SHA-1 (pipeline/textures.py); the references are only looked at, never put in the set (README.md, The references). Licences allowed in what the set embeds, as in the game's assets/src/textures/sources.json: CC0, MIT, CC BY 4.0.",
+  "polyhaven": {
+    "about": "Poly Haven (https://polyhaven.com), textures all CC0 1.0 (https://polyhaven.com/license). Each map is fetched from https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/<asset>/<file> and checked by its SHA-1.",
+    "licence": "CC0-1.0",
+    "assets": {
+      "long_white_tiles": {
+        "what": "long white glazed wall tiles, 4 x 9 cm, chipped and scuffed (1.27 m square): the walkway's wall, turned to run in rows",
+        "authors": "Jenelle van Heerden, Sergej Majboroda",
+        "page": "https://polyhaven.com/a/long_white_tiles",
+        "files": {
+          "long_white_tiles_diff_2k.jpg": "fbc1d90d6856d1078b3197207e4bd53d1d9bfe94",
+          "long_white_tiles_rough_2k.jpg": "e7beda094489f49ecb5bb641b9dba4f3d10dc110",
+          "long_white_tiles_ao_2k.jpg": "cde5b2552cae288c95918220c2a084b170006520"
+        }
+      },
+      "painted_concrete": {
+        "what": "green floor paint worn off concrete, scratched and cracked (2 m square): the walkway's red-brown anti-slip paint, recoloured, and the plaza's",
+        "authors": "Dario Barresi, Dimitrios Savva",
+        "page": "https://polyhaven.com/a/painted_concrete",
+        "files": {
+          "painted_concrete_diff_2k.jpg": "536c2331004b7911043e1c0e8f60f0767542e630",
+          "painted_concrete_rough_2k.jpg": "df2c976d555a58992ce28b28b130f3fd7f7c5eed"
+        }
+      },
+      "plastered_wall_04": {
+        "what": "a grey plastered concrete wall (3.2 m square): the tunnel's painted lining above the tiles, and a neutral paint",
+        "authors": "Rob Tuytel",
+        "page": "https://polyhaven.com/a/plastered_wall_04",
+        "files": {
+          "plastered_wall_04_diff_2k.jpg": "5c794a4859f81903cd55299d4a7edb85e0133107"
+        }
+      },
+      "asphalt_02": {
+        "what": "cracked road asphalt (3 m square): the carriageway",
+        "authors": "Rob Tuytel",
+        "page": "https://polyhaven.com/a/asphalt_02",
+        "files": {
+          "asphalt_02_diff_2k.jpg": "b4a679da01fe2555a44d3136eea4b51ac5e5be01"
+        }
+      },
+      "rock_wall_11": {
+        "what": "a wall of flat-faced polygonal stones with thin joints (1.91 m square): the retaining walls and the portal, graded grey",
+        "authors": "Dimitrios Savva",
+        "page": "https://polyhaven.com/a/rock_wall_11",
+        "files": {
+          "rock_wall_11_diff_2k.jpg": "7691e4e30ccacda13ee66543b9c283cca15edf84",
+          "rock_wall_11_ao_2k.jpg": "289c15bf0fb177bbe2ed7e95158e1beda28fc663"
+        }
+      }
+    }
+  },
+  "references": {
+    "about": "Looked at for the place's shape, size, colour and light; nothing of them is in the set.",
+    "video": "the developer's own phone video of the walkway (private, not in the repository): 22 s, 720 x 1280, walking in and turning round",
+    "commons_parasite_location": {
+      "page": "https://commons.wikimedia.org/wiki/File:Parasite_filming_location.jpg",
+      "licence": "CC BY-SA 4.0 (Aaaatu); a reference only",
+      "what": "by day: the red walkway outside the portal, the glass balustrade with its orange top rail, the polygonal stone retaining wall and its long stairs, the stone-faced arch"
+    },
+    "seoul_media_hub_2022": {
+      "page": "https://mediahub.seoul.go.kr/archives/2003871",
+      "licence": "Seoul Metropolitan Government, all rights reserved; a reference only",
+      "what": "by night: the same place under warm street lamps, the LED strip under the balustrade's rail, the lane signals over the arch"
+    },
+    "ko_wikipedia": {
+      "page": "https://ko.wikipedia.org/wiki/자하문터널",
+      "what": "twin bores, each about 485 m, opened 30 August 1986; 7.7 m high, carriageway 16.8 m and walkways 3 m (both bores together)"
+    },
+    "namu_wiki": {
+      "page": "https://namu.wiki/w/자하문터널",
+      "what": "walkways made in both bores in 2010, the one toward Buam-dong behind a noise barrier (the glass)"
+    }
+  }
+}
