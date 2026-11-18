@@ -1,0 +1,17 @@
+[project]
+name = "backrooms-lab-motion"
+version = "0.1.0"
+description = "Creature motion for the lab: NVIDIA Kimodo on MLX (kimodo-mlx), baked to clips the lab's viewer retargets (lab/README.md)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # MIT; pinned to the commit read before it was used
+    "kimodo-mlx @ git+https://github.com/NomaDamas/kimodo-mlx@bbb592aa2046361be541ab4f5e2b0e9ba4869b21",
+    "mlx==0.32.4",
+    "numpy>=1.26",
+    "gguf>=0.17",
+    "safetensors>=0.4",
+    "huggingface_hub==1.33.0",
+]
+
+[tool.uv]
+package = false

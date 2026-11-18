@@ -1,0 +1,40 @@
+# The models the lab's motion pipeline uses, each pinned to a revision and
+# kept in the Hugging Face cache (never this repository):
+# `.venv/bin/python motion.py fetch` downloads them, `motion.py doctor`
+# checks them (docs/research/character-motion.md has why these).
+#
+# Only motion data leaves this pipeline (lab/motion/clips/*.motion); no
+# model is shipped. The licence that governs what it makes is the motion
+# model's: NVIDIA's Open Model License (commercial use allowed; the SEED
+# checkpoint is trained only on the public BONES-SEED mocap, and its card
+# says "ready for commercial use"). The text encoder only turns a prompt
+# into the 4096 numbers that condition the motion model; it is Meta Llama 3
+# (Community License: "Built with Meta Llama 3") with McGill's LLM2Vec
+# adapters (MIT), converted to GGUF by LocalAI (its NOTICE and the Llama
+# licence are kept in the cache with it).
+
+[[model]]
+id = "kimodo-soma-seed"
+role = "motion"
+does = "text-conditioned kinematic motion diffusion on NVIDIA's 30-joint SOMA skeleton, 30 fps, up to 10 s"
+repo = "nvidia/Kimodo-SOMA-SEED-v1.1"
+revision = "aae3af194322c60d21bc44062b64c3fec912be50"
+include = ["model.safetensors", "config.yaml", "stats/**", "LICENSE", "README.md"]
+licence = "NVIDIA Open Model License"
+
+[[model]]
+id = "llm2vec-llama3-q8"
+role = "text"
+does = "the prompt's embedding: bidirectional Llama-3-8B (LLM2Vec), mean-pooled, Q8_0"
+repo = "LocalAI-io/Llama-3-Kimodo-GGML"
+revision = "f583f3ee2b093f6d9ec524463b4152622abf11a6"
+include = ["Llama-3-Kimodo-Q8_0.gguf", "tokenizer.gguf", "LICENSE-META-LLAMA-3.txt", "NOTICE", "MANIFEST.json", "SHA256SUMS"]
+weights = "Llama-3-Kimodo-Q8_0.gguf"
+weights_sha256 = "b26d0e74b115b33a7f2df5aca04426548365e99217cd590986f8abc4172e4c5c"
+tokenizer_sha256 = "81614aca62a98846c02b72cc2e5378e5bdce8b4d507b88f96eb1faa90dae607e"
+licence = "Meta Llama 3 Community License; LLM2Vec adapters MIT"
+
+# The runtime: kimodo-mlx (MIT), pinned in pyproject.toml to
+# NomaDamas/kimodo-mlx@bbb592aa2046361be541ab4f5e2b0e9ba4869b21: its MLX
+# denoiser and its LLM2Vec layer, read before use. Not kimodo-turbo: its
+# repository states no licence.

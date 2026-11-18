@@ -1,0 +1,19 @@
+[package]
+name = "creature-lab"
+description = "The lab's viewer: the creatures' motion (Kimodo clips retargeted onto their bodies) and the generated plants, apart from the game"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license-file = "../../LICENSE"
+
+[[bin]]
+name = "creature-lab"
+path = "src/main.rs"
+
+[dependencies]
+# read-only: the renderer, the bodies of bodies.bin and their materials
+engine = { path = "../../crates/engine" }
+game = { path = "../../crates/game" }
+objc2 = "0.6"
+objc2-metal = "0.3"
+serde_json = "1"

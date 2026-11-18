@@ -1,0 +1,107 @@
+# The Smiler's moves, one brief each (docs/design/ENTITIES.md, the Smiler:
+# Idle → Alert → Search → Hunt → Strike → Withdraw). Kimodo is given plain
+# human motion in its own words ("A person ..."): it was trained on people
+# and knows nothing of the wrong. What makes the motion the Smiler's is laid
+# on top in the viewer (its stoop, its long limbs, the head before the body,
+# the held frames: `lab/viewer/src/smiler.rs`).
+#
+# `candidates` seeds are sampled from `seed`; the bake keeps the one that
+# best fits `speed` (the root's mean speed, m/s, on the mocap's own scale)
+# with the least foot skating and jitter; `loop` clips are cut where they
+# best repeat and cross-faded there.
+
+[defaults]
+steps = 100
+cfg = 2.0
+candidates = 4
+seed = 1000
+
+# The body supplies the posture, the prompt only the motion: the Smiler is
+# bound in its stoop, so a prompt that asks for a hunch stacks a second stoop
+# on the first. Every clip is laid on the body as its turn away from this
+# stance (`neutral`): a person upright and still, arms at their sides.
+[[clip]]
+name = "stand"
+for = "the stance every clip is measured from (the body's rest pose is its stoop)"
+prompt = "A person stands upright and completely still, with arms relaxed at their sides, looking straight ahead."
+seconds = 3.0
+speed = [0.0, 0.05]
+neutral = true
+
+[[clip]]
+name = "idle"
+for = "Idle: in its dark, facing a corner; it barely moves, and the little it does is weight"
+prompt = "A person stands still with arms hanging limp, slowly shifting their weight from one foot to the other."
+seconds = 8.0
+loop = true
+speed = [0.0, 0.12]
+
+[[clip]]
+name = "look"
+for = "Alert: it has seen a light, and its head goes to it before its body does"
+prompt = "A person stands still and turns their head sharply to the right to look at something, then holds it there."
+seconds = 4.0
+speed = [0.0, 0.2]
+
+[[clip]]
+name = "turn"
+for = "Alert: the body following the head round"
+prompt = "A person standing still turns around in place to the left to face the other way."
+seconds = 3.0
+speed = [0.0, 0.5]
+
+[[clip]]
+name = "creep"
+for = "Search: to where your light went out, slower, unsure where you are"
+prompt = "A person walks forward very slowly and carefully, with their arms hanging down."
+seconds = 6.0
+loop = true
+speed = [0.3, 0.9]
+
+[[clip]]
+name = "listen"
+for = "Search, arriving: it stops where the light was and listens"
+prompt = "A person stops walking, tilts their head to one side as if listening, and stays completely still."
+seconds = 4.0
+speed = [0.0, 0.4]
+
+[[clip]]
+name = "stalk"
+for = "Hunt, the approach: long strides, leaning in"
+prompt = "A person walks forward quickly with long strides, leaning forward."
+seconds = 5.0
+loop = true
+speed = [1.3, 2.2]
+
+[[clip]]
+name = "run"
+for = "Hunt: you are lit and in its sight; it comes at 4.5 m/s, faster than your walk"
+prompt = "A person sprints forward as fast as they can."
+seconds = 5.0
+loop = true
+# more seeds: a run must loop cleanly
+candidates = 8
+speed = [2.6, 4.5]
+
+[[clip]]
+name = "lunge"
+for = "Strike: a sharp inhale, coiling as it comes, then the lunge (7 m/s over at most 4 m)"
+prompt = "A person bends their knees, then quickly steps forward and grabs at something in front of them with both hands."
+seconds = 3.0
+speed = [0.5, 3.0]
+# on its feet: a lunge that ends lying on the floor is no use to it
+min_hips = 0.6
+
+[[clip]]
+name = "stand_over"
+for = "Over your body: it stands over you and looks down"
+prompt = "A person stands still and bends forward to look down at the ground in front of their feet."
+seconds = 4.0
+speed = [0.0, 0.3]
+
+[[clip]]
+name = "back_away"
+for = "Withdraw: it goes back into the dark"
+prompt = "A person slowly walks backwards for a few steps, then turns around and walks away."
+seconds = 6.0
+speed = [0.3, 1.2]

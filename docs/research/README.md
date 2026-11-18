@@ -126,3 +126,11 @@ issue #11, [`../plan/PROPS.md`](../plan/PROPS.md)), summed up in
 |---|---|
 | [`graffiti.md`](graffiti.md) | Writing on walls by people in distress (prison cells, asylums, Hiroshima, trapped miners and sailors) and what reads as fake in games and film; the media an office offers and their colours (pencil, ballpoints, marker, lipstick, blood as it browns, correction fluid, scratches); how marks sit on a surface and take its light; handwriting under stress and fatigue; the game's writing beside it; twelve rules for drawing it |
 
+
+Two more were gathered on 2026-11-18 for the lab (creature motion and
+plants, apart from the game: [`../../lab/README.md`](../../lab/README.md)):
+
+| Note | What it covers |
+|---|---|
+| [`character-motion.md`](character-motion.md) | Realistic human motion from open models on a 64 GB Apple Silicon Mac: NVIDIA's Kimodo (its motion frame, the SOMA skeleton, the LLM2Vec text encoder, every checkpoint and its licence: the SEED one for a sold game), its ports (kimodo-mlx, MIT, used and extended; kimodo-turbo, no licence; kimodo.cpp), what was measured here, the others considered (ARDY, HY-Motion, the HumanML3D family and AMASS's terms), why the creature's wrongness is laid on the mocap and not asked of it, the risks |
+| [`plant-modeling.md`](plant-modeling.md) | Realistic plants from open tools on the same Mac: procedural and botanical generators (Infinigen's plant factories, Sapling, L-Py, ez-tree, proctree; *The Algorithmic Beauty of Plants*, space colonization; 2025–2026 research), generative 3D models (TRELLIS and its Mac ports, Hunyuan3D's territories, Stable Fast 3D, TripoSR/SG, Step1X-3D) and why none fits a reproducible, sold build; CC0 leaves and scanned references; what neglect does to a plant; the generator the lab built |
