@@ -70,6 +70,10 @@ const FIGURES: &[(&str, &[&str])] = &[
     ("way_in_mid", &["--cutscene", "way_in", "--stage", "title:4242", "--cut-at", "2.6"]),
     ("shaft_eyes", &["--cutscene", "shaft", "--stage", "broken_elevator:4242:4", "--cut-at", "3.7"]),
     ("death_fall", &["--cutscene", "death_taken", "--stage", "death:hound", "--cut-at", "0.9"]),
+    // the way in (docs/design/WAY_IN.md): the look into the tunnel on the
+    // stairs, and the walkway at the changed door, her note beside it
+    ("tunnel_in_mid", &["--cutscene", "tunnel_in", "--stage", "tunnel:4242", "--cut-at", "10.0"]),
+    ("tunnel_open", &["--seed", "4242", "--play", "--frames", "90", "--screen", "tunnel-open"]),
 ];
 /// The one behind the glass (docs/design/WINDOWS.md 4), as you meet it: out of its
 /// window (4242's level 7, an office's strip window), standing far out on

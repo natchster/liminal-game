@@ -1,0 +1,88 @@
+# Into the tunnel (docs/design/WAY_IN.md; docs/design/CUTSCENES.md): New
+# descent through the way in. The camera starts on the street above the
+# stairs at night (the start pose `modes::tunnel` sets before it plays),
+# walks to the head of the long stairs on the stone wall, looks down over
+# the plaza to the arch, goes down both flights, turns across the plaza,
+# goes in under the arch and along the walkway, and draws into your eyes a
+# few bays in, where your hands come back. Pillar 2, familiar but wrong: a
+# real place, walked into as you would walk into it; the look shows the
+# way you came, which does not come back. Your voice goes on through it
+# (the way in's own channel, LORE.md); the look itself says nothing.
+#
+# The thing is the place itself (`modes::tunnel`, its frame at the arch:
+# x across, the walkway at -x, y up, into the tunnel -z, the plaza and the
+# stairs +z; the stairs at x -5.5..-4.0, their top landing at z 19.2-21.2,
+# 7.2 m up; the street above at x -8.2..-5.8). Every key is over ground
+# you could stand on.
+id = "tunnel_in"
+about = "New descent through the way in: down the stairs from the street, under the arch, into the walkway and your eyes"
+world = "held"
+then = "back"
+skip = "hold"
+length = 29.6
+blend_in = 0.0
+blend_out = 1.0
+stages = ["tunnel:4242", "tunnel:7"]
+
+[bars]
+in = 0.0
+out = 29.1
+
+# the street above, as the place came up
+[[camera]]
+t = 0.0
+anchor = "start"
+
+# along the street to the coping's gap, looking down over the plaza to the arch
+[[camera]]
+t = 4.0
+anchor = "thing"
+pos = [-6.9, 8.82, 20.6]
+look = [-1.0, 1.5, -3.0]
+walk = 0.6
+
+# onto the top landing, looking down the stairs
+[[camera]]
+t = 6.6
+anchor = "thing"
+pos = [-4.75, 8.8, 20.2]
+look = [-4.75, 4.6, 12.5]
+walk = 0.5
+
+# down the first flight to the landing
+[[camera]]
+t = 11.6
+anchor = "thing"
+pos = [-4.75, 5.4, 12.6]
+look = [-4.75, 2.2, 5.5]
+walk = 0.6
+
+# down the second, turning toward the arch
+[[camera]]
+t = 16.2
+anchor = "thing"
+pos = [-4.6, 1.85, 4.8]
+look = [-1.0, 1.4, -2.0]
+walk = 0.6
+
+# across the plaza to the walkway's mouth, looking in
+[[camera]]
+t = 19.9
+anchor = "thing"
+pos = [-1.05, 1.82, 2.4]
+look = [-0.9, 1.6, -20.0]
+walk = 0.6
+
+# in under the arch, along the walkway
+[[camera]]
+t = 25.0
+anchor = "thing"
+pos = [-0.85, 1.82, -9.0]
+look = [-0.85, 1.55, -40.0]
+walk = 0.6
+
+# and into your eyes, a few bays in
+[[camera]]
+t = 29.0
+anchor = "eyes"
+walk = 0.4

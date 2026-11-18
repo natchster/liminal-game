@@ -1204,7 +1204,8 @@
       "checks": [
         "test:backrooms/tunnel",
         "test:jahamun/walk_through",
-        "test:backrooms/story"
+        "test:backrooms/story",
+        "shots:tunnel_open"
       ],
       "id": "story/way_in",
       "kind": "story",
@@ -1213,6 +1214,7 @@
       "name": "the way in: the Jahamun Tunnel, before the Building",
       "notes": "New descent from the title (not a run on a chosen seed or level). A ring of 20 modules with no end; the escape door changes after 60-120 s of walking, out of sight; her note (notebook::DOOR_NOTE); through the door onto level 1 (How::Door). docs/design/WAY_IN.md.",
       "passes": {
+        "shots:tunnel_open": true,
         "test:backrooms/story": true,
         "test:backrooms/tunnel": true,
         "test:jahamun/walk_through": true
@@ -1698,6 +1700,24 @@
         "test:backrooms/cutscenes": true,
         "test:backrooms/menus": true,
         "shots:way_in_mid": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes",
+        "test:backrooms/tunnel",
+        "shots:tunnel_in_mid"
+      ],
+      "id": "cutscene/tunnel_in",
+      "kind": "cutscene",
+      "last_checked": "2026-11-19",
+      "last_human_review": null,
+      "name": "the way in: the look into the tunnel",
+      "notes": "From the street above the stairs, down both flights, across the plaza, under the arch and into your eyes a few bays in the walkway. Begins 0.3 s after the place is up behind the black, from the camera as it is. Two stages (tunnel:4242, tunnel:7).",
+      "passes": {
+        "shots:tunnel_in_mid": true,
+        "test:backrooms/cutscenes": true,
+        "test:backrooms/tunnel": true
       }
     },
     {

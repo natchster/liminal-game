@@ -18,7 +18,7 @@ and the tests' running time checked.
 | W1 | The place joins the game's workspace: `crates/jahamun`, its set file and photographs embedded, its pipeline in `assets/src/jahamun/` | done |
 | W2 | The canon: the way in (`LORE.md`), her research and the door, your voice on the way in as a channel of its own, E.'s *Day 1* and her first page told again, her note by the door; reviewed by `lore-keeper` | done |
 | W3 | The tunnel as the run's start: the mode (`modes/tunnel.rs`), the ring of modules with no end, the door that changes, her note, the door into level 1; New descent from the title; its tests | done |
-| W4 | The look you take: `tunnel_in`, from the street above into the walkway, its contract | |
+| W4 | The look you take: `tunnel_in`, from the street above into the walkway, its contract | done |
 | W5 | Your voice: the persona `you_tunnel`, its lines made and judged, played in order and at what you pass | |
 | W6 | The place's sound: the bars' hum, the road behind the glass going quiet, steps in its reverb, the wind behind the door | |
 | W7 | Performance (`--bench` of the way in, the game's bench) and the tests' running time, before and after | |
@@ -70,3 +70,21 @@ Evidence: `--screen tunnel`, `tunnel-door`, `tunnel-open`, `tunnel-deep`;
 `tests/tunnel.rs` (the whole way in to the first floor, by keys; no end
 and no way back; the door's time and that it changes unseen; which runs
 skip it; a new floor leaves it clean).
+
+**W4** (2026-11-19). The look into the tunnel, `tunnel_in` (29.6 s, held,
+skippable; `assets/src/cutscenes/tunnel_in.toml`): from the street above,
+down the stone wall's stairs, across the plaza, under the arch and along
+the walkway into your eyes a few bays in, every key over ground you could
+stand on. The cutscene engine had refused the self-contained places; it
+plays in the way in, whose frame branch runs `cutscene_pre`/`post` round
+its own camera, and reads the place for what it read of the floor: the
+`eyes` anchor's ground (`cut_floor_y`) and walls for its keys and its
+contract (`cut_hits_wall`: off the set's walkable ground,
+`Walk::open`). The contract first failed twice, rightly: a first frame
+that jumped 85 m from the title's camera (the look now begins 0.3 s after
+the place is up behind the black, from the camera as it is, on the
+street), and 4.0 m/s along the walkway at the end (its last keys moved).
+Stages `tunnel:4242`, `tunnel:7`; its contract in `tests/cutscenes.rs`
+(played, skipped at 20% and 60%, repeated, still, paused, at 30, 60 and
+120 frames a second); goldens `tunnel_in_mid` (on the stairs) and
+`tunnel_open` (the changed door, her note).

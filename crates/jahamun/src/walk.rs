@@ -33,6 +33,17 @@ impl Walk {
         best
     }
 
+    /// Whether (x, z) is open, over ground at any height, by `r` all round
+    /// (a camera's clearance: not in a wall).
+    pub fn open(&self, x: f64, z: f64, r: f64) -> bool {
+        let any = |x: f64, z: f64| self.ground(x, z, f64::INFINITY).is_some();
+        any(x, z)
+            && (0..8).all(|k| {
+                let (s, c) = (k as f64 * std::f64::consts::FRAC_PI_4).dsin_cos();
+                any(x + c * r, z + s * r)
+            })
+    }
+
     /// Whether a body stands at (x, z) with its feet at `feet`: the ground
     /// under every point of its ring within a step of the feet.
     pub fn fits(&self, x: f64, z: f64, feet: f64) -> bool {

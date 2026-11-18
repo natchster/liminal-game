@@ -257,6 +257,12 @@ once to a creature and once to your nerve):
   or like a menu and then a game? Where did you think you were? The
   camera draws back into your eyes: did that read as arriving, or would
   walking forward into them have?
+- The way in (New descent from the title, the tunnel): the look down
+  the stairs and into the walkway is long (half a minute): did you watch
+  it, or hold E? Did you know where you were when your hands came back?
+  Did you hear the voice as yours, remembering, or as a narrator? Did you
+  notice the walkway coming round before the voice did, and did you try
+  walking back? How long did the door take, and did you see it change?
 - The broken lift: what did you see in the black? Was it frightening, or
   a jump scare, or nothing? Would you look into another one?
 - Dying: did you feel yourself fall? Did the second death feel too short,

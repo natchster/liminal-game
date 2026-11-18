@@ -239,3 +239,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-18, on top of c0f2d57: look anchors: 4242_L13_service_tunnels, 4242_L13_living_quarters, 4242_L13_empty, 4242_L13_overgrown_atrium, 4242_L13_play_area. Reason: F9 (the pit hall): 4242 L13 drew anew round its pit hall, now walled by a hall's seams (their draws moved the floor's stream), so every purpose's view falls elsewhere; play_area and service_tunnels render again; frames looked at, nothing broken
 
 - 2026-11-18, on top of c0f2d57: frames: 7_L5_pool_hall, 7_L5_play_area, 7_L5_overgrown_atrium. Reason: F9: a step between two wall tiles of different heights is closed where either touches open floor (world::arch bulkheads); in these views the void over a lower wall showed (pool_hall's bright wedge, specks); frames looked at
+
+- 2026-11-19, on top of 366763c: frames: tunnel_in_mid, tunnel_open. Reason: The way in (W4): the look into the tunnel on its stairs, and the walkway at the changed door with her note; new frames
+
+- 2026-11-19, on top of 366763c: look anchors: tunnel_in_mid, tunnel_open. Reason: The way in (W4): new frames, their first look anchors

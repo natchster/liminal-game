@@ -483,6 +483,7 @@ contract_tests! {
     death_taken_keeps_the_contract => "death_taken",
     death_mind_keeps_the_contract => "death_mind",
     death_fog_keeps_the_contract => "death_fog",
+    the_tunnel_in_keeps_the_contract => "tunnel_in",
 }
 
 #[test]

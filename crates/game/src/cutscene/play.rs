@@ -63,13 +63,13 @@ pub const KEY_CLEARANCE: f64 = 0.15;
 /// `to`, or the point nearest it on the way from `from` that is clear of
 /// walls by `KEY_CLEARANCE` (its height kept)
 fn clear_of_walls(g: &Game, from: [f64; 3], to: [f64; 3]) -> [f64; 3] {
-    if !g.circle_hits_wall(to[0], to[2], KEY_CLEARANCE) {
+    if !g.cut_hits_wall(to[0], to[2], KEY_CLEARANCE) {
         return to;
     }
     for k in (0..12).rev() {
         let u = k as f64 / 12.0;
         let (x, z) = (lerp(from[0], to[0], u), lerp(from[2], to[2], u));
-        if !g.circle_hits_wall(x, z, KEY_CLEARANCE) {
+        if !g.cut_hits_wall(x, z, KEY_CLEARANCE) {
             return [x, to[1], z];
         }
     }
@@ -463,7 +463,7 @@ impl Game {
         let start = Frame { o: start_pose.pos, yaw: start_pose.yaw, pitch: start_pose.pitch };
         let pp = self.player.pos;
         let eyes =
-            Frame { o: [pp.x, self.floor_y_at(pp.x, pp.z) + self.player.eye_h, pp.z], yaw: self.player.yaw, pitch: self.player.pitch };
+            Frame { o: [pp.x, self.cut_floor_y(pp.x, pp.z) + self.player.eye_h, pp.z], yaw: self.player.yaw, pitch: self.player.pitch };
         // empty hands: no early E, the notebook put away
         self.input.interact_buffer = 0.0;
         if self.journal_open {

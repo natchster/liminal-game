@@ -59,7 +59,7 @@
     "cutscenes.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask cutscene write (TOML sources, every field written out)",
-      "fingerprint": "620fd2065ccba7fa",
+      "fingerprint": "26a2e0b4c2fa74a2",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",
@@ -69,6 +69,7 @@
         "assets/src/cutscenes/death_mind.toml",
         "assets/src/cutscenes/death_taken.toml",
         "assets/src/cutscenes/shaft.toml",
+        "assets/src/cutscenes/tunnel_in.toml",
         "assets/src/cutscenes/way_in.toml"
       ]
     },

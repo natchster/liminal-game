@@ -409,6 +409,18 @@
         300
       ]
     },
+    "tunnel_in_mid": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "tunnel_open": {
+      "size": [
+        480,
+        300
+      ]
+    },
     "watcher_2m": {
       "size": [
         480,

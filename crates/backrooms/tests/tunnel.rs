@@ -30,19 +30,33 @@ fn through_the_tunnel(seed: u32) -> Game {
     }
     assert_eq!(g.state, "menu");
     g.menu_choose("menu:new");
+    // the look into it (`tunnel_in`), then your hands
+    let mut looked = false;
+    for _ in 0..30 * 40 {
+        step(&mut g);
+        looked |= g.hands_taken();
+        if looked && !g.hands_taken() {
+            break;
+        }
+    }
+    assert!(looked && !g.hands_taken(), "the look into the tunnel played, and gave your hands back: {:?}", g.cut_log);
     g
 }
 
 #[test]
 fn new_descent_goes_through_the_tunnel_and_its_door_onto_the_first_floor() {
     let mut g = through_the_tunnel(4242);
-    // in the tunnel, the run made behind it: its first floor built, hidden
+    // in the tunnel (your hands back after the look into it), the run made
+    // behind it: its first floor built, hidden
     assert!(g.in_tunnel && g.state == "playing", "{} {}", g.in_tunnel, g.state);
     assert_eq!((g.run_seed, g.level_num), (4242, 1));
     assert!(!g.world.visible(), "the floor behind is hidden");
     assert!(g.way_in_card.is_some(), "the floor's card is kept for the door");
     assert!(g.level_card.is_none());
     assert!(g.saved.is_none(), "the way in keeps no save");
+    // your hands come back where the look ends: a few bays in
+    let start = game::modes::tunnel::START;
+    assert_eq!(tunnel(&g).feet, start, "the look moved nothing of yours");
     // walk on (left, by the wall) until the door has changed, then to it
     g.key_down("KeyA", false);
     for _ in 0..20 {

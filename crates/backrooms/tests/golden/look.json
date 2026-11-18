@@ -407,6 +407,18 @@
     "luminance": 0.2792,
     "shadow": 0.045
   },
+  "tunnel_in_mid": {
+    "colourfulness": 17.33,
+    "contrast": 0.1209,
+    "luminance": 0.1638,
+    "shadow": 0.2579
+  },
+  "tunnel_open": {
+    "colourfulness": 21.76,
+    "contrast": 0.2178,
+    "luminance": 0.5055,
+    "shadow": 0.0021
+  },
   "watcher_2m": {
     "colourfulness": 20.21,
     "contrast": 0.1034,

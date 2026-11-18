@@ -521,6 +521,217 @@
       "world": "live"
     },
     {
+      "about": "New descent through the way in: down the stairs from the street, under the arch, into the walkway and your eyes",
+      "bars": {
+        "in": 0.0,
+        "out": 29.1
+      },
+      "blend_in": 0.0,
+      "blend_out": 1.0,
+      "breaks_off": false,
+      "camera": [
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            -1.0,
+            1.5,
+            -3.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            -6.9,
+            8.82,
+            20.6
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 4.0,
+          "walk": 0.6,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            -4.75,
+            4.6,
+            12.5
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            -4.75,
+            8.8,
+            20.2
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 6.6,
+          "walk": 0.5,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            -4.75,
+            2.2,
+            5.5
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            -4.75,
+            5.4,
+            12.6
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 11.6,
+          "walk": 0.6,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            -1.0,
+            1.4,
+            -2.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            -4.6,
+            1.85,
+            4.8
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 16.2,
+          "walk": 0.6,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            -0.9,
+            1.6,
+            -20.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            -1.05,
+            1.82,
+            2.4
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 19.9,
+          "walk": 0.6,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            -0.85,
+            1.55,
+            -40.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            -0.85,
+            1.82,
+            -9.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 25.0,
+          "walk": 0.6,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 29.0,
+          "walk": 0.4,
+          "yaw": 0.0
+        }
+      ],
+      "event": [],
+      "fade": [],
+      "finally": [],
+      "id": "tunnel_in",
+      "length": 29.6,
+      "repeat_from": 0.0,
+      "say": [],
+      "skip": "hold",
+      "sound": [],
+      "stages": [
+        "tunnel:4242",
+        "tunnel:7"
+      ],
+      "then": "back",
+      "world": "held"
+    },
+    {
       "about": "New descent: from the title's view of the place, drawn back into your eyes",
       "bars": {
         "in": 0.0,

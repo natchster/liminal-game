@@ -15,6 +15,7 @@
 //! door's time is the run seed's own (`SplitMix64`), the place has no
 //! randomness, and the voice (`modes::tunnel_voice`) keeps its own order.
 use crate::base::rng::SplitMix64;
+use crate::cutscene::play::{Anchors, Frame, Pose};
 use crate::prelude::*;
 use crate::story::notebook::DOOR_NOTE;
 use jahamun::{DOOR_X, Layout, NOTE_FROM_DOOR, Set};
@@ -22,6 +23,13 @@ use jahamun::{DOOR_X, Layout, NOTE_FROM_DOOR, Set};
 /// Where your hands are given back: a few bays in, facing on in (feet, the
 /// set's frame: the walkway at -x, into the tunnel is -z).
 pub const START: [f64; 3] = [-0.85, 0.20, -16.0];
+/// Where the look into the tunnel starts (`tunnel_in`): the street above
+/// the stairs, at eye height, looking along it toward the arch below.
+pub const LOOK_FROM: [f64; 3] = [-7.0, 8.82, 27.0];
+const LOOK_PITCH: f64 = -0.06;
+/// The place is up behind the black this long before the look begins (so
+/// it begins from the camera as it is: the street, not the title).
+pub const LOOK_DELAY: f64 = 0.3;
 /// The far plane: the ring's reach (`jahamun::ring::VIEW`) and a little.
 pub const FAR: f64 = 262.0;
 /// The door's walking time: 60-120 s of moving, the run's own.
@@ -65,6 +73,9 @@ pub struct Tunnel {
     pub note_taken: bool,
     /// the locked door tried (the voice's)
     pub tried: bool,
+    /// seconds until the look into the tunnel begins (the camera held on
+    /// the street above till then), if it is to come
+    pub look_in: Option<f64>,
     step_acc: f64,
 }
 
@@ -86,6 +97,7 @@ impl Tunnel {
             near: Near::Nothing,
             note_taken: false,
             tried: false,
+            look_in: None,
             step_acc: 0.0,
         }
     }
@@ -168,7 +180,10 @@ impl Game {
         }
         self.halluc_shape.set_visible(false);
         self.scene.add(&set.root);
-        let t = Tunnel::new(set, self.run_seed);
+        let mut t = Tunnel::new(set, self.run_seed);
+        if self.cut_override.is_some() || crate::cutscene::get("tunnel_in").is_some() {
+            t.look_in = Some(LOOK_DELAY);
+        }
         self.player.yaw = 0.0;
         self.player.pitch = 0.0;
         self.player.flashlight_on = false;
@@ -179,11 +194,38 @@ impl Game {
             ss.define_zone("tunnel", crate::audio::soundscape::ReverbPreset::new(2.8, 0.42, 0.42, 0.025, 2));
             ss.set_zone("tunnel", 0.1);
         }
+        self.state = "playing".into();
         self.update_tunnel(0.0);
         self.tunnel_look();
         self.want_warm_up = true;
-        self.state = "playing".into();
         true
+    }
+
+    /// The look into the tunnel (`tunnel_in`), from the street above, its
+    /// frame the place's own (at the arch, x across, into the tunnel -z).
+    fn start_tunnel_look(&mut self) {
+        let fov = self.camera_pose().fov;
+        self.set_camera_pose(&Pose { pos: LOOK_FROM, yaw: 0.0, pitch: LOOK_PITCH, roll: 0.0, fov });
+        let thing = Frame { o: [0.0; 3], yaw: 0.0, pitch: 0.0 };
+        self.play_cutscene("tunnel_in", Anchors { thing: Some(thing), killer: None, seen_as: None });
+    }
+
+    /// Whether a cutscene's camera at (x, z) is in a wall: in the tunnel,
+    /// off its ground (`jahamun::walk::Walk::open`); elsewhere the floor's.
+    pub fn cut_hits_wall(&self, x: f64, z: f64, r: f64) -> bool {
+        match self.tunnel.as_ref().filter(|_| self.in_tunnel) {
+            Some(t) => !t.set.walk.open(x, z, r),
+            None => self.circle_hits_wall(x, z, r),
+        }
+    }
+
+    /// The floor under you as a cutscene reads it (its `eyes`): in the
+    /// tunnel, the ground your feet are on.
+    pub fn cut_floor_y(&self, x: f64, z: f64) -> f64 {
+        match self.tunnel.as_ref().filter(|_| self.in_tunnel) {
+            Some(t) => t.feet[1],
+            None => self.floor_y_at(x, z),
+        }
     }
 
     /// Out of the tunnel without going on (a new floor built, a load, the
@@ -264,7 +306,10 @@ impl Game {
     /// render's fog and light, the sound.
     pub fn update_tunnel(&mut self, dt: f64) {
         let Some(mut t) = self.tunnel.take() else { return };
-        let hands = !self.hands_taken();
+        // (until the look begins your hands are not yet yours)
+        let start_look = t.look_in.is_some_and(|d| d - dt <= 0.0) && dt > 0.0;
+        t.look_in = t.look_in.map(|d| d - dt).filter(|_| !start_look);
+        let hands = !self.hands_taken() && t.look_in.is_none() && !start_look;
         let (want_crouch, mx, mz, sprint_key) = if hands { self.modes_move_keys() } else { (false, 0.0, 0.0, false) };
         if mx == 0.0 && mz == 0.0 {
             self.input.run_latched = false;
@@ -319,8 +364,13 @@ impl Game {
         // play's camera (a cutscene's is mixed over it after)
         let bob = self.player.bob_phase.dsin().abs() * self.player.bob_amp * self.settings.bob;
         let eye = if self.player.crouch { CROUCH_EYE } else { EYE };
-        self.camera.position().set(t.feet[0], t.feet[1] + eye + bob, t.feet[2]);
-        self.camera.rotation().set(self.player.pitch, self.player.yaw, 0);
+        if t.look_in.is_some() || start_look {
+            self.camera.position().set(LOOK_FROM[0], LOOK_FROM[1], LOOK_FROM[2]);
+            self.camera.rotation().set(LOOK_PITCH, 0.0, 0);
+        } else {
+            self.camera.position().set(t.feet[0], t.feet[1] + eye + bob, t.feet[2]);
+            self.camera.rotation().set(self.player.pitch, self.player.yaw, 0);
+        }
         self.player.pos.set(t.feet[0], EYE, t.feet[2]);
         // the door's time: walking, then a moment no copy of it is in sight
         if !t.set.door_changed() && t.walked >= t.change_after {
@@ -372,9 +422,6 @@ impl Game {
         self.ll_fog_ratio = gl.ll.fog_ratio;
         // the sound: steps on the paint; the bars' hum from the nearest bar
         if let (Some(ss), true) = (self.soundscape(), self.ac.is_some()) {
-            let cp = self.camera.pos();
-            let fwd = self.player.fwd();
-            ss.set_listener(cp.x, cp.y, cp.z, fwd.x, self.player.pitch.dsin(), fwd.z);
             ss.set_zone("tunnel", 1.0);
             let bar_z = (t.feet[2] / 2.0).round() * 2.0 - 1.0;
             ss.hum.update(dt, 0.05, 1.05, bar_z, 0.55);
@@ -389,6 +436,9 @@ impl Game {
             }
         }
         self.tunnel = Some(t);
+        if start_look {
+            self.start_tunnel_look();
+        }
     }
 
     /// After the camera is set (play's or a cutscene's): the place's look
@@ -399,6 +449,11 @@ impl Game {
             t.set.update(cp);
         }
         self.camera.camera().far = FAR;
+        // (heard from the camera: yours, or a look's)
+        if let (Some(ss), true) = (self.soundscape(), self.ac.is_some()) {
+            let yaw = self.camera.rot().y;
+            ss.set_listener(cp.x, cp.y, cp.z, -yaw.dsin(), self.camera.rot().x.dsin(), -yaw.dcos());
+        }
     }
 
     /// (tools) The way in, you at `feet` facing `yaw`, the door changed or
@@ -409,6 +464,7 @@ impl Game {
         }
         if let Some(t) = self.tunnel.as_mut() {
             t.feet = feet;
+            t.look_in = None;
             t.set.set_door_changed(changed);
         }
         self.player.yaw = yaw;

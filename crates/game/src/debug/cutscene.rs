@@ -207,6 +207,24 @@ impl Game {
                 }
                 Ok(Staged { stage: stage.into(), anchors: Anchors::default() })
             }
+            // `tunnel:SEED`: the title of a game whose New descent goes
+            // through the way in (`modes::tunnel`), run SEED's
+            "tunnel" => {
+                let seed: u32 = stage.split(':').nth(1).and_then(|s| s.parse().ok()).ok_or(format!("stage {stage}: tunnel:SEED"))?;
+                if self.state != "menu" {
+                    return Err("the tunnel stage needs a game booted to its title".into());
+                }
+                self.launch_flags = format!("seed={seed}&nosound&prologue=1");
+                for _ in 0..(SETTLE * 60.0) as usize {
+                    self.stage_frame(1.0 / 60.0);
+                }
+                // New descent: the place up behind the black, the look about to begin
+                self.new_descent();
+                while self.tunnel.as_ref().and_then(|t| t.look_in).is_some_and(|d| d > 1.5 / 60.0) {
+                    self.stage_frame(1.0 / 60.0);
+                }
+                Ok(Staged { stage: stage.into(), anchors: Anchors::default() })
+            }
             "ahead" => {
                 self.stage_floor(4242, 6);
                 let p = self.player.pos;
@@ -234,6 +252,18 @@ impl Game {
             // as the title's list does (`menu:new`)
             "title" => {
                 self.new_descent_with(Some(c.clone()));
+                self.hands_taken()
+            }
+            // New descent through the way in (`menu:new`, `modes::tunnel`):
+            // the look begins as the place is up
+            "tunnel" => {
+                self.cut_override = Some(c.clone());
+                for _ in 0..60 {
+                    if self.hands_taken() {
+                        break;
+                    }
+                    self.stage_frame(1.0 / 120.0);
+                }
                 self.hands_taken()
             }
             // as death comes: what killed you, and on_death
@@ -269,6 +299,7 @@ impl Game {
         let base = format!("{} {} {} {} {}", self.state, r(p.pos.x), r(p.pos.z), r(p.yaw), p.crouch);
         match s.stage.split(':').next().unwrap_or("") {
             "title" => format!("{base} run {} level {} card {}", self.run_seed, self.level_num, self.level_card.is_some()),
+            "tunnel" => format!("{base} tunnel {} run {} kept card {}", self.in_tunnel, self.run_seed, self.way_in_card.is_some()),
             "broken_elevator" => format!("{base} peered {}", self.broken_elevator.as_ref().is_some_and(|b| b.peered)),
             _ => base,
         }
@@ -333,7 +364,7 @@ impl Game {
                 (None, Some(e)) => (e.t, e.play, 0.0, e.bars),
                 (None, None) => (tr.rows.last().map_or(0.0, |r| r.t) + dt, shown, 0.0, 0.0),
             };
-            let inside = self.hands_taken() && self.circle_hits_wall(shown.pos[0], shown.pos[2], CAMERA_CLEARANCE);
+            let inside = self.hands_taken() && self.cut_hits_wall(shown.pos[0], shown.pos[2], CAMERA_CLEARANCE);
             let hud_up = self.hands_taken() && tr.rows.len().is_multiple_of(HUD_EVERY) && {
                 let _ = self.hud_layers(1280.0, 800.0, 1.0);
                 self.hud_ui.painted.iter().any(|n| !NOT_HUD.contains(n) && !n.starts_with("cut-") && !n.starts_with("menu"))
