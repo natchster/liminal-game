@@ -17,7 +17,6 @@ use crate::data::{MatDef, MatKind};
 use engine::dmath::DMath;
 use engine::prelude::*;
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
 
 /// The camera's exposure: Cycles' light to the frame (tuned to the video:
 /// the lit tile reads about 0.68 of white).
@@ -43,16 +42,16 @@ pub struct Photo {
     pub mean: [f64; 3],
 }
 
+#[derive(Default)]
 pub struct Textures {
-    dir: PathBuf,
     photos: BTreeMap<String, Photo>,
     gloss: BTreeMap<String, Tex>,
 }
 
-fn read_jpeg(path: &Path) -> Canvas {
-    let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-    // the canvas keeps the bytes for as long as the set lives
-    Canvas::from_jpeg(Box::leak(bytes.into_boxed_slice())).unwrap_or_else(|| panic!("{}: not a JPEG", path.display()))
+/// An embedded photograph (`crate::assets`), decoded.
+fn read_jpeg(name: &str) -> Canvas {
+    let bytes = crate::assets::texture(name).unwrap_or_else(|| panic!("{name}: not embedded (crate::assets)"));
+    Canvas::from_jpeg(bytes).unwrap_or_else(|| panic!("{name}: not a JPEG"))
 }
 
 fn surface(t: &Tex, srgb: bool) {
@@ -65,14 +64,14 @@ fn surface(t: &Tex, srgb: bool) {
 }
 
 impl Textures {
-    pub fn new(dir: PathBuf) -> Textures {
-        Textures { dir, photos: BTreeMap::new(), gloss: BTreeMap::new() }
+    pub fn new() -> Textures {
+        Textures::default()
     }
 
     /// An albedo photograph (`assets/textures/NAME`), read once.
     pub fn photo(&mut self, name: &str) -> &Photo {
         if !self.photos.contains_key(name) {
-            let c = read_jpeg(&self.dir.join(name));
+            let c = read_jpeg(name);
             let px = c.pixels();
             let mut lut = [0.0f64; 256];
             for (i, l) in lut.iter_mut().enumerate() {
@@ -100,7 +99,7 @@ impl Textures {
     /// is the gloss (white otherwise).
     pub fn gloss(&mut self, name: &str) -> Tex {
         if !self.gloss.contains_key(name) {
-            let c = read_jpeg(&self.dir.join(name));
+            let c = read_jpeg(name);
             let mut px = c.pixels();
             for p in px.as_chunks_mut::<4>().0 {
                 p[3] = p[0];
@@ -259,7 +258,9 @@ pub fn glow_texture() -> Tex {
 
 /// A lattice hash in 0..1 (no stream, no state: a place's own number).
 fn hash3(i: i64, j: i64, k: i64) -> f64 {
-    let mut h = (i as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ (j as u64).wrapping_mul(0xC2B2_AE3D_27D4_EB4F) ^ (k as u64).wrapping_mul(0x1656_67B1_9E37_79F9);
+    let mut h = (i as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        ^ (j as u64).wrapping_mul(0xC2B2_AE3D_27D4_EB4F)
+        ^ (k as u64).wrapping_mul(0x1656_67B1_9E37_79F9);
     h ^= h >> 29;
     h = h.wrapping_mul(0xBF58_476D_1CE4_E5B9);
     h ^= h >> 32;
@@ -275,7 +276,8 @@ fn vnoise(p: [f64; 3]) -> f64 {
     let mut acc = 0.0;
     for c in 0..8 {
         let (a, b, e) = (c & 1, (c >> 1) & 1, (c >> 2) & 1);
-        let w = (if a == 1 { s[0] } else { 1.0 - s[0] }) * (if b == 1 { s[1] } else { 1.0 - s[1] }) * (if e == 1 { s[2] } else { 1.0 - s[2] });
+        let w =
+            (if a == 1 { s[0] } else { 1.0 - s[0] }) * (if b == 1 { s[1] } else { 1.0 - s[1] }) * (if e == 1 { s[2] } else { 1.0 - s[2] });
         acc += w * hash3(i + a as i64, j + b as i64, k + e as i64);
     }
     acc
@@ -330,7 +332,8 @@ pub fn grime(material: &str, p: [f32; 3]) -> f64 {
         }
         "road" => {
             // the wheel paths of both lanes of each bore, polished dark
-            let tracks: f64 = [1.46, 3.16, 5.65, 7.35, 13.45, 15.15, 17.64, 19.34].iter().map(|c| (-((x - c) / 0.32).dpowi(2)).dexp()).sum();
+            let tracks: f64 =
+                [1.46, 3.16, 5.65, 7.35, 13.45, 15.15, 17.64, 19.34].iter().map(|c| (-((x - c) / 0.32).dpowi(2)).dexp()).sum();
             1.0 - 0.15 * smooth(0.3, 0.8, slow) - 0.06 * fine - 0.2 * tracks.min(1.0)
         }
         _ => 1.0,

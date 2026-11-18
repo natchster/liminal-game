@@ -1,6 +1,6 @@
 //! The Jahamun Tunnel set: the approach to the portal at night, the long
 //! stairs down the retaining wall, and the 485 m walkway inside the bore,
-//! behind the glass noise barrier (`sets/jahamun/README.md`).
+//! behind the glass noise barrier (`crates/jahamun/README.md`).
 //!
 //! The set is the game's kind of thing and is built to move in: it reads
 //! only the engine, draws no random number, reads no clock, and keeps its
@@ -17,6 +17,7 @@
 //!
 //! It is made by `pipeline/` (textures from CC0 photographs, the place
 //! built and its light baked in Blender) into `assets/`.
+pub mod assets;
 pub mod data;
 pub mod look;
 pub mod signs;
@@ -28,7 +29,6 @@ use engine::prelude::*;
 use engine::render::{LocalLight, RenderGlobals};
 use look::{Looks, Textures};
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
 
 /// The glass's plane (the engine's x), mirrored about by its reflection.
 const GLASS_X: f64 = 0.10;
@@ -73,11 +73,6 @@ pub struct Set {
     bore2: Obj,
     fog_map: Tex,
     fog_grid: [f64; 4],
-}
-
-/// The set's own folder (the crate's), where `assets/` is.
-pub fn home() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
 /// A piece's meshes made into geometry once (shared by its placements):
@@ -196,12 +191,10 @@ fn sky() -> Obj {
 }
 
 impl Set {
-    /// The set from its folder (`assets/set.bin`, `assets/textures/`).
-    pub fn build(home: &Path) -> Result<Set, String> {
-        let bytes = std::fs::read(home.join("assets/set.bin"))
-            .map_err(|e| format!("{}: {e} (make it: pipeline/set.py)", home.join("assets/set.bin").display()))?;
-        let d = SetData::read(&bytes)?;
-        let mut tex = Textures::new(home.join("assets/textures"));
+    /// The set, from what is embedded (`assets`).
+    pub fn build() -> Result<Set, String> {
+        let d = SetData::read(assets::SET)?;
+        let mut tex = Textures::new();
         let looks = Looks::new(&d.materials, &mut tex);
         let root = group();
         root.set_name("jahamun");
@@ -348,7 +341,11 @@ impl Set {
                     for &o in offs {
                         let s = sprite(gm);
                         let dir = v3(l.dir);
-                        let p = Vec3::new(at.x + dir.x * 0.04 + along.x * o, at.y + dir.y * 0.04 + along.y * o, at.z + dir.z * 0.04 + along.z * o);
+                        let p = Vec3::new(
+                            at.x + dir.x * 0.04 + along.x * o,
+                            at.y + dir.y * 0.04 + along.y * o,
+                            at.z + dir.z * 0.04 + along.z * o,
+                        );
                         s.set_pos(p.x, p.y, p.z);
                         s.set_scale(gsize, gsize, gsize);
                         if second {

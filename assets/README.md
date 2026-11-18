@@ -17,6 +17,7 @@ make textures of CC0 photographs, no images. No generative model is used (see
 | `src/creatures/build.py`, `kit.py`, `hm08.py`, `body_*.py`, `sources.json` | the creatures' bodies (`bodies.bin`): skeletons, MakeHuman CC0 bodies and their targets, bone-heat weights |
 | `src/textures/sources.json` | the photographs the Building's surfaces are made of: where each is, its author, licence (CC0) and SHA-1 |
 | `src/textures/build.py`, `texlib.py` | fetch and check the photographs, and make each texture: rectify, cut along joints, quilt (Efros and Freeman), wrap along least-error seams, take off the slow light, grade to the surface it replaced |
+| `src/jahamun/set.py`, `textures.py`, `sources.json` | the Jahamun Tunnel (`crates/jahamun`): the place built in Blender from numbers and its light baked by Cycles (`set.bin`), its surfaces from CC0 photographs checked by SHA-1; how to run them: `crates/jahamun/README.md` |
 
 ## Rebuilding
 

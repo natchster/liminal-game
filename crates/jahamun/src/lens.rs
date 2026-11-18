@@ -38,16 +38,14 @@ impl Lens {
     pub fn overlays(&self, frame: u64, w: usize, h: usize) -> Vec<OverlayOp<'_>> {
         let k = hash(frame + 17);
         let off = [((k & 0xffff) as f32) / 65536.0, (((k >> 16) & 0xffff) as f32) / 65536.0];
-        vec![
-            OverlayOp::Image {
-                image: OverlayImage { id: self.id, version: 1, width: N as u32, height: N as u32, premul_rgba: &self.grain },
-                rect: [0.0, 0.0, 1.0, 1.0],
-                opacity: 0.075,
-                blend: OBlend::Overlay,
-                tile: [w as f32 / N as f32 / 1.5, h as f32 / N as f32 / 1.5],
-                offset: off,
-                smooth: true,
-            },
-        ]
+        vec![OverlayOp::Image {
+            image: OverlayImage { id: self.id, version: 1, width: N as u32, height: N as u32, premul_rgba: &self.grain },
+            rect: [0.0, 0.0, 1.0, 1.0],
+            opacity: 0.075,
+            blend: OBlend::Overlay,
+            tile: [w as f32 / N as f32 / 1.5, h as f32 / N as f32 / 1.5],
+            offset: off,
+            smooth: true,
+        }]
     }
 }

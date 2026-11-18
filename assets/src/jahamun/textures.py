@@ -1,10 +1,10 @@
 """The Jahamun set's surfaces: CC0 photographs (Poly Haven, sources.json),
 fetched once, checked by their SHA-1, and graded to the place as the
-reference video and photographs show it (sets/jahamun/README.md).
+reference video and photographs show it (crates/jahamun/README.md).
 
-    uv run --project sets/jahamun/pipeline python -I sets/jahamun/pipeline/textures.py [--check]
+    uv run --project assets/src/jahamun python -I assets/src/jahamun/textures.py [--check]
 
-Writes sets/jahamun/assets/textures/*.jpg (albedo, sRGB, no colour profile)
+Writes crates/jahamun/assets/textures/*.jpg (albedo, sRGB, no colour profile)
 and the gloss masks the live highlights read (*_gloss.jpg, grey). Every
 texture is graded as an albedo (what the surface reflects), not as it looks
 lit: the light is the bake's (set.py). No generative model is used.
@@ -20,10 +20,11 @@ from PIL import Image
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SET = os.path.dirname(HERE)
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+SET = os.path.join(ROOT, "crates", "jahamun")
 OUT = os.path.join(SET, "assets", "textures")
-CACHE = os.path.join(os.path.dirname(SET), "target", "cache", "polyhaven")
-SOURCES = json.load(open(os.path.join(SET, "sources.json")))
+CACHE = os.path.join(ROOT, "target", "jahamun", "cache", "polyhaven")
+SOURCES = json.load(open(os.path.join(HERE, "sources.json")))
 
 
 # ------------------------------------------------------------ the sources ---

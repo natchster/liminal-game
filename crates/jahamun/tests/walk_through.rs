@@ -6,8 +6,7 @@ use jahamun::data::SetData;
 use jahamun::walk::Walk;
 
 fn walk() -> (Walk, SetData) {
-    let bytes = std::fs::read(jahamun::home().join("assets/set.bin")).expect("assets/set.bin (make it: pipeline/set.py)");
-    let d = SetData::read(&bytes).expect("the set file");
+    let d = SetData::read(jahamun::assets::SET).expect("the set file");
     (Walk::new(d.walk.clone()), d)
 }
 

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/engine", "crates/game", "crates/backrooms", "crates/placers", "crates/placers/placers_*", "xtask"]
+members = ["crates/engine", "crates/jahamun", "crates/game", "crates/backrooms", "crates/placers", "crates/placers/placers_*", "xtask"]
 # `cargo run` / `cargo build` without -p: the game
 default-members = ["crates/backrooms"]
 

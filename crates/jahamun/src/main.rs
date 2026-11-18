@@ -12,7 +12,7 @@
 //!
 //! Keys: W A S D or the arrows walk, Shift runs, the mouse looks (click to
 //! capture it, Esc to let it go; Esc again quits), F fullscreen, 1-6 the
-//! spawns, F2 a headless frame of the view (`target/jahamun-F2.png`).
+//! spawns, F2 a headless frame of the view (`target/jahamun-F2.png` at the workspace root).
 //! The eye is 1.55 m over the feet (the video's phone, held to look).
 use engine::app::{AppConfig, AppCtx, AppHandler, Input};
 use engine::dmath::DMath;
@@ -267,7 +267,7 @@ impl AppHandler for App {
             let v = View { eye, yaw: self.yaw, pitch: self.pitch, fov: 62.0, w: 1280, h: 720 };
             let mut r = renderer();
             let img = render(&mut r, &mut self.set, &self.scene, &self.camera, &v);
-            write_png(&jahamun::home().join("../target/jahamun-F2.png").to_string_lossy(), &img);
+            write_png(concat!(env!("CARGO_MANIFEST_DIR"), "/../../target/jahamun-F2.png"), &img);
             set_lens(&self.camera, 62.0, w as f64 / h.max(1) as f64);
         }
         let d = ctx.drawable?;
@@ -277,7 +277,15 @@ impl AppHandler for App {
             println!("{} frames in {s:.2} s ({:.0} fps) at {w} x {h}", self.frame, self.frame as f64 / s);
             ctx.quit();
         }
-        let cb = ctx.renderer.render(&self.scene, &self.camera, &graded(self.set.globals(), 1.0), &self.lens.overlays(self.frame, w, h), d, w, h);
+        let cb = ctx.renderer.render(
+            &self.scene,
+            &self.camera,
+            &graded(self.set.globals(), 1.0),
+            &self.lens.overlays(self.frame, w, h),
+            d,
+            w,
+            h,
+        );
         Some(cb)
     }
 
@@ -348,7 +356,7 @@ fn main() {
     // canvases paint at once (the game's executable does the same)
     engine::texture::set_paint_on_demand(false);
     let t0 = std::time::Instant::now();
-    let mut set = match Set::build(&jahamun::home()) {
+    let mut set = match Set::build() {
         Ok(s) => s,
         Err(e) => {
             eprintln!("the set: {e}");

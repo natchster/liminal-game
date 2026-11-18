@@ -7,11 +7,11 @@ of worn red paint between a white-tiled wall and the glass noise barrier,
 the road lit beyond the glass, the same 2 m bay of light and steel
 repeating for 485 m into a pale haze. At the far end a locked gate.
 
-Built apart from the game, to join it later (*Moving into the game*,
-below). Nothing in it is the game's yet: no lore, no creature, no rule.
+Built apart from the game first (in a workspace of its own), and now
+moved into it: a crate of the game's workspace, read only by the engine,
+its file and photographs embedded (*Moving into the game*, below).
 
 ```sh
-cd sets
 cargo run --release -p jahamun                         # walk it, from the top of the stairs
 cargo run --release -p jahamun -- --spawn inside       # top, plaza, portal, inside, deep, end
 cargo run --release -p jahamun -- --shots DIR          # every named view, headless, and contact sheets
@@ -23,11 +23,12 @@ cargo test --release                                   # the walk: rules, and th
 
 Keys: W A S D or the arrows walk, Shift runs, the mouse looks (click to
 capture it; Esc lets it go, Esc again quits), F fullscreen, 1-6 the spawns,
-F2 writes the view headless to `sets/target/jahamun-F2.png`.
+F2 writes the view headless to `target/jahamun-F2.png`.
 
 ## The place
 
-What the set is measured from (`sources.json` lists every source):
+What the set is measured from (`assets/src/jahamun/sources.json` lists every
+source):
 
 - **The tunnel.** Twin bores, each about 485 m, opened 30 August 1986,
   7.7 m high; the carriageway 16.8 m and the walkways 3 m, both bores
@@ -55,23 +56,23 @@ What the set is measured from (`sources.json` lists every source):
   two flights, the arch with its smooth ring, the lane signals over it,
   warm street lamps.
 
-What is the set's own: the exact section (`pipeline/set.py`, *the
-section*), the far end's gate, the names and numbers on the signs, the
+What is the set's own: the exact section (`assets/src/jahamun/set.py`,
+*the section*), the far end's gate, the names and numbers on the signs, the
 houses above the left wall, the variants' order along the bore.
 
 ## How it is made
 
 ```
-pipeline/textures.py   CC0 photographs -> assets/textures/*.jpg (albedo) and *_gloss.jpg
-pipeline/set.py        Blender: the place built from numbers, its light baked by Cycles -> assets/set.bin
-src/                   the set at run time (the engine only) and its binary
+assets/src/jahamun/textures.py   CC0 photographs -> crates/jahamun/assets/textures/*.jpg (albedo) and *_gloss.jpg
+assets/src/jahamun/set.py        Blender: the place built from numbers, its light baked by Cycles -> crates/jahamun/assets/set.bin
+crates/jahamun/src/              the set at run time (the engine only, its assets embedded) and its binary
 ```
 
 ```sh
-uv run --project sets/jahamun/pipeline python -I sets/jahamun/pipeline/textures.py   # ~40 s
-blender -b --factory-startup -P sets/jahamun/pipeline/set.py -- [--samples 384]      # ~4 min on an M4 Pro (Metal)
-blender -b --factory-startup -P sets/jahamun/pipeline/set.py -- --manifest-only 1    # the manifest again (walk, placements, spawns), the bake kept
-blender -b --factory-startup -P sets/jahamun/pipeline/set.py -- --render F.png --view=x,y,z,yaw,pitch,fov [--piece outside]   # a Cycles look at the geometry
+uv run --project assets/src/jahamun python -I assets/src/jahamun/textures.py   # ~40 s
+blender -b --factory-startup -P assets/src/jahamun/set.py -- [--samples 384]      # ~4 min on an M4 Pro (Metal)
+blender -b --factory-startup -P assets/src/jahamun/set.py -- --manifest-only 1    # the manifest again (walk, placements, spawns), the bake kept
+blender -b --factory-startup -P assets/src/jahamun/set.py -- --render F.png --view=x,y,z,yaw,pitch,fov [--piece outside]   # a Cycles look at the geometry
 ```
 
 **The surfaces** are Poly Haven photographs (CC0), each fetched once and
@@ -169,20 +170,18 @@ the Loop: `crates/game/src/modes/`): the level world hidden, the place
 running its own movement, glue mapping its camera, fog and sound onto the
 game's. What moving in takes:
 
-1. **The crate.** Add `sets/jahamun` to the root workspace (or move it to
-   `crates/`), and have the game depend on its library: it reads only
-   `engine`, has no window or device, draws nothing random and reads no
-   clock. Or move its modules into `crates/game/src/modes/jahamun/`.
+1. **The crate** (done): `crates/jahamun`, a member of the game's
+   workspace; it reads only `engine`, has no window or device, draws
+   nothing random and reads no clock.
 2. **A mode.** In `modes/mod.rs`: enter it from a level (a door, a
    stairwell's landing), hide the level world, add `Set::root` to the
    scene, move with `Set::walk` (the mode's own movement), call
    `Set::update` with the eye each frame, and take the frame's globals from
    `Set::globals` (its light map is the fog by place).
-3. **The assets.** The textures' sources into
-   `assets/src/textures/sources.json` (all CC0, SHA-1 kept), the two
-   pipeline scripts into `assets/src/` and an `xtask` step to run them; the
-   set file and textures embedded (`include_bytes!`) like the game's other
-   assets, instead of read from the crate's folder.
+3. **The assets** (done): the pipeline and its sources in
+   `assets/src/jahamun/` (the photographs all CC0, each with its SHA-1),
+   the set file and textures embedded (`include_bytes!`, `src/assets.rs`)
+   as the game embeds its own, not read from the crate's folder.
 4. **Its meaning.** A design doc in `docs/design/`, its plan in
    `docs/plan/`, its canon checked by the lore-keeper (a real Seoul tunnel
    in the Backrooms' canon: a borrowed place, like the Borrowed House?), a
@@ -199,4 +198,4 @@ traffic; trees and the hill's green; the far portal seen from outside (the
 gate is shut); the tiles' pillowed glaze catching a highlight each (no
 normals on baked surfaces); the bake's light at its finest only near the
 walkway (8-10 cm; the vault's is 22 cm). The set file and its textures are
-14 MB, read from the crate's folder at run time.
+14 MB, embedded in the binary.

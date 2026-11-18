@@ -71,6 +71,14 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
   placer; it also runs each placer's first placement on a fresh thread
   (it must make the same: nothing hangs on what was built before) and
   fails on a per-frame draw during a build.
+* **`jahamun`** is a place made apart from the levels: the Jahamun
+  Tunnel in Seoul at night (the approach to its portal, the long stairs,
+  the walkway inside behind the glass), built in Blender from numbers with
+  its light baked by Cycles (`assets/src/jahamun/`), its set file and CC0
+  photographs embedded. It reads only `engine` (no window, no device, no
+  random draw, no clock); its own binary walks it or renders its views
+  headless (`cargo run --release -p jahamun`; its
+  [`README.md`](../../crates/jahamun/README.md)).
 * **`backrooms`** is the executable: it registers the placers (`placers::register_all`), runs the
   window loop, turns the game's state into render calls, and has the
   headless modes (`--screenshot`, `--dump-level`; every option in
@@ -81,7 +89,8 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
 
 Beside the crates: `assets/src/` holds the sources the asset pipelines
 build from (the Blender scripts of the props and the bodies, the CC0
-photographs' sources and how they are prepared, the cutscenes, the
+photographs' sources and how they are prepared, the Jahamun Tunnel's
+bake, the cutscenes, the
 voices' personas and lines; `assets/README.md`),
 `tools/voice/` the voice pipeline's Python tools ([`VOICES.md`](VOICES.md)),
 `perf/` the bench's history ([`PERF.md`](PERF.md)), `packaging/` the app's

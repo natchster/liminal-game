@@ -1,4 +1,4 @@
-//! The set file (`assets/set.bin`, written by `pipeline/set.py`): a JSON
+//! The set file (`assets/set.bin`, written by `assets/src/jahamun/set.py`): a JSON
 //! manifest and the meshes' arrays, deflated.
 //!
 //! ```text

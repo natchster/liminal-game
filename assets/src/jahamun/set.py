@@ -1,8 +1,8 @@
-"""The Jahamun set, built in Blender and lit by Cycles (sets/jahamun/README.md).
+"""The Jahamun set, built in Blender and lit by Cycles (crates/jahamun/README.md).
 
-    blender -b --factory-startup -P sets/jahamun/pipeline/set.py -- [options]
+    blender -b --factory-startup -P assets/src/jahamun/set.py -- [options]
 
-    --out FILE          write the set (default sets/jahamun/assets/set.bin)
+    --out FILE          write the set (default crates/jahamun/assets/set.bin)
     --samples N         samples a baked corner (default 384)
     --only A,B,...      bake only these pieces (the rest is not written)
     --render FILE       instead of baking: a Cycles frame of the set as built
@@ -33,7 +33,8 @@ import bpy
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SET = os.path.dirname(HERE)
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+SET = os.path.join(ROOT, "crates", "jahamun")
 TEX = os.path.join(SET, "assets", "textures")
 
 
