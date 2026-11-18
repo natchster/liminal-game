@@ -229,3 +229,13 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-18, on top of e2949cc: frames: 15 shots. Reason: F7: both floors gained railed drops (7 L6 one of water, 4242 L13 one with a floor), whose tiles are walls of the grid: the core props draw anew round them, and the storage hall's view stands elsewhere (the longest open run is shorter); no wall off a drop changes (level_sweep a_drop_changes_no_wall_but_its_own). Looked at: frames and error maps, props moved, the halls' architecture the same
 
 - 2026-11-18, on top of c18e423: frames: 9 shots. look anchors: 9 shots. Reason: F8: 4242's level 13 (depth 10, a floor of the halls) gained a vault: a zone of it became one, so its layout drew anew from there and its purposes with it (a play area and a shrine gone, an overgrown atrium and a party room come; their old goldens are orphans no shot renders). Every view shows another place now, so the frames and their look anchors are set again; the set's median shift within its bands. Looked at: the nine frames, the maintenance view the vault itself
+
+- 2026-11-18, on top of c0f2d57: frames: 9 shots. Reason: F9 (the pit hall): 4242 L13 drew anew round its pit hall (a hall zone became one, by its shape; its make_zone draws moved the floor's stream), so every purpose's view falls elsewhere; frames looked at, nothing broken
+
+- 2026-11-18, on top of c0f2d57: look anchors: 4242_L13_shrine, 4242_L13_empty, 4242_L13_party_room, 4242_L13_overgrown_atrium. Reason: F9 (the pit hall): 4242 L13 drew anew round its pit hall (a hall zone became one, by its shape; its make_zone draws moved the floor's stream), so every purpose's view falls elsewhere; frames looked at, nothing broken
+
+- 2026-11-18, on top of c0f2d57: frames: 10 shots. Reason: F9 (the pit hall): 4242 L13 drew anew round its pit hall, now walled by a hall's seams (their draws moved the floor's stream), so every purpose's view falls elsewhere; play_area and service_tunnels render again; frames looked at, nothing broken
+
+- 2026-11-18, on top of c0f2d57: look anchors: 4242_L13_service_tunnels, 4242_L13_living_quarters, 4242_L13_empty, 4242_L13_overgrown_atrium, 4242_L13_play_area. Reason: F9 (the pit hall): 4242 L13 drew anew round its pit hall, now walled by a hall's seams (their draws moved the floor's stream), so every purpose's view falls elsewhere; play_area and service_tunnels render again; frames looked at, nothing broken
+
+- 2026-11-18, on top of c0f2d57: frames: 7_L5_pool_hall, 7_L5_play_area, 7_L5_overgrown_atrium. Reason: F9: a step between two wall tiles of different heights is closed where either touches open floor (world::arch bulkheads); in these views the void over a lower wall showed (pool_hall's bright wedge, specks); frames looked at

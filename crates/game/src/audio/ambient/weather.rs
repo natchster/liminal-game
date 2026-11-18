@@ -48,8 +48,10 @@ impl Game {
             let drip_dist = 2.0 + rnd() * 3.0;
             let dsx = self.player.pos.x + drip_ang.dcos() * drip_dist;
             let dsz = self.player.pos.z + drip_ang.dsin() * drip_dist;
-            // Distance falloff
-            let dgain = 1.0 / (1.0 + drip_dist * 0.15);
+            // Distance falloff (none lands in a pit hall, where nothing drips:
+            // silent there, its draws kept, `world::pits`)
+            let dry = if self.in_pit_hall(dsx, dsz) { 0.0 } else { 1.0 };
+            let dgain = dry / (1.0 + drip_dist * 0.15);
             // Stereo pan from spawn position
             let dpan = self.pan_for_world_pos(dsx, dsz);
             // Air absorption
@@ -81,7 +83,7 @@ impl Game {
             let spl_dist = 4.0 + rnd() * 4.0; // 4–8 m
             let sx = self.player.pos.x + spl_ang.dcos() * spl_dist;
             let sz = self.player.pos.z + spl_ang.dsin() * spl_dist;
-            let sgain = 1.0 / (1.0 + spl_dist * 0.15);
+            let sgain = if self.in_pit_hall(sx, sz) { 0.0 } else { 1.0 } / (1.0 + spl_dist * 0.15);
             let span = self.pan_for_world_pos(sx, sz);
             let sf_shift = (0.55f64).max(1.0 - spl_dist * 0.08);
             // liquid slap — lowpassed noise + quick blip descent

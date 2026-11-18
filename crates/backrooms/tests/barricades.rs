@@ -99,9 +99,12 @@ fn each_barricade_seals_its_opening() {
                 b.top,
                 g.ceil_at_world(cx, cz)
             );
+            // (a little off its tile's middle: centred between the opening's
+            // faces, and a pile set back along the way; seed 303's level 9
+            // put one 0.32 m off: a metre tells it from a neighbour's)
             let obj = g.world.children().into_iter().find(|o| {
                 let p = o.pos();
-                o.user().s.get("kind").is_some_and(|k| k == "barricades") && (p.x - cx).abs() < 0.3 && (p.z - cz).abs() < 0.3
+                o.user().s.get("kind").is_some_and(|k| k == "barricades") && (p.x - cx).abs() < 1.0 && (p.z - cz).abs() < 1.0
             });
             let obj = obj.unwrap_or_else(|| panic!("seed {seed} L{l}: no barricade drawn on tile {}", b.tile));
             obj.update_world_matrix(true, true);

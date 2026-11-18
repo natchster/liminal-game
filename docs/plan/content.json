@@ -1628,6 +1628,28 @@
     },
     {
       "checks": [
+        "test:backrooms/level_sweep",
+        "test:game/archgen",
+        "test:game/world_build",
+        "test:backrooms/reference_levels",
+        "test:backrooms/materials"
+      ],
+      "id": "facility/pits",
+      "kind": "system",
+      "last_checked": "2026-11-18",
+      "last_human_review": null,
+      "name": "the pit hall (docs/plan/FACILITY.md F9): a new archetype, a hall of open concrete tanks of murky water in rows, the floor between them, railed, catwalks across some, columns rising out of the water; every tank wet a hand or more above its water",
+      "notes": "level::archgen::pits (beside the vault in FACILITY_ARCHETYPES; the largest hall at least 9 tiles across on a facility floor with no anomaly, by its shape; carved open, its tanks from pit_tanks) and world::pits (each tank a drop of world::drops with its water, its wet band and its columns; its high-bays over its walkways; never dark nor papered; no pool; nothing of water going somewhere left there, Game::clear_pits_of_water; no drip anchored or sounding there). level_sweep holds it: a_pit_halls_tanks_are_wet_above_their_water, and the drops' own tests over its tanks (to level 16). Judged blind against the floors before (tests/review/verdicts.jsonl: 8 of 8, both orders). The lore-keeper read the canon; the developer chose its shape, its columns, its wrong thing and the caption THE PIT HALLS. No person has looked yet.",
+      "passes": {
+        "test:backrooms/level_sweep": true,
+        "test:game/archgen": true,
+        "test:game/world_build": true,
+        "test:backrooms/reference_levels": true,
+        "test:backrooms/materials": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/cutscenes",
         "test:game/player"
       ],

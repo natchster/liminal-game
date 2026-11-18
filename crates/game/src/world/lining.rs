@@ -71,6 +71,8 @@ pub fn wall_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
         // a vault's walls cast against forms, as its arch is where it is
         // not lined (`world::vaults`)
         crate::level::archgen::VAULT => "formwork",
+        // a pit hall's walls bare as its tanks' (`world::pits`)
+        crate::level::archgen::PITS => "formwork",
         _ => zn.wall_mat,
     }
 }
@@ -81,7 +83,7 @@ pub fn wall_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
 pub fn ceil_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
     match zn.arch {
         LINED => "shotcrete",
-        crate::world::halls::HALL | crate::level::archgen::VAULT => "formwork",
+        crate::world::halls::HALL | crate::level::archgen::VAULT | crate::level::archgen::PITS => "formwork",
         _ => zn.ceil_mat,
     }
 }
@@ -181,7 +183,6 @@ impl Face {
         self.idx.extend([base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    /// The mesh of it in `mat`, bounded
     /// A quad by its corners, each with its own normal and uv (a curved
     /// surface shaded smooth), turned to face along their mean
     pub(crate) fn quad_smooth(&mut self, q: [Vec3; 4], ns: [Vec3; 4], uvs: [(f64, f64); 4]) {
@@ -198,6 +199,7 @@ impl Face {
         self.idx.extend([base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
+    /// The mesh of it in `mat`, bounded
     pub(crate) fn mesh(self, mat: &Mat) -> Obj {
         let geo = Geo::new();
         if !self.col.is_empty() {

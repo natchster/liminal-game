@@ -13,12 +13,12 @@ living bible: change it when the game's truth changes, in the same commit.
 | Pillars | Emptiness, monotony, familiar but wrong, the sound that never stops ([`PILLARS.md`](PILLARS.md)) |
 | Levels | 1–3 the Building's floors (the Well, the Stair Halls, the Works); from 4, game level *n* ≈ Backrooms Level *n* − 4, one dominant zone naming it |
 | The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors, and here and there a room off a walk with what its place left in it; nothing walks there; the self-assembly comes from far off, and something knocks at the cell you shut yourself into; now and then a figure, a person in a grey coat, stands far across the void and turns away |
-| Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, the Vaults, Poolrooms, blackout zones |
+| Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, the Vaults, the Pit Halls, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one; and what looks back out of a broken lift's black, which never comes out of it (*A broken lift*). Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a party room or someone's rooms would have had them (none in the Habitable Zone's halls, the Vaults, the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*). On about half the floors of the rooms a lift stands broken, its doors jammed apart on black; it can be looked into (*A broken lift*) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a party room or someone's rooms would have had them (none in the Habitable Zone's halls, the Vaults, the Pit Halls, the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*). On about half the floors of the rooms a lift stands broken, its doors jammed apart on black; it can be looked into (*A broken lift*) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -372,7 +372,7 @@ wall thickness, doorways, materials and props.
   across and up to fifty long, its arch the size a real one is (its crown
   6.4–7 m up), bare concrete or lined with corrugated steel liner plate
   bolted at its laps. High-bays hang down its crown on long black cords; it
-  is lit end to end, the one place the rot leaves its lamps alone. Both its
+  is lit end to end, the rot leaving its lamps alone. Both its
   ends are blind walls; a passage or two leads off its side, lower, into
   the floor round it. In some, what was stored there is left; others are
   bare. No windows. Its one wrong thing, never said: everything that hangs
@@ -380,9 +380,30 @@ wall thickness, doorways, materials and props.
   arch springs, leans the same way, toward a blind end, never toward a
   door. The first time you walk into one it is named, THE VAULTS, and given
   no number. Sound runs a long way down it and comes back off the arch.
+- **The Pit Halls** (no number; from level 9, on about half the floors
+  known for the halls, the tunnels, the Electrical Station or the pillars
+  that no anomaly is on). The largest of the floor's halls, 6.4–7.6 m
+  tall, given over to open concrete tanks: twelve metres across, or eight
+  where the hall leaves less, in rows, the hall's floor four metres wide
+  between them and round them. Murky water stands in them 1.3–2.1 m down,
+  each tank at its own level; square columns rise out of it to the slab.
+  Each is railed and edged as the Habitable Zone's pits are, and across
+  some of the twelve-metre ones a catwalk runs as theirs do. High-bays hang
+  over the floor between the tanks; the rot never puts its lamps out and
+  the moss never papers it. Some of a plant's things and the rooms' own
+  litter lie on its floor; most of it is bare. No windows, no puddles. Its
+  one wrong thing, never said: in every tank the walls and the columns are
+  wet a hand or more above the water, as if its level had only just
+  fallen, and nothing drains: no outlet runs, nothing drips. Where the
+  Habitable Zone's water comes from nowhere, this water has gone with
+  nowhere to go. The band is the tanks' alone: the water in the Habitable
+  Zone's pits has none. The first time you walk into one it is named, THE
+  PIT HALLS, and given no number. It sounds as a hall does, a little
+  longer, over the open water.
 - **The Poolrooms** (Level 37, rare and deep). White tile everywhere, too many
   pillars. Acoustics that cut off too early.
-- **Blackout zones** (any level; never a vault, whose lamps stay lit). The
+- **Blackout zones** (any level; never a vault nor a pit hall, whose lamps
+  stay lit). The
   lights are dead and there is no hum and almost no reverb. Only your
   breathing.
 
@@ -1278,7 +1299,8 @@ cold was settled when the floor was made.
   own storey: the lamps of the walks over and under you are not it). It
   drifts, and now and then **swells until your teeth ache**.
 - Each kind of place has its own room sound: dead over wet carpet, long and
-  bright in concrete halls, longer still under a vault's arch, flutter echo
+  bright in concrete halls and over a pit hall's water, longer still under
+  a vault's arch, flutter echo
   in tunnels and the Stairwell, and in the Poolrooms a reverb that stops too
   soon.
 - Footsteps follow the floor: squelching wet carpet, dull carpet tiles, gritty

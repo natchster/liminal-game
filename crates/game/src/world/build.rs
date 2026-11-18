@@ -305,6 +305,13 @@ impl Game {
         }
 
         // ---- pre-scan for the pool so the floor loop can skip its tiles ----
+        // (never in the facility's own places: water standing in a pit hall's
+        // walkway or a vault was another place's, `world::pits`)
+        let facility = |g: &Game, x: i32, z: i32| {
+            g.layout.as_ref().is_some_and(|l| {
+                matches!(l.zones[l.zone_of[g.t_idx(x, z)] as usize].arch, crate::level::archgen::PITS | crate::level::archgen::VAULT)
+            })
+        };
         let mut pool_reserved: HashSet<usize> = HashSet::new();
         'outer: for (pw, ph) in [(3, 3), (4, 3), (3, 4), (4, 4), (3, 2), (2, 3)] {
             let mut z = 2;
@@ -314,7 +321,7 @@ impl Game {
                     let mut all_open = true;
                     'scan: for zz in 0..ph {
                         for xx in 0..pw {
-                            if self.is_wall_tile(x + xx, z + zz) {
+                            if self.is_wall_tile(x + xx, z + zz) || facility(self, x + xx, z + zz) {
                                 all_open = false;
                                 break 'scan;
                             }
@@ -369,20 +376,28 @@ impl Game {
                 } // dark zones stay dark
                 // an intact room has tubes over every other tile; a rotting one thins out
                 let dense = self.region_info[rid].lit.unwrap_or(0.0) >= 0.75;
-                let le = self.zone_ref(x, z).map_or(0, |zn| zn.light_every);
-                let k = (if le != 0 { le } else { 2 }) * if dense { 1 } else { 2 };
-                // the fittings are laid out per room (per zone where it has no
-                // rooms) and centred in it: they line up with the room, not
-                // with wherever a level-wide grid happens to fall
-                let (ax0, az0, ax1, az1) = self
-                    .layout
-                    .as_ref()
-                    .and_then(|l| l.room_at(x, z).map(|r| (r.x0, r.z0, r.x1, r.z1)))
-                    .or_else(|| self.zone_ref(x, z).map(|zn| (zn.x0, zn.z0, zn.x1, zn.z1)))
-                    .unwrap_or((0, 0, self.w - 1, self.h - 1));
-                let (ox, oz) = (ax0 + (ax1 - ax0) % k / 2, az0 + (az1 - az0) % k / 2);
-                if (x - ox).rem_euclid(k) != 0 || (z - oz).rem_euclid(k) != 0 {
-                    continue;
+                // (a pit hall hangs its own over the floor between its
+                // tanks, `world::pits`)
+                if let Some(on) = self.pit_lamp(x, z, dense) {
+                    if !on {
+                        continue;
+                    }
+                } else {
+                    let le = self.zone_ref(x, z).map_or(0, |zn| zn.light_every);
+                    let k = (if le != 0 { le } else { 2 }) * if dense { 1 } else { 2 };
+                    // the fittings are laid out per room (per zone where it has no
+                    // rooms) and centred in it: they line up with the room, not
+                    // with wherever a level-wide grid happens to fall
+                    let (ax0, az0, ax1, az1) = self
+                        .layout
+                        .as_ref()
+                        .and_then(|l| l.room_at(x, z).map(|r| (r.x0, r.z0, r.x1, r.z1)))
+                        .or_else(|| self.zone_ref(x, z).map(|zn| (zn.x0, zn.z0, zn.x1, zn.z1)))
+                        .unwrap_or((0, 0, self.w - 1, self.h - 1));
+                    let (ox, oz) = (ax0 + (ax1 - ax0) % k / 2, az0 + (az1 - az0) % k / 2);
+                    if (x - ox).rem_euclid(k) != 0 || (z - oz).rem_euclid(k) != 0 {
+                        continue;
+                    }
                 }
                 panel_spots.push((x, z));
             }
@@ -474,6 +489,8 @@ impl Game {
         self.settle_props(prop_start);
         // nothing left hung over a drop or stood against its rail (`world::drops`)
         self.clear_drops_of_props(prop_start);
+        // nothing of water going somewhere left in a pit hall (`world::pits`)
+        self.clear_pits_of_water(prop_start);
         self.build_lap("settle", bt0);
         // the barricades, in the real openings of the final walls, on a
         // stream of their own (`core_props::barricade`): before her trail,

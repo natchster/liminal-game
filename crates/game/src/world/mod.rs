@@ -14,6 +14,7 @@
 //! the rooms' lamps by kind; [`lining`]: the Utility Halls' lining and runs,
 //! and the surface each zone is drawn in; [`halls`]: the Habitable Zone's
 //! capitals; [`drops`]: the railed drops cut into some halls' floors;
+//! [`pits`]: the pit halls' tanks, their water and their wet walls;
 //! [`vaults`]: the facility's vaults, their arches and their draught.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod angled;
@@ -30,6 +31,7 @@ pub mod instancing;
 pub mod knock;
 pub mod lamps;
 pub mod lining;
+pub mod pits;
 pub mod placement;
 pub mod placement_rules;
 pub mod purpose;
@@ -697,9 +699,19 @@ impl Game {
         }
         // every region wears its surface; moss and the lights then take rooms
         let mut region_info: Vec<RegionInfo> = surface.iter().map(|&s| surfaces[s].clone()).collect();
+        // (a pit hall is never papered nor dark: its tanks' wet walls are
+        // its wrong thing, seen by its own lamps, `world::pits`)
+        let mut pit_region = vec![false; region_count];
+        if let Some(l) = self.layout.as_ref() {
+            for i in 0..n {
+                if l.zones[l.zone_of[i] as usize].arch == crate::level::archgen::PITS {
+                    pit_region[unit_of[i]] = true;
+                }
+            }
+        }
         // moss: a symptom of rot; never on level 1, never where you arrive
         let moss_regions = if self.depth() > 1 && rnd() < decay * 0.9 { if rnd() < decay { 2 } else { 1 } } else { 0 };
-        let others: Vec<usize> = (0..region_count).filter(|&r| r != spawn_region).collect();
+        let others: Vec<usize> = (0..region_count).filter(|&r| r != spawn_region && !pit_region[r]).collect();
         for _ in 0..moss_regions {
             let Some(r) = choice_opt(&others) else { break };
             let moss_walls: Vec<usize> = wv.iter().enumerate().filter(|(_, v)| v.0).map(|(i, _)| i).collect();
@@ -729,7 +741,7 @@ impl Game {
         }
         let mut candidates: Vec<usize> = vec![];
         for r in 0..region_count {
-            if r == spawn_region || vault_region[r] {
+            if r == spawn_region || vault_region[r] || pit_region[r] {
                 continue;
             }
             if region_info[r].flags & RF_MOSS != 0 {

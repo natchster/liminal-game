@@ -363,12 +363,14 @@ fn the_space_under_a_flight_is_no_gap() {
     }
 }
 
-/// A far silhouette's edge is no gap, a crack and a hole still are (the
-/// Building's tour, `docs/research/playtests/visual/2026-11-13-building-1-3.md`:
-/// every gap flagged was the edge pixel of a mass 30-40 m off, its ray
-/// grazing the mass by half a pixel; the gap rays' rim now grows with
-/// their length): the record's edges on the Works and the Stair Halls are
-/// clean, and the rooms' ceiling crack and the hole over a wall are found
+/// A far silhouette's edge is no gap, a crack still is (the Building's
+/// tour, `docs/research/playtests/visual/2026-11-13-building-1-3.md`: every
+/// gap flagged was the edge pixel of a mass 30-40 m off, its ray grazing
+/// the mass by half a pixel; the gap rays' rim now grows with their
+/// length): the record's edges on the Works and the Stair Halls are clean,
+/// and the rooms' ceiling crack is found. The hole over a wall beside it
+/// was the void over a lower wall seen past a taller one's end, closed by
+/// the bulkheads (FACILITY F9, `2026-11-18-pit-halls.md`): it stays closed
 #[test]
 fn a_far_edge_is_no_gap_and_a_crack_still_is() {
     let works = toured("far_edge_works", 3, &["--tour-at", "L3_0786_at:44.2200,-4.3800,22.0000,1.57080,0.00000"]);
@@ -381,8 +383,13 @@ fn a_far_edge_is_no_gap_and_a_crack_still_is() {
         5,
         &["--tour-at", "L5_010_right:37.9800,1.6200,-37.2000,-2.79253,0.00000;L5_011_left:38.8000,1.6200,34.0000,1.22173,0.00000"],
     );
+    assert_eq!(rooms.len(), 2);
     for r in &rooms {
-        assert!(r.gaps >= FLAG_PX * 10, "the rooms' {} is no longer found: {r:?}", if r.look == "at" { "gap" } else { "crack" });
+        if r.name.starts_with("L5_011") {
+            assert!(r.gaps < FLAG_PX, "the hole over a wall is open again: {r:?}");
+        } else {
+            assert!(r.gaps >= FLAG_PX * 10, "the rooms' crack is no longer found: {r:?}");
+        }
     }
 }
 

@@ -70,7 +70,7 @@ const fn rp(t60: f64, damp: f64, wet: f64, pre: f64, er: i32, flutter: f64, trun
 }
 
 /// Reverb zone presets by name, in declaration order.
-pub const REVERB_PRESETS: [(&str, ReverbPreset); 15] = [
+pub const REVERB_PRESETS: [(&str, ReverbPreset); 16] = [
     //                    T60 s, damp, wet, pre-delay s, early taps, flutter, truncate
     ("lobby", rp(0.95, 0.72, 0.16, 0.008, 5, 0.0, 0.0)),
     ("pillars", rp(1.5, 0.62, 0.2, 0.012, 4, 0.0, 0.0)),
@@ -83,6 +83,9 @@ pub const REVERB_PRESETS: [(&str, ReverbPreset); 15] = [
     // a long arched chamber: the hall's tail, longer and a little brighter
     // off its curved crown
     ("vault", rp(3.6, 0.26, 0.32, 0.035, 4, 0.0, 0.0)),
+    // a tall hall over open water: the hall's tail, longer, its highs kept
+    // off the water's face
+    ("pits", rp(3.4, 0.22, 0.32, 0.03, 5, 0.0, 0.0)),
     // the Building's: a long, sparse tail over the void (a well a hundred
     // metres across; a hall of stone with no far wall; a works floor)
     ("well", rp(4.4, 0.4, 0.4, 0.06, 6, 0.0, 0.0)),

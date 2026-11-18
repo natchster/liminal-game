@@ -29,6 +29,8 @@ pub fn lamp_of(arch: &str) -> Lamp {
         "tunnels" => Lamp::Bulkhead,
         // a vault: high-bays hung on cords from its arch (`world::vaults`)
         crate::level::archgen::VAULT => Lamp::HighBay,
+        // a pit hall, as tall: hung over the floor between its tanks
+        crate::level::archgen::PITS => Lamp::HighBay,
         _ => Lamp::Tube,
     }
 }

@@ -412,9 +412,16 @@ impl Game {
                     if (ha - hb).abs() < 0.02 {
                         continue;
                     }
-                    if self.tiles[a] == 1 && self.tiles[b] == 1 {
+                    // buried between two walls, unless one of them touches
+                    // open floor: a wall's box need not fill its tile and no
+                    // ceiling closes a wall tile, so past a taller wall's end
+                    // the void over a lower one showed (the visual playtest,
+                    // F9: a pit hall's floor beside a hall's wall and the
+                    // Maze's). (One-sided, into the taller tile: a box that
+                    // fills it shows its own face, the other way.)
+                    if self.tiles[a] == 1 && self.tiles[b] == 1 && !self.touches_open(x, z) && !self.touches_open(nx, nz) {
                         continue;
-                    } // buried between two walls
+                    }
                     let (low, high) = if ha < hb { (a, b) } else { (b, a) };
                     let zn = self.zone_of_tile(low);
                     let g = grime_of(&self.region_info[self.region_map[low] as usize]);
@@ -456,6 +463,13 @@ impl Game {
                 Mat4::compose(&Vec3::new(e.x, (e.y0 + e.y1) / 2.0, e.z), &q, &Vec3::new(CELL, e.y1 - e.y0, 1.0))
             });
         }
+    }
+
+    /// Tile (`x`, `z`) has an open tile beside it (4-neighbours)
+    fn touches_open(&self, x: i32, z: i32) -> bool {
+        [(1, 0), (-1, 0), (0, 1), (0, -1)]
+            .iter()
+            .any(|&(dx, dz)| self.in_grid(x + dx, z + dz) && self.tiles[self.t_idx(x + dx, z + dz)] == 0)
     }
 
     /// One instanced unit box per archgen solid

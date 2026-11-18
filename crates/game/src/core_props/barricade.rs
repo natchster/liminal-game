@@ -129,6 +129,13 @@ impl Game {
                 if along_x == along_z {
                     continue;
                 }
+                // (nor a way between drops, as a pit hall's walkway between
+                // two tanks: its sides are a drop's edge, no wall, and what
+                // stood against them was taken away, `world::drops`)
+                let sides = if along_x { [(x, z + 1), (x, z - 1)] } else { [(x + 1, z), (x - 1, z)] };
+                if sides.iter().any(|&(sx, sz)| self.is_drop_tile(sx, sz)) {
+                    continue;
+                }
                 let (wx, wz) = (self.wx(x), self.wz(z));
                 if hypot2(wx - spawn.0, wz - spawn.1) < SPAWN_CLEAR {
                     continue;

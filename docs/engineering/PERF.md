@@ -195,6 +195,16 @@ from before `03e4b80` benches out loud.
   the rest the floor's placement drawn anew round the drop's tiles (meshes
   1733 → 1817), seen differently by the bench's cameras; 864 is 7 L4-L5's
   876-913, within the 2000 budget.
+- **F9, the pit hall** (not recorded: on 2026-11-18 a virtual machine and
+  other sessions held the machine, load 25). The bench's floors (1-6) have
+  no pit hall; what reaches them is the bulkheads closing a step between
+  two walls where either touches open floor (3 to 165 quads a floor of
+  the `world_build` fixture's, instanced, in groups already drawn but
+  where a new surface's group appears: a draw call). Its full check
+  flagged F5's step again, named `cb0d9c5+` this time (the best split moves
+  as runs are added): the same peak triangles on level 6, explained above
+  (7 L6 401k and 4242 L6 499k, as F7's tree). Record runs on a quiet
+  machine.
 
 ## What the work found
 

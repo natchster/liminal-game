@@ -472,7 +472,7 @@ fn nothing_is_put_on_a_drop_or_hung_on_its_edge() {
     let mut levels = 0;
     let mut problems = vec![];
     for seed in [7u32, 77, 202, 4242, 11, 23, 31, 58, 99, 130] {
-        for level in [5, 6, 8, 9, 11, 13] {
+        for level in [5, 6, 8, 9, 11, 13, 16] {
             let mut g = new_game();
             build(&mut g, seed, level);
             if g.drops.is_empty() {
@@ -651,5 +651,94 @@ fn a_vaults_draught_leans_toward_a_closed_end() {
         }
     }
     assert!(vaults >= 20, "vaults: {vaults}");
+    assert!(problems.is_empty(), "{}:\n{}", problems.len(), problems.join("\n"));
+}
+
+/// A pit hall's tanks (FACILITY F9, `world::pits`): every tank is wet a hand
+/// or more above its water (its one wrong thing), its columns stand in its
+/// water clear of its rim and its catwalk, and the hall is lit and bare: no
+/// rot puts it out or papers it, the pool is never put in it, and nothing
+/// of water going somewhere is left there (a puddle, a drain, a leak) nor
+/// the places their sounds come from
+#[test]
+fn a_pit_halls_tanks_are_wet_above_their_water() {
+    use game::visuals::lighting::{RF_DARK, RF_MOSS};
+    use game::world::drops::CATWALK_W;
+    use game::world::pits::{COLUMN_W, WATER, WET, WET_PLACERS};
+    let mut halls = 0;
+    let mut tanks = 0;
+    let mut problems = vec![];
+    for seed in [7u32, 77, 202, 4242] {
+        for level in [9, 12, 13, 16] {
+            let mut g = new_game();
+            build(&mut g, seed, level);
+            let Some(l) = g.layout.as_ref() else { continue };
+            let pits: Vec<usize> =
+                l.zones.iter().enumerate().filter(|(_, z)| z.arch == game::level::archgen::PITS).map(|(i, _)| i).collect();
+            if pits.is_empty() {
+                continue;
+            }
+            halls += 1;
+            let tag = format!("seed {seed} L{level}");
+            for d in g.drops.iter() {
+                let Some(t) = d.tank.as_ref() else { continue };
+                tanks += 1;
+                if t.wet < 0.1 || t.wet < WET[0] - 1e-9 || t.wet > WET[1] + 1e-9 {
+                    problems.push(format!("{tag}: a tank wet {:.2} m above its water", t.wet));
+                }
+                if t.water < WATER[0] - 1e-9 || t.water > WATER[1] + 1e-9 {
+                    problems.push(format!("{tag}: a tank's water {:.2} m down", t.water));
+                }
+                let (x0, z0) = (g.wx(d.x0) - 2.0, g.wz(d.z0) - 2.0);
+                let (x1, z1) = (g.wx(d.x1) + 2.0, g.wz(d.z1) + 2.0);
+                if t.columns.is_empty() {
+                    problems.push(format!("{tag}: a tank with no column"));
+                }
+                for &(cx, cz) in &t.columns {
+                    let rim = (cx - x0).min(x1 - cx).min(cz - z0).min(z1 - cz);
+                    if rim < 1.0 + COLUMN_W / 2.0 {
+                        problems.push(format!("{tag}: a column at ({cx}, {cz}) {rim:.2} m from its tank's rim"));
+                    }
+                    if let Some((along_x, k)) = d.catwalk {
+                        let off = if along_x { (cz - g.wz(k)).abs() } else { (cx - g.wx(k)).abs() };
+                        if off < CATWALK_W / 2.0 + COLUMN_W / 2.0 + 0.5 {
+                            problems.push(format!("{tag}: a column at ({cx}, {cz}) {off:.2} m from its catwalk's middle"));
+                        }
+                    }
+                }
+            }
+            for i in 0..g.tiles.len() {
+                if !pits.contains(&(l.zone_of[i] as usize)) {
+                    continue;
+                }
+                let flags = g.region_info[g.region_map[i] as usize].flags;
+                if flags & (RF_DARK | RF_MOSS) != 0 {
+                    problems.push(format!("{tag}: a pit hall's tile {i} dark or papered ({flags})"));
+                    break;
+                }
+            }
+            if let Some(p) = g.pool_plan.as_ref() {
+                let i = g.t_idx(p.x, p.z);
+                if pits.contains(&(l.zone_of[i] as usize)) {
+                    problems.push(format!("{tag}: the pool in a pit hall"));
+                }
+            }
+            let d = g.level_dump();
+            for o in d["objects"].as_array().unwrap() {
+                let placer = o["placer"].as_str().unwrap_or("");
+                let f = |k: &str, i: usize| o[k][i].as_f64().unwrap();
+                let (x, z) = ((f("min", 0) + f("max", 0)) / 2.0, (f("min", 2) + f("max", 2)) / 2.0);
+                if WET_PLACERS.contains(&placer) && g.in_pit_hall(x, z) {
+                    problems.push(format!("{tag}: {placer}'s thing at ({x:.1}, {z:.1}) in a pit hall"));
+                }
+            }
+            for p in g.pp.puddle_positions.iter().chain(&g.pp.drain_grate_positions) {
+                if g.in_pit_hall(p.x, p.z) {
+                    problems.push(format!("{tag}: a puddle's or a drain's sound at ({:.1}, {:.1}) in a pit hall", p.x, p.z));
+                }
+            }
+        }
+    }
+    assert!(halls >= 5 && tanks >= 30, "pit halls: {halls}, tanks: {tanks}");
     assert!(problems.is_empty(), "{}:\n{}", problems.len(), problems.join("\n"));
 }

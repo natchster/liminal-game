@@ -780,16 +780,20 @@ impl Game {
             "propStats": { "parts": crate::assets::props::prop_part_names().len() },
             "objects": self.prop_list(),
             "barricades": self.barricade_tiles,
-            // the drops cut into the floor (`world::drops`): tiles, bottom, catwalk
+            // the vaults (`world::vaults`): the arch, its lining and its draught
             "vaults": self.vaults.iter().map(|v| {
                 let a = self.vault_geom(v);
                 json!({ "zone": v.zone, "alongX": v.g.along_x, "lo": a.lo, "hi": a.hi, "mid": a.mid, "half": a.half,
                         "crown": v.crown, "springing": a.y_at(a.half), "lined": v.lined, "toward": v.toward })
             }).collect::<Vec<_>>(),
+            // the drops cut into the floor (`world::drops`): tiles, bottom,
+            // catwalk, and a pit hall's tank's water, wet band and columns
+            // (`world::pits`)
             "drops": self.drops.iter().map(|d| json!({
                 "x0": d.x0, "z0": d.z0, "x1": d.x1, "z1": d.z1,
                 "bottom": format!("{:?}", d.bottom),
                 "catwalk": d.catwalk.map(|(along_x, k)| json!({ "alongX": along_x, "at": k })),
+                "tank": d.tank.as_ref().map(|t| json!({ "water": t.water, "wet": t.wet, "columns": t.columns })),
             })).collect::<Vec<_>>(),
         })
     }

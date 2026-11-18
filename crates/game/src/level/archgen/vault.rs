@@ -1,8 +1,8 @@
 //! The facility's own archetypes (`docs/plan/FACILITY.md` F8-F9), kept out of
 //! the old game's table (`ARCHETYPES`, held to its recording by
-//! `archgen_tables`): the vault, its gallery, how a floor comes to have one
-//! and how it is carved. Its arch, lining, lamps and draught are the world's
-//! (`world::vaults`).
+//! `archgen_tables`): the vault and the pit hall (`pits`), the vault's
+//! gallery, how a floor comes to have one and how it is carved. Its arch,
+//! lining, lamps and draught are the world's (`world::vaults`).
 
 use super::{Archetype, Ctx, LevelSchedule, Rect, Zone, fill_rect, make_zone};
 
@@ -11,7 +11,7 @@ use super::{Archetype, Ctx, LevelSchedule, Rect, Zone, fill_rect, make_zone};
 /// `archgen_tables`), and found by `archetype` after it. No floor's
 /// schedule weighs them: `generate_layout` turns a zone into one by its
 /// shape, on floors from depth `VAULT_DEPTH`.
-pub static FACILITY_ARCHETYPES: [Archetype; 1] = [
+pub static FACILITY_ARCHETYPES: [Archetype; 2] = [
     // one long arched chamber (the real galleries: 9-12.5 m wide, 6.4-7.5 m
     // high, `docs/research/facility.md` 2.2); its arch, its lining and its
     // draught are the world's (`world::vaults`)
@@ -27,6 +27,29 @@ pub static FACILITY_ARCHETYPES: [Archetype; 1] = [
         jamb: [0.0, 0.0],
         jamb_chance: 0.0,
         lintel: [2.9, 3.2],
+        low_h: None,
+        wall_mat: "concrete",
+        floor_mat: "concrete",
+        ceil_mat: "slab",
+        light_every: 3,
+        no_spawn: true,
+    },
+    // a hall of open tanks with water in them, the floor between them and
+    // round them, railed catwalks across some, columns rising out of their
+    // water (the developer's answers); its tanks are the world's
+    // (`world::pits`), the hall's numbers the Habitable Zone's
+    Archetype {
+        key: "pits",
+        title: "THE PIT HALLS",
+        lore: "",
+        ceil: [6.4, 7.6],
+        wall: "thin",
+        t: [0.35, 0.5],
+        protrude: None,
+        pillar: [0.95, 1.4],
+        jamb: [0.6, 1.0],
+        jamb_chance: 0.4,
+        lintel: [3.2, 3.6],
         low_h: None,
         wall_mat: "concrete",
         floor_mat: "concrete",
@@ -72,19 +95,23 @@ pub fn vault_gallery(x0: i32, z0: i32, x1: i32, z1: i32) -> Gallery {
     Gallery { along_x, a0: lo + 1, a1: hi - 1, c0, c1: c0 + gw - 1 }
 }
 
-/// A vault (FACILITY F8): from `VAULT_DEPTH`, on a floor of the rooms' own
-/// mix known for the facility's places (the Maze, the Poolrooms, the Lobby
-/// and the offices keep their floors: rule 8 and the plan's scope), the
-/// longest zone of the halls or the tunnels that is long and narrow enough
+/// A floor that may have the facility's own places (a vault, a pit hall):
+/// from `VAULT_DEPTH`, of the rooms' own mix, known for the facility's
+/// places (the Maze, the Poolrooms, the Lobby and the offices keep their
+/// floors: rule 8 and the plan's scope)
+pub(super) fn facility_floor(level: i32, sched: &LevelSchedule, scp: Option<&str>) -> bool {
+    level >= VAULT_DEPTH
+        && !sched.patchwork
+        && !matches!(scp, Some("store" | "house"))
+        && matches!(sched.dominant, "hall" | "tunnels" | "electrical" | "pillars")
+}
+
+/// A vault (FACILITY F8): on a floor that may have one (`facility_floor`),
+/// the longest zone of the halls or the tunnels that is long and narrow enough
 /// for a gallery (never the spawn's) becomes one, chosen by its shape alone:
 /// a floor with none draws as it did
 pub(super) fn pick(level: i32, sched: &LevelSchedule, scp: Option<&str>, zones: &mut [Zone], rng: &mut dyn FnMut() -> f64, cell: f64) {
-    let dominant = sched.dominant;
-    if level >= VAULT_DEPTH
-        && !sched.patchwork
-        && !matches!(scp, Some("store" | "house"))
-        && matches!(dominant, "hall" | "tunnels" | "electrical" | "pillars")
-    {
+    if facility_floor(level, sched, scp) {
         let pick = zones
             .iter()
             .filter(|z| {

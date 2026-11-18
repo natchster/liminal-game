@@ -57,8 +57,9 @@ pub enum Bottom {
     Dark,
 }
 
-/// One drop: its tiles' block (inclusive), what is at its bottom, and the
-/// catwalk across it if it has one (along x or z, at that row or column)
+/// One drop: its tiles' block (inclusive), what is at its bottom, the
+/// catwalk across it if it has one (along x or z, at that row or column),
+/// and what is a pit hall's tank's own if it is one (`world::pits`)
 #[derive(Clone, Debug)]
 pub struct Drop {
     pub x0: i32,
@@ -67,6 +68,7 @@ pub struct Drop {
     pub z1: i32,
     pub bottom: Bottom,
     pub catwalk: Option<(bool, i32)>,
+    pub tank: Option<crate::world::pits::Tank>,
 }
 
 impl Drop {
@@ -87,13 +89,14 @@ impl Game {
     /// `DROP_FIRST_LEVEL`, in a bare hall's open floor, the ring round it its
     /// floor or its columns, clear of where she comes in; at most one a hall,
     /// only where every open tile is still reached. Their tiles become wall
-    /// tiles.
+    /// tiles. A pit hall's tanks first (`world::pits`).
     pub fn plan_drops(&mut self) {
         self.drops.clear();
         self.drop_tiles = vec![0; self.tiles.len()];
         if self.level_num < DROP_FIRST_LEVEL || self.level_scp.is_some() || !self.ground.is_empty() {
             return;
         }
+        self.plan_pits();
         let Some(l) = self.layout.as_ref() else { return };
         let (w, h) = (self.w, self.h);
         let zones: Vec<(usize, i32, i32, i32, i32)> = l
@@ -160,33 +163,39 @@ impl Game {
                 let ends = if along_x { [(x - 1, k), (x + bw, k)] } else { [(k, z - 1), (k, z + bh)] };
                 bottom != Bottom::Dark && ends.iter().all(|&(ex, ez)| open(self, ex, ez))
             });
-            let d = Drop { x0: x, z0: z, x1: x + bw - 1, z1: z + bh - 1, bottom, catwalk };
-            // its pit's tiles walls (its catwalk's stay floor: what walks
-            // crosses it), and kept only if every open tile is still reached
-            let saved: Vec<(usize, u8)> = (d.z0..=d.z1)
-                .flat_map(|zz| (d.x0..=d.x1).map(move |xx| (zz, xx)))
-                .filter(|&(zz, xx)| !d.catwalk_at(xx, zz))
-                .map(|(zz, xx)| {
-                    let t = (zz * w + xx) as usize;
-                    (t, self.tiles[t])
-                })
-                .collect();
-            for &(t, _) in &saved {
-                self.tiles[t] = 1;
+            self.cut_drop(Drop { x0: x, z0: z, x1: x + bw - 1, z1: z + bh - 1, bottom, catwalk, tank: None });
+        }
+    }
+
+    /// Cut drop `d` into the floor: its pit's tiles walls (its catwalk's
+    /// stay floor: what walks crosses it), kept only if every open tile is
+    /// still reached (else the floor is put back). → it was cut
+    pub(crate) fn cut_drop(&mut self, d: Drop) -> bool {
+        let w = self.w;
+        let saved: Vec<(usize, u8)> = (d.z0..=d.z1)
+            .flat_map(|zz| (d.x0..=d.x1).map(move |xx| (zz, xx)))
+            .filter(|&(zz, xx)| !d.catwalk_at(xx, zz))
+            .map(|(zz, xx)| {
+                let t = (zz * w + xx) as usize;
+                (t, self.tiles[t])
+            })
+            .collect();
+        for &(t, _) in &saved {
+            self.tiles[t] = 1;
+        }
+        if !self.every_open_reached() {
+            for (t, v) in saved {
+                self.tiles[t] = v;
             }
-            if self.every_open_reached() {
-                for zz in d.z0..=d.z1 {
-                    for xx in d.x0..=d.x1 {
-                        self.drop_tiles[(zz * w + xx) as usize] = if d.catwalk_at(xx, zz) { DROP_CATWALK } else { DROP_PIT };
-                    }
-                }
-                self.drops.push(d);
-            } else {
-                for (t, v) in saved {
-                    self.tiles[t] = v;
-                }
+            return false;
+        }
+        for zz in d.z0..=d.z1 {
+            for xx in d.x0..=d.x1 {
+                self.drop_tiles[(zz * w + xx) as usize] = if d.catwalk_at(xx, zz) { DROP_CATWALK } else { DROP_PIT };
             }
         }
+        self.drops.push(d);
+        true
     }
 
     /// A block of `bw × bh` tiles at (`x`, `z`) can be a drop: all open, the
@@ -296,8 +305,9 @@ impl Game {
             {
                 return None;
             }
-            return Some(match d.bottom {
-                Bottom::Dark => -DARK_DEPTH,
+            return Some(match (&d.tank, d.bottom) {
+                (Some(t), _) => -t.water,
+                (_, Bottom::Dark) => -DARK_DEPTH,
                 _ => -DROP_DEPTH,
             });
         }
@@ -424,10 +434,12 @@ impl Game {
         let drops = self.drops.clone();
         let up = Vec3::new(0.0, 1.0, 0.0);
         let mut sides: Vec<(String, Face)> = vec![];
+        let mut wet_sides: Vec<(String, Face)> = vec![];
         let mut dark_sides: Vec<(String, Face)> = vec![];
         let mut floors: Vec<(String, Face)> = vec![];
         let mut blacks = Face::default();
         let mut water: Vec<Mat4> = vec![];
+        let mut tank_water: Vec<Mat4> = vec![];
         let mut rails: Vec<(bool, Mat4)> = vec![];
         let mut decks: Vec<Mat4> = vec![];
         let mut stringers: Vec<Mat4> = vec![];
@@ -457,7 +469,24 @@ impl Game {
             let rows: Vec<f64> =
                 if d.bottom == Bottom::Dark { vec![0.0, -1.0, -2.2, -3.6, -5.4, -8.0, -DARK_DEPTH] } else { vec![0.0, -depth] };
             let shade = |y: f64| if d.bottom == Bottom::Dark { (y / 2.4).dexp().clamp(0.0, 1.0) } else { 1.0 };
-            for ([a, b], n) in walls {
+            // a pit hall's tank: its walls wet above its water, its columns
+            // rising out of it, its water (`world::pits`)
+            if let Some(tk) = &d.tank {
+                let (i, j) = (into(&mut sides, &key), into(&mut wet_sides, &key));
+                for ([a, b], n) in walls {
+                    crate::world::pits::tank_face(&mut sides[i].1, &mut wet_sides[j].1, a, b, n, 0.0, tk);
+                }
+                for &(cx, cz) in &tk.columns {
+                    let ceil = self.tile_ceil.get(self.t_idx(self.tx(cx), self.tz(cz))).map_or(WALL_H, |&c| c as f64);
+                    crate::world::pits::tank_column(&mut sides[i].1, &mut wet_sides[j].1, (cx, cz), ceil, tk);
+                }
+                tank_water.push(Mat4::compose(
+                    &Vec3::new((x0 + x1) / 2.0, -tk.water, (z0 + z1) / 2.0),
+                    &Quat::IDENTITY,
+                    &Vec3::new(x1 - x0, 1.0, z1 - z0),
+                ));
+            }
+            for ([a, b], n) in walls.into_iter().filter(|_| d.tank.is_none()) {
                 let along_uv = move |p: &Vec3| ((n.z * p.x - n.x * p.z) / 4.0, p.y / 4.0);
                 for r in rows.windows(2) {
                     let (ya, yb) = (r[0], r[1]);
@@ -474,6 +503,7 @@ impl Game {
             // its bottom
             let bot = [Vec3::new(x0, -depth, z0), Vec3::new(x1, -depth, z0), Vec3::new(x1, -depth, z1), Vec3::new(x0, -depth, z1)];
             match d.bottom {
+                _ if d.tank.is_some() => {}
                 Bottom::Floor => {
                     let fkey = format!("floor:concrete:{g}");
                     let i = into(&mut floors, &fkey);
@@ -573,6 +603,12 @@ impl Game {
             m.user().arch = true;
             self.world.add(&m);
         }
+        for (key, f) in wet_sides {
+            let mat = crate::world::pits::wet_mat(&self.arch_mat(&key));
+            let m = f.mesh(&mat);
+            m.user().arch = true;
+            self.world.add(&m);
+        }
         for (key, f) in dark_sides {
             let mat = self.arch_mat(&key).duplicate();
             mat.m().vertex_colors = true;
@@ -599,6 +635,11 @@ impl Game {
             let geo = plane_geo!(1.0, 1.0);
             geo.rotate_x(-std::f64::consts::FRAC_PI_2);
             self.add_instanced(&geo, &mat, &water, &|m: &Mat4| *m);
+        }
+        if !tank_water.is_empty() {
+            let geo = plane_geo!(1.0, 1.0);
+            geo.rotate_x(-std::f64::consts::FRAC_PI_2);
+            self.add_instanced(&geo, &crate::world::pits::water_mat(), &tank_water, &|m: &Mat4| *m);
         }
         // the Works' rail: yellow top rail and toe board, steel posts and mid rail
         let yellow = lambert!({ color: 0x8c7a34 });

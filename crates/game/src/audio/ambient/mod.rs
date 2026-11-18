@@ -476,6 +476,11 @@ impl Game {
     }
     /// The first idle ripple placed at (x, 0.015, z); false when the pool is busy
     pub(crate) fn ripple_at(&mut self, x: f64, z: f64, opacity: f64, scale: f64, life: f64) -> bool {
+        // (none over a drop, where it stood in the air at the floor's
+        // height, nor in a pit hall, where nothing drips: `world::pits`)
+        if self.is_drop_tile(self.tx(x), self.tz(z)) || self.in_pit_hall(x, z) {
+            return false;
+        }
         let Some(i) = self.ripples.iter().position(|r| r.t <= 0.0) else { return false };
         let o = self.ripples[i].obj.clone();
         o.set_pos(x, 0.015, z);
@@ -535,7 +540,7 @@ impl Game {
         let mut r = SplitMix64::new(self.current_seed, BED_SALT);
         let carry: Vec<SigCarry> =
             BED_ANCHORS.iter().map(|&(_, near, far)| SigCarry { near, far, ref_dist: BED_REF_DIST, gain: BED_GAIN }).collect();
-        let spots = self.signature_spots(&carry, &mut r);
+        let spots = self.signature_spots(&carry, &[false; BED_ANCHORS.len()], &mut r);
         self.amb_anchors = BED_ANCHORS.iter().map(|a| a.0).zip(spots).collect();
     }
     /// A level's source for one of the weather's sounds (`BED_ANCHORS`)
@@ -605,7 +610,9 @@ impl Game {
             }
         }
         let carry: Vec<SigCarry> = names.iter().map(|n| sig_carry(n)).collect();
-        let spots = self.signature_spots(&carry, &mut r);
+        // (water falling is never anchored in a pit hall: `world::pits`)
+        let dry: Vec<bool> = names.iter().map(|n| crate::world::pits::WET_SIGNATURES.contains(n)).collect();
+        let spots = self.signature_spots(&carry, &dry, &mut r);
         for (name, at) in names.into_iter().zip(spots) {
             let period = r.range(25.0, 70.0) * gap_mul;
             // the first time part-way into its period, like every cadence
@@ -616,7 +623,8 @@ impl Game {
     /// An open spot the player can reach for each sound, as far off as it
     /// carries (failing that, at least 6 m off), spread round the compass
     /// from a random heading and at least 12 m apart where the level allows.
-    fn signature_spots(&self, carry: &[SigCarry], r: &mut SplitMix64) -> Vec<Vec3> {
+    /// A sound marked `dry` is never anchored in a pit hall.
+    fn signature_spots(&self, carry: &[SigCarry], dry: &[bool], r: &mut SplitMix64) -> Vec<Vec3> {
         let n = carry.len();
         if n == 0 || self.w <= 0 || self.h <= 0 {
             return vec![];
@@ -645,9 +653,10 @@ impl Game {
         for (k, c) in carry.iter().enumerate() {
             let want_a = a0 + k as f64 * 2.0 * PI / n as f64 + r.range(-0.3, 0.3);
             let want_d = r.range(c.near, c.far);
-            let mut cands: Vec<_> = open.iter().filter(|o| o.2 >= c.near && o.2 <= c.far).copied().collect();
+            let away = |o: &&(f64, f64, f64, f64)| !dry[k] || !self.in_pit_hall(o.0, o.1);
+            let mut cands: Vec<_> = open.iter().filter(|o| o.2 >= c.near && o.2 <= c.far).filter(away).copied().collect();
             if cands.is_empty() {
-                cands = open.iter().filter(|o| o.2 >= 6.0).copied().collect();
+                cands = open.iter().filter(|o| o.2 >= 6.0).filter(away).copied().collect();
             }
             let score = |c: &(f64, f64, f64, f64)| ang_diff(c.3, want_a) * 20.0 + (c.2 - want_d).abs();
             let best_of = |apart: f64| {

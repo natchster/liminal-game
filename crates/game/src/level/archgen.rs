@@ -32,7 +32,9 @@ use crate::base::numeric::*;
 use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
 
+mod pits;
 mod vault;
+pub use pits::{PITS, PITS_SHORT, TankRect, pit_tanks};
 pub use vault::{FACILITY_ARCHETYPES, Gallery, VAULT, VAULT_DEPTH, vault_gallery};
 
 /// +x, -x, +z, -z
@@ -770,8 +772,9 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
             }
         }
     }
-    // a vault (FACILITY F8, `vault::pick`): by a zone's shape, no draw
+    // a vault and a pit hall (FACILITY F8, F9): by a zone's shape, no draw
     vault::pick(level, &sched, scp, &mut zones, rng, cell);
+    pits::pick(level, &sched, scp, &mut zones, rng, cell);
     share_ceilings(&mut zones);
     // a zone id per tile (the outer border belongs to the nearest zone)
     let mut zone_of = vec![0u8; n];
@@ -808,6 +811,7 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
             "hall" => carve_hall(&mut ctx, r),
             "pool" => carve_pool(&mut ctx, r),
             VAULT => vault::carve_vault(&mut ctx, r),
+            PITS => pits::carve_pits(&mut ctx, r),
             other => panic!("archgen: no carver for {other:?}"),
         }
         if z.arch == "store" {
@@ -1453,7 +1457,8 @@ fn carve_pool(c: &mut Ctx, z: Rect) {
 // Zones of a different kind are separated by a wall with 1-3 openings.
 fn build_seams(c: &mut Ctx, zones: &[Zone]) {
     let (w, h) = (c.w, c.h);
-    let openish = |a: &str| matches!(a, "lobby" | "pillars" | "office" | "hall" | "pool");
+    // (a pit hall is carved open: its walls are its seams, `pits`)
+    let openish = |a: &str| matches!(a, "lobby" | "pillars" | "office" | "hall" | "pool" | PITS);
     for ai in 0..zones.len() {
         for bi in 0..zones.len() {
             if ai == bi {
