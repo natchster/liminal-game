@@ -15,6 +15,7 @@ publish = false
 [workspace.dependencies]
 # ---- workspace crates
 engine = { path = "crates/engine" }
+jahamun = { path = "crates/jahamun" }
 game = { path = "crates/game" }
 placers = { path = "crates/placers" }
 placers_kit = { path = "crates/placers/placers_kit" }

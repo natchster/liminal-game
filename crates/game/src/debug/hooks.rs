@@ -1090,6 +1090,20 @@ impl Game {
             self.debug_stair_door(name == "stair-bottom", 1.3);
             return;
         }
+        // the way in (`modes::tunnel`): where your hands come back; the
+        // escape door, shut and changed, from 2.7 m along the walkway; deep
+        // in, looking on and looking back
+        if let Some(view) = name.strip_prefix("tunnel") {
+            let door = -111.0;
+            let (feet, yaw, changed) = match view {
+                "-door" | "-open" => ([-0.45, 0.2, door + 2.4], 1.25f64.datan2(2.4), view == "-open"),
+                "-deep" => ([-0.85, 0.2, -200.0], 0.0, false),
+                "-back" => ([-0.85, 0.2, -200.0], std::f64::consts::PI, false),
+                _ => (crate::modes::tunnel::START, 0.0, false),
+            };
+            self.debug_tunnel(feet, yaw, changed);
+            return;
+        }
         // the Loop's pickups (`core_props::pickups`' parts, instanced): its
         // first almond water on a desk, its first cell on a cabinet, 1.25 m
         // off (out of reach: within 0.97 m it is taken)

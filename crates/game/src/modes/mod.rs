@@ -1,4 +1,4 @@
-//! The Stairwell and the Loop glue.
+//! The Stairwell and the Loop glue (and the way in's, `tunnel`).
 //!
 //! Some exits are not doors to the next level but a steel door onto a flight
 //! of stairs going down (`modes::stairwell`, inspired by SCP-087), and on the
@@ -17,6 +17,7 @@
 //! CONTRACT: the signatures below are called from other modules; keep them.
 pub mod loop_rooms;
 pub mod stairwell;
+pub mod tunnel;
 
 use crate::assets::creatures::{creature_geometry, with_cavity_shade};
 use crate::audio::soundscape::{ChildVoice, ReverbPreset, Soundscape, VoiceSlot};
@@ -214,6 +215,9 @@ impl Game {
         self.in_loop = false;
         self.loop_near_exit = false;
         self.loop_audio = Default::default();
+        // the way in: built on entry
+        self.tunnel = None;
+        self.in_tunnel = false;
     }
 
     /// The Stairwell is one of the run's anomalies (`level::scp`)

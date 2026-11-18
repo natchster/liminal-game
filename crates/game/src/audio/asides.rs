@@ -683,6 +683,10 @@ impl Game {
         if self.hands_taken() {
             return Some("cutscene");
         }
+        // on the way in your own voice tells, and the asides keep quiet
+        if self.in_tunnel {
+            return Some("the way in");
+        }
         // rule 7
         if self.asides.clock - self.asides.active_at > AWAY {
             return Some("away");

@@ -687,9 +687,12 @@ fn a_death_plays_to_its_card_and_holds_the_camera() {
 // your eyes, in the same place, the card after.
 
 /// A game booted to its title (a fixed boot), the title live for a second
+/// At the title of a game whose New descent is the look from the title
+/// into your eyes (`way_in`): no way in through the tunnel (`prologue=0`;
+/// the tunnel's own tests are `tests/tunnel.rs`).
 fn at_the_title(native: u64) -> Game {
     game::base::rng::seed_native(native);
-    let mut g = common::new_game();
+    let mut g = common::new_game_with("nosound&prologue=0");
     for _ in 0..60 {
         g.now_ms += DT * 1000.0;
         g.fixed_step_dt = DT;

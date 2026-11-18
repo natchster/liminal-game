@@ -88,10 +88,22 @@ the video shows once lit.
 
 **The place** is made of numbers in `set.py`: the section (the walkway at
 -x, the vault half an ellipse springing from the tiles' top), a 6 m module
-of three bays, its five variants (A plain; B a hatch and a way-out sign; C
+of three bays, its seven variants (A plain; B a hatch and a way-out sign; C
 the hydrant cabinet, an escape-point plate and a down pipe; D a dead bar and
-a hatch; E two jet fans over the road), the approach outside, the far gate.
+a hatch; E two jet fans over the road; F the escape door in the tiled wall,
+shut, under its plate; G the same door changed for the way in: an older
+leaf standing a hand's width open on a concrete passage with a cold light
+deep in it, her note taped beside it), the approach outside, the far gate.
 No model file: the geometry is the script.
+
+**Two layouts** (`Layout`): `Real`, the tunnel as it is (485 m from the
+portal to the far gate; this binary's), and `Ring`, the game's way in
+(`src/ring.rs`): past the entrance, a period of twenty modules (with the
+escape door once) laid over and over, 252 m past either seam, under a
+thicker haze that leaves 1% of what is there at that reach; at a seam you
+are carried a whole period back (or on), which cannot be seen, and once
+you are past the near seam the way back goes on too. The door changes in
+every copy at once (`Set::set_door_changed`).
 
 **The light** is Cycles': every lamp is an area light where its fixture is
 (a 1.2 m bar a bay at 5500 K, the road's lamps, warm street lamps at 3300 K,
@@ -173,21 +185,21 @@ game's. What moving in takes:
 1. **The crate** (done): `crates/jahamun`, a member of the game's
    workspace; it reads only `engine`, has no window or device, draws
    nothing random and reads no clock.
-2. **A mode.** In `modes/mod.rs`: enter it from a level (a door, a
-   stairwell's landing), hide the level world, add `Set::root` to the
-   scene, move with `Set::walk` (the mode's own movement), call
-   `Set::update` with the eye each frame, and take the frame's globals from
-   `Set::globals` (its light map is the fog by place).
+2. **A mode** (done): `crates/game/src/modes/tunnel.rs`, the run's way in
+   (`docs/design/WAY_IN.md`): the level world hidden, `Set::root` in the
+   scene, movement with `Set::walk` and the ring's carry, `Set::update`
+   with the eye each frame, the frame's fog and light from `Set::globals`;
+   the door that changes, her note, the door into the first floor.
 3. **The assets** (done): the pipeline and its sources in
    `assets/src/jahamun/` (the photographs all CC0, each with its SHA-1),
    the set file and textures embedded (`include_bytes!`, `src/assets.rs`)
    as the game embeds its own, not read from the crate's folder.
-4. **Its meaning.** A design doc in `docs/design/`, its plan in
-   `docs/plan/`, its canon checked by the lore-keeper (a real Seoul tunnel
-   in the Backrooms' canon: a borrowed place, like the Borrowed House?), a
-   `content.json` entry, golden frames, the visual playtest, and a sound of
-   its own (fixed anchors: the bars' hum, the jet fans, the road behind the
-   glass, steps in a long reverb; none of it is here yet).
+4. **Its meaning** (done, in part): not a borrowed place but the real one
+   the run begins in (`docs/design/WAY_IN.md`, `LORE.md` *The way in*,
+   checked by `lore-keeper`; its plan `docs/plan/WAY_IN.md`); a
+   `content.json` entry (`story/way_in`); its tests
+   (`crates/backrooms/tests/tunnel.rs`). Still to come there: the look into
+   it, your voice in it, its sound.
 
 ## What is not here yet
 

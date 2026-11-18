@@ -233,7 +233,8 @@ fn leaving_for_the_title_keeps_the_notebook() {
 
 #[test]
 fn death_is_black_a_line_and_wake_up() {
-    let mut g = new_game();
+    // (New descent without the tunnel: the look from the title, then the card)
+    let mut g = common::new_game_with("nosound&prologue=0");
     press(&mut g, "Enter");
     // New descent: the way in from the title (docs/design/CUTSCENES.md), the card
     // once your hands are back

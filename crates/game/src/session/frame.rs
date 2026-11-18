@@ -51,7 +51,16 @@ impl Game {
         if self.state == "playing" {
             self.update_input(dt);
         }
-        if self.state == "playing" && self.cut.as_ref().is_some_and(|p| p.c.world == crate::cutscene::World::Held) {
+        if self.state == "playing" && self.in_tunnel {
+            // the way in moves you itself; a cutscene's camera over its
+            self.cutscene_pre();
+            self.update_tunnel(dt);
+            self.cutscene_post(dt);
+            self.tunnel_look();
+            self.update_asides(dt);
+            self.update_hud(dt);
+            self.update_overlays(dt);
+        } else if self.state == "playing" && self.cut.as_ref().is_some_and(|p| p.c.world == crate::cutscene::World::Held) {
             // a cutscene that holds the world: only the place's light and
             // sound go on, and your body (still), whose camera it blends over
             let perf_t = self.perf_t;

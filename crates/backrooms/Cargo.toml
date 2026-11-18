@@ -24,5 +24,7 @@ workspace = true
 
 [dev-dependencies]
 serde_json = { workspace = true }
+# the way in's place, read by its tests (`tests/tunnel.rs`)
+jahamun = { workspace = true }
 ebur128 = { workspace = true }
 proptest = { workspace = true }

@@ -169,3 +169,69 @@ pub fn lane_arrow() -> Tex {
     c.fill();
     tex(&c)
 }
+
+/// Her note by the door (the way in): a sheet of ruled paper folded twice,
+/// in pencil, in her hand (her words: `game::story::notebook::DOOR_NOTE`,
+/// read from the notebook; here only as they look on the wall).
+pub fn her_note() -> Tex {
+    let (w, h) = (512.0, 724.0);
+    let mut c = Canvas::new(w as u32, h as u32);
+    c.set_fill_style("#e9e6dc");
+    c.fill_rect(0, 0, w, h);
+    // the ruling, faint blue, and its margin
+    c.set_stroke_style("rgba(70, 105, 160, 0.30)");
+    c.set_line_width(1.4);
+    let mut y = 74.0;
+    while y < h - 20.0 {
+        c.begin_path();
+        c.move_to(0, y);
+        c.line_to(w, y);
+        c.stroke();
+        y += 29.0;
+    }
+    c.set_stroke_style("rgba(170, 70, 70, 0.30)");
+    c.begin_path();
+    c.move_to(58, 0);
+    c.line_to(58, h);
+    c.stroke();
+    // her pencil
+    c.set_fill_style("rgba(52, 50, 48, 0.82)");
+    c.set_text_align("left");
+    c.set_text_baseline("alphabetic");
+    c.set_font("25px 'Bradley Hand'");
+    let lines = [
+        "Six hundred and eleven.",
+        "Then five hundred and ninety.",
+        "Tonight I stopped counting.",
+        "",
+        "I stopped waiting for the end.",
+        "Then it was there.",
+        "",
+        "He went through here.",
+        "I'm going after him.",
+        "Don't come after me.",
+    ];
+    let mut y = 98.0;
+    for l in lines {
+        c.fill_text(l, 70.0, y);
+        y += 58.0;
+    }
+    // folded twice: two creases, a shade either side of each
+    for (horizontal, at) in [(true, h / 2.0), (false, w / 2.0)] {
+        for (d, a) in [(-2.0, 0.10), (2.0, 0.06)] {
+            let ink = if d < 0.0 { "40, 36, 30" } else { "255, 255, 255" };
+            c.set_stroke_style(format!("rgba({ink}, {a})"));
+            c.set_line_width(2.5);
+            c.begin_path();
+            if horizontal {
+                c.move_to(0, at + d);
+                c.line_to(w, at + d);
+            } else {
+                c.move_to(at + d, 0);
+                c.line_to(at + d, h);
+            }
+            c.stroke();
+        }
+    }
+    tex(&c)
+}

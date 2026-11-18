@@ -20,10 +20,11 @@
 pub mod assets;
 pub mod data;
 pub mod look;
+pub mod ring;
 pub mod signs;
 pub mod walk;
 
-use data::{MatKind, Piece, SetData};
+use data::{MatKind, Piece, Placement, SetData};
 use engine::dmath::DMath;
 use engine::prelude::*;
 use engine::render::{LocalLight, RenderGlobals};
@@ -43,6 +44,11 @@ const NIGHT_FOG: [f64; 3] = [0.075, 0.066, 0.064];
 const NIGHT_DENSITY: f64 = 0.010;
 const HAZE: [f64; 3] = [0.50, 0.535, 0.52];
 const HAZE_RATIO: f64 = 0.42;
+/// The haze in the bores of the way in, whose walkway has no end: thick
+/// enough that at the ring's reach (`ring::VIEW` modules, 252 m) 1% of what
+/// is there is left, so neither the arch behind you nor the end of what is
+/// built ahead can be seen.
+const HAZE_RATIO_RING: f64 = 0.85;
 const SKY_TOP: [f64; 3] = [0.004, 0.0045, 0.007];
 /// Seoul's night: dark overhead, an orange-grey glow low down
 const SKY_LOW: [f64; 3] = [0.070, 0.048, 0.033];
@@ -62,6 +68,33 @@ struct Glow {
     size: f64,
 }
 
+/// How the walkway is laid.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Layout {
+    /// The real tunnel: 485 m from the portal to the far gate.
+    Real,
+    /// The way in: the walkway as a ring with no end (`ring`), the escape
+    /// door under its plate once a period.
+    Ring,
+}
+
+/// The escape door where it comes round (the ring's F modules): its place
+/// along the bore and its two looks, shut and changed.
+pub struct DoorSlot {
+    /// the door's middle along the bore (z)
+    pub z: f64,
+    shut: Obj,
+    changed: Obj,
+}
+
+/// The escape door's middle across (x) and the module's z of it.
+pub const DOOR_X: f64 = -1.70;
+const DOOR_Z_IN_MODULE: f64 = -3.0;
+/// Her note beside the changed door: its middle (along the bore, from the
+/// door's middle) and its height.
+pub const NOTE_FROM_DOOR: f64 = 0.80;
+pub const NOTE_Y: f64 = 1.47;
+
 pub struct Set {
     pub root: Obj,
     pub walk: walk::Walk,
@@ -73,6 +106,14 @@ pub struct Set {
     bore2: Obj,
     fog_map: Tex,
     fog_grid: [f64; 4],
+    haze_ratio: f64,
+    pub layout: Layout,
+    /// the ring's state (the way in only)
+    pub ring: ring::Ring,
+    doors: Vec<DoorSlot>,
+    door_changed: bool,
+    /// her note's sheets (by each changed door)
+    notes: Vec<Obj>,
 }
 
 /// A piece's meshes made into geometry once (shared by its placements):
@@ -191,9 +232,12 @@ fn sky() -> Obj {
 }
 
 impl Set {
-    /// The set, from what is embedded (`assets`).
-    pub fn build() -> Result<Set, String> {
-        let d = SetData::read(assets::SET)?;
+    /// The set, from what is embedded (`assets`), laid out as `layout`.
+    pub fn build(layout: Layout) -> Result<Set, String> {
+        let mut d = SetData::read(assets::SET)?;
+        if layout == Layout::Ring {
+            lay_ring(&mut d);
+        }
         let mut tex = Textures::new();
         let looks = Looks::new(&d.materials, &mut tex);
         let root = group();
@@ -219,6 +263,7 @@ impl Set {
         let gate_mat = sign_mat(&looks.mats["sign_gate"], &gate);
         let arrow_mat = sign_mat(&looks.mats["signal_green"], &arrow);
         arrow_mat.m().color = Color::rgb_linear(1.0, 1.0, 1.0);
+        let note_tex = signs::her_note();
 
         let floor_gloss = tex.gloss("floor_gloss.jpg");
         let tile_gloss = tex.gloss("tile_gloss.jpg");
@@ -241,6 +286,8 @@ impl Set {
         let mut live = vec![];
         let mut glows = vec![];
         let mut escape_no = 0;
+        let mut doors: Vec<DoorSlot> = vec![];
+        let mut notes: Vec<Obj> = vec![];
         for pl in &d.placements {
             let Some(b) = built.get(&pl.piece) else { continue };
             let piece = &d.pieces[&pl.piece];
@@ -265,11 +312,17 @@ impl Set {
                     "signal_green" => arrow_mat.clone(),
                     "sign_info" => {
                         escape_no += 1;
-                        let at = -pl.at[2] + 2.6;
-                        let back = at.round() as i64;
-                        let ahead = (d.tunnel - at).round() as i64;
-                        sign_mat(base, &signs::info_plate(escape_no, back, ahead))
+                        let (n, back, ahead) = match layout {
+                            Layout::Real => {
+                                let at = -pl.at[2] + 2.6;
+                                (escape_no, at.round() as i64, (d.tunnel - at).round() as i64)
+                            }
+                            // the ring's plates say what they would on its first lap, every lap
+                            Layout::Ring => ring_plate(&pl.piece, k as usize, d.tunnel),
+                        };
+                        sign_mat(base, &signs::info_plate(n, back, ahead))
                     }
+                    "note" => sign_mat(base, &note_tex),
                     "glass" if !second => {
                         let g = base.duplicate();
                         if pl.index.is_some() {
@@ -279,7 +332,12 @@ impl Set {
                     }
                     _ => base.clone(),
                 };
-                node.add(&mesh(geo.clone(), mat));
+                let m = mesh(geo.clone(), mat);
+                if mat_name == "note" {
+                    m.set_name("her note");
+                    notes.push(m.clone());
+                }
+                node.add(&m);
                 // the highlights on the walkway's wet paint and glazed tiles (the walkway's bore
                 // only): every light within reach of a surface is looped over at each of its
                 // pixels, so only the bars light them (two points a bar, 4 m), and the street lamps
@@ -362,6 +420,17 @@ impl Set {
             } else {
                 root.add(&node);
             }
+            // the escape door's two looks, where it comes round (the ring)
+            match pl.piece.as_str() {
+                "module_F" => doors.push(DoorSlot { z: pl.at[2] + DOOR_Z_IN_MODULE, shut: node.clone(), changed: node.clone() }),
+                "module_G" => {
+                    if let Some(slot) = doors.iter_mut().find(|s| (s.z - (pl.at[2] + DOOR_Z_IN_MODULE)).abs() < 1e-6) {
+                        slot.changed = node.clone();
+                    }
+                    node.set_visible(false);
+                }
+                _ => {}
+            }
             if pl.index.is_some() && !second {
                 let _ = k;
                 live.push(inst);
@@ -369,7 +438,8 @@ impl Set {
         }
 
         // the fog by place: a light map over the set whose red is how lit each place is
-        let (x0, x1, z0, z1) = (-40.0, 40.0, -(d.tunnel + 40.0), 100.0);
+        let deepest = d.lit.iter().map(|b| -b.z[0]).fold(d.tunnel, f64::max);
+        let (x0, x1, z0, z1) = (-40.0, 40.0, -(deepest + 40.0), 100.0);
         let (w, h) = (64usize, 640usize);
         let mut px = vec![0u8; w * h];
         for j in 0..h {
@@ -407,7 +477,39 @@ impl Set {
             bore2,
             fog_map,
             fog_grid,
+            haze_ratio: if layout == Layout::Ring { HAZE_RATIO_RING } else { HAZE_RATIO },
+            layout,
+            ring: ring::Ring::default(),
+            doors,
+            door_changed: false,
+            notes,
         })
+    }
+
+    /// Her note taken from beside the door (every copy): the tape stays.
+    pub fn take_note(&mut self) {
+        for n in &self.notes {
+            n.set_visible(false);
+        }
+    }
+
+    /// The escape door where it comes round (the ring's), each copy.
+    pub fn doors(&self) -> impl Iterator<Item = f64> + '_ {
+        self.doors.iter().map(|s| s.z)
+    }
+
+    /// Whether the escape door has changed.
+    pub fn door_changed(&self) -> bool {
+        self.door_changed
+    }
+
+    /// The escape door changed (or back), every copy at once.
+    pub fn set_door_changed(&mut self, changed: bool) {
+        self.door_changed = changed;
+        for s in &self.doors {
+            s.shut.set_visible(!changed);
+            s.changed.set_visible(changed);
+        }
     }
 
     /// The render globals: the night, and the fog by place (the bores'
@@ -425,7 +527,7 @@ impl Set {
                 sky_d: Vec3::ZERO,
                 gnd_d: Vec3::ZERO,
                 fog_lit: Color::rgb_linear(HAZE[0], HAZE[1], HAZE[2]),
-                fog_ratio: HAZE_RATIO,
+                fog_ratio: self.haze_ratio,
             },
             pixel_ratio: 1.0,
             ..Default::default()
@@ -437,7 +539,7 @@ impl Set {
     /// a size in the eye, and the other bore is let go from deep inside.
     pub fn update(&mut self, eye: Vec3) {
         let on_walkway = eye.x < GLASS_X && eye.z < 1.0 && eye.y < 3.0;
-        let density = NIGHT_DENSITY * HAZE_RATIO;
+        let density = NIGHT_DENSITY * self.haze_ratio;
         for l in &mut self.live {
             let d = l.centre.distance_to(&eye);
             let haze = (-(density * d).dpowi(2)).dexp();
@@ -470,4 +572,46 @@ impl Set {
     pub fn spawn(&self, name: &str) -> Option<([f64; 3], f64)> {
         self.spawns.get(name).map(|s| ([s[0], s[1], s[2]], s[3]))
     }
+}
+
+/// The way in's walkway (`Layout::Ring`): the entrance, then the ring's
+/// modules (`ring`) as far as can be seen past both its seams, the escape
+/// door's changed look beside each of its own, the other bore only as far
+/// as it is seen from outside, no far end; the walkway's ground and the
+/// bores' light as long as what is built.
+fn lay_ring(d: &mut SetData) {
+    let module = d.module;
+    let mut place: Vec<Placement> = d.placements.iter().filter(|p| p.piece.starts_with("entrance")).cloned().collect();
+    for k in ring::FIRST..ring::MODULES {
+        let v = ring::variant(k);
+        let at = [0.0, 0.0, -(k as f64) * module];
+        place.push(Placement { piece: format!("module_{v}"), at, index: Some(k as i64), mirror: None, bore: 1 });
+        if v == "F" {
+            place.push(Placement { piece: "module_G".into(), at, index: Some(k as i64), mirror: None, bore: 1 });
+        }
+        if k < 12 {
+            place.push(Placement { piece: "module_A".into(), at, index: Some(k as i64), mirror: Some(d.mirror), bore: 2 });
+        }
+    }
+    d.placements = place;
+    let built = ring::MODULES as f64 * module;
+    for w in d.walk.iter_mut().filter(|w| w.name == "walkway") {
+        w.z[0] = -built + 0.5;
+    }
+    for b in d.lit.iter_mut().filter(|b| b.z[0] < -1.0) {
+        b.z[0] = -built - module;
+    }
+}
+
+/// What an escape plate on the ring says (its number, metres back to the
+/// arch and on to the far portal): what it would on the ring's first lap,
+/// every lap.
+fn ring_plate(piece: &str, k: usize, tunnel: f64) -> (i64, i64, i64) {
+    let first = ring::FIRST + (k - ring::FIRST) % ring::PERIOD.len();
+    let (n, in_module) = match piece {
+        "module_C" => (1, 4.6),
+        _ => (2, 1.65),
+    };
+    let at = first as f64 * ring::MOD + in_module;
+    (n, at.round() as i64, (tunnel - at).round() as i64)
 }

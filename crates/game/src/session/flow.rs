@@ -114,6 +114,7 @@ impl Game {
         self.cut_hold = None;
         self.leave_stairwell_mode();
         self.leave_loop_mode();
+        self.leave_tunnel_mode();
         self.level_num = n;
         if self.run_seed == 0 {
             self.run_seed = ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32;

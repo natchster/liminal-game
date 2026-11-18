@@ -26,8 +26,14 @@ const SHAFT_LAMP_OUT: f64 = 0.4;
 const NEW_PLACE_FADE_MS: f64 = 600.0;
 
 impl Game {
-    /// New descent, from the title: the way in (`way_in`)
+    /// New descent, from the title: through the tunnel (`modes::tunnel`,
+    /// the run's way in), or, for a run on a chosen seed or level (the
+    /// tools' and the tests'), the look from the title into your eyes
+    /// (`way_in`)
     pub fn new_descent(&mut self) {
+        if self.way_in_wanted() {
+            return self.new_descent_through_the_tunnel();
+        }
         let c = super::get("way_in").cloned();
         self.new_descent_with(c);
     }

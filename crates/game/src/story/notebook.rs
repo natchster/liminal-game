@@ -150,9 +150,5 @@ pub fn notebook(run_seed: u32) -> Vec<(i32, &'static Page)> {
 
 /// A page by its id (her note by the door among them).
 pub fn page(id: &str) -> Option<&'static Page> {
-    FLOOR_PAGES
-        .iter()
-        .chain(ANOMALY_PAGES.iter())
-        .chain([&LAST_PAGE, &DOOR_NOTE])
-        .find(|p| p.id == id)
+    FLOOR_PAGES.iter().chain(ANOMALY_PAGES.iter()).chain([&LAST_PAGE, &DOOR_NOTE]).find(|p| p.id == id)
 }

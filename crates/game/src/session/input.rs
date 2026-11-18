@@ -218,7 +218,7 @@ impl Game {
                 }
             }
             Act::Interact => {
-                let ordinary = self.state == "playing" && !self.in_stairwell && !self.in_loop;
+                let ordinary = self.state == "playing" && !self.in_stairwell && !self.in_loop && !self.in_tunnel;
                 if ordinary && self.interact_target().is_none() {
                     self.input.interact_buffer = INTERACT_BUFFER;
                 } else {

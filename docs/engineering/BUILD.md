@@ -58,7 +58,7 @@ executable reads and this file does not name.
 |---|---|
 | `--fullscreen` / `--windowed` | Start full screen (borderless) or in a window (default 1280×800) |
 | `--width W --height H` | The window's size in points (or a headless render's) |
-| `--flags 'seed=4242&nosound&scp=loop@2,store@3'` | Launch flags: a fixed run seed, sound off, anomalies forced onto levels, … |
+| `--flags 'seed=4242&nosound&scp=loop@2,store@3'` | Launch flags: a fixed run seed, sound off, anomalies forced onto levels, … (`prologue=1` / `prologue=0`: New descent goes through the way in, the tunnel, or not; by default it does, but for a run on a chosen seed or level) |
 | `--save NAME` | The save play reads and writes, `saves/NAME.ocsave` (`default`) |
 | `--from-save FILE` | Play on from a save, or from a recording's in-point; with a headless mode, that mode starts from it |
 | `--help` | The options, in short |
@@ -87,7 +87,7 @@ Rendered offscreen, never from the screen.
 | `--screenshot out.png [--frames N] [--level L] [--seed S] [--play]` | Build a level (or the title, without `--play`), simulate N frames and save the last one |
 | `--fresh` | Ignore the saved settings and progress, and seed the per-frame randomness: the same frame every time |
 | `--scale 2` | Render at this backing scale (2 = Retina) |
-| `--screen NAME` | With `--play`: put a list or card up 45 frames before the shot (`pause`, `leave`, `settings`, `brightness`, `controls`, `recording`, `replays`, `dead`, `notebook`, `cutscene`, …; `CLAUDE.md` lists them all) |
+| `--screen NAME` | With `--play`: put a list or card up 45 frames before the shot (`pause`, `leave`, `settings`, `brightness`, `controls`, `recording`, `replays`, `dead`, `notebook`, `cutscene`, the way in's `tunnel`, `tunnel-door`, `tunnel-open`, …; `CLAUDE.md` lists them all) |
 | `--showcase smiler[:dist[:walk]] [--death]` | Keep a creature (`smiler`, `hound`, `watcher`, …) in front of the camera at that distance, or place it there once and let it go about (`walk`); `--death` lets it kill you just before the shot. A floor of the rooms (level 4 on): nothing walks the Building |
 
 ### Levels

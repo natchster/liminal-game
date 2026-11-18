@@ -356,7 +356,7 @@ fn main() {
     // canvases paint at once (the game's executable does the same)
     engine::texture::set_paint_on_demand(false);
     let t0 = std::time::Instant::now();
-    let mut set = match Set::build() {
+    let mut set = match Set::build(jahamun::Layout::Real) {
         Ok(s) => s,
         Err(e) => {
             eprintln!("the set: {e}");

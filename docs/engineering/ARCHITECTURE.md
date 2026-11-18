@@ -3,9 +3,9 @@
 ## Crates
 
 ```
-engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
-   ↖        ↖                                      ↙
-        backrooms (the executable)                     xtask (automation)
+engine  ←  jahamun  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
+   ↖                     ↖                                      ↙
+                 backrooms (the executable)                     xtask (automation)
 ```
 
 * **`engine`** knows nothing about the game. It provides:
@@ -76,7 +76,9 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
   the walkway inside behind the glass), built in Blender from numbers with
   its light baked by Cycles (`assets/src/jahamun/`), its set file and CC0
   photographs embedded. It reads only `engine` (no window, no device, no
-  random draw, no clock); its own binary walks it or renders its views
+  random draw, no clock); the game takes it as the run's way in, laid as
+  a ring with no end (`modes::tunnel`, `docs/design/WAY_IN.md`); its own
+  binary walks it as it is, 485 m to the far gate, or renders its views
   headless (`cargo run --release -p jahamun`; its
   [`README.md`](../../crates/jahamun/README.md)).
 * **`backrooms`** is the executable: it registers the placers (`placers::register_all`), runs the

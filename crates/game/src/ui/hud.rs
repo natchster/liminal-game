@@ -629,6 +629,10 @@ impl Game {
         if self.notebook.is_empty() {
             ids.clear();
         }
+        // her note by the door (the way in), before her pages, if you took it
+        if self.notebook.contains(crate::story::notebook::DOOR_NOTE.id) {
+            ids.insert(0, notebook_journal_id(0));
+        }
         ids.extend(self.lore_found.iter().map(|&i| i as JournalId));
         // what you took (`secrets`), last, in your hand: the act, never the effect
         if !self.took.is_empty() {
@@ -727,6 +731,9 @@ impl Game {
             -2 => ("INDEX".to_string(), self.journal_cover_text()),
             -3 => ("MEDALS".to_string(), self.medals_page_markup()),
             -4 => ("WHAT I TOOK".to_string(), self.what_i_took_page()),
+            c if c == notebook_journal_id(0) => {
+                ("HER NOTE  ·  BY THE DOOR".to_string(), crate::story::notebook::DOOR_NOTE.body.to_string())
+            }
             c if c <= -100 => {
                 let n = (-100 - c) as i32;
                 let book = crate::story::notebook::notebook(self.run_seed);
@@ -1886,9 +1893,11 @@ impl Game {
                 self.ui.msg.set_style("textShadow", "");
             }
         }
-        // the interactable you face (`interact_target`)
-        let prompt = self.interact_target().map_or_default(|i| self.interactables[i].prompt.clone());
-        self.ui.prompt.set_text(&prompt);
+        // the interactable you face (`interact_target`); the way in sets its own
+        if !self.in_tunnel {
+            let prompt = self.interact_target().map_or_default(|i| self.interactables[i].prompt.clone());
+            self.ui.prompt.set_text(&prompt);
+        }
         // prop animation + proximity devices
         let t = self.perf_t;
         self.run_hud_animators(dt, t);
@@ -1967,6 +1976,10 @@ impl Game {
             }
             return;
         }
+        if self.in_tunnel {
+            self.tunnel_interact();
+            return;
+        }
         let Some(i) = self.interact_target() else { return };
         // `on_use`: take the closure out while it runs (it may rebuild the level);
         // put it back only if its placeholder is still in the list.
@@ -1989,6 +2002,10 @@ impl Game {
     /// the nearer), so with a drawer and a switch both in reach, E uses the
     /// one you look at; one in reach behind you still counts.
     pub fn interact_target(&self) -> Option<usize> {
+        // (the floor behind the way in is not where you are)
+        if self.in_tunnel {
+            return None;
+        }
         let pos = self.player.pos;
         let f = self.player.fwd();
         let mut best: Option<(usize, f64, f64)> = None;

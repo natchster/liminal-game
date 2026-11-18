@@ -10,9 +10,14 @@ pub fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>
 
 /// A game as the app makes it, booted to the title (no sound, no save)
 pub fn new_game() -> Game {
+    new_game_with("nosound")
+}
+
+/// A game booted to its title with these launch flags.
+pub fn new_game_with(flags: &str) -> Game {
     let mut g = Game::new_bare();
     register_placers(&mut g.placers);
-    g.launch_flags = "nosound".into();
+    g.launch_flags = flags.into();
     g.boot();
     g
 }

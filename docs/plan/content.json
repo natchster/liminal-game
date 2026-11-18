@@ -1202,6 +1202,24 @@
     },
     {
       "checks": [
+        "test:backrooms/tunnel",
+        "test:jahamun/walk_through",
+        "test:backrooms/story"
+      ],
+      "id": "story/way_in",
+      "kind": "story",
+      "last_checked": "2026-11-18",
+      "last_human_review": null,
+      "name": "the way in: the Jahamun Tunnel, before the Building",
+      "notes": "New descent from the title (not a run on a chosen seed or level). A ring of 20 modules with no end; the escape door changes after 60-120 s of walking, out of sight; her note (notebook::DOOR_NOTE); through the door onto level 1 (How::Door). docs/design/WAY_IN.md.",
+      "passes": {
+        "test:backrooms/story": true,
+        "test:backrooms/tunnel": true,
+        "test:jahamun/walk_through": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/secrets",
         "test:backrooms/reference_levels",
         "test:backrooms/level_sweep"

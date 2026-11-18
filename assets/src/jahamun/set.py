@@ -96,10 +96,22 @@ LAMP_W = 90.0     # a road lamp in the vault
 STREET_W = 140.0  # a street lamp head outside (its beam 110 degrees: pools, the dark between)
 RAIL_W = 1.6      # 3 m of LED strip under the balustrade's rail
 RED_W = 2.5
+COLD_W = 40.0     # the light deep in the passage behind the open door
+
+# The escape door in the tiled wall (variants F and G, the way in:
+# docs/design/WAY_IN.md): its leaf, its frame, where it stands in its module
+DOOR_W = 0.95
+DOOR_TOP = 2.15
+DOOR_Y = 3.0
+DOOR_FRAME = 0.06
+DOOR_DEPTH = 0.06
+DOOR_OPEN = 32.0  # degrees: the changed door stands a hand's width open
+PASSAGE = 3.2
 SIGNAL_W = 4.0
 WINDOW_W = 3.0
 
 COOL = (0.93, 0.98, 1.0)      # the tunnel's LEDs (~5500 K, a little green in the video)
+COLD = (0.80, 0.86, 0.93)      # behind the open door (the way in): a cold grey light
 LAMP_C = (0.95, 0.98, 1.0)
 WARM = (1.0, 0.80, 0.58)      # street lamps (~3300 K)
 RED = (1.0, 0.06, 0.03)
@@ -288,7 +300,8 @@ def module(kit, y0, variant, dense=True, mirror=False):
     """One 6 m module of the bore at y0..y0+6: the walkway, the barrier,
     the lean-to, the vault, the road and its lamps; and the variant's
     extras (A plain; B a floor hatch and an exit sign; C a hydrant cabinet,
-    an info sign, a down pipe; D one bar dead and a hatch; E jet fans)."""
+    an info sign, a down pipe; D one bar dead and a hatch; E jet fans; F
+    the escape door, shut; G the escape door changed, open, her note)."""
     f = 1.0 if dense else 3.0
     ny = max(2, int(MOD / (0.10 * f)))
     ny2 = max(2, int(MOD / (0.25 * f)))
@@ -299,10 +312,20 @@ def module(kit, y0, variant, dense=True, mirror=False):
     xs = np.linspace(WALL_X, BASE_X, max(2, int(round((BASE_X - WALL_X) / (0.08 * f)))) + 1)
     kit.m("floor", "floor").grid(lambda i, j: (xs[i], Y(j, ny), WALK_Z), lambda i, j: ((xs[i] - WALL_X) / 1.8, j / ny),
                                  len(xs) - 1, ny, (0, 0, 1))
-    # the tiled wall
+    # the tiled wall (cut for the escape door in F and G)
     zs = np.linspace(WALK_Z, TILE_TOP, max(2, int(round((TILE_TOP - WALK_Z) / (0.10 * f)))) + 1)
-    kit.m("tile", "tile").grid(lambda i, j: (WALL_X, Y(j, ny), zs[i]), lambda i, j: (Y(j, ny) / TILE_REPEAT, (zs[i] - WALK_Z) / TILE_REPEAT),
-                               len(zs) - 1, ny, (1, 0, 0))
+
+    def tiles(ya, yb):
+        n = max(2, int(round((yb - ya) / (0.10 * f))))
+        Yt = lambda j: ya + (yb - ya) * j / n
+        kit.m("tile", "tile").grid(lambda i, j: (WALL_X, Yt(j), zs[i]), lambda i, j: (Yt(j) / TILE_REPEAT, (zs[i] - WALK_Z) / TILE_REPEAT),
+                                   len(zs) - 1, n, (1, 0, 0))
+    if variant in ("F", "G"):
+        yd = y0 + DOOR_Y
+        tiles(y0, yd - DOOR_W / 2 - DOOR_FRAME)
+        tiles(yd + DOOR_W / 2 + DOOR_FRAME, y1)
+    else:
+        tiles(y0, y1)
     # its top trim, a steel angle
     t = kit.m("trim", "steel_dark")
     t.quad((WALL_X + 0.025, y0, TILE_TOP), (WALL_X + 0.025, y1, TILE_TOP), (WALL_X + 0.025, y1, TILE_TOP + 0.04),
@@ -456,6 +479,8 @@ def module(kit, y0, variant, dense=True, mirror=False):
                                              (WALL_X + 0.013, yi - 0.16, 1.72), 0.1, (1, 0, 0),
                                              lambda p, yi=yi: ((p[1] - (yi - 0.16)) / 0.32, (p[2] - 1.08) / 0.64))
         pp.tube((WALL_X + 0.05, yi + 0.6, WALK_Z), (WALL_X + 0.05, yi + 0.6, pz_a[1]), 0.03, 8, 0.2)
+    if variant in ("F", "G"):
+        escape_door(kit, y0 + DOOR_Y, variant == "G", exit_sign)
     if variant == "E":
         for xf in (CX - 1.55, CX + 1.55):
             zf = 6.35
@@ -465,6 +490,68 @@ def module(kit, y0, variant, dense=True, mirror=False):
             for yh in (y0 + 1.6, y0 + 4.4):
                 ztop = vault_point(vault_t_at_x(xf))[1]
                 kit.m("hanger", "steel_dark").box((xf - 0.05, yh - 0.05, zf + 0.5), (xf + 0.05, yh + 0.05, ztop), 0.2)
+
+
+def escape_door(kit, yc, changed, exit_sign):
+    """The escape door in the tiled wall (the way in): a steel leaf set back
+    in a steel frame, the escape point's plate and the way-out sign beside
+    it. Changed (G), it is an older door standing a hand's width open on a
+    concrete passage with a cold light deep in it, and her note is taped to
+    the tiles by it."""
+    ya, yb = yc - DOOR_W / 2, yc + DOOR_W / 2
+    z0, z1 = WALK_Z, DOOR_TOP
+    xb = WALL_X - DOOR_DEPTH - 0.04          # the frame's back, the passage's mouth
+    fr = kit.m("door_frame", "door_frame_old" if changed else "steel_dark")
+    fr.box((xb, ya - DOOR_FRAME, z0), (WALL_X + 0.015, ya, TILE_TOP), 0.1)
+    fr.box((xb, yb, z0), (WALL_X + 0.015, yb + DOOR_FRAME, TILE_TOP), 0.1)
+    fr.box((xb, ya, z1), (WALL_X + 0.015, yb, TILE_TOP), 0.1)
+    xl = WALL_X - DOOR_DEPTH                  # the leaf's face, shut
+    if not changed:
+        kit.m("door", "door").box((xl - 0.045, ya + 0.003, z0 + 0.01), (xl, yb - 0.003, z1 - 0.003), 0.08)
+        kit.m("door_handle", "galv").box((xl, yb - 0.17, 1.04), (xl + 0.05, yb - 0.06, 1.065), 0.05)
+        kit.m("door_handle", "galv").box((xl, yb - 0.10, 1.00), (xl + 0.02, yb - 0.06, 1.10), 0.05)
+    else:
+        # hinged at yb (the far side as you walk in), swung in: its latch
+        # edge a hand's width off the near jamb, the gap facing you as you come
+        a = math.radians(DOOR_OPEN)
+        along = np.array([-math.sin(a), -math.cos(a), 0.0]) * (DOOR_W - 0.006)
+        face = np.array([math.cos(a), -math.sin(a), 0.0])    # the leaf's face, toward the walkway
+        o = np.array([xl, yb - 0.003, z0 + 0.01])
+        kit.m("door", "door_old").obox(o, [along, -face * 0.045, (0, 0, z1 - z0 - 0.013)], 0.08)
+        h = o + along * 0.86 + np.array([0, 0, 1.04 - o[2]])
+        kit.m("door_handle", "door_frame_old").obox(h, [along * 0.12, face * 0.05, (0, 0, 0.025)], 0.05)
+        # the passage behind: concrete, going in, lit from deep inside
+        pa, pb = ya - 0.25, yb + 0.25
+        xe = xb - PASSAGE
+        zt = z0 + 2.4
+        con = kit.m("passage", "concrete")
+        uvw = lambda p: (p[0] / 2.0 + p[1] / 2.0, p[2] / 2.0)
+        con.quad((xb, pa, z0), (xe, pa, z0), (xe, pb, z0), (xb, pb, z0), 0.15, (0, 0, 1), lambda p: (p[0] / 2.0, p[1] / 2.0))
+        con.quad((xb, pa, zt), (xe, pa, zt), (xe, pb, zt), (xb, pb, zt), 0.2, (0, 0, -1), lambda p: (p[0] / 2.0, p[1] / 2.0))
+        con.quad((xb, pa, z0), (xe, pa, z0), (xe, pa, zt), (xb, pa, zt), 0.15, (0, 1, 0), uvw)
+        con.quad((xb, pb, z0), (xe, pb, z0), (xe, pb, zt), (xb, pb, zt), 0.15, (0, -1, 0), uvw)
+        con.quad((xe, pa, z0), (xe, pb, z0), (xe, pb, zt), (xe, pa, zt), 0.2, (1, 0, 0), uvw)
+        # the wall round the opening, seen from inside (the frame's back)
+        con.quad((xb, pa, z0), (xb, ya - DOOR_FRAME, z0), (xb, ya - DOOR_FRAME, zt), (xb, pa, zt), 0.2, (-1, 0, 0), uvw)
+        con.quad((xb, yb + DOOR_FRAME, z0), (xb, pb, z0), (xb, pb, zt), (xb, yb + DOOR_FRAME, zt), 0.2, (-1, 0, 0), uvw)
+        con.quad((xb, ya - DOOR_FRAME, TILE_TOP), (xb, yb + DOOR_FRAME, TILE_TOP), (xb, yb + DOOR_FRAME, zt), (xb, ya - DOOR_FRAME, zt), 0.2,
+                 (-1, 0, 0), uvw)
+        kit.light("cold", (xe + 0.4, yc, zt - 0.05), (0.5, 0.5), (0, 0, -1), COLD, COLD_W)
+        # her note, taped to the tiles beside the door: a sheet folded twice
+        yn = yc - 0.80
+        nw, nh, nz = 0.21, 0.297, 1.32
+        kit.m("note", "note").quad((WALL_X + 0.004, yn - nw / 2, nz), (WALL_X + 0.004, yn + nw / 2, nz), (WALL_X + 0.004, yn + nw / 2, nz + nh),
+                                   (WALL_X + 0.004, yn - nw / 2, nz + nh), 0.05, (1, 0, 0),
+                                   lambda p, yn=yn: ((p[1] - (yn - nw / 2)) / nw, (p[2] - nz) / nh))
+        for yt in (yn - nw / 2 + 0.02, yn + nw / 2 - 0.02):
+            kit.m("tape", "tape").box((WALL_X + 0.004, yt - 0.025, nz + nh - 0.03), (WALL_X + 0.006, yt + 0.025, nz + nh + 0.02), 0.05)
+    # the escape point's plate (its words are the run time's), the way-out sign
+    yi = yc - 1.35
+    kit.m("plate", "steel_dark").box((WALL_X, yi - 0.18, 1.06), (WALL_X + 0.012, yi + 0.18, 1.74), 0.1)
+    kit.m("sign_info", "sign_info").quad((WALL_X + 0.013, yi - 0.16, 1.08), (WALL_X + 0.013, yi + 0.16, 1.08), (WALL_X + 0.013, yi + 0.16, 1.72),
+                                         (WALL_X + 0.013, yi - 0.16, 1.72), 0.1, (1, 0, 0),
+                                         lambda p, yi=yi: ((p[1] - (yi - 0.16)) / 0.32, (p[2] - 1.08) / 0.64))
+    exit_sign(yc + 0.95, 1.55)
 
 
 def mirror_kit(kit):
@@ -877,6 +964,11 @@ MATS = {
     "rail_orange": ("baked", "paint.jpg", (1.35, 0.42, 0.10), 0.4),
     "hatch": ("baked", "paint.jpg", (0.46, 0.44, 0.41), 0.5),
     "cabinet": ("baked", "paint.jpg", (1.35, 1.35, 1.33), 0.3),
+    "door": ("baked", "paint.jpg", (0.38, 0.46, 0.42), 0.5),
+    "door_old": ("baked", "paint.jpg", (0.30, 0.25, 0.21), 0.6),
+    "door_frame_old": ("baked", "paint.jpg", (0.20, 0.17, 0.15), 0.6),
+    "note": ("baked", None, (0.80, 0.79, 0.74), 0.7),
+    "tape": ("baked", None, (0.70, 0.66, 0.52), 0.4),
     "black": ("baked", None, (0.02, 0.02, 0.02), 0.9),
     "plaque": ("baked", None, (0.03, 0.03, 0.03), 0.3),
     "window_dark": ("baked", None, (0.02, 0.022, 0.025), 0.1),
@@ -1274,7 +1366,7 @@ def main():
     w = Writer()
     lookup = None
     t0 = time.time()
-    for v in ("A", "B", "C", "D", "E"):
+    for v in ("A", "B", "C", "D", "E", "F", "G"):
         if only and v not in only and v != "A":
             continue
         print(f"module {v}")
@@ -1385,6 +1477,10 @@ def render_view(o):
         for k in range(2, 10):
             module(kit, k * MOD, "A", dense=False)
         add(kit, mirror_kit(kit_range(0, 8)))
+    elif which in ("F", "G"):
+        # the escape door, in the fourth of seven modules (its middle at y 21)
+        for k in range(0, 7):
+            module(kit, k * MOD, which if k == 3 else "A", dense=k == 3)
     else:
         for k in range(0, 12):
             module(kit, k * MOD, variant_of(k + 2) if k > 1 else "A", dense=False)

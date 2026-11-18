@@ -9,6 +9,8 @@ license-file.workspace = true
 
 [dependencies]
 engine = { workspace = true }
+# the way in: the Jahamun Tunnel (the place; the engine only)
+jahamun = { workspace = true }
 serde_json = { workspace = true }
 miniz_oxide = { workspace = true }
 

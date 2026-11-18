@@ -441,6 +441,7 @@ pub struct Game {
     pub stairwell: Option<crate::modes::stairwell::Stairwell>,
     /// The Loop sub-mode while inside the Loop, else None
     pub loop_rooms: Option<crate::modes::loop_rooms::LoopMode>,
+    pub tunnel: Option<Box<crate::modes::tunnel::Tunnel>>,
     pub stair_audio: StairAudio,
     /// The Loop's wallpapers, clean and rotten
     pub loop_paper: Vec<Tex>,
@@ -695,6 +696,8 @@ pub struct Game {
     pub stair_near_exit: bool,
     pub in_loop: bool,
     pub loop_near_exit: bool,
+    /// the way in (`modes::tunnel`): the Jahamun Tunnel, before the Building
+    pub in_tunnel: bool,
     // ---- flow
     pub state: String,
     pub falling_t: f64,
@@ -919,6 +922,7 @@ impl Game {
             drawer_props: vec![],
             stairwell: None,
             loop_rooms: None,
+            tunnel: None,
             scene_filter: Default::default(),
             // ---- world build
             pending_dispose: None,
@@ -1252,6 +1256,7 @@ impl Game {
             in_stairwell: false,
             stair_near_exit: false,
             in_loop: false,
+            in_tunnel: false,
             loop_near_exit: false,
             state: String::new(),
             falling_t: 0.0,

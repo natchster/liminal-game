@@ -240,7 +240,8 @@ impl Game {
     }
 
     pub fn toggle_flashlight(&mut self) {
-        if self.state != "playing" {
+        // (the way in is lit: no lamp of yours there)
+        if self.state != "playing" || self.in_tunnel {
             return;
         }
         if !self.player.flashlight_on && self.player.battery <= 0.0 {

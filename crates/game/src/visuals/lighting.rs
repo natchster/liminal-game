@@ -548,7 +548,7 @@ impl Game {
     /// under them (the light map's: the Building's storeys, a pool's floor);
     /// none on the Stairwell's flights, which the light map does not hold
     pub fn floor_occlusion(&self) -> f64 {
-        if self.in_stairwell { 0.0 } else { 1.0 }
+        if self.in_stairwell || self.in_tunnel { 0.0 } else { 1.0 }
     }
 
     /// How much a corner darkens where walls meet each other, the floor and
@@ -558,7 +558,7 @@ impl Game {
     /// map's B holds whether a place has a floor rather than its ceiling
     /// (`light_floor_gaps`)
     pub fn corner_occlusion(&self) -> f64 {
-        if self.building.is_some() || self.in_stairwell || self.in_loop || self.light_floor_gaps() { 0.0 } else { 1.0 }
+        if self.building.is_some() || self.in_stairwell || self.in_loop || self.in_tunnel || self.light_floor_gaps() { 0.0 } else { 1.0 }
     }
 
     pub fn update_ambience(&mut self) {
@@ -826,6 +826,10 @@ impl Game {
 
     /// The far plane reaches the farthest tile still visible through its own haze
     pub fn sync_far_to_fog(&mut self) {
+        // (the way in sets its own: its haze and its reach are the place's)
+        if self.in_tunnel {
+            return;
+        }
         let (w, h) = (self.w as usize, self.h as usize);
         let want = if self.ll_on > 0.5 && !self.light_map_cpu.is_empty() && self.light_map_cpu.len() == w * h {
             let cp = self.camera.pos();
