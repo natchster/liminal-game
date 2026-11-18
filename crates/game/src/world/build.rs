@@ -520,6 +520,8 @@ impl Game {
         let contact = self.contact_blobs(&props);
         self.build_walls();
         self.build_ceilings();
+        // no vault's draught leans toward a door (`world::vaults`)
+        self.settle_vault_draughts();
         self.lay_panels();
         // the Utility Halls' lining and the runs on their crown (`world::lining`)
         self.lay_lining();
@@ -528,6 +530,8 @@ impl Game {
         self.lay_halls();
         // the drops cut into the floor: their sides, bottoms, rails, catwalks
         self.lay_drops();
+        // the vaults' arches (`world::vaults`)
+        self.lay_vaults();
         drop(props);
         self.freeze_static();
         // repeated static parts become one instanced mesh per 10×10-tile chunk; #noinstance keeps them apart

@@ -68,6 +68,9 @@ pub fn wall_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
     match zn.arch {
         LINED => "shotcrete",
         crate::world::halls::HALL => "twotone",
+        // a vault's walls cast against forms, as its arch is where it is
+        // not lined (`world::vaults`)
+        crate::level::archgen::VAULT => "formwork",
         _ => zn.wall_mat,
     }
 }
@@ -78,7 +81,7 @@ pub fn wall_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
 pub fn ceil_mat_of(zn: &crate::level::archgen::Zone) -> &'static str {
     match zn.arch {
         LINED => "shotcrete",
-        crate::world::halls::HALL => "formwork",
+        crate::world::halls::HALL | crate::level::archgen::VAULT => "formwork",
         _ => zn.ceil_mat,
     }
 }
@@ -179,6 +182,22 @@ impl Face {
     }
 
     /// The mesh of it in `mat`, bounded
+    /// A quad by its corners, each with its own normal and uv (a curved
+    /// surface shaded smooth), turned to face along their mean
+    pub(crate) fn quad_smooth(&mut self, q: [Vec3; 4], ns: [Vec3; 4], uvs: [(f64, f64); 4]) {
+        let (a, b, cc) = (q[0], q[1], q[2]);
+        let e1 = Vec3::new(b.x - a.x, b.y - a.y, b.z - a.z);
+        let e2 = Vec3::new(cc.x - a.x, cc.y - a.y, cc.z - a.z);
+        let x = e1.crossed(e2);
+        let n = Vec3::new(ns.iter().map(|v| v.x).sum(), ns.iter().map(|v| v.y).sum(), ns.iter().map(|v| v.z).sum());
+        let order = if x.x * n.x + x.y * n.y + x.z * n.z >= 0.0 { [0, 1, 2, 3] } else { [0, 3, 2, 1] };
+        let base = (self.pos.len() / 3) as u32;
+        for k in order {
+            self.vert(q[k], ns[k], uvs[k]);
+        }
+        self.idx.extend([base, base + 1, base + 2, base, base + 2, base + 3]);
+    }
+
     pub(crate) fn mesh(self, mat: &Mat) -> Obj {
         let geo = Geo::new();
         if !self.col.is_empty() {

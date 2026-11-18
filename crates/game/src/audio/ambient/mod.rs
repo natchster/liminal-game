@@ -701,7 +701,9 @@ impl Game {
         }
         self.zones_seen.insert(z.arch.to_string());
         self.zone_toast_t = 8.0;
-        self.show_msg(&format!("{} — {}", z.title, z.lore), 2.4);
+        // (the facility's places have no number: their title alone)
+        let line = if z.lore.is_empty() { z.title.to_string() } else { format!("{} — {}", z.title, z.lore) };
+        self.show_msg(&line, 2.4);
     }
 
     /// The lamp whose ballast hums for one standing at (x, z), and how far

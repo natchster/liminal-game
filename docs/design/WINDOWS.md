@@ -124,8 +124,8 @@ wall and the wall is a wall.
 
 Where a real building would have them: offices and office wings, living
 quarters, parlours and party rooms (a `Home`, as the vending machine's),
-never in the Habitable Zone's halls (`NO_WINDOWS`; `docs/plan/FACILITY.md`
-F6), on a straight wall (never one that leans), its face whole over
+never in the Habitable Zone's halls nor the Vaults (`NO_WINDOWS`;
+`docs/plan/FACILITY.md` F6, F8), on a straight wall (never one that leans), its face whole over
 the opening and half a metre past it either side (never a pillar's face,
 nor a block standing out of its wall), a clear floor before it, nothing
 already hung there; in rows of one to three lights or windows. The rows

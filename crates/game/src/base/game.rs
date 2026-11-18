@@ -250,6 +250,8 @@ pub struct Game {
     /// (`world::drops`: 0 none, a pit's, a catwalk's)
     pub drops: Vec<crate::world::drops::Drop>,
     pub drop_tiles: Vec<u8>,
+    /// The floor's vaults (`world::vaults`), planned with its layout
+    pub vaults: Vec<crate::world::vaults::Vault>,
     pub papers: Vec<PaperPile>,
     pub lore_notes: Vec<LoreNote>,
     pub safe_room: Option<SafeRoom>,
@@ -896,6 +898,7 @@ impl Game {
             pool_bounds: None,
             drops: vec![],
             drop_tiles: vec![],
+            vaults: vec![],
             papers: vec![],
             lore_notes: vec![],
             safe_room: None,

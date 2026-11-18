@@ -559,7 +559,7 @@ impl Surfaces {
             "concrete" => Some(self.get("concrete", g, concrete)),
             "brick" => Some(self.get("brick", g, brick)),
             "tile" => Some(self.get("tile", g, |r, x| tile(r, x, false))),
-            "panel" | "ashlar" | "poured" | "formwork" | "shotcrete" | "twotone" => self.photo(kind, g),
+            "panel" | "ashlar" | "poured" | "formwork" | "shotcrete" | "twotone" | "liner" => self.photo(kind, g),
             _ => None,
         }
     }

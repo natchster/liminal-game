@@ -664,6 +664,39 @@ def shotcrete():
     return T.grade(T.to_srgb(lin), (127, 123, 114), sat=0.45, warm=0.6)
 
 
+def liner():
+    """A vault's lining (docs/plan/FACILITY.md F8): corrugated steel liner
+    plate, its corrugations running round the arch (152 mm a pitch), three to
+    a plate 457 mm along the gallery, the plates lapped and bolted at their
+    edges; galvanised steel gone dull, dirt in its troughs (Poly Haven
+    corrugated_iron_02, CC0: its ribs 73 px apart, six of them rescaled to
+    0.912 m). 0.912 m along x 1.824 m round a repeat: ribs run down the
+    image (v round the arch, u along the gallery)."""
+    img = T.load(polyhaven("corrugated_iron_02", "diff"))
+    pitch = img.shape[1] / 28.0
+    w, h = int(round(6 * pitch)), int(round(12 * pitch))
+    a = T.delight(img[300:300 + h, 400:400 + w], 160, 0.6)
+    a = T.periodic_y(T.periodic_x(T.resize(a, 1024 + 32, 2048 + 32), 32), 32)
+    lin = T.to_lin(a)
+    H, W = lin.shape[0], lin.shape[1]
+    yy, xx = np.mgrid[0:H, 0:W]
+    shade = np.ones((H, W))
+    # the laps round the arch, every three ribs: a dark edge and its lip
+    for x0 in (0, W // 2):
+        shade[:, x0:x0 + 3] *= 0.5
+        shade[:, x0 + 3:x0 + 5] *= 1.18
+    # the lap along the gallery
+    shade[0:3, :] *= 0.55
+    shade[3:5, :] *= 1.15
+    # the bolts: a row down each lap round the arch, one a rib along the other
+    bolts = [(x0 + 9, y) for x0 in (0, W // 2) for y in range(84, H, 168)] + [(x, 11) for x in range(85, W, 171)]
+    for bx, by in bolts:
+        d = np.hypot(xx - bx, yy - by)
+        shade *= np.where(d < 9, np.where(d < 6, 1.25, 0.45), 1.0)
+    lin *= shade[..., None]
+    return T.grade(T.to_srgb(np.clip(lin, 0, 1)), (98, 97, 92), sat=0.35, warm=0.3)
+
+
 def twotone():
     """The Habitable Zone's walls and columns (docs/plan/FACILITY.md F6): poured
     concrete painted two-tone as a plant's corridors and halls were (the
@@ -729,7 +762,7 @@ def glass():
 
 TEXTURES = {"view": view, "glass": glass, "panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit,
             "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor,
-            "shotcrete": shotcrete, "shotcrete_grain": shotcrete_grain, "twotone": twotone}
+            "shotcrete": shotcrete, "shotcrete_grain": shotcrete_grain, "twotone": twotone, "liner": liner}
 
 
 def pictures():

@@ -27,7 +27,7 @@ macro_rules! texture {
 }
 
 /// The photographed surfaces: (kind, file, metres a repeat `[u, v]`).
-pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 10] = [
+pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 11] = [
     // the Well's facade: twelve panels a tile wide and a storey high, each with its window
     ("panel", texture!("panel.jpg"), [16.0, 9.0]),
     // the Stair Halls: rock-faced granite in courses of 0.75 m
@@ -46,6 +46,8 @@ pub static PHOTO_SURFACES: [(&str, &[u8], [f64; 2]); 10] = [
     ("ribbed", texture!("ribbed.jpg"), [4.0, 1.6]),
     // the Utility Halls' lining: concrete sprayed on (`docs/plan/FACILITY.md` F5)
     ("shotcrete", texture!("shotcrete.jpg"), [2.0, 2.0]),
+    // a vault's liner plate (FACILITY F8): along its gallery, round its arch
+    ("liner", texture!("liner.jpg"), [0.912, 1.824]),
     // the Habitable Zone's walls and columns: concrete painted two-tone, its
     // band once at the floor (8 m: no hall is taller; F6)
     ("twotone", texture!("twotone.jpg"), [4.0, 8.0]),

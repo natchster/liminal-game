@@ -30,7 +30,7 @@ pub const WINDOW_HOME: Home =
 
 /// The archetypes no window is cut in, whatever their purpose
 /// (`docs/plan/FACILITY.md` F6, the developer's answer)
-pub const NO_WINDOWS: &[&str] = &["hall"];
+pub const NO_WINDOWS: &[&str] = &["hall", "vault"];
 
 /// The salts of a window's own streams: its row's plan, and its wear and blinds
 const PLAN_SALT: u64 = 0x57_1D_0E_9A_17;

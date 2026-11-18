@@ -918,7 +918,7 @@ pub static PLACER_THEME: [(&str, &str); 441] = [
 ];
 
 /// Zone archetype → (theme, chance)
-pub const THEME_ALLOW: [(&str, &[(&str, f64)]); 9] = [
+pub const THEME_ALLOW: [(&str, &[(&str, f64)]); 10] = [
     ("lobby", &[("core", 0.9), ("office", 0.07), ("domestic", 0.05), ("industrial", 0.05)]),
     ("pillars", &[("core", 0.7), ("domestic", 0.04)]),
     (
@@ -945,11 +945,13 @@ pub const THEME_ALLOW: [(&str, &[(&str, f64)]); 9] = [
     ("electrical", &[("core", 0.7), ("industrial", 1.0), ("office", 0.2), ("occult", 0.1)]),
     ("pool", &[("bathroom", 1.0), ("core", 0.35), ("toys", 0.12)]),
     ("store", &[("core", 0.2)]),
+    // the facility's vault (FACILITY F8): a gallery used for storage, or bare
+    ("vault", &[("core", 0.5), ("industrial", 1.0)]),
 ];
 
 /// Zone archetype → the chance an area of it is left without a themed
 /// purpose: bare rooms with only the building's own fittings
-pub const PURPOSE_EMPTY: [(&str, f64); 9] = [
+pub const PURPOSE_EMPTY: [(&str, f64); 10] = [
     ("lobby", 0.45),
     ("pillars", 0.6),
     ("office", 0.1),
@@ -959,6 +961,7 @@ pub const PURPOSE_EMPTY: [(&str, f64); 9] = [
     ("electrical", 0.25),
     ("pool", 0.15),
     ("store", 1.0),
+    ("vault", 0.5),
 ];
 
 /// Theme → the themes that can share a place with it (weights)

@@ -512,6 +512,11 @@ fn nothing_is_put_on_a_drop_or_hung_on_its_edge() {
                 }
             }
             for e in d["entities"].as_array().unwrap() {
+                // (the one behind the glass stands beyond its window, in the
+                // outside it shows, drawn through its portal: not on this floor)
+                if e["type"] == "glass" {
+                    continue;
+                }
                 let (x, z) = (e["x"].as_f64().unwrap(), e["z"].as_f64().unwrap());
                 if meets(x, z, x, z) {
                     problems.push(format!("seed {seed} L{level}: a {} starts at a drop ({x:.1}, {z:.1})", e["type"]));
@@ -563,4 +568,88 @@ fn a_drop_changes_no_wall_but_its_own() {
         assert_eq!(a.len(), b.len(), "seed {seed} L{level}: boxes off the drops");
         assert!(a == b, "seed {seed} L{level}: a wall off the drops changed");
     }
+}
+
+/// Nothing pokes through a vault's arch or is left behind it
+/// (`world::vaults`): no placed thing in a gallery reaches above the arch
+/// over it. Deep floors of a few runs that have vaults.
+#[test]
+fn nothing_pokes_through_a_vaults_arch() {
+    let mut floors = 0;
+    let mut problems = vec![];
+    for seed in [7u32, 77, 202, 4242] {
+        for level in [9, 12, 13, 16] {
+            let mut g = new_game();
+            build(&mut g, seed, level);
+            if g.vaults.is_empty() {
+                continue;
+            }
+            floors += 1;
+            let d = g.level_dump();
+            for v in &g.vaults {
+                let a = g.vault_geom(v);
+                for o in d["objects"].as_array().unwrap() {
+                    let f = |k: &str, i: usize| o[k][i].as_f64().unwrap();
+                    let (u, s) = if a.along_x { (f("pos", 0), f("pos", 2) - a.mid) } else { (f("pos", 2), f("pos", 0) - a.mid) };
+                    if u <= a.lo || u >= a.hi || s.abs() >= a.half {
+                        continue;
+                    }
+                    if f("max", 1) > a.y_at(s) + 0.02 {
+                        problems.push(format!(
+                            "seed {seed} L{level}: {} by {} reaches {:.2} m under an arch at {:.2}",
+                            o["kind"],
+                            o["placer"],
+                            f("max", 1),
+                            a.y_at(s)
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    assert!(floors >= 6, "floors with vaults: {floors}");
+    assert!(problems.is_empty(), "{} through an arch:\n{}", problems.len(), problems.join("\n"));
+}
+
+/// A vault's one wrong thing is always there and never a lure
+/// (`world::vaults`, `LORE.md`'s Vaults): its draught leans toward an end
+/// whose wall is whole, and no door stands within reach of that end.
+#[test]
+fn a_vaults_draught_leans_toward_a_closed_end() {
+    use game::world::vaults::DOOR_CLEAR;
+    let mut vaults = 0;
+    let mut problems = vec![];
+    for seed in [1u32, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233] {
+        for level in [9, 12, 13, 16] {
+            let mut g = new_game();
+            build(&mut g, seed, level);
+            for v in &g.vaults {
+                vaults += 1;
+                let Some(t) = v.toward else {
+                    problems.push(format!("seed {seed} L{level}: a vault with no draught"));
+                    continue;
+                };
+                let end = if t > 0.0 { v.g.a1 + 1 } else { v.g.a0 - 1 };
+                let whole = (v.g.c0..=v.g.c1).all(|c| if v.g.along_x { g.is_wall_tile(end, c) } else { g.is_wall_tile(c, end) });
+                if !whole {
+                    problems.push(format!("seed {seed} L{level}: its draught leans toward an open end"));
+                }
+                let a = g.vault_geom(v);
+                let e = if t > 0.0 { a.hi } else { a.lo };
+                let mut doors: Vec<(f64, f64)> =
+                    g.layout_things.iter().filter(|d| d.asset.ends_with("_door")).map(|d| (d.x, d.z)).collect();
+                if let Some(x) = g.exit_data.as_ref() {
+                    doors.push((x.pos.x, x.pos.z));
+                }
+                for (x, z) in doors {
+                    let (u, s) = if a.along_x { (x, z - a.mid) } else { (z, x - a.mid) };
+                    if s.abs() < a.half + 1.0 && (u - e).abs() < DOOR_CLEAR {
+                        problems.push(format!("seed {seed} L{level}: a door at ({x:.1}, {z:.1}) by the end it leans to"));
+                    }
+                }
+            }
+        }
+    }
+    assert!(vaults >= 20, "vaults: {vaults}");
+    assert!(problems.is_empty(), "{}:\n{}", problems.len(), problems.join("\n"));
 }

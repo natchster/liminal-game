@@ -361,6 +361,20 @@
         "assets/src/textures/sources.json"
       ]
     },
+    "textures/liner.jpg": {
+      "authors": "Sergej Majboroda (photography) and Jenelle van Heerden (processing) (Poly Haven, corrugated_iron_02, CC0); processed by coding agents under the developer's direction",
+      "built_with": "galvanised corrugated sheet's colour taken off its slow light, six of its ribs rescaled to liner plate's 152 mm pitch, the plates' laps and bolt rows drawn on, graded to dull steel: a vault's liner plate",
+      "fingerprint": "05df3fd7383e1de7",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
     "textures/lit.jpg": {
       "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
       "built_with": "four photographed windows as lit from inside (frames in silhouette)",

@@ -781,6 +781,11 @@ impl Game {
             "objects": self.prop_list(),
             "barricades": self.barricade_tiles,
             // the drops cut into the floor (`world::drops`): tiles, bottom, catwalk
+            "vaults": self.vaults.iter().map(|v| {
+                let a = self.vault_geom(v);
+                json!({ "zone": v.zone, "alongX": v.g.along_x, "lo": a.lo, "hi": a.hi, "mid": a.mid, "half": a.half,
+                        "crown": v.crown, "springing": a.y_at(a.half), "lined": v.lined, "toward": v.toward })
+            }).collect::<Vec<_>>(),
             "drops": self.drops.iter().map(|d| json!({
                 "x0": d.x0, "z0": d.z0, "x1": d.x1, "z1": d.z1,
                 "bottom": format!("{:?}", d.bottom),

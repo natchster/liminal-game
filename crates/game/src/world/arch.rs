@@ -585,6 +585,8 @@ impl Game {
             [Lamp::Tube, Lamp::HighBay, Lamp::Bulkhead].into_iter().filter(|k| self.panels.iter().any(|p| p.kind == *k)).collect();
         let white = Color::white();
         let mut rods: Vec<(f64, f64, f64, f64, f64)> = vec![];
+        // a vault's lamps hang on cords from its arch (`world::vaults`)
+        let mut cords: Vec<Mat4> = vec![];
         let mut bodies: Vec<(Lamp, Mat4)> = vec![];
         for (mi, &kind) in kinds.iter().enumerate() {
             let ids: Vec<usize> = (0..self.panels.len()).filter(|&i| self.panels[i].kind == kind).collect();
@@ -599,6 +601,13 @@ impl Game {
                 let (pwx, pwz) = (self.panels[i].wx, self.panels[i].wz);
                 let t = self.t_idx(self.tx(pwx), self.tz(pwz));
                 let ceil = self.tile_ceil[t] as f64;
+                // under a vault's arch: the arch's height above it, the way
+                // its draught leans, its gallery's axis
+                let under_arch = if kind == Lamp::HighBay {
+                    self.vault_at(pwx, pwz).map(|(v, a)| (a.y_at(if a.along_x { pwz - a.mid } else { pwx - a.mid }), v.toward, a.along_x))
+                } else {
+                    None
+                };
                 let p = &mut self.panels[i];
                 p.mesh = mi;
                 p.inst = inst;
@@ -614,6 +623,34 @@ impl Game {
                         let mut m = Mat4::IDENTITY;
                         m.make_translation(p.wx, p.y - 0.04, p.wz);
                         m
+                    }
+                    Lamp::HighBay if under_arch.is_some() => {
+                        // hung on a cord from the arch, a metre of it at
+                        // least, leaning with the draught toward the closed
+                        // end: the lamp moved to where it hangs
+                        let (anchor, toward, along_x) = under_arch.unwrap_or_default();
+                        let len = anchor - (FIXTURE_HANG + 0.66).min(anchor - 1.0);
+                        let lean = toward.map_or(0.0, |s| s * crate::world::vaults::LEAN);
+                        let off = len * lean.dsin();
+                        let hook = anchor - len * lean.dcos();
+                        let (ax, az) = (p.wx, p.wz);
+                        if along_x {
+                            p.wx += off;
+                        } else {
+                            p.wz += off;
+                        }
+                        let q = if along_x {
+                            Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), lean)
+                        } else {
+                            Quat::from_axis_angle(&Vec3::new(1.0, 0.0, 0.0), -lean)
+                        };
+                        cords.push(Mat4::compose(
+                            &Vec3::new((ax + p.wx) / 2.0, (anchor + hook) / 2.0, (az + p.wz) / 2.0),
+                            &q,
+                            &Vec3::new(0.012, len, 0.012),
+                        ));
+                        p.y = hook - HIGH_BAY_DROP;
+                        Mat4::compose(&Vec3::new(p.wx, hook, p.wz), &q, &Vec3::new(1.0, 1.0, 1.0))
                     }
                     Lamp::HighBay => {
                         // its rim where a hung tube would be, its hook above
@@ -660,6 +697,12 @@ impl Game {
                 _ => lambert!({ color: 0x55574f }),
             };
             self.add_instanced(&geo, &mat, &list, &|m: &Mat4| *m);
+        }
+        // a vault's lamps' cords: a black flex
+        if !cords.is_empty() {
+            let geo = self.unit_box_geo.clone();
+            let flex = lambert!({ color: 0x1e1e1c });
+            self.add_instanced(&geo, &flex, &cords, &|m: &Mat4| *m);
         }
         // the hanger rods and stems
         let geo = self.unit_box_geo.clone();

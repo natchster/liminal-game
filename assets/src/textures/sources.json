@@ -110,6 +110,13 @@
           "painted_plaster_wall_diff_2k.jpg": "43086089986e492b7b0b2cf81b5f1e1f919c4e86"
         }
       },
+      "corrugated_iron_02": {
+        "what": "galvanised corrugated sheet gone dull, dirt in its troughs, 2.7 m a repeat (28 ribs), for a vault's liner plate (its ribs rescaled to 152 mm)",
+        "authors": "Sergej Majboroda (photography), Jenelle van Heerden (processing)",
+        "files": {
+          "corrugated_iron_02_diff_2k.jpg": "2e7bbd884265d556c9ad13835e9fa0e271d3371c"
+        }
+      },
       "plastered_wall_04": {
         "what": "a plastered interior wall, 3.2 m a repeat",
         "authors": "Rob Tuytel",

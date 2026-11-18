@@ -32,6 +32,9 @@ use crate::base::numeric::*;
 use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
 
+mod vault;
+pub use vault::{FACILITY_ARCHETYPES, Gallery, VAULT, VAULT_DEPTH, vault_gallery};
+
 /// +x, -x, +z, -z
 pub const DIRS: [[i32; 2]; 4] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 /// TileFlags bit: low partition (cubicle wall)
@@ -347,7 +350,11 @@ pub static ARCHETYPES: [Archetype; 9] = [
 
 /// `ARCHETYPES[key]` (None for keys that are not archetypes, e.g. "house").
 pub fn archetype(key: &str) -> Option<&'static Archetype> {
-    ARCHETYPES.iter().find(|a| a.key == key).or_else(|| crate::level::building::BUILDING_ARCHETYPES.iter().find(|a| a.key == key))
+    ARCHETYPES
+        .iter()
+        .find(|a| a.key == key)
+        .or_else(|| crate::level::building::BUILDING_ARCHETYPES.iter().find(|a| a.key == key))
+        .or_else(|| vault::FACILITY_ARCHETYPES.iter().find(|a| a.key == key))
 }
 fn arch_of(key: &str) -> &'static Archetype {
     archetype(key).unwrap_or_else(|| panic!("archgen: unknown archetype {key:?}"))
@@ -638,6 +645,9 @@ struct Ctx<'r> {
     /// the zone being carved, and the rooms laid out so far
     zone: usize,
     rooms: Vec<Room>,
+    /// walls the repair tunnels go through only when nothing else joins
+    /// the floor (a vault's ends: its draught leans toward a closed one)
+    hard: Vec<bool>,
 }
 impl Ctx<'_> {
     #[inline]
@@ -760,6 +770,8 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
             }
         }
     }
+    // a vault (FACILITY F8, `vault::pick`): by a zone's shape, no draw
+    vault::pick(level, &sched, scp, &mut zones, rng, cell);
     share_ceilings(&mut zones);
     // a zone id per tile (the outer border belongs to the nearest zone)
     let mut zone_of = vec![0u8; n];
@@ -780,7 +792,7 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
     }
 
     // ---- 3. carve each zone ----
-    let mut ctx = Ctx { w, h, tiles: vec![1u8; n], tile_flags: vec![0u8; n], rng: &mut *rng, zone: 0, rooms: vec![] };
+    let mut ctx = Ctx { w, h, tiles: vec![1u8; n], tile_flags: vec![0u8; n], rng: &mut *rng, zone: 0, rooms: vec![], hard: vec![false; n] };
     for z in &zones {
         let r = z.rect();
         ctx.zone = z.id;
@@ -795,6 +807,7 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
             "electrical" => carve_walkers(&mut ctx, r, 0.42, [2, 5]),
             "hall" => carve_hall(&mut ctx, r),
             "pool" => carve_pool(&mut ctx, r),
+            VAULT => vault::carve_vault(&mut ctx, r),
             other => panic!("archgen: no carver for {other:?}"),
         }
         if z.arch == "store" {
@@ -1541,50 +1554,61 @@ fn connect_all(c: &mut Ctx) {
         }
         let mut dist = vec![1i32 << 30; n];
         let mut prev = vec![-1i32; n];
-        let mut cur: Vec<usize> = vec![];
-        for i in 0..n {
-            if comp[i] == stray {
-                dist[i] = 0;
-                cur.push(i);
-            }
-        }
-        let mut level = 0i32;
         let mut hit: i64 = -1;
-        while !cur.is_empty() && hit < 0 {
-            let mut next: Vec<usize> = vec![];
-            let mut qi = 0;
-            while qi < cur.len() {
-                let cc = cur[qi];
-                qi += 1;
-                if dist[cc] != level {
-                    continue;
+        // through the hard walls only if nothing else joins it
+        for allow_hard in [false, true] {
+            dist.fill(1i32 << 30);
+            prev.fill(-1);
+            let mut cur: Vec<usize> = vec![];
+            for i in 0..n {
+                if comp[i] == stray {
+                    dist[i] = 0;
+                    cur.push(i);
                 }
-                if comp[cc] == main {
-                    hit = cc as i64;
-                    break;
-                }
-                let (cx, cz) = (cc as i32 % w, cc as i32 / w);
-                for [dx, dz] in DIRS {
-                    let nx = cx + dx;
-                    let nz = cz + dz;
-                    if nx < 1 || nz < 1 || nx >= w - 1 || nz >= h - 1 {
+            }
+            let mut level = 0i32;
+            while !cur.is_empty() && hit < 0 {
+                let mut next: Vec<usize> = vec![];
+                let mut qi = 0;
+                while qi < cur.len() {
+                    let cc = cur[qi];
+                    qi += 1;
+                    if dist[cc] != level {
                         continue;
                     }
-                    let ni = c.idx(nx, nz);
-                    let wgt = if c.tiles[ni] != 0 { 1 } else { 0 };
-                    if level + wgt < dist[ni] {
-                        dist[ni] = level + wgt;
-                        prev[ni] = cc as i32;
-                        if wgt != 0 {
-                            next.push(ni);
-                        } else {
-                            cur.push(ni);
+                    if comp[cc] == main {
+                        hit = cc as i64;
+                        break;
+                    }
+                    let (cx, cz) = (cc as i32 % w, cc as i32 / w);
+                    for [dx, dz] in DIRS {
+                        let nx = cx + dx;
+                        let nz = cz + dz;
+                        if nx < 1 || nz < 1 || nx >= w - 1 || nz >= h - 1 {
+                            continue;
+                        }
+                        let ni = c.idx(nx, nz);
+                        if c.hard[ni] && c.tiles[ni] != 0 && !allow_hard {
+                            continue;
+                        }
+                        let wgt = if c.tiles[ni] != 0 { 1 } else { 0 };
+                        if level + wgt < dist[ni] {
+                            dist[ni] = level + wgt;
+                            prev[ni] = cc as i32;
+                            if wgt != 0 {
+                                next.push(ni);
+                            } else {
+                                cur.push(ni);
+                            }
                         }
                     }
                 }
+                cur = next;
+                level += 1;
             }
-            cur = next;
-            level += 1;
+            if hit >= 0 {
+                break;
+            }
         }
         if hit < 0 {
             // unreachable pocket (should not happen inside the border) — wall it up

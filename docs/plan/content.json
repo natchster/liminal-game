@@ -1606,6 +1606,28 @@
     },
     {
       "checks": [
+        "test:backrooms/level_sweep",
+        "test:game/archgen",
+        "test:game/world_build",
+        "test:backrooms/reference_levels",
+        "test:backrooms/materials"
+      ],
+      "id": "facility/vaults",
+      "kind": "system",
+      "last_checked": "2026-11-18",
+      "last_human_review": null,
+      "name": "the vault (docs/plan/FACILITY.md F8): a new archetype, one long arched chamber, bare concrete or corrugated liner plate, its lamps on cords and its cobwebs leaning toward a blind end",
+      "notes": "level::archgen::vault (FACILITY_ARCHETYPES beside the old game's table: archgen_tables untouched; picked by a zone's shape on the facility's floors from depth 6; its ends hard against the repair tunnels) and world::vaults (the arch, its webs, the draught settled away from doors). The liner plate a CC0 photograph (Poly Haven corrugated_iron_02, assets/src/textures/build.py liner). level_sweep holds it: nothing_pokes_through_a_vaults_arch, a_vaults_draught_leans_toward_a_closed_end. Judged blind against the floors before (tests/review/verdicts.jsonl: 6 of 6, both orders). The lore-keeper read the canon; the developer chose the wrong thing and the caption THE VAULTS. No person has looked yet.",
+      "passes": {
+        "test:backrooms/level_sweep": true,
+        "test:game/archgen": true,
+        "test:game/world_build": true,
+        "test:backrooms/reference_levels": true,
+        "test:backrooms/materials": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/cutscenes",
         "test:game/player"
       ],

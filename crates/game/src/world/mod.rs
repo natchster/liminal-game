@@ -13,7 +13,8 @@
 //! [`cell_knock`]: what knocks at your cell while the fog is up; [`lamps`]:
 //! the rooms' lamps by kind; [`lining`]: the Utility Halls' lining and runs,
 //! and the surface each zone is drawn in; [`halls`]: the Habitable Zone's
-//! capitals; [`drops`]: the railed drops cut into some halls' floors.
+//! capitals; [`drops`]: the railed drops cut into some halls' floors;
+//! [`vaults`]: the facility's vaults, their arches and their draught.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod angled;
 pub mod arch;
@@ -34,6 +35,7 @@ pub mod placement_rules;
 pub mod purpose;
 pub mod settle;
 pub mod tables;
+pub mod vaults;
 pub mod zones;
 
 use crate::base::numeric::hypot2;
@@ -417,6 +419,8 @@ impl Game {
         // (the drops are this floor's own: planned in `build_world`)
         self.drops.clear();
         self.drop_tiles.clear();
+        // its vaults with it: their passages' ceilings are the solids'
+        self.plan_vaults();
         // provisional solids so anything placed during the prop pass collides
         // with the real partitions; rebuilt with anchors once props are down
         self.set_solids_now(None);
@@ -713,9 +717,19 @@ impl Game {
         }
         // blackout is the far end of the same rot: a share of the decay
         let dark_target = clamp(decay * 0.7, 0.05, 0.8);
+        // (a vault's gallery is lit end to end, its high-bays on one run:
+        // dark, its arch and its draught were a torch's circle, `world::vaults`)
+        let mut vault_region = vec![false; region_count];
+        if let Some(l) = self.layout.as_ref() {
+            for i in 0..n {
+                if l.zones[l.zone_of[i] as usize].arch == crate::level::archgen::VAULT {
+                    vault_region[unit_of[i]] = true;
+                }
+            }
+        }
         let mut candidates: Vec<usize> = vec![];
         for r in 0..region_count {
-            if r == spawn_region {
+            if r == spawn_region || vault_region[r] {
                 continue;
             }
             if region_info[r].flags & RF_MOSS != 0 {
