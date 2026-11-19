@@ -27,7 +27,7 @@ use crate::entities::creature::*;
 use crate::entities::motion::Mind;
 use crate::entities::motion::anim::{Anim, Drive, Pick};
 use crate::entities::motion::retarget::{Gains, set_global, turn_global};
-use crate::entities::{EntVoice, with_skin_detail};
+use crate::entities::{EntVoice, with_skin};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -91,8 +91,10 @@ thread_local! {
     static MATS: std::cell::RefCell<std::collections::HashMap<String, Mat>> = Default::default();
 }
 
-/// The hound's materials by slot: old skin (a waxy, dull sheen, the skin's
-/// fine detail), its clothes (matte, both sides), its hair.
+/// The hound's materials by slot: old skin (dry: dust and grime, no sheen,
+/// its pores and creases dark, the skin's fine detail; mottled, grimier
+/// near the floor), its clothes (matte, both sides), its hair (dull), its
+/// nails (horn, a little shine). E14: a sheen over all of it read as a doll.
 pub fn material(slot: &str) -> Mat {
     MATS.with(|m| {
         m.borrow_mut()
@@ -101,14 +103,21 @@ pub fn material(slot: &str) -> Mat {
                 "cloth" => {
                     let m = lambert!({ color: 0xffffff, vertexColors: true });
                     m.m().side = DoubleSide;
-                    with_skin_detail(m, 5.0, 0.6)
+                    m.m().wear = 0.8;
+                    with_skin(m, 5.0, 0.6, 0.0, 0.3)
                 }
                 "hair" => {
-                    let m = phong!({ color: 0xffffff, vertexColors: true, specular: 0x1c1b1a, shininess: 16 });
+                    // greasy: a little sheen along the locks, broken up
+                    let m = phong!({ color: 0xffffff, vertexColors: true, specular: 0x1c1b18, shininess: 18 });
                     m.m().side = DoubleSide;
-                    m
+                    with_skin(m, 9.0, 0.9, 0.6, 0.25)
                 }
-                _ => with_skin_detail(phong!({ color: 0xffffff, vertexColors: true, specular: 0x1e1c1a, shininess: 20 }), 3.4, 1.2),
+                "nail" => phong!({ color: 0xffffff, vertexColors: true, specular: 0x24221c, shininess: 28 }),
+                _ => {
+                    let m = phong!({ color: 0xffffff, vertexColors: true, specular: 0x14130f, shininess: 9 });
+                    m.m().wear = 0.7;
+                    with_skin(m, 3.4, 1.4, 0.2, 0.3)
+                }
             })
             .clone()
     })
@@ -478,16 +487,24 @@ pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind) {
         _ if m.killer => Pick::new("fours").fade(0.6),
         Mode::Strike => Pick::new("spring").travel(),
         // (a scrabble: the clips are slow, and its steps quicken more than they lengthen)
-        Mode::Hunt | Mode::Search if moving && speed > 2.6 => Pick::new(FAST).travel().cadence(0.72).max_pace(3.3),
+        Mode::Hunt | Mode::Search if moving && speed > 2.6 => Pick::new(FAST).travel().cadence(0.85).max_pace(3.3),
         Mode::Search if !moving => Pick::new("sniff"),
+        // slow: its head hanging to the floor, each hand set down with care
+        Mode::Stalk if moving && speed < 1.4 => Pick::new("creep").travel().cadence(0.6).max_pace(3.0),
+        _ if moving && speed < 1.4 => Pick::new("prowl").travel().cadence(0.62).max_pace(3.0),
         // (a person's crawl is slow: played no faster, its strides stretched
         // until it sprawled flat between arches, and read as bouncing)
         _ if moving => Pick::new("crawl").travel().cadence(0.68).max_pace(3.3),
-        Mode::Alert | Mode::Idle | Mode::Hunt => Pick::new("listen").gains(still),
+        // the tell: it stops dead where it is, mid-step, a hand off the
+        // floor if one was, and holds; then sinks slowly into its crouch
+        Mode::Alert | Mode::Hunt if m.mode_t < 0.45 => Pick::new(a.playing().0).rate(0.0).fade(0.08),
+        Mode::Alert | Mode::Idle | Mode::Hunt => Pick::new("listen").gains(still).fade(0.8),
         _ => Pick::new("fours").gains(still),
     };
     a.play(rig, &pick, d);
-    a.breathe(rig, 0.015, if moving { 4.0 } else { 1.6 });
+    // it pants after a charge: fast and shallow, dying away
+    let exert = a.eased("exert", if speed > 2.6 { 1.0 } else { 0.0 }, if speed > 2.6 { 2.0 } else { 0.25 }, dt);
+    a.breathe(rig, 0.015 + 0.03 * exert, 1.6 + 2.4 * (moving as u8 as f64) + 7.0 * exert);
     let map = a.rt.map.clone();
     // ---- the drag: the left hind's foot never lifts clear of the floor
     let l = map.leg[0];
@@ -510,9 +527,23 @@ pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind) {
     let t = a.time;
     // (from one cock of the head to the next quickly, never in a jump: a jump
     // read as a cartoon's)
-    let snap = a.eased("cock_at", ((t * 1.3).floor() * 1.7).dsin() * 0.35, 14.0, d.dt);
-    turn_global(rig, map.neck, &Quat::from_euler(&Euler::new(-0.9 * bay * w - 0.3 * cock * w, 0.0, 0.0)));
-    turn_global(rig, map.head, &Quat::from_euler(&Euler::new(-0.3 * bay * w, 0.0, snap * cock * w)));
+    // listening (docs/research/hound-references.md, what a dog's head does
+    // at a sound): still for 0.4 s, then its hanging head turns toward the
+    // sound, falls short and corrects in a snap or two, and holds; it cocks
+    // its head to one side, its own, and keeps it there (never side to side).
+    // Toward where it heard it, which is only roughly where you are: turned
+    // to your eyes, it followed you through walls, and said it knew
+    let hearing = listening && m.mode_t > 0.4;
+    let toward = if hearing { m.heard } else { None };
+    let (hy, _) = a.look(rig, toward, d, if toward.is_some() { 0.12 } else { 0.0 }, (0.9, 0.35), 0.5, 0.0);
+    let cock_to = (0.32 + hy * 0.15).clamp(-0.45, 0.45);
+    // moving, it swings loosely with its steps, a weight on the neck
+    let moving_f = a.eased("moving_f", if moving { 1.0 } else { 0.0 }, 3.0, dt);
+    let swing = (t * (2.2 + 1.2 * speed.min(3.0))).dsin() * 0.14 * moving_f * w;
+    // (its head hangs straight down at rest: lifting its face to you, or to
+    // bay, takes it up past level)
+    turn_global(rig, map.neck, &Quat::from_euler(&Euler::new(-1.08 * bay * w - 0.3 * cock * w, swing, 0.0)));
+    turn_global(rig, map.head, &Quat::from_euler(&Euler::new(-0.45 * bay * w, -swing * 0.5, cock_to * cock * w)));
     a.jaw(rig, 0.45 * bay * w);
     // ---- its hair hangs to the floor, trailing a little as it moves
     let (ahead, side) = d.ahead();
@@ -522,7 +553,8 @@ pub fn pose(a: &mut Anim, rig: &BodyRig, d: &Drive, m: &Mind) {
             rig.aim(hb, v3(-side * 0.05 + sway, -1.0, -ahead * 0.05), 0.0);
         }
     }
-    a.curl(rig, 0.1, &|_| 0.0);
+    // its fingers dig into the floor as it listens
+    a.curl(rig, 0.1 + 0.28 * cock * w, &|f| (t * 0.7 + f as f64).dsin() * 0.04 * cock);
 }
 
 // ------------------------------------------------------------ the voice

@@ -185,6 +185,11 @@ pub struct Node {
     /// GitHub issue #12); drawn only when visible and not culled
     pub culled: bool,
     pub frustum_culled: bool,
+    /// a level of detail: drawn only while the camera is at least `.0` and
+    /// less than `.1` metres from its origin across the floor (x and z: the
+    /// camera's height bobs), a body's near mesh and its far one, sharing an
+    /// origin, each drawn in its own band (`set_lod`)
+    pub lod: Option<(f64, f64)>,
     pub render_order: i32,
     pub cast_shadow: bool,
     pub receive_shadow: bool,
@@ -216,6 +221,7 @@ impl Node {
             visible: true,
             culled: false,
             frustum_culled: true,
+            lod: None,
             render_order: 0,
             cast_shadow: false,
             receive_shadow: false,
@@ -464,6 +470,12 @@ impl Obj {
     }
     pub fn set_frustum_culled(&self, v: bool) -> &Self {
         self.0.borrow_mut().frustum_culled = v;
+        self
+    }
+    /// Draw it only while the camera is `near..far` metres from its origin,
+    /// across the floor (`Node::lod`); `None` draws it at any distance.
+    pub fn set_lod(&self, band: Option<(f64, f64)>) -> &Self {
+        self.0.borrow_mut().lod = band;
         self
     }
     pub fn set_matrix_auto_update(&self, v: bool) -> &Self {
@@ -951,6 +963,7 @@ impl Obj {
         n.matrix_auto_update = src.matrix_auto_update;
         n.visible = src.visible;
         n.frustum_culled = src.frustum_culled;
+        n.lod = src.lod;
         n.render_order = src.render_order;
         n.layers = src.layers;
         n.morph_influences = src.morph_influences.clone();

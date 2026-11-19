@@ -87,7 +87,7 @@ fn every_mode_plays_a_clip_its_library_has() {
             for (speed, killer) in [(0.0, false), (1.0, false), (3.5, false), (6.0, false), (0.0, true)] {
                 let mut pos = v3(0.0, 0.0, 0.0);
                 for f in 0..20 {
-                    let mind = Mind { mode, mode_t: f as f64 / 30.0, killer, eye, chase_t: 0.2 };
+                    let mind = Mind { mode, mode_t: f as f64 / 30.0, killer, eye, heard: None, chase_t: 0.2 };
                     pos = v3(pos.x, 0.0, pos.z + speed / 30.0);
                     let d = a.drive(pos, 0.0, 1.0 / 30.0);
                     pose(kind, &mut a, &rig, &d, &mind);

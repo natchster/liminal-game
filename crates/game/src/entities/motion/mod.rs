@@ -36,15 +36,22 @@ pub struct Mind {
     pub killer: bool,
     /// your eyes (world): what it watches
     pub eye: Vec3,
+    /// where it last heard something (world, about a body's height over the
+    /// floor): only a rough guess, as its rule has it, never your eyes
+    pub heard: Option<Vec3>,
     /// how long it has chased you, s
     pub chase_t: f64,
 }
 
 impl Mind {
     pub fn new(mode: Mode, mode_t: f64, eye: Vec3) -> Mind {
-        Mind { mode, mode_t, killer: false, eye, chase_t: 0.0 }
+        Mind { mode, mode_t, killer: false, eye, heard: None, chase_t: 0.0 }
     }
 }
+
+/// How high over the floor a heard sound is taken to be, m (a body's middle:
+/// what it heard is a step, a breath, a thing knocked).
+pub const HEARD_Y: f64 = 0.7;
 
 /// Creature `ei`'s motion this frame (made the first time: its kind's
 /// clips, `fours` if its hands are feet, starting on `first`), handed to
@@ -59,7 +66,8 @@ pub fn with_anim(g: &mut Game, ei: usize, fours: bool, first: &'static str, dt: 
     let killer = g.director.killer == Some(ei) && g.state != "playing";
     let eye = g.camera.pos();
     let Some(c) = g.creature_mut(ei) else { return };
-    let mind = Mind { mode: c.brain.mode, mode_t: c.brain.mode_t, killer, eye, chase_t: c.chase_t };
+    let heard = c.brain.mem.heard.map(|(x, z, _)| v3(x, HEARD_Y, z));
+    let mind = Mind { mode: c.brain.mode, mode_t: c.brain.mode_t, killer, eye, heard, chase_t: c.chase_t };
     let rig = c.body.clone();
     if c.anim.is_none() {
         let Some(lib) = library(&kind) else { return };

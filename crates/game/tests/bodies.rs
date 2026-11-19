@@ -1,7 +1,7 @@
 //! The creatures' bodies (`assets/bodies.bin`, `entities::body`): every body
 //! decodes into sound meshes, and the posing helpers do what they say.
 use game::assets::bodies::{body, body_names, decode_mesh};
-use game::entities::body::{build_body, two_bone};
+use game::entities::body::{FAR_SUFFIX, LOD_FAR, NEAR_SUFFIX, build_body, two_bone};
 use game::prelude::*;
 
 fn close(a: Vec3, b: Vec3, tol: f64) -> bool {
@@ -53,6 +53,53 @@ fn every_body_decodes_soundly() {
             }
         }
     }
+}
+
+/// A body's triangles drawn near you and from `LOD_FAR` out (E14,
+/// `docs/design/ENTITIES.md`): close, a body may spend what it needs on
+/// the detail a doll lacks; far, it costs what a whole body did before.
+const NEAR_BUDGET: usize = 120_000;
+const FAR_BUDGET: usize = 25_000;
+
+#[test]
+fn every_body_keeps_its_budget_near_and_far() {
+    for name in body_names() {
+        let b = body(name).unwrap();
+        let has_far = |n: &str| b.meshes.iter().any(|m| m.name == format!("{n}{FAR_SUFFIX}"));
+        let (mut near, mut far) = (0, 0);
+        for (i, m) in b.meshes.iter().enumerate() {
+            if let Some(base) = m.name.strip_suffix(FAR_SUFFIX) {
+                // each far mesh stands in for a near one before it, of the same stuff
+                let n = b.meshes[..i].iter().find(|x| x.name == base);
+                let n = n.unwrap_or_else(|| panic!("{name}/{}: no near mesh before it", m.name));
+                assert_eq!(n.material, m.material, "{name}/{}: drawn as its near mesh is", m.name);
+                // (on the same bone or both skinned: their bands are measured from one origin)
+                assert_eq!(n.bone, m.bone, "{name}/{}: rides where its near mesh rides", m.name);
+                assert!(m.t * 2 < n.t, "{name}/{}: {} triangles, its near {}: no saving", m.name, m.t, n.t);
+                far += m.t;
+            } else if m.name.ends_with(NEAR_SUFFIX) {
+                near += m.t;
+            } else {
+                near += m.t;
+                if !has_far(&m.name) {
+                    far += m.t;
+                }
+            }
+        }
+        assert!(near <= NEAR_BUDGET, "{name}: {near} triangles near (budget {NEAR_BUDGET})");
+        assert!(far <= FAR_BUDGET, "{name}: {far} triangles from {LOD_FAR} m out (budget {FAR_BUDGET})");
+    }
+}
+
+#[test]
+fn a_body_draws_its_far_meshes_only_from_lod_far_out() {
+    let rig = build_body("hound", &|_| phong!({ color: 0xffffff })).unwrap();
+    let band = |n: &str| rig.meshes[n].r().lod;
+    assert_eq!(band("skin"), Some((0.0, LOD_FAR)));
+    assert_eq!(band("skin@far"), Some((LOD_FAR, f64::INFINITY)));
+    assert_eq!(band("nails@near"), Some((0.0, LOD_FAR)));
+    // the near skin is the one the game reads (the first skin)
+    assert_eq!(rig.skins[0].name(), "skin");
 }
 
 #[test]

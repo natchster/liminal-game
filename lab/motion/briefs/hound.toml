@@ -80,3 +80,21 @@ seconds = 5.0
 loop = true
 candidates = 8
 speed = [1.0, 4.0]
+
+[[clip]]
+name = "prowl"
+for = "Roam and Search, slow: its head hanging toward the floor, each hand set down with care (2026-11-19, the remodel)"
+prompt = "A person crawls forward slowly on their hands and knees with their head hanging down toward the floor."
+seconds = 6.0
+loop = true
+candidates = 6
+speed = [0.2, 0.8]
+
+[[clip]]
+name = "creep"
+for = "Stalk: closing in on a sound, a hand set down, held, the next"
+prompt = "A person creeps forward very slowly on their hands and knees, placing each hand down carefully and pausing."
+seconds = 6.0
+loop = true
+candidates = 6
+speed = [0.1, 0.5]

@@ -134,3 +134,17 @@ plants, apart from the game: [`../../lab/README.md`](../../lab/README.md)):
 |---|---|
 | [`character-motion.md`](character-motion.md) | Realistic human motion from open models on a 64 GB Apple Silicon Mac: NVIDIA's Kimodo (its motion frame, the SOMA skeleton, the LLM2Vec text encoder, every checkpoint and its licence: the SEED one for a sold game), its ports (kimodo-mlx, MIT, used and extended; kimodo-turbo, no licence; kimodo.cpp), what was measured here, the others considered (ARDY, HY-Motion, the HumanML3D family and AMASS's terms), why the creature's wrongness is laid on the mocap and not asked of it, the risks |
 | [`plant-modeling.md`](plant-modeling.md) | Realistic plants from open tools on the same Mac: procedural and botanical generators (Infinigen's plant factories, Sapling, L-Py, ez-tree, proctree; *The Algorithmic Beauty of Plants*, space colonization; 2025–2026 research), generative 3D models (TRELLIS and its Mac ports, Hunyuan3D's territories, Stable Fast 3D, TripoSR/SG, Step1X-3D) and why none fits a reproducible, sold build; CC0 leaves and scanned references; what neglect does to a plant; the generator the lab built |
+
+One more was gathered on 2026-11-19 for the Hound's remake
+([`../design/ENTITIES.md`](../design/ENTITIES.md), the Hound):
+
+| Note | What it covers |
+|---|---|
+| [`hound-references.md`](hound-references.md) | What Wikidot's Entity 8 says of the Hound; how people move on hands and feet (lateral sequence, limb phase, duty factor, speeds from the lab to the 100 m record, hands palm down on the wrist, straight limbs, rump high; the proportions that slope the back, and the arm extensions that make an ape); where starvation and age show (the malnutrition exam's sites, skin folds, kyphosis, calluses, the kneeler's knee); old skin's colour and purpura, matted hair; knitted underwear and its wear; foot drop, antalgic gait, turning the head to a sound, the dog's cocked head; craft notes; every source's licence; what it suggests for the body and the motion |
+
+And one for E14, when both bodies still read as dolls
+([`../design/ENTITIES.md`](../design/ENTITIES.md), the Hound and the Smiler):
+
+| Note | What it covers |
+|---|---|
+| [`creature-horror-references.md`](creature-horror-references.md) | Why a creature reads as a doll or a mannequin and not a monster (one smooth gloss, clean colour, symmetry; what films and games changed to fix it: filth, mottling, the skeleton first); the Hound's and the Smiler's references in horror film and games (what each shows, what to take, what not to copy); skin, tar and dust as a renderer sees them (roughness and shininess, albedo floors, specular at normal incidence); triangles and levels of detail in shipped games; what it asks of each body |

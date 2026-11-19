@@ -228,6 +228,17 @@ def decimate(o, tris):
     return o
 
 
+def far_copy(o, tris):
+    """a copy of `o` cut to at most `tris` triangles: its far mesh, which
+    the game draws in its place from a few metres out (written as
+    `<name>@far`, after every near mesh: `crates/game/src/entities/body.rs`)"""
+    c = o.copy()
+    c.data = o.data.copy()
+    c.name = o.name + '@far'
+    link(c)
+    return decimate(c, tris)
+
+
 def triangulate(o):
     return apply_mod(o, 'TRIANGULATE')
 

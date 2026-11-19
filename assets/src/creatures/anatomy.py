@@ -492,3 +492,333 @@ def teeth_row(arch, gum_y, tip_y, upper, seed, missing=(), broken=(), flare=0.00
                 nf = (len(rings) - 1) * M * 2 + M
                 F[-nf:] = [[f[0], f[2], f[1]] for f in F[-nf:]]
     return np.array(V), F, np.array(C)
+
+
+# ---- detail a starved or dead body shows close (E14): what read as a doll
+# was skin smooth as vinyl; these are the forms under and on it
+
+def rot_between(a, b):
+    """the rotation matrix taking unit a onto unit b (the shorter way)"""
+    a = np.asarray(a, float) / np.linalg.norm(a)
+    b = np.asarray(b, float) / np.linalg.norm(b)
+    v = np.cross(a, b)
+    c = float(a @ b)
+    if c < -0.999999:
+        # opposite: half a turn about any axis square to a
+        ax = np.cross(a, [1.0, 0.0, 0.0])
+        if np.linalg.norm(ax) < 1e-6:
+            ax = np.cross(a, [0.0, 1.0, 0.0])
+        ax /= np.linalg.norm(ax)
+        return 2 * np.outer(ax, ax) - np.eye(3)
+    K = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    return np.eye(3) + K + K @ K / (1 + c)
+
+
+def cord(P, N, a, b, amp, width, side=None, side_min=0.0, ends=0.15):
+    """a cord raised under the skin along a→b (a tendon, a vein, a bone's
+    edge): offsets along N, `width` its half-width (m), fading over the
+    last `ends` of its length; only where the skin faces `side`, if given"""
+    t, dist, r = seg_param(P, a, b)
+    k = np.exp(-(dist / width) ** 2)
+    k = k * np.clip(np.minimum(t, 1 - t) / max(ends, 1e-6), 0, 1)
+    if side is not None:
+        s = np.asarray(side, float)
+        s = s / np.linalg.norm(s)
+        k = k * np.clip((N @ s - side_min) / (1 - side_min), 0, 1)
+    return (amp * k)[:, None] * N
+
+
+def bump(P, N, c, amp, r):
+    """a round knob (amp > 0) or dimple (amp < 0) at c, radius r"""
+    d = np.linalg.norm(P - np.asarray(c, float), axis=1)
+    return (amp * np.exp(-(d / r) ** 2))[:, None] * N
+
+
+def sore(P, N, c, r, depth, seed=0):
+    """a pressure sore: a ragged crater (`depth`) with a raised rim, where a
+    bone pressed the skin to the floor too long. Returns the offsets and
+    how much of each point is the wound (0..1, for its colour)"""
+    import kit
+    d = np.linalg.norm(P - np.asarray(c, float), axis=1)
+    rr = r * (1 + 0.35 * kit.fbm(P, 90.0, 2, seed=seed))
+    pit = np.clip(1 - d / rr, 0, 1) ** 0.6
+    rim = np.exp(-((d - rr) / (0.3 * rr)) ** 2)
+    off = (-depth * pit + 0.35 * depth * rim)
+    return off[:, None] * N, np.clip(pit * 1.6, 0, 1)
+
+
+def folds(P, N, centre, axis, amp, wavelength, radius, seed=0, inner=None):
+    """loose skin bunched in folds across a joint: ridges square to `axis`
+    within `radius` of `centre`, broken up (no two alike); with `inner`, the
+    side of the bend they gather on (stronger there)"""
+    import kit
+    ax = np.asarray(axis, float) / np.linalg.norm(axis)
+    rel = P - np.asarray(centre, float)
+    s = rel @ ax
+    k = np.exp(-(np.linalg.norm(rel, axis=1) / radius) ** 2)
+    if inner is not None:
+        k = k * (0.35 + 0.65 * np.clip(N @ (np.asarray(inner, float) / np.linalg.norm(inner)), 0, 1))
+    w = np.sin(2 * np.pi * s / wavelength + 3.0 * kit.fbm(P, 25.0, 2, seed=seed))
+    patch = np.clip(0.4 + kit.fbm(P, 30.0, 2, seed=seed + 1) * 1.5, 0, 1)
+    return (amp * w * k * patch)[:, None] * N
+
+
+def worley(P, scale, seed=0):
+    """cellular noise: the distances to the nearest and second-nearest of
+    points scattered one a cell of `scale` m (F1, F2), for cracks: a crack
+    runs where F2 - F1 is small"""
+    import kit
+    Q = np.asarray(P, float) / scale
+    I = np.floor(Q).astype(np.int64)
+    d1 = np.full(len(Q), 9.0)
+    d2 = np.full(len(Q), 9.0)
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            for dz in (-1, 0, 1):
+                c = I + np.array([dx, dy, dz])
+                j = np.stack([kit._hash(c[:, 0], c[:, 1], c[:, 2], seed + k) for k in range(3)], axis=1)
+                d = np.linalg.norm(Q - (c + 0.1 + 0.8 * j), axis=1)
+                d2 = np.where(d < d1, d1, np.minimum(d2, d))
+                d1 = np.minimum(d1, d)
+    return d1 * scale, d2 * scale
+
+
+def nails(skin_P, skel, fingers, length, width, thick=0.0016, curl=0.5, seed=0, ragged=0.35):
+    """a nail on the last bone of each of `fingers` (`finger23.L`, ...):
+    a curved plate on the back of the bone, out past the fingertip by
+    `length` (m) and curling toward the palm by `curl`, its free edge
+    ragged. Where the back of each bone faces comes from its hand (the
+    back of the hand turned along the finger's curl); how high the plate
+    lies, from the skin (`skin_P`). Returns vertices, triangles, and per
+    vertex the bone it rides and how far out along the nail it is (0 at
+    its root, 1 at the free edge)"""
+    rng = np.random.RandomState(seed)
+    V, F, B, S = [], [], [], []
+    nu, nv = 8, 5
+    for fname in fingers:
+        side = fname[-2:]
+        h = np.array(skel.head(fname))
+        t = np.array(skel.tail(fname))
+        d = t - h
+        Lb = np.linalg.norm(d)
+        d = d / Lb
+        hand_ax = np.array(skel.tail('hand' + side)) - np.array(skel.head('hand' + side))
+        hand_ax /= np.linalg.norm(hand_ax)
+        lat = np.array(skel.head('finger51' + side)) - np.array(skel.head('finger21' + side))
+        back = np.cross(hand_ax, lat) * (1.0 if side == '.L' else -1.0)
+        back /= np.linalg.norm(back)
+        dors = rot_between(hand_ax, d) @ back
+        dors = dors - d * (dors @ d)
+        dors /= np.linalg.norm(dors)
+        across = np.cross(d, dors)
+        # the skin over the bone's back, and its tip
+        tt, dist, r = seg_param(skin_P, h, t)
+        near = (dist < 0.025) & (tt > 0.3)
+        rd = np.clip((r[near] @ dors).max() if near.any() else 0.006, 0.003, 0.012)
+        ahead = ((skin_P[near] - t) @ d).max() if near.any() else 0.004
+        tip_s = Lb * 0.42 + max(ahead, 0.0)              # root to the fingertip, along the bone
+        total = tip_s + length * (0.75 + 0.5 * rng.rand())
+        ends = 1 - ragged * rng.rand(nv) * (rng.rand() < 0.8)
+        base = len(V)
+        for layer, lift in ((0, 0.0), (1, thick)):
+            for i in range(nu):
+                f = i / (nu - 1)
+                for j in range(nv):
+                    u = -1 + 2 * j / (nv - 1)
+                    s = f * total * (ends[j] if i == nu - 1 else 1.0)
+                    free = max(s - tip_s, 0.0) / max(total - tip_s, 1e-6)
+                    w = width * 0.5 * (0.9 + 0.1 * f) * (1 - 0.45 * free)
+                    hgt = rd + 0.0006 + lift * (1 - 0.6 * free) - 0.35 * w * u * u
+                    p = h + d * (Lb * 0.58 + s) + across * (w * u) + dors * hgt
+                    p = p - dors * (curl * free * free * (total - tip_s))
+                    V.append(p)
+                    B.append(skel.ix[fname])
+                    S.append(s / total)
+        idx = lambda layer, i, j: base + layer * nu * nv + i * nv + j
+        for i in range(nu - 1):
+            for j in range(nv - 1):
+                a, b, c, e = idx(1, i, j), idx(1, i + 1, j), idx(1, i + 1, j + 1), idx(1, i, j + 1)
+                F += [[a, b, c], [a, c, e]]
+                a, b, c, e = idx(0, i, j), idx(0, i + 1, j), idx(0, i + 1, j + 1), idx(0, i, j + 1)
+                F += [[a, c, b], [a, e, c]]
+        for i in range(nu - 1):
+            for j in (0, nv - 1):
+                a, b, c, e = idx(0, i, j), idx(0, i + 1, j), idx(1, i + 1, j), idx(1, i, j)
+                F += [[a, b, c], [a, c, e]] if j == 0 else [[a, c, b], [a, e, c]]
+        for j in range(nv - 1):
+            for i in (0, nu - 1):
+                a, b, c, e = idx(0, i, j), idx(0, i, j + 1), idx(1, i, j + 1), idx(1, i, j)
+                F += [[a, b, c], [a, c, e]] if i == nu - 1 else [[a, c, b], [a, e, c]]
+    return np.array(V), F, np.array(B), np.array(S)
+
+
+def scalp_hair(kit, name, roots, skin_P, skin_N, lengths, radius, whorl, lie=(0.03, 0.09), step=0.022,
+               lift=0.003, droop=1.4, gravity=(0, -1, 0), sides=3, seed=0, clumps=24, clump=0.55, width=None,
+               toward=None, lie_each=None):
+    """hair that lies along the skull before it falls: from each root it
+    follows the scalp (`skin_P`, `skin_N`: the head's skin) away from the
+    crown's `whorl`, `lift` over it, plastered flat for a length drawn
+    from `lie` (greasy, matted: whichever way the head hangs), then hangs,
+    drooping, matted into `clumps` locks. A crown read as bald where every
+    strand fell from where it grew. With `width`, each is a matted lock, a
+    flat ribbon that wide (lying flat on the skull, tapering to its end;
+    tubes this thin read as wire). `toward` (a direction a root, or None)
+    combs a strand that way instead of away from the whorl (a forelock over
+    the face), for `lie_each` of its length if given. Returns the object and, per vertex, how
+    far below where its strand left the scalp it hangs (m; 0 on the scalp)"""
+    import bmesh
+    from mathutils import kdtree
+    rng = np.random.default_rng(seed)
+    g = np.asarray(gravity, float)
+    g = g / np.linalg.norm(g)
+    whorl = np.asarray(whorl, float)
+    tree = kdtree.KDTree(len(skin_P))
+    for i, p in enumerate(skin_P):
+        tree.insert(p, i)
+    tree.balance()
+
+    def on_scalp(p):
+        _, i, _ = tree.find(p)
+        n = skin_N[i] / (np.linalg.norm(skin_N[i]) + 1e-9)
+        return skin_P[i] + n * lift, n
+
+    def tangent(v, n):
+        v = v - n * (v @ n)
+        return v / (np.linalg.norm(v) + 1e-9)
+
+    paths, frees, norms = [], [], []
+    for k_root, (r0, L) in enumerate(zip(roots, lengths)):
+        p, n = on_scalp(np.asarray(r0, float))
+        pts, free, ns = [p], [0.0], [n]
+        walked, hang = 0.0, 0.0
+        lie_len = min(rng.uniform(*lie), 0.5 * L)
+        comb = None if toward is None else toward[k_root]
+        if comb is not None and lie_each is not None:
+            lie_len = min(lie_each[k_root], 0.6 * L)
+        jitter = rng.normal(0, 0.18, 3)
+        way = (lambda q, nq: tangent(q - whorl + jitter * 0.01, nq)) if comb is None else \
+            (lambda q, nq: tangent(np.asarray(comb, float) + jitter * 0.15, nq))
+        out = way(p, n)
+        d = out
+        while walked < L:
+            if walked < lie_len:
+                d = tangent(out + (0.35 if comb is None else 0.0) * tangent(g, n) + jitter * 0.2, n)
+                q, n2 = on_scalp(p + d * step)
+                out = way(q, n2)
+                p, n = q, n2
+                walked += step
+                pts.append(p)
+                free.append(0.0)
+                ns.append(n)
+                continue
+            d = d + g * droop * step / 0.06 + jitter * 0.08
+            d = d / np.linalg.norm(d)
+            p = p + d * step
+            walked += step
+            hang += step
+            pts.append(p)
+            free.append(hang)
+            ns.append(ns[-1])
+        paths.append(np.array(pts))
+        frees.append(np.array(free))
+        norms.append(np.array(ns))
+    # matted: each lock's hanging parts drawn together toward its middle
+    R = np.array([pp[0] for pp in paths])
+    cl = rng.choice(len(R), size=min(clumps, len(R)), replace=False)
+    owner = np.argmin(np.linalg.norm(R[:, None, :] - R[cl][None, :, :], axis=2), axis=1)
+    for k in range(len(cl)):
+        mem = np.where(owner == k)[0]
+        if len(mem) < 2:
+            continue
+        n_max = max(len(paths[m]) for m in mem)
+        mean = np.zeros((n_max, 3))
+        cnt = np.zeros(n_max)
+        for m in mem:
+            mean[:len(paths[m])] += paths[m]
+            cnt[:len(paths[m])] += 1
+        mean /= np.maximum(cnt, 1)[:, None]
+        for m in mem:
+            f = frees[m]
+            pull = clump * np.clip(f / 0.12, 0, 1)[:, None]
+            paths[m] = paths[m] + (mean[:len(paths[m])] - paths[m]) * pull
+    out_free = []
+
+    def ribbon(bm, pts, free, ns):
+        n = len(pts)
+        rows = []
+        twist = rng.uniform(-1.2, 1.2)
+        for k, p in enumerate(pts):
+            a = pts[min(k + 1, n - 1)] - pts[max(k - 1, 0)]
+            a /= np.linalg.norm(a) + 1e-9
+            nn = ns[k] - a * (ns[k] @ a)
+            nn /= np.linalg.norm(nn) + 1e-9
+            across = np.cross(a, nn)
+            # flat on the scalp; once it hangs, it turns slowly about itself
+            f = free[k]
+            ang = twist * min(f / 0.25, 1.0)
+            across = across * np.cos(ang) + nn * np.sin(ang)
+            nn2 = np.cross(across, a)
+            # (narrowing as it hangs: wet hair gathers into a lock)
+            w = width * (1 - 0.75 * k / max(n - 1, 1)) * (0.8 + 0.4 * rng.random()) * (1 - 0.45 * min(f / 0.1, 1.0))
+            row = []
+            for j in range(4):
+                u = j / 3 - 0.5
+                # (cupped round the lock: flat, it read as a strip of paper;
+                # flat on the scalp, it lies flat)
+                cup = 0.18 + 0.5 * min(f / 0.06, 1.0)
+                q = p + across * (w * u) - nn2 * (cup * w * u * u)
+                row.append(bm.verts.new(tuple(kit.to_bl(q))))
+                out_free.append(f)
+            rows.append(row)
+        for k in range(n - 1):
+            for j in range(3):
+                bm.faces.new((rows[k][j], rows[k][j + 1], rows[k + 1][j + 1], rows[k + 1][j]))
+
+    def build(bm):
+        if width is not None:
+            for pts, free, ns in zip(paths, frees, norms):
+                ribbon(bm, pts, free, ns)
+            return
+        for pts, free in zip(paths, frees):
+            rings = []
+            n = len(pts)
+            for k, p in enumerate(pts):
+                a = pts[min(k + 1, n - 1)] - pts[max(k - 1, 0)]
+                a /= np.linalg.norm(a) + 1e-9
+                u = np.cross(a, [0.3, 1, 0.1]); u /= np.linalg.norm(u) + 1e-9
+                w = np.cross(a, u)
+                rr = radius * (1 - 0.8 * k / max(n - 1, 1))
+                rings.append([bm.verts.new(tuple(kit.to_bl(p + rr * (np.cos(t) * u + np.sin(t) * w))))
+                              for t in np.linspace(0, 2 * np.pi, sides, endpoint=False)])
+                out_free.extend([free[k]] * sides)
+            for k in range(len(rings) - 1):
+                for s in range(sides):
+                    bm.faces.new((rings[k][s], rings[k][(s + 1) % sides], rings[k + 1][(s + 1) % sides], rings[k + 1][s]))
+    o = kit.obj_from_bmesh(name, build)
+    return o, np.array(out_free)
+
+
+def occlusion(P, N, radius=0.05, cap=48):
+    """how shut in each point is (0 open .. 1), from the surface near it
+    that faces it: an armpit, behind a knee, between the fingers, under the
+    belly. Each point looks at up to `cap` points within `radius`, counting
+    those in front of it, the nearer the more (a vertex colour's ambient
+    occlusion: the game has none of its own on a body)"""
+    from mathutils import kdtree
+    tree = kdtree.KDTree(len(P))
+    for i, p in enumerate(P):
+        tree.insert(p, i)
+    tree.balance()
+    occ = np.zeros(len(P))
+    for i in range(len(P)):
+        hits = tree.find_range(P[i], radius)
+        if len(hits) <= 1:
+            continue
+        idx = np.fromiter((h[1] for h in hits), dtype=np.int64, count=len(hits))
+        if len(idx) > cap:
+            idx = idx[:: len(idx) // cap + 1]
+        d = P[idx] - P[i]
+        L = np.linalg.norm(d, axis=1) + 1e-9
+        front = (d @ N[i]) / L
+        occ[i] = np.sum(np.clip(front - 0.25, 0, 1) * (1 - L / radius)) / 6.0
+    return np.clip(occ, 0, 1)

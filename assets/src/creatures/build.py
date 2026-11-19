@@ -39,7 +39,8 @@ for _, name, mod in scripts:
     body = mod.build(kit)
     assert body.name == name, f'body_{name}.py built {body.name}'
     body.write(out)
-    shown = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+    # (the far meshes lie in the near ones: the previews show the near)
+    shown = [o for o in bpy.context.scene.objects if o.type == 'MESH' and not o.name.endswith('@far')]
     if shown:
         kit.preview(shown, os.path.join(out, name))
     built.append(name)

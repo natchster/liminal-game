@@ -58,8 +58,11 @@ pub enum Patch {
     /// (and floor and ceiling planes, their UVs shifted by `plane_shift`
     /// repeats), with a photographed detail over them
     ArchUV { scale_x: f64, scale_y: f64, wallpaper: bool, detail: Option<ArchDetail>, plane_shift: f64 },
-    /// `with_skin_detail`: triplanar bump + varying shine from a tiling height map
-    SkinDetail { map: Tex, scale: f64, strength: f64, shine: f64, rest_space: bool },
+    /// `with_skin_detail`: triplanar bump + varying shine from a tiling height
+    /// map. `shine`: how wet it is (1: a sheen, wetter in patches; 0: dry, no
+    /// highlight at all); `cavity`: how much its pores and creases (the map's
+    /// low places) darken its colour (0: none; 0.5: halved at the deepest)
+    SkinDetail { map: Tex, scale: f64, strength: f64, shine: f64, cavity: f64, rest_space: bool },
     /// the Smiler's emissive eye orbs
     SmilerEye,
     /// the Watcher's sheet (skin detail + soft shoulder + floor emissive)

@@ -167,12 +167,20 @@ crate::lazy_static_tex!(skin_detail_tex, {
 /// position, `u_detail_scale` = `scale`, `bump_scale` = `strength`, wet in the
 /// creases and dull on the lumps). Returns the same material.
 pub fn with_skin_detail(mat: Mat, scale: f64, strength: f64) -> Mat {
+    with_skin(mat, scale, strength, 1.0, 0.0)
+}
+
+/// [`with_skin_detail`], and how wet the skin is (`shine`: 1 the sheen of
+/// the others, 0 dry, no highlight) and how dark its pores and creases are
+/// (`cavity`: 0 none, 0.5 halved at the deepest). A dead or starved skin is
+/// dry (dust, not sweat: a sheen over all of it read as a doll's vinyl).
+pub fn with_skin(mat: Mat, scale: f64, strength: f64, shine: f64, cavity: f64) -> Mat {
     let tex = skin_detail_tex();
     {
         let mut m = mat.m();
         m.bump_map = Some(tex.clone());
         m.bump_scale = strength;
-        m.patch = Patch::SkinDetail { map: tex, scale, strength, shine: 1.0, rest_space: true };
+        m.patch = Patch::SkinDetail { map: tex, scale, strength, shine, cavity, rest_space: true };
         m.version += 1;
     }
     mat

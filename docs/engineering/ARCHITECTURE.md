@@ -327,7 +327,11 @@ affects a level's build.
    game's: a pickup taken is hidden) and not `culled` (the prop cull's, a
    few times a second, by draw distance): two flags, so the cull never
    shows what the game hid (GitHub issue #12: with one, every pickup taken
-   came back within a fifth of a second).
+   came back within a fifth of a second). A mesh with a level of detail
+   (`Node::lod`, a band of distance from the camera to its origin) is drawn
+   only inside its band: a creature's near meshes and its far ones
+   (`entities::body`, `LOD_FAR`) share an origin, so exactly one of each
+   pair is drawn at any distance.
 2. **Lights:** ambient, hemisphere, point, spot and directional lights with
    physical falloff and spot penumbra; each draw gets the lights that reach
    it.

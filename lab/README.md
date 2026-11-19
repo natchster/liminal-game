@@ -108,7 +108,7 @@ uv sync                              # Python 3.12, MLX, kimodo-mlx at its pinne
 | Kind | Neutral | Clips | Its own on top |
 |---|---|---|---|
 | the Smiler | `stand` | idle, look, creep, listen, stalk, run, lunge, stand_over | tall, a little of its stoop kept; held frames searching; the head first in snaps; dead arms; the jaw, the fingers |
-| the Hound | `fours` (on hands and feet) | crawl, listen, sniff, spring, gallop | hands planted as feet; the knees for feet; quickened into a scrabble; the left hind dragging; the cock in snaps; the bay; hair to the floor |
+| the Hound | `fours` (on hands and feet) | prowl, creep, crawl, listen, sniff, spring, gallop | hands planted as feet; the knees for feet; quickened into a scrabble; the left hind dragging; stopping dead mid-step at a sound, then its crouch; its hanging head turned to the sound in snaps, swinging as it moves; the fingers digging in; panting after a charge; the bay; hair to the floor |
 | the one in the corner | `stand` | hold, run, grab, walk_back | none of a person's sway at rest, straight legs under the nightshirt; its head further than a neck goes (its rule's); dead arms; the scream |
 | the Reader | `reading` (stooped over a page) | read_walk, read_still, pick_up, hurry, tear | the page before its face; the stoop and the tear scrubbed by its rule's clock; the eyes along the lines; the look up; the sheet lowered |
 | the one behind the glass | `stand` | still, walk, reach_walk, climb | a walk too even (no rise and fall, arms still, quick short steps); its hands flat on the glass; facing you walking back |

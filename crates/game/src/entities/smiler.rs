@@ -32,7 +32,7 @@ use crate::entities::creature::*;
 use crate::entities::motion::Mind;
 use crate::entities::motion::anim::{Anim, Drive, Pick};
 use crate::entities::motion::retarget::Gains;
-use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
+use crate::entities::{EntVoice, with_skin, wrap_pi};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -78,9 +78,10 @@ thread_local! {
     static MATS: std::cell::RefCell<std::collections::HashMap<String, Mat>> = Default::default();
 }
 
-/// Its materials by slot: the skin black, wet and oily (a tight highlight
-/// on the bone); the teeth dry ivory; the eyes dark until your lamp finds
-/// them (a material of their own each, for their eyeshine).
+/// Its materials by slot: the skin a dry black crust (dull, its pores and
+/// cracks dark; E14: wet and oily, it read as a latex suit); the teeth dry
+/// enamel (small glints); its nails horn; the eyes dark until your lamp
+/// finds them (a material of their own each, for their eyeshine).
 pub fn material(slot: &str) -> Mat {
     if slot == "eye" {
         // a fresh one per eye: `eyeshine` sets its light every frame
@@ -90,8 +91,13 @@ pub fn material(slot: &str) -> Mat {
         m.borrow_mut()
             .entry(slot.to_string())
             .or_insert_with(|| match slot {
-                "teeth" => phong!({ color: 0xffffff, vertexColors: true, specular: 0x222018, shininess: 30 }),
-                _ => with_skin_detail(phong!({ color: 0xffffff, vertexColors: true, specular: 0x262420, shininess: 40 }), 3.1, 1.05),
+                "teeth" => phong!({ color: 0xffffff, vertexColors: true, specular: 0x262419, shininess: 70 }),
+                "nail" => phong!({ color: 0xffffff, vertexColors: true, specular: 0x1e1c18, shininess: 24 }),
+                _ => {
+                    let m = phong!({ color: 0xffffff, vertexColors: true, specular: 0x1a1918, shininess: 7 });
+                    m.m().wear = 0.5;
+                    with_skin(m, 3.1, 1.35, 0.25, 0.4)
+                }
             })
             .clone()
     })

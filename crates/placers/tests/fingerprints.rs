@@ -100,10 +100,10 @@ fn patch(h: &mut Fnv, p: &Patch, seen: &mut HashMap<usize, u64>) {
                 }
             }
         }
-        Patch::SkinDetail { map, scale, strength, shine, rest_space } => {
+        Patch::SkinDetail { map, scale, strength, shine, cavity, rest_space } => {
             h.str("skin");
             texture(h, &Some(map.clone()), seen);
-            for v in [*scale, *strength, *shine] {
+            for v in [*scale, *strength, *shine, *cavity] {
                 h.f64(v);
             }
             h.u64(u64::from(*rest_space));

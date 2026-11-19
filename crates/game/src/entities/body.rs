@@ -23,9 +23,10 @@ pub struct BodyRig {
     /// Each bone's rest direction (unit, body frame) and length
     pub rest_dir: Vec<Vec3>,
     pub rest_len: Vec<f64>,
-    /// Skinned meshes (their bind follows the root, `sync`)
+    /// Skinned meshes (their bind follows the root, `sync`), the near skin
+    /// first (the one the game reads), far ones (`FAR_SUFFIX`) among them
     pub skins: Vec<Obj>,
-    /// Every mesh by its name
+    /// Every mesh by its name (a far one's ends in `FAR_SUFFIX`)
     pub meshes: HashMap<String, Obj>,
 }
 
@@ -62,6 +63,19 @@ pub fn axis_angle(axis: &Vec3, a: f64) -> Quat {
     Quat::from_axis_angle(axis, a)
 }
 
+/// A body's far meshes: a mesh named `<name>@far` is `<name>` with fewer
+/// triangles (built from it: `assets/src/creatures/kit.py` `Body.far`),
+/// drawn in its place from `LOD_FAR` out (`Node::lod`). Close, a body
+/// fills the screen and every triangle shows; from 6 m it is a few hundred
+/// pixels tall, and the far mesh's quarter of them look the same.
+pub const FAR_SUFFIX: &str = "@far";
+/// A mesh named `<name>@near` is drawn only near (nails, a seam: what is
+/// under a pixel from `LOD_FAR` out), with no far mesh in its place.
+pub const NEAR_SUFFIX: &str = "@near";
+/// From how far (m, camera to the body's origin across the floor) a body
+/// draws its far meshes.
+pub const LOD_FAR: f64 = 6.0;
+
 /// Build body `name` with materials from `mat(slot)` (`skin`, `eye`, ...).
 pub fn build_body(name: &str, mat: &dyn Fn(&str) -> Mat) -> Option<BodyRig> {
     let def = body(name)?;
@@ -97,7 +111,7 @@ pub fn build_body(name: &str, mat: &dyn Fn(&str) -> Mat) -> Option<BodyRig> {
     }
     root.update_matrix_world(true);
     let mut skins = vec![];
-    let mut meshes = HashMap::new();
+    let mut meshes: HashMap<String, Obj> = HashMap::new();
     for m in &def.meshes {
         let geo = body_geometry(name, &m.name)?;
         let o = match m.bone {
@@ -116,6 +130,13 @@ pub fn build_body(name: &str, mat: &dyn Fn(&str) -> Mat) -> Option<BodyRig> {
             }
         };
         o.set_name(&m.name);
+        // a far mesh and its near one, each drawn in its own band
+        if let Some(near) = m.name.strip_suffix(FAR_SUFFIX) {
+            o.set_lod(Some((LOD_FAR, f64::INFINITY)));
+            meshes.get(near).unwrap_or_else(|| panic!("{name}/{}: no near mesh before it", m.name)).set_lod(Some((0.0, LOD_FAR)));
+        } else if m.name.ends_with(NEAR_SUFFIX) {
+            o.set_lod(Some((0.0, LOD_FAR)));
+        }
         // a mesh with morph targets draws them only with an influence each
         if !m.morphs.is_empty() {
             *o.morph_influences() = vec![0.0; m.morphs.len()];

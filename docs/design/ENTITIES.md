@@ -105,7 +105,15 @@ noise provoke it).*
   dried back off the teeth, top and bottom, so it seems to grin round to its
   cheeks (a rictus, not a smile). It stands tall, only a little stooped under
   the ceilings, and moves heavily; its hands
-  hang past its knees.
+  hang past its knees. Close (E14, from
+  `docs/research/creature-horror-references.md`): its black is a dry
+  crust, near-black brown, cracked into plates whose cracks hold pale
+  dust and show red-brown under them, dust settled on what faces up; the
+  cords of its neck, its collarbones and breastbone, hip bones, kneecaps
+  and elbows stand out of it, tendons run over the backs of its hands to
+  knuckles like knots; its nails are long and black; its teeth are no
+  denture's: dull ivory to brown, uneven, gapped and broken, tartar dark
+  at the gums; one side of the lips drawn higher, one shoulder lower.
 - **How it is seen.** In the dark, nothing, until your lamp finds it: two
   gold points of eyeshine at 1.9 m, set close, and under them the pale arc
   of bare teeth, only as far as the beam reaches. The rest is a black
@@ -150,6 +158,27 @@ blind.*
   it; a vest and long johns gone the colour of the floor, torn at the knees;
   knuckles, knees and spine standing out; one leg drags. Close up: the
   eyelids have grown shut. No eyes in the dark.
+- **How it is built and moves** (2026-11-19, from
+  `docs/research/hound-references.md`): on hands and feet as a person holds
+  them, the knees bent under the high rump, the back humped, the head
+  hanging straight down below the shoulders behind a curtain of matted
+  grey hair; the elbows splayed, the fingers clawed into the carpet; the
+  shoulders, hips, ribs and every knob of the spine bone under sallow,
+  liver-spotted skin, the knees and knuckles worn raw; the long johns
+  sagging in folds, worn through at the knees. It prowls with its head to
+  the floor, setting each hand down; at a sound it stops dead mid-step, a
+  hand still raised, holds, then sinks into its crouch, its hanging head
+  turning toward the sound in small snaps, its fingers digging in; it
+  pants after a charge; the left hind drags. Close (E14, from
+  `docs/research/creature-horror-references.md`; it read as a doll: smooth,
+  pale, a bald egg of a crown): dry, mottled skin, yellowed and purpled in
+  patches, filthiest on what faces the floor, darker in every crease and
+  where its limbs shut it in; kneecaps, the shin's edge and the elbows'
+  points it kneels and leans on, worn into sores (the dragged knee's
+  worst); tendons over the backs of its hands and feet, knuckles; loose
+  skin bunched at the joints and under the belly; long, thick, cracked
+  nails, black with dirt under them; and the hair plastered flat over the
+  crown from its whorl before it falls in matted locks.
 - **Its sound.** Nails on carpet in a scrabble, then a pause (it listens);
   sniffing; panting when it runs; a hoarse bay when it is sure.
 - **The rule you learn.** *Move when it moves; freeze when it listens.* It
@@ -496,7 +525,15 @@ rooms like any.
   SHA-1, starved by its own targets), posed so the pose is the rest pose,
   made wrong by one specific error each, and given their surface (ribs,
   tendons, the skin's wear) as displacement and vertex colour. Budgets: 18k
-  triangles a body, 25k a creature.
+  triangles a body, 25k a creature. A creature may carry a near body of up
+  to 120k (E14: the Hound and the Smiler, whose detail is what keeps them
+  from reading as dolls close up) when a far one of at most 25k stands in
+  for it from 6 m out (`<mesh>@far`, `entities::body::LOD_FAR`; nails and
+  such are near only, `@near`), held by `tests/bodies.rs`. A starved or
+  dead skin is dry: dull (no sheen over all of it: shininess under 13),
+  its pores and creases darker (`entities::with_skin`), never one hue, and
+  never darker than about 0.02 of the light it is given, nor clean
+  (`docs/research/creature-horror-references.md`).
 - **Motion**: a real body's weight under each creature's wrongness. Its
   clips are a person's motion, made from plain briefs by an open motion
   model in the lab (NVIDIA Kimodo, `lab/motion/briefs/<kind>.toml`,
@@ -679,7 +716,9 @@ roams, hunting you at once, level 4) beside the levels, held to the
 `creatures` budgets in [`PERF.md`](../engineering/PERF.md) and to its own history
 (`perf/creatures.csv`). The first row is the old creatures (5 placed:
 update 0.07 ms p50, GPU 2.2 ms p50, 263k triangles). Every milestone
-records a run.
+records a run. A body's detail is paid for only close: from 6 m out its
+far meshes are drawn (`Node::lod`, E14), and the skin's fine relief costs
+three texture reads a pixel, where it took nine.
 
 ### 9. The canon each creature brings
 

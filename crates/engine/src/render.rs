@@ -846,7 +846,8 @@ impl Renderer {
         let mut spots: Vec<SpotU> = vec![];
         let mut sp_sph: Vec<(Vec3, f64)> = vec![];
         let fog = globals.fog;
-        collect(scene, &frustum, &proj_screen, &view, 0, &mut items, &mut |n: &Node| {
+        let eye = cam_world.get_position();
+        collect(scene, &frustum, &proj_screen, eye, 0, &mut items, &mut |n: &Node| {
             let mw = n.matrix_world;
             let wp = Vec3::new(mw.e[12], mw.e[13], mw.e[14]);
             match &n.kind {
@@ -1348,6 +1349,13 @@ impl Renderer {
                 bump_tex = Some(self.texs[&tid].tex.clone());
                 bump_samp = Some(s);
                 mu.patch[0] = *scale as f32;
+                // how wet, how dark in its creases (the sheet: the old sheen, none)
+                let (shine, cavity) = match &m.patch {
+                    Patch::SkinDetail { shine, cavity, .. } => (*shine, *cavity),
+                    _ => (1.0, 0.0),
+                };
+                mu.patch[1] = shine as f32;
+                mu.patch[2] = cavity as f32;
             }
             _ => {}
         }
@@ -1677,11 +1685,12 @@ fn variant_for(
 }
 
 // Visible-only traversal: gathers lights, frustum-culls renderables and records their view depth for sorting.
+// (`eye`: the camera's place, for a level of detail's band)
 fn collect(
     o: &Obj,
     frustum: &Frustum,
     proj_screen: &Mat4,
-    view: &Mat4,
+    eye: Vec3,
     group_order: i32,
     items: &mut Vec<Item>,
     light: &mut dyn FnMut(&Node),
@@ -1740,7 +1749,18 @@ fn collect(
             };
             let mut sph = local;
             sph.apply_matrix4(&mw);
-            if !n.frustum_culled || frustum.intersects_sphere(&sph) {
+            // a level of detail drawn only in its band of distance (`Node::lod`),
+            // measured from its own origin: a body's near and far meshes share
+            // it, so at any distance exactly one of them is drawn. Measured
+            // across the floor: the camera's height bobs with breath and
+            // shake, and a still body at the band's edge swapped its meshes
+            // frame by frame
+            let in_band = n.lod.is_none_or(|(near, far)| {
+                let o = mw.get_position();
+                let d = ((o.x - eye.x) * (o.x - eye.x) + (o.z - eye.z) * (o.z - eye.z)).sqrt();
+                d >= near && d < far
+            });
+            if in_band && (!n.frustum_culled || frustum.intersects_sphere(&sph)) {
                 let mut p = local.center;
                 p.apply_matrix4(&mw);
                 p.apply_matrix4(proj_screen);
@@ -1821,9 +1841,8 @@ fn collect(
     }
     let kids = n.children.clone();
     drop(n);
-    let _ = view;
     for k in &kids {
-        collect(k, frustum, proj_screen, view, go, items, light);
+        collect(k, frustum, proj_screen, eye, go, items, light);
     }
 }
 

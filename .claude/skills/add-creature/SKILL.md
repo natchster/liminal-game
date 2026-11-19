@@ -18,7 +18,11 @@ The plan and the rules every creature keeps are in `docs/design/ENTITIES.md`
    `cloth.py`), posed so the pose is the rest pose; paint by the bone each
    point belonged to (`posed.owner`), not the nearest; extra bones the skin
    must not follow are added after it is skinned. Budgets: 18k triangles a
-   body, 25k a creature. `cargo xtask assets creatures --write` builds
+   body, 25k a creature; up to 120k near when a far body of at most 25k
+   (`<mesh>@far`, `kit.far_copy`) stands in from 6 m (`tests/bodies.rs`).
+   A starved or dead skin is dry (`entities::with_skin`: shine ≤ 0.3,
+   shininess under 13, its creases dark), never one hue
+   (`docs/research/creature-horror-references.md`). `cargo xtask assets creatures --write` builds
    `bodies.bin` (every body: the others must come out `same`); look at the
    previews in `target/xtask/assets/creatures/`. Eyes catch your lamp as
    eyeshine, they do not glow (`docs/design/STYLE.md`).

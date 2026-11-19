@@ -222,6 +222,13 @@ held to the `creatures` budgets below and to its own history,
 `perf/creatures.csv`, by the same change-point test. The first row
 (2026-10-28, before the redesign of `ENTITIES.md`): 5 creatures placed,
 update 0.07 / 0.89 ms (p50 / p99), GPU 2.2 / 3.6 ms, 263k triangles.
+A body may be detailed close and cheap far (E14): from 6 m out its far
+meshes are drawn (`Node::lod`; the Hound 101k triangles near, 22.7k far),
+and the skin's relief takes three texture reads a pixel (nine before). The
+pack drew 438k triangles at most (559k without the far bodies), its GPU
+p50 1.86–2.18 ms as before (the frame is bound by its pixels, not its
+vertices); brought within 1.5–3 m of you, the skin's three reads were
+1.78–1.89 ms against nine's 1.96–1.99.
 
 ## Recording and replaying
 

@@ -149,8 +149,10 @@ pub fn scene(kind: &str) -> Vec<Beat> {
             beat("back into the dark", Mode::Withdraw, 6.0, steer(-2.5, -3.0, 1.6)),
         ],
         "hound" => vec![
-            beat("its lope along the hall", Mode::Roam, 3.5, steer(1.0, -3.0, 2.0)),
-            beat("it stops to listen (the tell)", Mode::Alert, 1.6, Root::Still),
+            beat("prowling, its head to the floor", Mode::Roam, 4.0, steer(-1.0, -3.0, 0.9)),
+            beat("it stops dead to listen (the tell)", Mode::Alert, 2.2, Root::Still),
+            beat("its lope along the hall", Mode::Roam, 2.5, steer(1.5, -3.0, 2.0)),
+            beat("stalking toward a sound", Mode::Stalk, 3.0, steer(2.5, -1.5, 0.6)),
             beat("on, listening as it goes", Mode::Roam, 2.0, steer(2.5, -0.5, 2.0)),
             beat("a sound: it goes to it", Mode::Search, 2.0, steer(1.0, 2.0, 3.4)),
             beat("and sniffs about the spot", Mode::Search, 2.5, Root::Still),
@@ -448,7 +450,9 @@ impl Specimen {
     }
 
     fn mind(&self, b: &Beat, eye: Vec3) -> Mind {
-        Mind { mode: b.mode, mode_t: self.mode_t, killer: b.killer, eye, chase_t: self.chase_t }
+        // (what it heard: about where you stand, as a sound tells it)
+        let heard = Some(v3(eye.x, game::entities::motion::HEARD_Y, eye.z));
+        Mind { mode: b.mode, mode_t: self.mode_t, killer: b.killer, eye, heard, chase_t: self.chase_t }
     }
 
     /// The game's own pose of it.

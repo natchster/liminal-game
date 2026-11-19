@@ -479,25 +479,30 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             glassDirt = saturate((HAS_MAP ? diffuseColor.r : 1.0) * M.patch[2].x);
             diffuseColor.rgb = M.patch[2].yzw;
         }
-        // skin detail: triplanar bump at the rest-pose position
+        // skin detail: triplanar bump at the rest-pose position. Its slope
+        // is the height's change across the pixel (three reads, where a
+        // height at each neighbour took nine); M.patch[0].y how wet it is
+        // (1: a sheen, wetter in patches; 0: dry, no highlight), .z how
+        // much the pores and creases darken it
+        float detK = 1.0;
         if ((PATCH == 2 || PATCH == 4) && HAS_BUMP) {
             float sc = M.patch[0].x;
             float H = detH(in.detPos, in.detNrm, sc, bump, bumpS);
-            float2 dHdxy = M.misc.z * float2(detH(in.detPos + dfdx(in.detPos), in.detNrm, sc, bump, bumpS) - H,
-                                             detH(in.detPos + dfdy(in.detPos), in.detNrm, sc, bump, bumpS) - H);
+            float2 dHdxy = M.misc.z * float2(dfdx(H), dfdy(H));
             float3 surf = -in.viewPos;
             float3 sX = normalize(dfdx(surf)), sY = normalize(dfdy(surf));
             float3 R1 = cross(sY, normal), R2 = cross(normal, sX);
             float fDet = dot(sX, R1) * faceDirection;
             float3 grad = sign(fDet) * (dHdxy.x * R1 + dHdxy.y * R2);
             normal = normalize(abs(fDet) * normal - grad);
-            specularStrength = mix(0.3, 1.15, smoothstep(0.42, 0.6, detH(in.detPos * 0.29, in.detNrm, sc, bump, bumpS)));
+            float wet = M.patch[0].y;
+            specularStrength = wet > 0.0 ? wet * mix(0.3, 1.15, smoothstep(0.42, 0.6, detH(in.detPos * 0.29, in.detNrm, sc, bump, bumpS))) : 0.0;
+            detK = 1.0 - M.patch[0].z * (1.0 - smoothstep(0.3, 0.5, H));
         }
         // a photographed detail over walls, floors and ceilings (ArchDetail):
         // a grey height map laid flat on the face in world space, shading the
         // colour and lit as relief; the relief fades as its texels shrink
         // under a pixel, the shading as the mipmaps grey it out
-        float detK = 1.0;
         if (PATCH == 1 && HAS_BUMP) {
             float3 an = abs(inverseTransformDirection(normal, F.view));
             float3 P = in.llPos;
