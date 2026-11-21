@@ -129,6 +129,68 @@ the stoop kept, dead arms. How, and what the numbers show against the game's
 animation (for all five creatures that move, since 2026-11-19 in the game:
 `entities::motion`), is in [`../../lab/README.md`](../../lab/README.md).
 
+## MotionBricks: the way between clips (2026-11-21)
+
+Kimodo makes a clip from words; what lies between two clips, a body going
+from one thing to the next, was a blend of two poses in the game (a walk
+sliding into a stand in 0.3 s, a stride stretched 3.2 times to keep up with
+a start). NVIDIA's **MotionBricks** (Wang et al., *Scalable Real-Time
+Motions with Modular Latent Generative Model and Smart Primitives*, ACM TOG
+45(4), SIGGRAPH 2026, [arXiv 2604.24833](https://arxiv.org/abs/2604.24833),
+[NVlabs/motionbricks](https://github.com/NVlabs/motionbricks)) is made for
+exactly that: given the four most recent poses of a body and up to four it
+should reach, it makes the motion between, 6 to 16 tokens of four frames at
+30 Hz (three dropped at each end: 0.6-1.9 s). A root module chooses the
+duration and the root's path, a masked transformer the pose tokens, a
+VQ-VAE decodes them.
+
+- **Weights**: [nvidia/MotionBricks](https://huggingface.co/nvidia/MotionBricks),
+  the SOMA model (about 200 M parameters) trained on Bones RigPlay 1; the
+  NVIDIA Open Model Agreement, whose card says it "permits commercial use
+  and redistribution of modified models". Upstream's sample motions are
+  under an evaluation-only licence and are not used here.
+- **On Apple Silicon**: an MLX port,
+  [natchster/motionbricks-mlx](https://github.com/natchster/motionbricks-mlx)
+  (Apache-2.0; pinned at `d17bd6c` in `lab/motion/pyproject.toml`), checked
+  by its authors against NVIDIA's PyTorch to 1e-5 and timed at 10.4 ms a
+  generation on an M4 Pro; the weights from Hugging Face at the revision
+  it was checked on (`3cb362d9`, `lab/motion/models.toml`).
+- **On Linux with an NVIDIA GPU**: NVIDIA's own graph of the same model
+  (NVlabs/motionbricks v0.2.0's ONNX, Apache-2.0 code), on ONNX Runtime's
+  TensorRT or CUDA provider (`uv sync --group cuda`). Upstream's own
+  runtime (TensorRT, Warp, Newton) is application code around this graph;
+  the bake needs only the graph. Checked here on ONNX Runtime's CPU
+  against the MLX port on bridges of every kind: the same duration chosen
+  16 times of 16, the joints within 6 µm, a whole creature's bridges within
+  one 0.5 mm step of how they are kept.
+- `lab/motion/bricks.py` runs either (`MOTIONBRICKS_BACKEND`, else the
+  platform's); a checkout of the port or of the graph of your own is read
+  in place and nothing is written there.
+- **The same skeleton as Kimodo's**: SOMA's 30 joints in the same order.
+  Its rotations are not: Kimodo's global rotations are the model's
+  *standard* frame and its inputs and outputs the *capture* skeleton's
+  (the rig's two offsets); turned through them, the bones it makes keep
+  Kimodo's rest directions to 0.999 (0.36 untouched).
+- **How close it lands**: the poses it was given are met within 1-6 cm at
+  the start and 5-10 cm at the end before correction (2.5-4.8 cm over the
+  body, on average, for each creature's bridges); its ends are then moved
+  onto the frames it joins, as upstream's engine does.
+- **All fours**: RigPlay knows a crawl on hands and knees; every Hound bridge
+  stayed down (hips 0.47-0.54 m, the hands within 6 cm of the floor), into
+  a crouch and out of a gallop.
+
+What the integration found, each now a rule in `bricks.py` and
+`motion::anim`: a target lined up by its hips' heading made every Hound
+bridge twist 30° (on all fours the hips and the shoulders differ by 20°;
+lined up by the clips' own facing, it keeps its heading); a person easing
+into a walk fell behind the game's root, which reaches its speed in a
+tenth of a second (planted feet stretched 40 cm and whipped forward;
+strides split flat): each bridge is placed where the game's root would be
+after its fixed 0.7 s; a correction eased across a foot on the floor slid
+it, and the game's lock held it there, a stance 26 cm wrong (a planted end
+takes one correction while it touches); a clip that begins with a person
+stopping (a listen) is landed on after its stop, or the body stopped twice.
+
 ## Risks and what is open
 
 - **Licences.** The SEED checkpoint's card allows commercial use; the
@@ -137,6 +199,10 @@ animation (for all five creatures that move, since 2026-11-19 in the game:
   leaves the pipeline). **The clips are in the game now** (2026-11-19,
   `crates/game/assets/motion/`, `docs/plan/ENTITIES.md` E11): both licences
   must be read whole before a release ships with them.
+- **MotionBricks' licence.** The SOMA weights' agreement (NVIDIA Open Model
+  Agreement) and what it says of the motion it makes, and Bones RigPlay 1's
+  terms, must be read whole before a release ships with its bridges
+  (`crates/game/assets/motion/`, since 2026-11-21).
 - **Reproducibility.** Sampling on the GPU is seeded but not promised
   bit-identical across machines; the baked clips are committed
   (`lab/motion/clips/`, and the game's copies), so nothing downstream

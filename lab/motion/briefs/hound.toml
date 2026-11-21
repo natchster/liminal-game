@@ -98,3 +98,40 @@ seconds = 6.0
 loop = true
 candidates = 6
 speed = [0.1, 0.5]
+
+# Bridges (`bricks.py`, MotionBricks): the motion from one clip into
+# another, where `hound::pose` goes from the one to the other (it blended
+# the two). Its tell stops it dead first (the clip held): the bridge is
+# what it does after, sinking into its crouch. `at`: where in `to` it lands
+# (its pick's start, or later where the clip's own lead-in is what the
+# bridge does).
+[[bridge]]
+from = ["prowl", "creep", "crawl", "gallop"]
+to = ["prowl", "creep", "crawl", "gallop"]
+
+[[bridge]]
+from = ["prowl", "creep", "crawl", "gallop"]
+to = ["sniff", "fours"]
+
+# `listen` begins with a person stopping and raising their head (its first
+# two seconds): a bridge, which is the stop, lands where it has stopped
+[[bridge]]
+from = ["prowl", "creep", "crawl", "gallop", "sniff", "spring"]
+to = "listen"
+at = 2.0
+
+[[bridge]]
+from = ["listen", "sniff", "fours"]
+to = ["prowl", "creep", "crawl", "gallop"]
+
+[[bridge]]
+from = "listen"
+to = "sniff"
+
+[[bridge]]
+from = ["creep", "crawl", "gallop"]
+to = "spring"
+
+[[bridge]]
+from = "spring"
+to = ["fours", "crawl"]

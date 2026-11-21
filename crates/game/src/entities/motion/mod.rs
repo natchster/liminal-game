@@ -7,7 +7,9 @@
 //! - [`Library`]: a creature's clips (`assets/motion/<kind>.motion`, embedded):
 //!   each frame NVIDIA's 30 SOMA joints in the creature's frame (+Y up, +Z
 //!   ahead, its left at +X, the root at the origin), the root's path, and
-//!   six contacts (each foot's heel and toe, each hand).
+//!   six contacts (each foot's heel and toe, each hand); and its bridges
+//!   ([`Bridge`]: the motion from one clip into another, made by NVIDIA
+//!   MotionBricks in the lab, `lab/motion/bricks.py`).
 //! - [`retarget::Retarget`]: a frame laid on a body as each segment's turn away from
 //!   the library's neutral stance (so a body bound in a stoop keeps it), the
 //!   feet (and on all fours the hands) solved onto where they stand.
@@ -145,6 +147,23 @@ pub struct Clip {
     /// the root's mean speed as it plays, on the mocap's scale (m/s)
     pub speed: f64,
     pub frames: Vec<Frame>,
+    /// a bridge: the way from one clip into another
+    pub bridge: Option<Bridge>,
+}
+
+/// The motion from one clip into another (`lab/motion/bricks.py`: NVIDIA
+/// MotionBricks, given the four frames of `from` that lead to `from_t` and
+/// the four of `to` from `to_t`): its first frame is `from`'s at `from_t`,
+/// its last `to`'s at `to_t`. A body going from the one clip to the other
+/// plays it (`anim::Anim`), where it blended the two.
+#[derive(Clone, Debug)]
+pub struct Bridge {
+    pub from: String,
+    pub to: String,
+    /// where in `from` it leaves, s
+    pub from_t: f64,
+    /// where in `to` it lands, s
+    pub to_t: f64,
 }
 
 #[derive(Debug)]
@@ -166,7 +185,6 @@ impl Library {
         let hl = u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]) as usize;
         let header: serde_json::Value = serde_json::from_slice(&bytes[12..12 + hl]).map_err(|e| e.to_string())?;
         let data = &bytes[12 + hl..];
-        let f = |i: usize| f32::from_le_bytes([data[i * 4], data[i * 4 + 1], data[i * 4 + 2], data[i * 4 + 3]]) as f64;
         let fps = header["fps"].as_f64().unwrap_or(30.0);
         let xyz = |p: &serde_json::Value| v3(p[0].as_f64().unwrap_or(0.0), p[1].as_f64().unwrap_or(0.0), p[2].as_f64().unwrap_or(0.0));
         let neutral: Vec<Vec3> = header["neutral"].as_array().ok_or("no neutral pose")?.iter().map(xyz).collect();
@@ -175,19 +193,54 @@ impl Library {
         }
         let contacts = header["contacts"].as_array().map_or(4, |c| c.len());
         let width = N * 3 + 3 + contacts;
+        // the bridges, deflated (zlib) after the clips: each value's track
+        // over its frames in 16-bit steps from the frame before (`motion.py bake`)
+        let block = match header["bridges"].as_object() {
+            Some(b) => {
+                let at = |k: &str| b.get(k).and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+                let (o, len) = (at("offset"), at("length"));
+                let z = data.get(o..o + len).ok_or("the bridges run past the data")?;
+                miniz_oxide::inflate::decompress_to_vec_zlib_with_limit(z, at("size").max(1))
+                    .map_err(|e| format!("the bridges: {:?}", e.status))?
+            }
+            None => vec![],
+        };
         let mut clips = vec![];
         for c in header["clips"].as_array().ok_or("no clips")? {
             let n = c["frames"].as_u64().unwrap_or(0) as usize;
             if n < 2 {
                 return Err(format!("clip {} has {n} frames (a clip plays two at least)", c["name"]));
             }
-            let at = c["offset"].as_u64().unwrap_or(0) as usize / 4;
-            if (at + n * width) * 4 > data.len() {
-                return Err(format!("clip {} runs past the data", c["name"]));
-            }
+            let offset = c["offset"].as_u64().unwrap_or(0) as usize;
+            // its values, frame by frame: float32, or (a bridge) summed from its steps
+            let vals: Vec<f64> = match c["scale"].as_f64() {
+                Some(scale) => {
+                    if offset + n * width * 2 > block.len() {
+                        return Err(format!("bridge {} runs past the bridges", c["name"]));
+                    }
+                    let mut v = vec![0.0; n * width];
+                    for j in 0..width {
+                        let mut acc = 0i32;
+                        for k in 0..n {
+                            let b = offset + (j * n + k) * 2;
+                            acc += i16::from_le_bytes([block[b], block[b + 1]]) as i32;
+                            v[k * width + j] = acc as f64 / scale;
+                        }
+                    }
+                    v
+                }
+                None => {
+                    if offset + n * width * 4 > data.len() {
+                        return Err(format!("clip {} runs past the data", c["name"]));
+                    }
+                    let d = &data[offset..offset + n * width * 4];
+                    d.as_chunks::<4>().0.iter().map(|b| f32::from_le_bytes(*b) as f64).collect()
+                }
+            };
+            let f = |i: usize| vals[i];
             let mut frames = Vec::with_capacity(n);
             for k in 0..n {
-                let b = at + k * width;
+                let b = k * width;
                 let p = (0..N).map(|i| v3(f(b + i * 3), f(b + i * 3 + 1), f(b + i * 3 + 2))).collect();
                 let r = b + N * 3;
                 let mut contact = [0.0; CONTACTS];
@@ -196,12 +249,19 @@ impl Library {
                 }
                 frames.push(Frame { p, root: [f(r), f(r + 1), f(r + 2)], contact });
             }
+            let bridge = c["bridge"].as_object().map(|b| Bridge {
+                from: b.get("from").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                to: b.get("to").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                from_t: b.get("from_t").and_then(|v| v.as_f64()).unwrap_or(0.0),
+                to_t: b.get("to_t").and_then(|v| v.as_f64()).unwrap_or(0.0),
+            });
             let mut clip = Clip {
                 name: c["name"].as_str().unwrap_or("?").to_string(),
                 prompt: c["prompt"].as_str().unwrap_or("").to_string(),
                 looped: c["loop"].as_bool().unwrap_or(false),
                 speed: 0.0,
                 frames,
+                bridge,
             };
             // its speed as it plays (a loop's, not the whole take's with its
             // start from standing): the root's path, frame to frame
@@ -219,7 +279,67 @@ impl Library {
     pub fn clip(&self, name: &str) -> Option<usize> {
         self.clips.iter().position(|c| c.name == name)
     }
+
+    /// The way from clip `from` (now at `t` s) into `to` at `to_t` s (or
+    /// up to [`BRIDGE_LANDS`] later), if a bridge was made for it: going
+    /// on (`wait`: it still moves, and `from` goes on with it), the next to
+    /// leave `from` (round a loop) if one leaves within [`BRIDGE_WAIT`] (it
+    /// starts on the very frame it was made from); else the nearest within
+    /// [`BRIDGE_REACH`] (now, blended in from where `from` is: a body that
+    /// has stopped does not walk on under it while it waits).
+    pub fn bridge(&self, from: &str, t: f64, to: &str, to_t: f64, wait: bool) -> Option<Way> {
+        let a = &self.clips[self.clip(from)?];
+        let dur = a.duration(self.fps);
+        let end = (a.frames.len() - 1) as f64 / self.fps;
+        let t = if a.looped { t.rem_euclid(dur) } else { t.clamp(0.0, end) };
+        let mine = || {
+            self.clips.iter().enumerate().filter_map(|(i, c)| {
+                let b = c.bridge.as_ref()?;
+                (b.from == from && b.to == to && (to_t - 0.05..=to_t + BRIDGE_LANDS).contains(&b.to_t)).then_some((i, b.from_t))
+            })
+        };
+        // how long until it comes round (a clip played once: never, once past)
+        let ahead = |from_t: f64| if a.looped { (from_t - t).rem_euclid(dur) } else { from_t - t };
+        let next = mine()
+            .map(|(i, f)| (i, ahead(f)))
+            .filter(|&(_, w)| (-0.5 / self.fps..=if wait { BRIDGE_WAIT } else { 0.5 / self.fps }).contains(&w))
+            .min_by(|x, y| x.1.total_cmp(&y.1));
+        if let Some((i, w)) = next {
+            return Some(if w <= 0.5 / self.fps { Way::Now(i) } else { Way::Wait(i, w) });
+        }
+        mine()
+            .map(|(i, f)| {
+                let d = (f - t).abs();
+                (i, if a.looped { d.min(dur - d) } else { d })
+            })
+            .filter(|&(_, d)| d <= BRIDGE_REACH)
+            .min_by(|x, y| x.1.total_cmp(&y.1))
+            .map(|(i, _)| Way::Blend(i))
+    }
 }
+
+/// How a clip goes into the next by a bridge ([`Library::bridge`]).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Way {
+    /// it leaves now, from where it is
+    Now(usize),
+    /// it leaves when it has played this much more of its clip, s
+    Wait(usize, f64),
+    /// it leaves now, blended in from where it is
+    Blend(usize),
+}
+
+/// How much later in a clip than its pick starts it a bridge may land, s:
+/// a clip that begins with a person stopping (a listen) is landed on where
+/// they have stopped, the bridge being the stop.
+pub const BRIDGE_LANDS: f64 = 2.5;
+/// The longest a clip goes on before its bridge comes round, s (bridges
+/// leave a clip that travels every 0.25 s: a step's time).
+pub const BRIDGE_WAIT: f64 = 0.3;
+/// How far from where a clip is a bridge may leave it and be blended in, s
+/// (over [`anim::BRIDGE_BLEND`]: a clip left every 0.25 s if it travels, every
+/// 0.6 s if it stands).
+pub const BRIDGE_REACH: f64 = 0.3;
 
 /// The kinds that move by clips, and their libraries' bytes. (The Watcher
 /// is never seen to move: its poses are its body's, `watcher::POSES`.)
@@ -272,6 +392,19 @@ impl Clip {
             let i = f.floor() as usize;
             (i, (i + 1).min(n - 1), f - f.floor())
         }
+    }
+
+    /// How fast its root goes about `t` s (over ±0.1 s), m/s on the mocap's
+    /// scale: a bridge's speed changes along it.
+    pub fn speed_at(&self, t: f64, fps: f64) -> f64 {
+        let n = self.frames.len();
+        let k = ((t * fps).round().max(0.0) as usize).min(n - 1);
+        let (a, b) = (k.saturating_sub(3), (k + 3).min(n - 1));
+        if b <= a {
+            return self.speed;
+        }
+        let (p, q) = (&self.frames[a].root, &self.frames[b].root);
+        (q[0] - p[0]).dhypot(q[1] - p[1]) * fps / (b - a) as f64
     }
 
     /// When its hips are lowest, s (a stoop's bottom, a crouch's).

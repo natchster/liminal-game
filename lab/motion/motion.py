@@ -2,10 +2,10 @@
 The lab's motion pipeline (lab/README.md): briefs → Kimodo on MLX → the clip
 library the viewer retargets onto a creature.
 
-    .venv/bin/python motion.py fetch      # the pinned models into the Hugging Face cache
-    .venv/bin/python motion.py doctor     # are they there, at their revisions and hashes
+    .venv/bin/python motion.py fetch      # the pinned models (and MotionBricks' backend's files)
+    .venv/bin/python motion.py doctor     # are they there, at their revisions and hashes; which backend
     .venv/bin/python motion.py gen [--creature K,…] [--only idle,run] [--candidates N]
-    .venv/bin/python motion.py bake [--creature K,…]   # → clips/<kind>.motion and clips/<kind>.md
+    .venv/bin/python motion.py bake [--creature K,…] [--no-bridges]   # → clips/<kind>.motion and clips/<kind>.md
     .venv/bin/python motion.py install    # the libraries into the game (crates/game/assets/motion/)
 
 A creature's briefs are `briefs/<kind>.toml`. `gen` samples each brief from
@@ -19,6 +19,15 @@ asked for, and writes the library: each frame's 30 joints in the
 creature's own frame (+Y up, +Z ahead, its left at +X; the root at the
 origin), the root's path and heading, and six contacts (each foot's heel
 and toe, each hand; on all fours each knee stands for its foot). The game reads it (`entities::motion`).
+
+Then its bridges (`[[bridge]]` in the briefs; `bricks.py`): NVIDIA
+MotionBricks makes the motion from where one clip is into another, from a
+few points in the first, its ends joined exactly to the frames it leaves
+and lands on; the game plays one when its creature goes from the one clip
+to the other, where it blended them before. MotionBricks runs on MLX on
+Apple Silicon (natchster/motionbricks-mlx) or on NVIDIA's ONNX graph on
+CUDA on Linux (`MOTIONBRICKS_BACKEND`, `bricks.py`); the bake itself needs
+no MLX (only `gen`, which samples Kimodo, does).
 """
 from __future__ import annotations
 
@@ -28,6 +37,7 @@ import json
 import struct
 import sys
 import tomllib
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -42,6 +52,8 @@ BRIEFS = K.HERE / "briefs"
 # where the game reads them from (`entities::motion`)
 GAME = K.ROOT / "crates" / "game" / "assets" / "motion"
 MAGIC = b"OCMOTIO2"
+# a bridge's values are kept in steps of 1/BRIDGE_SCALE m (0.5 mm)
+BRIDGE_SCALE = 2048
 
 
 def creatures() -> list[str]:
@@ -253,14 +265,16 @@ def loop_cut(local: np.ndarray, fade: int) -> tuple[int, int, float]:
     return best
 
 
-def bake(kinds: list[str]) -> None:
+def bake(kinds: list[str], bridges: bool = True) -> None:
     motion = K.Motion()
     for kind in kinds:
-        bake_one(motion, kind)
+        bake_one(motion, kind, bridges)
 
 
-def bake_one(motion: "K.Motion", kind: str) -> None:
+def bake_one(motion: "K.Motion", kind: str, bridges: bool = True) -> None:
     d, bs = briefs(kind)
+    # what each clip was made from, for its bridges
+    src = {}
     title = d.get("title", kind)
     lib = []
     report = [f"# {title}: the clips", "", f"Made by `motion.py bake --creature {kind}` from `briefs/{kind}.toml` (Kimodo SOMA SEED v1.1 on MLX, kimodo-mlx).", ""]
@@ -293,6 +307,10 @@ def bake_one(motion: "K.Motion", kind: str) -> None:
         yaw = facing(pos)
         local = to_local(pos, root, yaw)
         cut = None
+        start = 0
+        # (the whole take's root and facing, before a loop is cut: a bridge's
+        # ends are put in the frame its clips are)
+        root_full, yaw_full = root.copy(), yaw.copy()
         if b["loop"]:
             fade = 10
             a, e, dist = loop_cut(local, fade)
@@ -304,12 +322,14 @@ def bake_one(motion: "K.Motion", kind: str) -> None:
                 con[e - fade + i] = con[e - fade + i] * (1 - w) + con[a - fade + i] * w
             local, con, root, yaw = local[a:e], con[a:e], root[a:e], yaw[a:e]
             cut = (a, e, round(float(dist), 4))
+            start = a
         # the root's path from where the clip starts, facing +Z
         r0, y0 = root[0], yaw[0]
         s0, c0 = np.sin(y0), np.cos(y0)
         dx, dz = root[:, 0] - r0[0], root[:, 2] - r0[2]
         path = np.stack([dx * c0 - dz * s0, dx * s0 + dz * c0, yaw - y0], axis=1)
         frames = np.concatenate([local.reshape(len(local), -1), path, (con > 0.5).astype(np.float32)], axis=1).astype(np.float32)
+        src[b["name"]] = {"dec": dec, "a": start, "local": local.copy(), "path": path, "loop": b["loop"], "fours": fours, "root": root_full, "yaw": yaw_full}
         lib.append({"name": b["name"], "prompt": b["prompt"], "for": b["for"], "seed": seed, "loop": b["loop"], "speed": sc["speed"], "score": sc, "data": frames})
         if b.get("neutral"):
             # its most typical frame
@@ -321,6 +341,18 @@ def bake_one(motion: "K.Motion", kind: str) -> None:
         print(f"{kind}.{b['name']:<12} seed {seed}  speed {sc['speed']:.2f}  skate {sc['skate']:.3f}  jitter {sc['jitter']:.0f}  loop {loop}  score {sc['total']}")
     if neutral is None:
         neutral = lib[0]["data"][0, :90].reshape(30, 3)
+    bridge_lines = []
+    made_by = None
+    if bridges:
+        import bricks
+
+        doc = tomllib.loads((BRIEFS / f"{kind}.toml").read_text())
+        made, bridge_lines = bricks.build(kind, doc, {b["name"]: b for b in bs}, src, sys.modules[__name__])
+        lib += made
+        if made:
+            made_by = bricks.model().made_by
+            bridge_lines[3:3] = [f"This bake's: {made_by}.", ""]
+            print(f"{kind}: {len(made)} bridges ({sum(len(c['data']) for c in made)} frames), {made_by}")
     header = {
         "format": MAGIC.decode(),
         "kind": kind,
@@ -328,19 +360,36 @@ def bake_one(motion: "K.Motion", kind: str) -> None:
         "joints": K.JOINTS,
         "contacts": CONTACTS,
         "neutral": np.round(neutral, 5).tolist(),
-        "model": {k: K.models()[k]["repo"] + "@" + K.models()[k]["revision"][:12] for k in K.models()},
+        "model": {k: K.models()[k]["repo"] + "@" + K.models()[k]["revision"][:12] for k in K.models() if k != "motionbricks-soma"},
         "frame": "30 joints (x, y, z) in the creature's frame, then the root (x, z, yaw) from the clip's start, then the contacts",
         "clips": [],
     }
     blob = bytearray()
+    block = bytearray()
     for c in lib:
-        header["clips"].append({k: v for k, v in c.items() if k != "data"} | {"frames": len(c["data"]), "offset": len(blob)})
-        blob += c["data"].astype("<f4").tobytes()
+        if c.get("bridge"):
+            # a bridge: each value's track over its frames, as 16-bit steps
+            # of 1/BRIDGE_SCALE m from the frame before, all of them deflated
+            # together after the clips (there are hundreds: as float32 the
+            # libraries were 10 MB)
+            q = np.round(c["data"].astype(np.float64) * BRIDGE_SCALE).astype(np.int64)
+            d = np.diff(q, axis=0, prepend=np.zeros((1, q.shape[1]), np.int64))
+            assert np.abs(d).max() < 32767, c["name"]
+            header["clips"].append({k: v for k, v in c.items() if k != "data"} | {"frames": len(c["data"]), "offset": len(block), "scale": BRIDGE_SCALE})
+            block += d.T.astype("<i2").tobytes()
+        else:
+            header["clips"].append({k: v for k, v in c.items() if k != "data"} | {"frames": len(c["data"]), "offset": len(blob)})
+            blob += c["data"].astype("<f4").tobytes()
+    if block:
+        z = zlib.compress(bytes(block), 9)
+        header["bridges"] = {"offset": len(blob), "length": len(z), "size": len(block), "layout": "each value's track, 16-bit steps from the frame before, deflated", "made_by": made_by}
+        blob += z
     CLIPS.mkdir(exist_ok=True)
     h = json.dumps(header, ensure_ascii=False).encode()
     with (CLIPS / f"{kind}.motion").open("wb") as f:
         f.write(MAGIC + struct.pack("<I", len(h)) + h + bytes(blob))
     report += ["", "Candidates (lower is better: speed outside the brief ×3, foot skating / 0.08 m/s, jitter / 400 m/s³, below the floor / 2 cm; on all fours also the head too high and the hands too little on the floor):", ""] + detail
+    report += bridge_lines
     (CLIPS / f"{kind}.md").write_text("\n".join(report) + "\n")
     print(f"wrote {CLIPS / (kind + '.motion')} ({len(lib)} clips, {(len(h) + len(blob)) / 1e6:.2f} MB)")
 
@@ -358,9 +407,30 @@ def install() -> None:
         print(f"{src.relative_to(K.ROOT)} -> {dst.relative_to(K.ROOT)}")
 
 
-def doctor() -> None:
-    ok = True
+def fetch() -> None:
+    """The pinned models into the Hugging Face cache, and MotionBricks'
+    backend's files (`bricks.py`: the MLX port's weights are a model; the
+    CUDA backend's graph and rig are files)."""
+    import bricks
+
+    from huggingface_hub import snapshot_download
+
     for m in K.models().values():
+        if m.get("backend") not in (None, bricks.BACKEND):
+            continue
+        print(f"fetching {m['repo']}@{m['revision'][:10]}")
+        snapshot_download(m["repo"], revision=m["revision"], allow_patterns=m["include"])
+    bricks.fetch_files()
+
+
+def doctor() -> None:
+    import bricks
+
+    ok = True
+    print(f"MotionBricks backend: {bricks.BACKEND} (MOTIONBRICKS_BACKEND=mlx|cuda)")
+    for m in K.models().values():
+        if m.get("backend") not in (None, bricks.BACKEND):
+            continue
         try:
             snap = K.snapshot(m)
         except Exception as e:  # noqa: BLE001
@@ -375,9 +445,24 @@ def doctor() -> None:
                 ok &= good
                 print(f"{'ok' if good else 'BAD'} {path.name} sha256 {got[:16]}")
         print(f"ok {m['id']}: {m['repo']}@{m['revision'][:10]} ({m['licence']})")
-    import mlx.core as mx
+    for f in bricks.files().values():
+        if f.get("backend") not in (None, bricks.BACKEND):
+            continue
+        p = bricks.file_path(f)
+        good = p.exists() and K.sha256(p) == f["sha256"]
+        ok &= good
+        print(f"{'ok' if good else 'MISSING'} {f['id']}: {f['source']} (run `motion.py fetch`)" if not good else f"ok {f['id']}: {f['source']}")
+    try:
+        print(f"ok {bricks.model().made_by}")
+    except SystemExit as e:
+        print(f"BAD MotionBricks: {e}")
+        ok = False
+    try:
+        import mlx.core as mx
 
-    print(f"ok MLX {mx.__version__} on {mx.default_device()}")
+        print(f"ok MLX {mx.__version__} on {mx.default_device()} (Kimodo's sampling, `gen`)")
+    except ImportError:
+        print("no MLX: `gen` (Kimodo's sampling) cannot run here; `bake` can")
     sys.exit(0 if ok else 1)
 
 
@@ -387,13 +472,14 @@ def main() -> None:
     ap.add_argument("--creature", help="creatures, comma-separated (default: every briefs/*.toml)")
     ap.add_argument("--only", help="clips, comma-separated")
     ap.add_argument("--candidates", type=int)
+    ap.add_argument("--no-bridges", action="store_true", help="bake: the clips alone (no MotionBricks)")
     a = ap.parse_args()
     only = set(a.only.split(",")) if a.only else None
     kinds = a.creature.split(",") if a.creature else creatures()
     for k in kinds:
         if not (BRIEFS / f"{k}.toml").exists():
             ap.error(f"no briefs/{k}.toml (have: {', '.join(creatures())})")
-    {"fetch": K.fetch, "doctor": doctor, "gen": lambda: gen(kinds, only, a.candidates), "bake": lambda: bake(kinds), "install": install}[a.command]()
+    {"fetch": fetch, "doctor": doctor, "gen": lambda: gen(kinds, only, a.candidates), "bake": lambda: bake(kinds, not a.no_bridges), "install": install}[a.command]()
 
 
 if __name__ == "__main__":

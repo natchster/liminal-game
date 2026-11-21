@@ -65,3 +65,10 @@ for = "What it learns: it tears the sheet in half unread (1 s)"
 prompt = "A person holds a sheet of paper in front of them with both hands and tears it in half."
 seconds = 3.0
 speed = [0.0, 0.2]
+
+# Bridges (`bricks.py`, MotionBricks): the motion from one clip into
+# another, where `reader::pose` goes from the one to the other (it blended
+# the two; the page's clips are scrubbed by its rule's clock, and keep it).
+[[bridge]]
+from = ["read_still", "read_walk", "hurry"]
+to = ["read_still", "read_walk", "hurry"]

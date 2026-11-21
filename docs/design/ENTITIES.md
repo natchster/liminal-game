@@ -545,7 +545,18 @@ rooms like any.
   too) is planted in the world while it bears weight and stepped, never
   slid. The clip follows the creature (its brain moves it): played to the
   speed it goes, its strides lengthening more than its steps quicken
-  (`entities::motion`). They are **heavy and upright** (the developer's
+  (`entities::motion`). Going from one thing to the next it moves as a
+  body does, never as two poses averaged (2026-11-21): the way from each
+  clip into each it goes to is made in the lab by a second model, NVIDIA
+  MotionBricks, from the clip's last frames and the next's first
+  (`lab/motion/bricks.py`), leaving each clip about every step, and played
+  where the two were blended: a stop is its last step and the weight
+  settling, a start the push off, the Hound's sinking after its tell a
+  crouch it folds into. Each is made to the game's own speeds (a creature
+  starts and stops in a tenth of a second, so it does too: none eases into
+  a walk the root has already made), lands on the clip where that clip's
+  own lead-in is done, and is never held mid-step (no held frame begins on
+  one). They are **heavy and upright** (the developer's
   direction, 2026-11-19): the briefs ask for a heavy person, upright,
   placing each foot down heavily; each footfall sinks the pelvis on its
   legs, sprung back up (`Anim::mass`); each body stands part of the way out

@@ -246,6 +246,10 @@ impl Game {
     pub fn make_creature(&mut self, kind: &str, x: f64, z: f64) -> (EntityBuild, Creature) {
         let (data, material) = kind_data(kind);
         let body = build_body(kind, &material).unwrap_or_else(|| panic!("bodies.bin: no {kind}"));
+        // its motion read now, as the level is built (once a run: the
+        // Hound's library, its clips and their bridges, takes 11 ms, a
+        // hitch on the frame it first moved)
+        let _ = crate::entities::motion::library(kind);
         let g = body.root.clone();
         g.set_pos(self.wx(x), 0.0, self.wz(z));
         self.world.add(&g);

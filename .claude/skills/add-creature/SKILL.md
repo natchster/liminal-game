@@ -43,12 +43,12 @@ The plan and the rules every creature keeps are in `docs/design/ENTITIES.md`
    touch through `creature_contact`, chase through `creature_go` and burst
    through `creature_burst` (capped). Obey the director: sent away, it
    withdraws as soon as it no longer has you.
-   **Motion** (`entities::motion`, design §6): briefs in
-   `lab/motion/briefs/<kind>.toml`, each a person's motion in plain words
-   ("A person ..."; Kimodo knows people, not the wrong), one `neutral`
-   standing as the body is bound, `fours = true` for a body on all fours;
-   `cd lab/motion && .venv/bin/python motion.py gen --creature <kind>`,
-   `bake`, read `clips/<kind>.md`, `install`; add it to
+   **Motion** (`entities::motion`, design §6): follow the `creature-motion`
+   skill: its briefs (`lab/motion/briefs/<kind>.toml`, each a person's
+   motion in plain words; one `neutral` standing as the body is bound,
+   `fours = true` on all fours), its clips (NVIDIA Kimodo), the bridges
+   between them (NVIDIA MotionBricks: MLX on Apple Silicon, CUDA on Linux),
+   the bake, `install`, the lab, the tests and a blind review; add it to
    `motion::KINDS` and `bytes`. Its `pose` picks a clip a mode and lays the
    wrongness on top; add it to the lab (`lab/viewer/src/creatures.rs`: its
    scene through its modes) and look at it there (`cargo run --release`,

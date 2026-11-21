@@ -24,8 +24,14 @@ dependencies = [
     { name = "huggingface-hub" },
     { name = "kimodo-mlx" },
     { name = "mlx" },
+    { name = "motionbricks-mlx", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'" },
     { name = "numpy" },
     { name = "safetensors" },
+]
+
+[package.dev-dependencies]
+cuda = [
+    { name = "onnxruntime-gpu", marker = "sys_platform == 'linux'" },
 ]
 
 [package.metadata]
@@ -34,9 +40,13 @@ requires-dist = [
     { name = "huggingface-hub", specifier = "==1.33.0" },
     { name = "kimodo-mlx", git = "https://github.com/NomaDamas/kimodo-mlx?rev=bbb592aa2046361be541ab4f5e2b0e9ba4869b21" },
     { name = "mlx", specifier = "==0.32.4" },
+    { name = "motionbricks-mlx", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'", git = "https://github.com/natchster/motionbricks-mlx?subdirectory=model&rev=d17bd6c7d8e555df06e211704f359720b9b810f3" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "safetensors", specifier = ">=0.4" },
 ]
+
+[package.metadata.requires-dev]
+cuda = [{ name = "onnxruntime-gpu", marker = "sys_platform == 'linux'", specifier = ">=1.20" }]
 
 [[package]]
 name = "certifi"
@@ -113,6 +123,14 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/bf/9d/7ec738e68764703d07eb4da4b43aabf0ae6f969f34cb3792a88af400abc5/filelock-4.2.11.tar.gz", hash = "sha256:0cb84119fb8dce17898e1f69c974d5019daa59c4d7656be390a5fa59ccced912", size = 680235, upload-time = "2026-11-17T06:35:26.056Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ed/50/efc158a54b0046104b546f24b28ca1bf25b72969adb960032252a1687a96/filelock-4.2.11-py3-none-any.whl", hash = "sha256:020e229e4bb9d410fc799c07ddf45fa217cba970278f40b30751d94f309b69e2", size = 222003, upload-time = "2026-11-17T06:35:24.668Z" },
+]
+
+[[package]]
+name = "flatbuffers"
+version = "25.12.19"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/2d/d2a548598be01649e2d46231d151a6c56d10b964d94043a335ae56ea2d92/flatbuffers-25.12.19-py2.py3-none-any.whl", hash = "sha256:7634f50c427838bb021c2d66a3d1168e9d199b0607e6329399f04846d42e20b4", size = 26661, upload-time = "2025-12-19T23:16:13.622Z" },
 ]
 
 [[package]]
@@ -260,6 +278,15 @@ wheels = [
 ]
 
 [[package]]
+name = "motionbricks-mlx"
+version = "0.1.0"
+source = { git = "https://github.com/natchster/motionbricks-mlx?subdirectory=model&rev=d17bd6c7d8e555df06e211704f359720b9b810f3#d17bd6c7d8e555df06e211704f359720b9b810f3" }
+dependencies = [
+    { name = "mlx" },
+    { name = "numpy" },
+]
+
+[[package]]
 name = "numpy"
 version = "2.5.5"
 source = { registry = "https://pypi.org/simple" }
@@ -279,12 +306,39 @@ wheels = [
 ]
 
 [[package]]
+name = "onnxruntime-gpu"
+version = "1.32.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flatbuffers" },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "protobuf" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/8b/c48e90baf9b9389c4c709dae202938e03a01c7ffc792888bafcf60e9a6b6/onnxruntime_gpu-1.32.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:09637f3e38a1addc308dec5ef825a36eeb786e9615f45ec76aa29909df5cdd36", size = 251396935, upload-time = "2026-11-13T10:44:22.067Z" },
+    { url = "https://files.pythonhosted.org/packages/23/ae/49cf240c83e71385e482b37bfdf592d3c5da5d4736d8d27b4b551f3ca9d9/onnxruntime_gpu-1.32.0-cp312-cp312-manylinux_2_34_aarch64.whl", hash = "sha256:44c135429a1a24a5b7fa417dc0164164c34aadc1c6c03273a5b918a1339530f2", size = 311905052, upload-time = "2026-11-13T10:22:38.69Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "26.3"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/7d/fa/3944b40b07da9ce895c0e6303a5ab7d53da063554f534556b134a54d6093/packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79", size = 313412, upload-time = "2026-08-04T18:15:28.737Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c", size = 129956, upload-time = "2026-08-04T18:15:27.159Z" },
+]
+
+[[package]]
+name = "protobuf"
+version = "7.36.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d9/89/5b8517baa72f84a67b8a307ba953c91057af618bf40bf676f3c03551f8f0/protobuf-7.36.2.tar.gz", hash = "sha256:497d0463ff3316681da6c0b9e8d06cb465d61abce00b613ab42226175644d1bb", size = 512737, upload-time = "2026-09-17T20:07:59.326Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/ea/91fdf7c2b8bbd49cde056f00a9df6773532987e1c00fe2830b895af95c7e/protobuf-7.36.2-cp310-abi3-manylinux2014_aarch64.whl", hash = "sha256:e11e1f0180583a2af89db6a2ecd9e8dc40aa6d2988ca175bfd0e6d12ea72d74e", size = 344219, upload-time = "2026-09-17T20:07:52.914Z" },
+    { url = "https://files.pythonhosted.org/packages/17/ab/5fd5f8ece73fad885c5a09aa849b32d70472f954ba3a92d3bb5974ea953b/protobuf-7.36.2-cp310-abi3-manylinux2014_s390x.whl", hash = "sha256:f4fee11ec330d238b34a05c9b675f693c20415d1c5bd7d5320cc2f8a798eb9cf", size = 357223, upload-time = "2026-09-17T20:07:53.985Z" },
+    { url = "https://files.pythonhosted.org/packages/db/f3/3996583dd2906297a637af12114deddf7658af6e683fedb83be061983fb5/protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl", hash = "sha256:89f23aa53c24553a2416fd4fd1ec06f74fa42b14b546d8883128813f775bbfd2", size = 343223, upload-time = "2026-09-17T20:07:54.931Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/04/d52c7016b04b6c5108f26691f9d33ec82a9b65d041f1a9c771137693d618/protobuf-7.36.2-py3-none-any.whl", hash = "sha256:bdb3a345d48db958e6ce1f18e508beb0cc981d64f24088427549c866cd039f1e", size = 179806, upload-time = "2026-09-17T20:07:58.211Z" },
 ]
 
 [[package]]

@@ -53,3 +53,10 @@ for = "Hunt: through the window, bent low over the sill (2.4 s)"
 prompt = "A heavy person crouches down low, steps forward through a low opening, and slowly stands back up."
 seconds = 3.0
 speed = [0.1, 1.2]
+
+# Bridges (`bricks.py`, MotionBricks): the motion from one clip into
+# another, where `glass::pose` goes from the one to the other (it blended
+# the two; the climb is scrubbed by its pass through the glass, and keeps it).
+[[bridge]]
+from = ["still", "walk", "reach_walk"]
+to = ["still", "walk", "reach_walk"]

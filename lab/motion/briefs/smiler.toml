@@ -100,3 +100,39 @@ speed = [0.0, 0.3]
 # on the spot, and `back_away`, walking backwards then away. Its brain turns
 # it and its planted feet step round with it; it withdraws walking ahead.
 # Their samples stay cached under their briefs in the first lab commit.)
+
+# Bridges (`bricks.py`, MotionBricks): the motion from one clip into
+# another, where `smiler::pose` goes from the one to the other (it blended
+# the two). `at`: where in `to` it lands (its pick's start, or later where
+# the clip's own lead-in is what the bridge does).
+[[bridge]]
+from = ["idle", "look", "listen"]
+to = ["creep", "stalk", "run"]
+
+[[bridge]]
+from = ["creep", "stalk", "run"]
+to = ["idle", "look"]
+
+# `listen` begins with a person stopping (its first second): a bridge,
+# which is the stop, lands where it has stopped
+[[bridge]]
+from = ["creep", "stalk", "run", "idle", "look"]
+to = "listen"
+at = 1.25
+
+[[bridge]]
+from = ["idle", "look", "listen"]
+to = ["idle", "look"]
+
+[[bridge]]
+from = ["creep", "stalk", "run"]
+to = ["creep", "stalk", "run"]
+
+[[bridge]]
+from = ["stalk", "run"]
+to = "lunge"
+at = 0.3
+
+[[bridge]]
+from = "lunge"
+to = ["stand_over", "stalk", "idle"]

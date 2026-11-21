@@ -10,13 +10,16 @@
 //! - A body bound with straight legs (under a long garment) stands straight.
 //! - Planted feet stay planted while it walks.
 //! - A pose depends only on what drives it and its own seed (invariant 1).
+//! - Every bridge (the motion between two clips, made by MotionBricks) joins
+//!   the clips it goes between, the Hound's on all fours; a change of clip
+//!   goes by its bridge, with no joint jumping.
 use engine::prelude::*;
 use game::entities::body::{BodyRig, build_body};
 use game::entities::brain::Mode;
 use game::entities::glass::AtGlass;
 use game::entities::motion::anim::{Anim, Drive};
 use game::entities::motion::retarget::{Ends, Gains};
-use game::entities::motion::{KINDS, Mind, body_to_world, library};
+use game::entities::motion::{BRIDGE_LANDS, Frame, KINDS, Mind, body_to_world, library};
 use game::entities::reader::Page;
 
 fn body(kind: &str) -> BodyRig {
@@ -196,4 +199,103 @@ fn a_pose_is_a_function_of_what_drives_it() {
             );
         }
     }
+}
+
+/// The most any joint of one frame is from the same joint of another, m.
+fn gap(x: &Frame, y: &Frame) -> f64 {
+    x.p.iter().zip(&y.p).map(|(p, q)| (p.x - q.x).dhypot(p.y - q.y).dhypot(p.z - q.z)).fold(0.0, f64::max)
+}
+
+#[test]
+fn every_bridge_joins_the_clips_it_goes_between() {
+    // its first frame is its first clip's where it leaves it, its last its
+    // second's where it lands (to the 0.5 mm it is kept in), no later than
+    // BRIDGE_LANDS into it; it plays once; the Hound's stay on all fours
+    for kind in KINDS {
+        let lib = library(kind).expect("a library");
+        let mut n = 0;
+        for c in &lib.clips {
+            let Some(b) = &c.bridge else { continue };
+            n += 1;
+            let from = &lib.clips[lib.clip(&b.from).unwrap_or_else(|| panic!("{kind} {}: no clip {}", c.name, b.from))];
+            let to = &lib.clips[lib.clip(&b.to).unwrap_or_else(|| panic!("{kind} {}: no clip {}", c.name, b.to))];
+            assert!(!c.looped, "{kind} {}: a bridge loops", c.name);
+            assert!(b.to_t <= BRIDGE_LANDS, "{kind} {}: lands {} s into {}", c.name, b.to_t, b.to);
+            let g0 = gap(&c.frames[0], &from.sample(b.from_t, lib.fps));
+            let g1 = gap(c.frames.last().expect("frames"), &to.sample(b.to_t, lib.fps));
+            assert!(g0 < 0.005, "{kind} {}: leaves {} {g0} m from where it is", c.name, b.from);
+            assert!(g1 < 0.005, "{kind} {}: lands {g1} m from {}", c.name, b.to);
+            if kind == "hound" {
+                let head = c.frames.iter().map(|f| f.p[game::entities::motion::j::HEAD].y).fold(0.0, f64::max);
+                assert!(head < 1.0, "{kind} {}: its head rose to {head} m", c.name);
+            }
+        }
+        assert!(n > 20, "{kind}: {n} bridges");
+    }
+}
+
+#[test]
+fn a_change_of_clip_goes_by_its_bridge() {
+    // the Smiler walking on, then stopping: it plays the bridge from its
+    // walk into its stand (waiting for none: it has stopped), lands on its
+    // idle with its feet where its stand wants them, and from the stop on no
+    // joint moves faster in a frame than with the old blend
+    let kind = "smiler";
+    let run = |bridges: bool| {
+        let rig = body(kind);
+        let mut a = anim(kind, &rig, 5);
+        a.bridges = bridges;
+        let (mut bridged, mut after, mut jump) = (None, None, (0.0f64, 0, 0));
+        let mut last: Option<Vec<Vec3>> = None;
+        let mut pos = v3(0, 0, 0);
+        for f in 0..180 {
+            if f < 75 {
+                pos = v3(0.0, 0.0, pos.z + 0.7 / 30.0);
+            }
+            let d = a.drive(pos, 0.0, 1.0 / 30.0);
+            pose(kind, &mut a, &rig, &d, &Mind::new(Mode::Roam, 2.0 + f as f64 / 30.0, v3(0.0, 1.6, 50.0)));
+            if f >= 75 && bridged.is_none() && a.bridging().is_some() {
+                bridged = Some(f);
+            }
+            if bridged.is_some() && after.is_none() && a.bridging().is_none() {
+                after = Some((f, a.playing().0));
+            }
+            let now: Vec<Vec3> = (0..rig.bones.len()).map(|i| rig.head(i)).collect();
+            if (76..130).contains(&f)
+                && let Some(l) = &last
+            {
+                for (i, (p, q)) in now.iter().zip(l).enumerate() {
+                    let dj = (p.x - q.x).dhypot(p.y - q.y).dhypot(p.z - q.z);
+                    if dj > jump.0 {
+                        jump = (dj, f, i);
+                    }
+                }
+            }
+            last = Some(now);
+        }
+        // standing at the end: how far its feet are from where its clip wants them
+        let gap = a.locks().iter().take(2).map(|l| l.1).fold(0.0, f64::max) / a.rt.k;
+        (bridged, after, jump, rig.def.bones[jump.2].name.clone(), gap)
+    };
+    let (bridged, after, jump, bone, gap) = run(true);
+    let (_, _, blend, bone_blend, _) = run(false);
+    println!(
+        "from the stop on, the most a joint moved in a frame: {} m by its bridge ({bone}), {} m by the blend ({bone_blend})",
+        jump.0, blend.0
+    );
+    let b = bridged.expect("it stopped with no bridge (the blend)");
+    // (`moving` eases off over a few frames; then it leaves at once)
+    assert!(b < 75 + 12, "its bridge began {} frames after it stopped", b - 75);
+    let (f, clip) = after.expect("its bridge never ended");
+    assert_eq!(clip, "idle", "it landed on {clip} (frame {f})");
+    // its feet set where its stand wants them (a stance its bridge left
+    // narrow is stepped right, never held crossed)
+    assert!(gap < 0.1, "standing, a foot is {gap} m (on the mocap's scale) from where its clip wants it");
+    assert!(
+        jump.0 <= blend.0.max(0.05) * 1.1,
+        "{bone} moved {} m in frame {} with its bridge, {bone_blend} {} m with the blend",
+        jump.0,
+        jump.1,
+        blend.0
+    );
 }

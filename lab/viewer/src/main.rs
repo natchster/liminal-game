@@ -10,9 +10,10 @@
 //! cargo run --release -- --plants DIR [--seed N]
 //! cargo run --release -- --scene DIR [--creature K|all] [--view side|eye] [--lamp] [--wrong W] [--every S] [--no-video]
 //! cargo run --release -- --lineup DIR          # all six through their scenes, side by side
-//! cargo run --release -- --clips DIR [--creature K|all]   # each clip on its body, in place
+//! cargo run --release -- --clips DIR [--creature K|all] [--bridges]   # each clip on its body, in place (and its bridges)
 //! cargo run --release -- --metrics [DIR] [--creature K|all]   # the numbers, the old animation against the new
-//! cargo run --release -- --motion DIR …        # the libraries in DIR (e.g. ../motion/clips: a bake not yet installed)
+//! cargo run --release -- --motion DIR …        # the libraries in DIR (e.g. motion/clips, from lab/: a bake not yet installed)
+//! cargo run --release -- --scene|--metrics … --against DIR   # beside it the same creature on DIR's libraries, not the old animation
 //! ```
 mod creatures;
 mod legacy;
@@ -74,13 +75,38 @@ fn plants_offscreen(dir: &str, seed: u64) {
 /// The libraries the lab shows: `--motion DIR`'s `<kind>.motion` where there
 /// is one, else the game's own (`None`).
 pub fn libraries(args: &[String]) -> Vec<Option<&'static Library>> {
-    let dir = arg(args, "--motion");
+    libraries_in(arg(args, "--motion"))
+}
+
+/// What a scene or the metrics set beside the creature: the same creature
+/// on `--against DIR`'s libraries (one bake against another), else the old
+/// animation.
+fn twin(args: &[String], kind: &'static str) -> Option<Specimen> {
+    let dir = arg(args, "--against")?;
+    Some(specimen(kind, &libraries_in(Some(dir))))
+}
+
+fn libraries_in(dir: Option<String>) -> Vec<Option<&'static Library>> {
+    // a folder that is not there is an error, never the game's own clips in
+    // its place: a comparison against them proved nothing, and said "identical"
+    if let Some(d) = &dir
+        && !std::path::Path::new(d).is_dir()
+    {
+        eprintln!("{d}: no such folder of libraries (paths are from where the lab runs, lab/)");
+        std::process::exit(2);
+    }
     KINDS
         .iter()
         .map(|k| {
             let dir = dir.as_ref()?;
             let path = format!("{dir}/{k}.motion");
-            let bytes = std::fs::read(&path).ok()?;
+            let Ok(bytes) = std::fs::read(&path) else {
+                // (the Watcher has no clips: its poses are its body's)
+                if *k != "watcher" {
+                    eprintln!("{path}: not there (the game's clips instead)");
+                }
+                return None;
+            };
             match Library::parse(&bytes) {
                 Ok(l) => Some(&*Box::leak(Box::new(l))),
                 Err(e) => {
@@ -133,13 +159,19 @@ fn scene_offscreen(args: &[String], dir: &str) {
         if flag(args, "--lamp") {
             stage.set_light(Light::Lamp);
         }
-        let mut s = specimen(kind, &libs).with_legacy();
-        if let (Some(wr), Some(a)) = (arg(args, "--wrong").and_then(|s| s.parse().ok()), s.anim.as_mut()) {
-            a.wrong = wr;
+        let mut tw = twin(args, kind);
+        let mut s = if tw.is_some() { specimen(kind, &libs) } else { specimen(kind, &libs).with_legacy() };
+        if let Some(wr) = arg(args, "--wrong").and_then(|s| s.parse().ok()) {
+            for a in [s.anim.as_mut(), tw.as_mut().and_then(|t| t.anim.as_mut())].into_iter().flatten() {
+                a.wrong = wr;
+            }
         }
         stage.scene.add(&s.rig.root);
         if let Some(l) = &s.legacy {
             stage.scene.add(&l.rig.root);
+        }
+        if let Some(t) = &tw {
+            stage.scene.add(&t.rig.root);
         }
         let out = format!("{dir}/{kind}");
         let frames_dir = format!("{out}/frames");
@@ -158,6 +190,9 @@ fn scene_offscreen(args: &[String], dir: &str) {
                 break;
             }
             s.pose_legacy(dt, eye, 0.0);
+            if let Some(t) = tw.as_mut() {
+                t.step(dt, eye);
+            }
             let cam = camera(&view, s.pos, eye, kind);
             stage.look(&cam);
             let t = f as f64 / fps;
@@ -171,12 +206,13 @@ fn scene_offscreen(args: &[String], dir: &str) {
             if !video && !keep && !strip {
                 continue;
             }
-            let has_old = s.legacy.is_some();
-            let a = if let Some(l) = &s.legacy {
+            let old_rig = tw.as_ref().map(|t| &t.rig).or(s.legacy.as_ref().map(|l| &l.rig));
+            let has_old = old_rig.is_some();
+            let a = if let Some(l) = old_rig {
                 s.rig.root.set_visible(false);
-                l.rig.root.set_visible(true);
+                l.root.set_visible(true);
                 let a = stage.render(&mut r, w, h);
-                l.rig.root.set_visible(false);
+                l.root.set_visible(false);
                 Some(a)
             } else {
                 None
@@ -221,7 +257,7 @@ fn scene_offscreen(args: &[String], dir: &str) {
         }
         println!(
             "wrote {out}/ (sheet_new.png{})",
-            if s.legacy.is_some() { ", sheet_pairs.png: each pair the old, then the new" } else { "" }
+            if s.legacy.is_some() || tw.is_some() { ", sheet_pairs.png: each pair the old (or --against), then the new" } else { "" }
         );
     }
 }
@@ -292,6 +328,10 @@ fn clips_offscreen(args: &[String], dir: &str) {
         let stage = Stage::new(w as f64 / h as f64);
         stage.scene.add(&s.rig.root);
         for (ci, c) in lib.clips.iter().enumerate() {
+            // (its bridges too only when asked: there are hundreds)
+            if c.bridge.is_some() && !flag(args, "--bridges") {
+                continue;
+            }
             s.clip = Some((ci, 0.0));
             if let Some(a) = s.anim.as_mut() {
                 a.replant();
@@ -332,7 +372,8 @@ fn metrics(args: &[String]) {
         if kind == "watcher" {
             continue;
         }
-        let mut s = specimen(kind, &libs).with_legacy();
+        let mut tw = twin(args, kind);
+        let mut s = if tw.is_some() { specimen(kind, &libs) } else { specimen(kind, &libs).with_legacy() };
         let fps = 30.0;
         let mut names = vec![
             "hips",
@@ -371,6 +412,7 @@ fn metrics(args: &[String]) {
         let mut rest: Vec<bool> = vec![];
         let mut beats: Vec<usize> = vec![];
         let len: f64 = s.scene.iter().map(|b| b.secs).sum();
+        let mut last_bridge = None;
         for _ in 0..(len * fps) as usize {
             let dt = 1.0 / fps;
             let eye = s.eye();
@@ -378,12 +420,26 @@ fn metrics(args: &[String]) {
                 break;
             }
             s.pose_legacy(dt, eye, 0.0);
+            if let Some(t) = tw.as_mut() {
+                t.step(dt, eye);
+            }
             trace(&s);
+            if std::env::var("LAB_BRIDGES").is_ok()
+                && let Some(a) = s.anim.as_ref()
+            {
+                let now = a.bridging();
+                if now != last_bridge {
+                    if let Some(b) = now {
+                        println!("{kind} beat {:02} {:5.2} s: {b} (at {:.2} s)", s.beat, s.beat_t, s.time);
+                    }
+                    last_bridge = now;
+                }
+            }
             beats.push(s.beat);
             rest.push(
                 matches!(s.mode, game::entities::brain::Mode::Idle | game::entities::brain::Mode::Hold) && s.vel.0.dhypot(s.vel.1) < 0.05,
             );
-            let old = &s.legacy.as_ref().expect("the old animation").rig;
+            let old = tw.as_ref().map(|t| &t.rig).unwrap_or_else(|| &s.legacy.as_ref().expect("the old animation").rig);
             for (k, rig) in [old, &s.rig].into_iter().enumerate() {
                 tracks[k].push(names.iter().map(|nm| world(rig, rig.ix(nm).unwrap())).collect());
                 quats[k].push(names.iter().map(|nm| rig.body_rot(rig.ix(nm).unwrap())).collect());
@@ -538,6 +594,7 @@ pub fn trace(s: &Specimen) {
     }
     let Some(a) = s.anim.as_ref() else { return };
     let (clip, t) = a.playing();
+    let clip = a.bridging().unwrap_or(clip);
     let l = a.locks();
     let foot = |n: &str| {
         let i = s.rig.ix(n).unwrap();

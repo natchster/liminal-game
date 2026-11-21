@@ -50,7 +50,7 @@
   exists (`docs/README.md`).
 * **Skills and reviewers** (the inventory: `docs/engineering/AGENTS.md`; all written
   for this game and changed with it). `.claude/skills/<name>/SKILL.md` are
-  the content playbooks (zones, props, creatures, anomalies, sounds, pacing,
+  the content playbooks (zones, props, creatures and their motion, anomalies, sounds, pacing,
   voices, blind visual review, re-recording, the drift sweep, GitHub issues
   under the maintainer trust); a new one is
   followed end to end by a fresh agent before it is committed;

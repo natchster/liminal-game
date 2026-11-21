@@ -96,7 +96,9 @@ paths:
   `assets/src/creatures/`) into `bodies.bin`, posed so the pose is the rest
   pose. **Motion** is clips (`entities::motion`, design §6): a kind's
   library is made in the lab from its briefs (`lab/motion/briefs/<kind>.toml`,
-  `motion.py gen`, `bake`, `install` → `crates/game/assets/motion/`), its
+  `motion.py gen`, `bake`, `install` → `crates/game/assets/motion/`; its
+  `[[bridge]]`s, the way from one clip into the next, made by MotionBricks in
+  the bake and played by `Anim` where it would blend), its
   neutral brief standing as the body is bound (a stoop, a page before the
   face, all fours), and played by `motion::anim::Anim` from the kind's
   `pose(a, rig, drive, mind, …)` (a `Pick` a mode, the wrongness laid on

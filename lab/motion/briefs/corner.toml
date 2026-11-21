@@ -58,3 +58,19 @@ loop = true
 speed = [0.5, 1.2]
 candidates = 4
 
+
+# Bridges (`bricks.py`, MotionBricks): the motion from one clip into
+# another, where `corner::pose` goes from the one to the other (it blended
+# the two).
+[[bridge]]
+from = ["hold", "run", "walk_back"]
+to = ["hold", "run", "walk_back"]
+
+[[bridge]]
+from = ["hold", "run", "walk_back"]
+to = "grab"
+at = 0.5
+
+[[bridge]]
+from = "grab"
+to = ["hold", "run", "walk_back"]

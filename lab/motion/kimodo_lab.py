@@ -150,15 +150,23 @@ def embeddings(prompts: list[str]) -> dict[str, np.ndarray]:
 
 
 class Motion:
-    """The motion model and its statistics."""
+    """The motion model and its statistics. Decoding needs only the
+    statistics (NumPy files in the checkpoint): the bake runs without MLX
+    (on Linux too); the denoiser, on MLX, is loaded only to sample."""
 
     def __init__(self):
-        from kimodo_mlx.motion import MotionModel
-
         self.dir = snapshot(models()["kimodo-soma-seed"])
-        self.model = MotionModel.load(self.dir)
-        t = self.model.numpy_tensors
-        self.stats = {k: t[f"stats.{k}"] for k in ("global_root.mean", "global_root.std", "body.mean", "body.std")}
+        st = self.dir / "stats" / "motion"
+        self.stats = {f"{g}.{k}": np.load(st / g / f"{k}.npy").astype(np.float32) for g in ("global_root", "body") for k in ("mean", "std")}
+        self._model = None
+
+    @property
+    def model(self):
+        if self._model is None:
+            from kimodo_mlx.motion import MotionModel
+
+            self._model = MotionModel.load(self.dir)
+        return self._model
 
     def sample(self, emb: np.ndarray, frames: int, steps: int, seeds: list[int], cfg: float) -> np.ndarray:
         """Normalised features [len(seeds), frames, 369]: one sample a seed,

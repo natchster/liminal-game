@@ -81,6 +81,7 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `add-zone` | a zone archetype or purpose: the Level Design Book order, blockout checks, bot walk, lighting, set dressing last |
 | `add-prop` | a prop placer: theme and purpose, real materials, its Blender part, the look settle, the material lint, goldens |
 | `add-creature` | a creature: canon, body (Blender, MakeHuman CC0), brain, fairness, what it learns, ecology, rules and arena tests |
+| `creature-motion` | a creature's motion: its clips (NVIDIA Kimodo, from plain briefs) and the bridges between them (NVIDIA MotionBricks: the MLX port natchster/motionbricks-mlx on Apple Silicon, NVIDIA's own graph on CUDA on Linux), the bake, the game's player, the lab side by side, the tests, a blind review of close strips (followed end to end by a fresh agent before it was committed) |
 | `add-anomaly` | an anomaly level: canon and attribution, its run rules, its own notes, tests and goldens |
 | `add-sound` | a sound: synthesis, place, carry, the loudness and listening gates, a person's ears |
 | `tune-pacing` | the director: measure from bot runs, change one parameter, compare distributions |

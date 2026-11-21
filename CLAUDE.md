@@ -97,7 +97,7 @@ cargo xtask voice write --persona P              # the chosen takes into crates/
 cargo xtask voice selftest                       # the evaluation against known answers
 cargo xtask asset new|check|refs|write|rules|sheet NAME   # an asset's dossier (docs/design/ASSETS.md): brief, references, placement rules, playtest frames
 (cd lab && cargo run --release [-- --scene DIR|--metrics|--clips DIR])   # the creature lab: every creature moving by the game's own code (1–6, Tab); lab/README.md
-(cd lab/motion && .venv/bin/python motion.py gen|bake|install --creature K)   # its clips: briefs → Kimodo on MLX → crates/game/assets/motion/
+(cd lab/motion && .venv/bin/python motion.py gen|bake|install --creature K)   # its clips: briefs → Kimodo on MLX; its bridges: MotionBricks (MLX on Apple Silicon, CUDA on Linux) → crates/game/assets/motion/
 cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
 cargo xtask cutscene preview ID [--stage S]     # the sources as they stand, played on each stage: frames, a contact sheet, timeline, contract (target/xtask/cutscene/ID/)
 cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--area x0,z0,x1,z1] [--from-save FILE]   # by hand, never in check: the edges toured, gaps, flicker, clip, plain, coplanar; report.md, sheets (target/xtask/playtest/visual/)
@@ -219,7 +219,10 @@ the game and changed with it (`docs/engineering/AGENTS.md`): when the game grows
 system, it grows a skill; when a mistake repeats, it becomes a check.
 
 Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
-`add-creature`, `add-anomaly`, `add-sound`, `tune-pacing`, `visual-review`,
+`add-creature`, `creature-motion` (a creature's clips, from briefs by
+Kimodo, and the bridges between them by MotionBricks: MLX on Apple Silicon,
+CUDA on Linux; baked, played, looked at in the lab, judged blind),
+`add-anomaly`, `add-sound`, `tune-pacing`, `visual-review`,
 `drift-sweep` (weekly, in a fresh session: `cargo xtask drift`),
 `regen-fixtures` (the only way to re-record; invoked by name), and the
 voices: `voice-persona` (who speaks: the persona, its reference voice),

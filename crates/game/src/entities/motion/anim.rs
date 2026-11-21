@@ -1,5 +1,7 @@
 //! A creature's motion as it plays: the clip its kind picks ([`Pick`]),
-//! blended from the last, played to the speed it moves at, held and snapped,
+//! reached from the last by a bridge where its library has one (the motion
+//! between the two, made by MotionBricks: [`super::Bridge`]) and blended
+//! from it where not, played to the speed it moves at, held and snapped,
 //! its feet (and on all fours its hands) locked to the floor while they bear
 //! weight and stepped, never slid, when they let go.
 //!
@@ -15,7 +17,7 @@
 //! its own stream ([`Anim::new`]'s seed): nothing per frame is drawn from
 //! the game's streams (invariant 1).
 use super::retarget::{Ends, Gains, Retarget, set_global, slerp};
-use super::{Frame, Library, body_to_world, mix, sub, world_to_body};
+use super::{Frame, Library, Way, body_to_world, mix, sub, world_to_body};
 use crate::entities::body::{BodyRig, qmul};
 use crate::prelude::*;
 use std::collections::BTreeMap;
@@ -163,6 +165,9 @@ pub struct Anim {
     /// how much of its kind's wrongness is laid on (1 in the game; the lab
     /// shows the mocap bare at 0)
     pub wrong: f64,
+    /// a change of clip goes by its bridge where there is one (the game);
+    /// off, it is blended (the lab and the tests set the two side by side)
+    pub bridges: bool,
     /// seconds it has been animated
     pub time: f64,
     /// what the kind eases between (by name)
@@ -175,7 +180,15 @@ pub struct Anim {
     cur: Play,
     cur_name: &'static str,
     prev: Option<(Play, f64)>,
+    /// how long the pick asks its gains to ease over, s
     fade: f64,
+    /// how long the blend from `prev` lasts, s (the fade, or a bridge's)
+    blend: f64,
+    /// playing a bridge: the clip it lands on, and where in it (s)
+    bridge: Option<(usize, f64)>,
+    /// a bridge waited for: it, the clip it lands on, how much more of the
+    /// clip now to play before it leaves (s), and how long it has waited
+    pending: Option<(usize, usize, f64, f64)>,
     gains: Gains,
     /// held: the time left and its length
     hold: Option<(f64, f64)>,
@@ -216,6 +229,16 @@ const DIP_DAMP: f64 = 1.0;
 const DIP_MAX: f64 = 0.045;
 /// A held body falls at most this far behind its root, m.
 const MAX_LAG: f64 = 0.5;
+/// Standing, a foot further than this from where its clip wants it (m, on
+/// the mocap's scale) steps there, and takes this long (s): a shift of the feet.
+const SETTLE: f64 = 0.1;
+const SETTLE_STEP: f64 = 0.35;
+/// A bridge not waited for is blended in from where the clip it leaves is,
+/// over this, s ([`super::BRIDGE_REACH`]: the two are near).
+pub const BRIDGE_BLEND: f64 = 0.15;
+/// The longest a bridge is waited for in the game's time, s (a clip held or
+/// slowed may take longer to come round: then the blend).
+const BRIDGE_PATIENCE: f64 = 0.45;
 
 impl Anim {
     /// A motion for `rig` from `lib` (`fours`: its hands are feet too),
@@ -238,6 +261,7 @@ impl Anim {
             lib,
             rt,
             wrong: 1.0,
+            bridges: true,
             time: 0.0,
             ease: BTreeMap::new(),
             head: (0.0, 0.0),
@@ -246,6 +270,9 @@ impl Anim {
             cur_name: first,
             prev: None,
             fade: 0.3,
+            blend: 0.3,
+            bridge: None,
+            pending: None,
             gains: Gains::default(),
             hold: None,
             next_hold: 2.5,
@@ -305,9 +332,15 @@ impl Anim {
         self.ease.get(key).copied().unwrap_or(0.0)
     }
 
-    /// The clip playing, and how far into it (s).
+    /// The clip playing, and how far into it (s). (On a bridge: the clip it
+    /// goes into, and how far into the bridge.)
     pub fn playing(&self) -> (&'static str, f64) {
         (self.cur_name, self.cur.t)
+    }
+
+    /// The bridge playing, by name (a trace).
+    pub fn bridging(&self) -> Option<&'static str> {
+        self.bridge.map(|_| self.lib.clips[self.cur.clip].name.as_str())
     }
 
     /// Held this frame (a trace).
@@ -343,17 +376,63 @@ impl Anim {
         let dt = d.dt;
         self.time += dt;
         let lib = self.lib;
-        // ---- the clip: switched to with a blend from the last
+        // ---- the clip: switched to by a bridge, or with a blend from the last
         if pick.clip != self.cur_name && lib.clip(pick.clip).is_none() {
             self.missing = Some(pick.clip);
         }
+        let backing = pick.backs && d.ahead().0 < -0.05;
         if pick.clip != self.cur_name
             && let Some(c) = lib.clip(pick.clip)
         {
-            self.prev = Some((self.cur, pick.fade.max(1e-3)));
             self.fade = pick.fade.max(1e-3);
-            self.cur = Play { clip: c, t: pick.from };
+            self.pending = None;
+            // from the clip playing; or, on a bridge more than half played, from
+            // the clip it lands on, where it lands (blended in from where the
+            // bridge is: a body changing its mind on the way); none into a
+            // clip scrubbed by a rule's clock, or walking backward (the clip
+            // played back to front)
+            // (not when it turns straight back to the clip the bridge left: a
+            // start reversed into a stop crossed the Reader's feet, and the
+            // blend was preferred)
+            let from = match self.bridge {
+                None => Some((self.cur.clip, self.cur.t, false)),
+                Some((to, to_t)) => {
+                    let b = &lib.clips[self.cur.clip];
+                    let len = (b.frames.len() - 1) as f64 / lib.fps;
+                    let back = b.bridge.as_ref().is_some_and(|x| x.from == pick.clip);
+                    (self.cur.t >= 0.5 * len && !back).then_some((to, to_t, true))
+                }
+            };
+            let way = match from {
+                Some((f, t, mid)) if self.bridges && pick.at.is_none() && !backing => {
+                    lib.bridge(&lib.clips[f].name, t, pick.clip, pick.from, pick.travel && !mid).map(|w| (w, mid))
+                }
+                _ => None,
+            };
+            match way {
+                Some((Way::Wait(b, w), _)) => self.pending = Some((b, c, w, 0.0)),
+                Some((Way::Now(b), false)) => self.enter_bridge(b, c, 0.0),
+                Some((Way::Now(b) | Way::Blend(b), _)) => {
+                    self.blend = BRIDGE_BLEND;
+                    self.prev = Some((self.cur, self.blend));
+                    self.enter_bridge(b, c, 0.0);
+                }
+                None => self.cut_to(c, pick.from),
+            }
             self.cur_name = pick.clip;
+        }
+        // waited too long for a bridge (held, or slowed): the blend
+        if let Some((_, c, _, waited)) = self.pending
+            && waited > BRIDGE_PATIENCE
+        {
+            self.pending = None;
+            self.cut_to(c, pick.from);
+        }
+        // a clip scrubbed by a rule's clock ends a bridge into it at once
+        if pick.at.is_some()
+            && let Some((c, _)) = self.bridge.take()
+        {
+            self.cur = Play { clip: c, t: pick.at.unwrap_or(0.0) };
         }
         // its gains ease over the blend (no pop when a part is let go)
         let k = (dt / self.fade.max(0.05)).min(1.0);
@@ -365,7 +444,9 @@ impl Anim {
             if self.next_hold > self.time + hi {
                 self.next_hold = self.time + lo;
             }
-            if !held && self.hold.is_none() && self.time >= self.next_hold {
+            // (none begins on a bridge: it is the body's own way from one
+            // thing to the next, and held mid-step it snapped a foot 23 cm)
+            if !held && self.hold.is_none() && self.time >= self.next_hold && self.bridge.is_none() {
                 // never so long that the body falls far behind its root
                 let len = (0.35 + 0.45 * self.draw()).min(MAX_LAG / speed.max(0.1));
                 self.hold = Some((len, len));
@@ -410,25 +491,49 @@ impl Anim {
         // ---- the pace: a travelling clip played to the ground's speed
         let clip = &lib.clips[self.cur.clip];
         let (ahead, _) = d.ahead();
+        let bridging = self.bridge.is_some();
         let (mut stride, mut pace) = (1.0, 1.0);
-        if pick.travel && clip.speed > 0.05 {
+        // (a bridge's speed changes along it: played to its speed where it is,
+        // floored, so a start's first standing frames are passed quickly)
+        let clip_speed = if bridging { clip.speed_at(self.cur.t, lib.fps).max(0.25 * clip.speed).max(0.1) } else { clip.speed };
+        if pick.travel && clip_speed > 0.05 {
             let going = if pick.backs { ahead.abs() } else { d.speed() };
-            let want = going / (clip.speed * self.rt.k);
+            let want = going / (clip_speed * self.rt.k);
             // a faster pace and a longer stride, shared (a run is not a jog played fast)
             // (never played much past twice its pace: a clip played fast
             // reads as a cartoon's, not as a body's)
             pace = want.max(1e-3).dpowf(pick.cadence).clamp(0.45, pick.max_pace);
-            stride = (want / pace).clamp(0.4, 3.2);
-            if pick.backs && ahead < -0.05 {
+            // (a bridge's stride kept near its own: stretched to keep up with
+            // a start, it split flat)
+            stride = if bridging { (want / pace).clamp(0.6, 1.6) } else { (want / pace).clamp(0.4, 3.2) };
+            if pick.backs && ahead < -0.05 && !bridging {
                 pace = -pace;
             }
         }
         self.stride = self.stride + (stride - self.stride) * (dt * 6.0).min(1.0);
         self.pace = pace;
         let prev_rate = if rate > 0.0 { 1.0 } else { 0.0 };
+        let step = dt * rate * pace;
         match pick.at {
             Some(t) => self.cur.t = t,
-            None => self.cur.t += dt * rate * pace,
+            None => self.cur.t += step,
+        }
+        // a bridge waited for leaves as its frame comes round
+        if let Some((b, c, left, waited)) = self.pending {
+            if step >= left && step > 0.0 {
+                self.pending = None;
+                self.enter_bridge(b, c, step - left);
+            } else {
+                self.pending = Some((b, c, left - step.max(0.0), waited + dt));
+            }
+        }
+        // a bridge played to its end lands on its clip, where it goes on
+        if let Some((c, to_t)) = self.bridge {
+            let end = (lib.clips[self.cur.clip].frames.len() - 1) as f64 / lib.fps;
+            if self.cur.t >= end {
+                self.cur = Play { clip: c, t: to_t + (self.cur.t - end) };
+                self.bridge = None;
+            }
         }
         if let Some((p, left)) = self.prev.as_mut() {
             p.t += dt * prev_rate;
@@ -438,13 +543,28 @@ impl Anim {
             }
         }
         // ---- the pose: the current clip, faded in over the last
-        let mut fr = clip.sample(self.cur.t, lib.fps);
+        let mut fr = lib.clips[self.cur.clip].sample(self.cur.t, lib.fps);
         if let Some((p, left)) = self.prev {
             let old = lib.clips[p.clip].sample(p.t, lib.fps);
-            let w = 1.0 - left / self.fade;
+            let w = 1.0 - left / self.blend;
             fr = Frame::lerp(&old, &fr, w * w * (3.0 - 2.0 * w));
         }
         fr
+    }
+
+    /// Into bridge `b` (`over` s into it), which lands on clip `c`.
+    fn enter_bridge(&mut self, b: usize, c: usize, over: f64) {
+        let to_t = self.lib.clips[b].bridge.as_ref().map_or(0.0, |x| x.to_t);
+        self.cur = Play { clip: b, t: over };
+        self.bridge = Some((c, to_t));
+    }
+
+    /// Straight to clip `c` at `from` s, blended from the last over the fade.
+    fn cut_to(&mut self, c: usize, from: f64) {
+        self.blend = self.fade;
+        self.prev = Some((self.cur, self.blend));
+        self.cur = Play { clip: c, t: from };
+        self.bridge = None;
     }
 
     /// Where each foot (and on all fours each hand) goes: held where it
@@ -459,6 +579,13 @@ impl Anim {
         let mut fall = 0.0;
         let k = self.rt.k;
         let n = if self.rt.fours { 4 } else { 2 };
+        // standing (no bridge playing or waited for, not held), a foot held
+        // well away from where its clip wants it steps there, one at a time:
+        // a stance a bridge's last steps left narrow or crossed is set right,
+        // as a person shifts their feet (held as it was, it stood crossed: a
+        // blind review preferred the blend for it)
+        let settling = d.speed() < 0.15 && self.bridge.is_none() && self.pending.is_none() && !self.held();
+        let mut stepping = self.locks.iter().any(|l| l.release.is_some());
         for e in 0..n {
             let (s, hand) = (e % 2, e >= 2);
             let g = &self.gains;
@@ -504,6 +631,14 @@ impl Anim {
                     let dd = span(at, free);
                     lock.release = Some((at, dd, dd));
                     lock.at = Some(v3(free.x + d.vel.0 * dd, free.y, free.z + d.vel.1 * dd));
+                    stepping = true;
+                }
+                (true, Some(at))
+                    if settling && !stepping && lock.release.is_none() && (at.x - free.x).dhypot(at.z - free.z) > SETTLE * k =>
+                {
+                    lock.release = Some((at, SETTLE_STEP, SETTLE_STEP));
+                    lock.at = Some(free);
+                    stepping = true;
                 }
                 (false, Some(at)) => {
                     let dd = span(at, free);

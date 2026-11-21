@@ -38,3 +38,43 @@ licence = "Meta Llama 3 Community License; LLM2Vec adapters MIT"
 # NomaDamas/kimodo-mlx@bbb592aa2046361be541ab4f5e2b0e9ba4869b21: its MLX
 # denoiser and its LLM2Vec layer, read before use. Not kimodo-turbo: its
 # repository states no licence.
+
+# MotionBricks (`bricks.py`): the motion between two clips, its bridges.
+# The NVIDIA Open Model Agreement ("permits commercial use and
+# redistribution of modified models"); trained on Bones RigPlay 1. Two
+# backends, one tensor interface; `MOTIONBRICKS_BACKEND=mlx|cuda` chooses,
+# else the platform: on Apple Silicon the MLX port, natchster/motionbricks-mlx
+# (Apache-2.0, pinned in pyproject.toml), on these weights (the revision it
+# was checked against NVIDIA's PyTorch on)...
+[[model]]
+id = "motionbricks-soma"
+role = "bridges"
+does = "motion in-betweening on the 30-joint SOMA skeleton: four poses of a body and up to four it should reach, the motion between (0.6-1.9 s at 30 Hz)"
+repo = "nvidia/MotionBricks"
+revision = "3cb362d9b95aa40462abcb4d8cfae9ffb6d97410"
+include = ["soma/**"]
+licence = "NVIDIA Open Model Agreement"
+backend = "mlx"
+
+# ...on Linux with an NVIDIA GPU, NVIDIA's own graph of the same model
+# (NVlabs/motionbricks v0.2.0, Apache-2.0 code; the graph's weights the
+# agreement's) on ONNX Runtime's TensorRT or CUDA provider (`uv sync --group
+# cuda`), and the rig's rest offsets its rotations are turned through.
+# Fetched into target/lab/motion/files/ by `motion.py fetch`, checked by size
+# and SHA-256 (both are Git LFS objects upstream: their media URLs).
+[[file]]
+id = "motionbricks-soma-onnx"
+backend = "cuda"
+source = "NVlabs/motionbricks@54fc563a (v0.2.0)"
+url = "https://media.githubusercontent.com/media/NVlabs/motionbricks/54fc563aeaaf819a753d72cc9fdc6713989cdd43/motionbricks/assets/onnx/soma/mmm_v6_soma_fp32.onnx"
+sha256 = "856419dc72aeb14e591eebf4dd0ea05734a2506ddb00bcd39dd6dac2ad60f4fb"
+size = 757864273
+
+[[file]]
+id = "motionbricks-soma-rig"
+backend = "cuda"
+source = "NVlabs/motionbricks@54fc563a (v0.2.0)"
+url = "https://media.githubusercontent.com/media/NVlabs/motionbricks/54fc563aeaaf819a753d72cc9fdc6713989cdd43/tools/onnx/assets/soma_model_rig.npz"
+sha256 = "a3a349e4dd10b13731528c8613bd564629df9b8444201bd9278a5c414ffd2b40"
+size = 1184
+

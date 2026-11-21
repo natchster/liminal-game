@@ -1,7 +1,7 @@
 [project]
 name = "backrooms-lab-motion"
 version = "0.1.0"
-description = "Creature motion for the lab: NVIDIA Kimodo on MLX (kimodo-mlx), baked to clips the lab's viewer retargets (lab/README.md)"
+description = "Creature motion for the lab: NVIDIA Kimodo on MLX (kimodo-mlx) and MotionBricks (MLX or CUDA), baked to clips and bridges the lab's viewer retargets (lab/README.md)"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     # MIT; pinned to the commit read before it was used
@@ -11,7 +11,15 @@ dependencies = [
     "gguf>=0.17",
     "safetensors>=0.4",
     "huggingface_hub==1.33.0",
+    # Apache-2.0; NVIDIA MotionBricks on MLX (Apple Silicon), its bridges
+    # (bricks.py): pinned to the commit the bridges were made and checked with
+    "motionbricks-mlx @ git+https://github.com/natchster/motionbricks-mlx@d17bd6c7d8e555df06e211704f359720b9b810f3#subdirectory=model ; sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
+
+[dependency-groups]
+# Linux with an NVIDIA GPU: MotionBricks' bridges on NVIDIA's ONNX graph
+# (bricks.py, MOTIONBRICKS_BACKEND=cuda): `uv sync --group cuda`
+cuda = ["onnxruntime-gpu>=1.20 ; sys_platform == 'linux'"]
 
 [tool.uv]
 package = false

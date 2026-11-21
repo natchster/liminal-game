@@ -33,6 +33,7 @@ cargo run --release -- --lineup ../target/lab          # all six through their s
 cargo run --release -- --clips ../target/lab/clips     # every clip on its body, in place
 cargo run --release -- --metrics ../target/lab         # the numbers, the old animation against the new, beat by beat
 cargo run --release -- --motion motion/clips …         # a bake not yet installed in the game
+cargo run --release -- --scene DIR --motion motion/clips --against DIR2   # beside it the same creature on DIR2's libraries (one bake against another)
 cargo run --release -- --plants ../target/lab/plants   # the plant gallery
 cargo test --release                                   # the plants repeat and stay in budget
 ```
@@ -49,7 +50,8 @@ its clips beside it on the same path (`viewer/src/legacy.rs`, copied from
 a study light or a dim room and one lamp; Space pauses, `.` steps; drag and
 the wheel turn and come nearer.
 
-`LAB_TRACE=kind:beat` prints each frame of a beat (its clip, pace, stride,
+`LAB_BRIDGES=1` with `--metrics` prints each bridge a scene plays (its
+beat, when). `LAB_TRACE=kind:beat` prints each frame of a beat (its clip, pace, stride,
 each foot's lock and where it is); `LAB_POSE=kind` the bones its first
 second turns furthest from rest; `LAB_REST=1` with `--metrics` the bones
 that move while it stands.
@@ -58,13 +60,37 @@ that move while it stands.
 
 ```sh
 cd lab/motion
-uv sync                              # Python 3.12, MLX, kimodo-mlx at its pinned commit
-.venv/bin/python motion.py fetch     # the models of models.toml into the Hugging Face cache (9.3 GB)
-.venv/bin/python motion.py doctor    # there, at their revisions and hashes
+uv sync                              # Python 3.12, MLX, kimodo-mlx and natchster/motionbricks-mlx at their pinned commits
+.venv/bin/python motion.py fetch     # the models of models.toml into the Hugging Face cache (10 GB)
+.venv/bin/python motion.py doctor    # there, at their revisions and hashes; MotionBricks' backend
 .venv/bin/python motion.py gen [--creature hound]    # every brief, its candidate seeds (cached)
 .venv/bin/python motion.py bake [--creature hound]   # → clips/<kind>.motion, clips/<kind>.md
 .venv/bin/python motion.py install   # → crates/game/assets/motion/ (the game embeds them)
 ```
+
+**Where it runs.** On **Apple Silicon** all of it: Kimodo on MLX
+(kimodo-mlx) and MotionBricks on MLX, its port
+[natchster/motionbricks-mlx](https://github.com/natchster/motionbricks-mlx)
+(checked here against NVIDIA's ONNX graph: the same durations chosen, the
+joints within 6 µm). On **Linux with an NVIDIA GPU** the bake and its bridges
+run on NVIDIA's own MotionBricks graph
+([NVlabs/motionbricks](https://github.com/NVlabs/motionbricks) v0.2.0's
+ONNX, on ONNX Runtime's TensorRT or CUDA provider):
+
+```sh
+cd lab/motion
+uv sync --group cuda                 # ONNX Runtime with CUDA (MOTIONBRICKS_BACKEND=cuda is the default on Linux)
+.venv/bin/python motion.py fetch     # Kimodo's checkpoint, and NVIDIA's graph and rig (758 MB, pinned by SHA-256)
+.venv/bin/python motion.py doctor
+.venv/bin/python motion.py bake [--creature hound]   # given Kimodo's samples (target/lab/motion/raw/)
+```
+
+Sampling new clips (`gen`) runs Kimodo on MLX, so it is made on a Mac (or
+by NVIDIA's own Kimodo, outside this pipeline); the bake needs only the
+samples and Kimodo's checkpoint, no MLX. `MOTIONBRICKS_BACKEND=mlx|cuda`
+chooses the backend; `MOTIONBRICKS_MLX=DIR` (a clone of the port) or
+`MOTIONBRICKS_ONNX=FILE` (a copy of the graph) use a checkout of your own,
+read only. Each library and report names what made its bridges.
 
 1. **Briefs** (`motion/briefs/<kind>.toml`): a clip for each thing a
    creature's modes need (`../docs/design/ENTITIES.md`), each in plain words
@@ -90,11 +116,28 @@ uv sync                              # Python 3.12, MLX, kimodo-mlx at its pinne
    Six contacts a frame: each foot's heel and toe, each hand. **On all
    fours** (the Hound) BONES-SEED crawls on its knees: the knee is what meets
    the floor in step, so the knees are planted and stand for the feet.
-4. **In the game** (`crates/game/src/entities/motion/`): the retarget lays a
+4. **Bridges** (`motion/bricks.py`, after the clips in the same bake;
+   `bake --no-bridges` leaves them out): NVIDIA MotionBricks (SOMA, the
+   NVIDIA Open Model Agreement; on MLX on Apple Silicon, on NVIDIA's ONNX
+   graph on CUDA on Linux: above) makes the motion from each clip into each its creature
+   goes to (`[[bridge]]` in the briefs: `from`, `to`, `at` where in `to` it
+   lands): given the four frames of the one that lead to where it leaves
+   and the four of the other from where it lands, placed where the game's
+   root would be after 0.7 s (it starts and stops in a tenth of a second),
+   lined up by the clips' own facing. Bridges leave a travelling clip every
+   0.25 s, a standing one every 0.6 s; their ends are moved onto the frames
+   they join (what they plant takes one correction while it touches), and
+   one whose body missed its poses by more than 8 cm is left to the blend.
+   Each kind's report (`clips/<kind>.md`) lists them; in the library they
+   are 16-bit steps, deflated (the five libraries 3.7 MB, 1.4 without).
+5. **In the game** (`crates/game/src/entities/motion/`): the retarget lays a
    frame on the body by segment deltas from the neutral (no rotation
    convention of the source matters; a body bound in a stoop keeps it), the
    legs (on all fours the arms too) solved onto their ends, scaled by its
-   legs over the mocap's. `Anim` plays what the kind's `pose` picks: blended,
+   legs over the mocap's. `Anim` plays what the kind's `pose` picks: reached
+   by its bridge where there is one (moving on, it waits at most 0.3 s for
+   the next to leave, which starts on its very frame; stopped, it leaves at
+   once from the nearest, blended in over 0.15 s), else blended;
    played to the speed the creature moves at (a pace and a stride, shared
    by the pick's `cadence`), held and snapped, its feet locked to the floor
    while they bear weight and stepped when they let go. The kind's `pose`
